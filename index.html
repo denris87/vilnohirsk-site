@@ -5,23 +5,40 @@
 <title>Vilnohirsk.online</title>
 
 <style>
-body { margin:0; background:#000; color:#fff; font-family:Arial; }
-.container { padding:10px; display:flex; flex-wrap:wrap; gap:12px; }
+body {
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:Arial;
+}
+
+/* контейнер вертикально */
+.container {
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
 
 .widget {
-  flex:1 1 340px;
   background:#0b0b0b;
   padding:12px;
   border-radius:14px;
 }
 
+/* верх */
 .top-bar {
   display:flex;
   justify-content:space-between;
+  align-items:center;
 }
 
-.header { color:#00ff9c; font-weight:bold; }
+.header {
+  color:#00ff9c;
+  font-weight:bold;
+}
 
+/* часы */
 .clock {
   font-size:22px;
   font-weight:bold;
@@ -30,24 +47,39 @@ body { margin:0; background:#000; color:#fff; font-family:Arial; }
 }
 
 /* таблица */
-.table-head {
+.table-head,
+.train {
   display:grid;
-  grid-template-columns:70px 1fr 80px;
+  grid-template-columns: 80px 1fr 80px;
+  align-items:center;
+}
+
+.table-head {
   font-size:11px;
   color:#777;
   border-bottom:1px solid #333;
+  padding-bottom:4px;
 }
 
 .train {
-  display:grid;
-  grid-template-columns:70px 1fr 80px;
   padding:6px 0;
   border-bottom:1px solid #333;
 }
 
-.route { text-align:center; }
-.time { text-align:right; font-weight:bold; }
+/* выравнивание */
+.route {
+  text-align:center;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 
+.time {
+  text-align:right;
+  font-weight:bold;
+}
+
+/* цвета */
 .next { color:#00ff9c; }
 .soon { color:#ffcc00; }
 .passed { color:#555; }
@@ -55,7 +87,7 @@ body { margin:0; background:#000; color:#fff; font-family:Arial; }
 /* погода */
 .weather {
   text-align:center;
-  font-size:18px;
+  font-size:20px;
   color:#00ff9c;
 }
 </style>
@@ -65,33 +97,37 @@ body { margin:0; background:#000; color:#fff; font-family:Arial; }
 
 <div class="container">
 
-<!-- П'ятихатки → Дніпро -->
+<!-- 🌦 ПОГОДА -->
+<div class="widget">
+  <div class="weather" id="weather">Завантаження...</div>
+</div>
+
+<!-- 🚆 П'ятихатки → Дніпро -->
 <div class="widget">
   <div class="top-bar">
     <div class="header">🚆 П'ятихатки-Пас. → Дніпро-Гол.</div>
     <div class="clock" id="clock1"></div>
   </div>
+
   <div class="table-head">
     <div>№</div><div>Маршрут</div><div>Відпр.</div>
   </div>
+
   <div id="list1"></div>
 </div>
 
-<!-- Дніпро → П'ятихатки -->
+<!-- 🚆 Дніпро → П'ятихатки -->
 <div class="widget">
   <div class="top-bar">
     <div class="header">🚆 Дніпро-Гол. → П'ятихатки-Пас.</div>
     <div class="clock" id="clock2"></div>
   </div>
+
   <div class="table-head">
     <div>№</div><div>Маршрут</div><div>Відпр.</div>
   </div>
-  <div id="list2"></div>
-</div>
 
-<!-- Погода -->
-<div class="widget">
-  <div class="weather" id="weather">Завантаження...</div>
+  <div id="list2"></div>
 </div>
 
 </div>
@@ -160,10 +196,6 @@ function loadTrains(){
 
       render(document.getElementById("list1"),dnipro);
       render(document.getElementById("list2"),pyat);
-    })
-    .catch(()=>{
-      document.getElementById("list1").innerText="Помилка";
-      document.getElementById("list2").innerText="Помилка";
     });
 }
 
