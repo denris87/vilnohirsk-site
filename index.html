@@ -33,6 +33,22 @@ body {
   border-radius:14px;
 }
 
+/* дата */
+.datetime {
+  text-align:center;
+  color:#00ff9c;
+  font-family:"Courier New";
+}
+
+.date {
+  font-size: clamp(28px, 6vw, 60px);
+  font-weight:bold;
+}
+
+.time {
+  font-size: clamp(18px, 4vw, 36px);
+}
+
 /* таблица */
 .table-head,
 .train,
@@ -43,7 +59,9 @@ body {
 }
 
 .table-head {
+  font-size: clamp(13px, 3vw, 22px);
   font-weight:700;
+  color:#ffffff;
   border-bottom:2px solid #444;
   padding-bottom:8px;
 }
@@ -52,12 +70,7 @@ body {
   text-align:center;
 }
 
-.train {
-  padding:8px 0;
-  border-bottom:1px solid #222;
-  cursor:pointer;
-}
-
+/* выравнивание */
 .train div:nth-child(1),
 .details-row div:nth-child(1) {
   text-align:center;
@@ -65,23 +78,26 @@ body {
 
 .route {
   text-align:center;
+  word-break:break-word;
 }
 
 .time-cell {
   text-align:center;
 }
 
+.train {
+  padding:8px 0;
+  border-bottom:1px solid #222;
+  font-size: clamp(14px, 3.5vw, 26px);
+  cursor:pointer;
+}
+
 /* шторка */
 .details {
   display:none;
-}
-
-.details.open {
-  display:block;
-}
-
-.details-row {
-  padding:2px 0;
+  padding:10px 0;
+  border-bottom:1px solid #222;
+  font-size: clamp(13px, 3vw, 22px);
 }
 
 .details-row div:nth-child(2),
@@ -118,6 +134,13 @@ body {
 <div class="container">
 
 <div class="widget">
+  <div class="datetime">
+    <div class="date" id="date"></div>
+    <div class="time" id="time"></div>
+  </div>
+</div>
+
+<div class="widget">
   <div class="table-head">
     <div>№</div>
     <div>Маршрут прямування</div>
@@ -136,27 +159,18 @@ body {
 </div>
 
 <script>
-let opened = null;
-
-function toggle(id){
-  const el = document.getElementById(id);
-
-  if(opened === id){
-    el.classList.remove("open");
-    opened = null;
-    return;
-  }
-
-  if(opened){
-    document.getElementById(opened)?.classList.remove("open");
-  }
-
-  el.classList.add("open");
-  opened = id;
-}
-
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
+}
+
+function updateDateTime() {
+  const now = getKyivNow();
+
+  document.getElementById("date").textContent =
+    `${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+
+  document.getElementById("time").textContent =
+    `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
 }
 
 function getDiff(time){
@@ -167,68 +181,85 @@ function getDiff(time){
   return Math.floor((t-now)/60000);
 }
 
-const order = ["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
-
-const schedules = {
-  "6008":[["Пʼятихатки-Пас.","04:43"],["Вільногірськ","05:16"],["Верхівцеве","05:35"],["Верхньодніпровськ","06:15"],["Камʼянське-Пас.","06:42"],["Дніпро-Гол. (прибуття)","07:22"]],
-  "6010":[["Пʼятихатки-Пас.","05:30"],["Вільногірськ","06:01"],["Верхівцеве","06:19"],["Верхньодніпровськ","06:38"],["Камʼянське-Пас.","07:17"],["Дніпро-Гол. (прибуття)","08:09"]],
-  "6005":[["Дніпро-Гол.","04:52"],["Камʼянське-Пас.","05:48"],["Верхньодніпровськ","06:14"],["Верхівцеве","06:33"],["Вільногірськ","06:54"],["Пʼятихатки-Пас. (прибуття)","07:28"]],
-  "6018":[["Пʼятихатки-Пас.","08:29"],["Вільногірськ","09:00"],["Верхівцеве","09:21"],["Верхньодніпровськ","09:40"],["Камʼянське-Пас.","10:04"],["Дніпро-Гол. (прибуття)","10:57"]],
-  "6015":[["Дніпро-Гол.","08:22"],["Камʼянське-Пас.","09:20"],["Верхньодніпровськ","09:46"],["Верхівцеве","10:35"],["Вільногірськ","10:56"],["Пʼятихатки-Пас. (прибуття)","11:30"]],
-  "6038":[["Пʼятихатки-Пас.","16:50"],["Вільногірськ","17:23"],["Верхівцеве","17:44"],["Верхньодніпровськ","18:03"],["Камʼянське-Пас.","18:27"],["Дніпро-Гол. (прибуття)","19:17"]],
-  "6035":[["Дніпро-Гол.","16:38"],["Камʼянське-Пас.","17:44"],["Верхньодніпровськ","18:10"],["Верхівцеве","18:29"],["Вільногірськ","18:50"],["Пʼятихатки-Пас. (прибуття)","19:22"]],
-  "6037":[["Дніпро-Гол.","17:34"],["Камʼянське-Пас.","18:33"],["Верхньодніпровськ","18:59"],["Верхівцеве","19:18"],["Вільногірськ","19:39"],["Пʼятихатки-Пас. (прибуття)","20:14"]],
-  "6044":[["Пʼятихатки-Пас.","20:37"],["Вільногірськ","21:21"],["Верхівцеве","21:40"],["Верхньодніпровськ","21:58"],["Камʼянське-Пас.","22:22"],["Дніпро-Гол. (прибуття)","23:12"]],
-  "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас. (прибуття)","23:10"]]
-};
+const order = [
+  "6008","6010","6005","6018","6015",
+  "6038","6035","6037","6044","6043"
+];
 
 function render(el,data){
-  data.sort((a,b)=> order.indexOf(a.number)-order.indexOf(b.number));
+  data.sort((a,b)=> order.indexOf(a.number) - order.indexOf(b.number));
+
   el.innerHTML="";
 
   data.forEach(x=>{
-    const diff=getDiff(x.time);
+    const diff = getDiff(x.time);
+
     let cls="train";
     let label=x.time;
 
-    if(diff<0) cls+=" passed";
-    else if(diff<=10){ cls+=" soon"; label="≈ "+diff+" хв"; }
-    else cls+=" future";
+    if(diff < 0){
+      cls+=" passed";
+    } else if(diff <= 10){
+      cls+=" soon";
+      label="≈ "+diff+" хв";
+    } else {
+      cls+=" future";
+    }
 
-    const id="d-"+x.number;
+    const id = "details-"+x.number;
 
     el.innerHTML+=`
-    <div class="${cls}" onclick="toggle('${id}')">
-      <div>${x.number}</div>
-      <div class="route">${x.route}</div>
-      <div class="time-cell">${label}</div>
-    </div>`;
+      <div class="${cls}" onclick="toggle('${id}')">
+        <div>${x.number}</div>
+        <div class="route">${x.route}</div>
+        <div class="time-cell">${label}</div>
+      </div>
+    `;
 
-    if(schedules[x.number]){
-      el.innerHTML+=`<div class="details" id="${id}">`;
+    if(x.number === "6008"){
+      el.innerHTML+=`
+      <div class="details" id="${id}">
+        <div class="details-row"><div></div><div>Пʼятихатки-Пас.</div><div>04:43</div></div>
+        <div class="details-row"><div></div><div>Вільногірськ</div><div>05:16</div></div>
+        <div class="details-row"><div></div><div>Верхівцеве</div><div>05:35</div></div>
+        <div class="details-row"><div></div><div>Верхньодніпровськ</div><div>06:15</div></div>
+        <div class="details-row"><div></div><div>Камʼянське-Пас.</div><div>06:42</div></div>
+        <div class="details-row"><div></div><div>Дніпро-Гол. (прибуття)</div><div>07:22</div></div>
+      </div>`;
+    }
 
-      schedules[x.number].forEach(r=>{
-        el.innerHTML+=`
-        <div class="details-row">
-          <div></div>
-          <div>${r[0]}</div>
-          <div>${r[1]}</div>
-        </div>`;
-      });
-
-      el.innerHTML+=`</div>`;
+    if(x.number === "6010"){
+      el.innerHTML+=`
+      <div class="details" id="${id}">
+        <div class="details-row"><div></div><div>Пʼятихатки-Пас.</div><div>05:30</div></div>
+        <div class="details-row"><div></div><div>Вільногірськ</div><div>06:01</div></div>
+        <div class="details-row"><div></div><div>Верхівцеве</div><div>06:19</div></div>
+        <div class="details-row"><div></div><div>Верхньодніпровськ</div><div>06:38</div></div>
+        <div class="details-row"><div></div><div>Камʼянське-Пас.</div><div>07:17</div></div>
+        <div class="details-row"><div></div><div>Дніпро-Гол. (прибуття)</div><div>08:09</div></div>
+      </div>`;
     }
   });
+}
+
+function toggle(id){
+  const el = document.getElementById(id);
+  el.style.display = (el.style.display === "block") ? "none" : "block";
 }
 
 function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(r=>r.json())
-    .then(d=>render(document.getElementById("list"),d.trains));
+    .then(d=>{
+      render(document.getElementById("list"), d.trains);
+    });
 }
 
 loadTrains();
+updateDateTime();
+
 setInterval(loadTrains,30000);
+setInterval(updateDateTime,1000);
 </script>
 
 </body>
