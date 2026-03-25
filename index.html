@@ -33,24 +33,31 @@ body {
   box-shadow:0 0 10px rgba(0,255,156,0.1);
 }
 
-/* верх */
-.top-bar {
+/* ПОГОДА */
+.weather-box {
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
 
-.header {
+.weather {
+  font-size:20px;
   color:#00ff9c;
-  font-weight:bold;
+}
+
+.datetime {
+  text-align:right;
+  color:#00ff9c;
+  font-family:"Courier New";
+}
+
+.date {
   font-size:14px;
 }
 
-.clock {
+.time {
   font-size:22px;
   font-weight:bold;
-  color:#00ff9c;
-  font-family:"Courier New";
 }
 
 /* таблица */
@@ -73,7 +80,6 @@ body {
   border-bottom:1px solid #222;
 }
 
-/* выравнивание */
 .route {
   text-align:center;
   white-space:nowrap;
@@ -81,7 +87,7 @@ body {
   text-overflow:ellipsis;
 }
 
-.time {
+.time-cell {
   text-align:right;
   font-weight:bold;
 }
@@ -92,13 +98,6 @@ body {
 
 .soon { color:#ffcc00; }
 .passed { color:#555; }
-
-/* погода */
-.weather {
-  text-align:center;
-  font-size:22px;
-  color:#00ff9c;
-}
 </style>
 </head>
 
@@ -107,40 +106,34 @@ body {
 <div class="wrapper">
 <div class="container">
 
-<!-- 🌦 ПОГОДА -->
+<!-- 🌦 ПОГОДА + ДАТА -->
 <div class="widget">
-  <div class="weather" id="weather">Завантаження...</div>
+  <div class="weather-box">
+    <div class="weather" id="weather">Завантаження...</div>
+    <div class="datetime">
+      <div class="date" id="date"></div>
+      <div class="time" id="time"></div>
+    </div>
+  </div>
 </div>
 
 <!-- 🚆 П'ятихатки → Дніпро -->
 <div class="widget">
-  <div class="top-bar">
-    <div class="header">🚆 П'ятихатки-Пас. → Дніпро-Гол.</div>
-    <div class="clock" id="clock1"></div>
-  </div>
-
   <div class="table-head">
     <div>№</div>
     <div>Маршрут</div>
     <div>Відпр.</div>
   </div>
-
   <div id="list1"></div>
 </div>
 
 <!-- 🚆 Дніпро → П'ятихатки -->
 <div class="widget">
-  <div class="top-bar">
-    <div class="header">🚆 Дніпро-Гол. → П'ятихатки-Пас.</div>
-    <div class="clock" id="clock2"></div>
-  </div>
-
   <div class="table-head">
     <div>№</div>
     <div>Маршрут</div>
     <div>Відпр.</div>
   </div>
-
   <div id="list2"></div>
 </div>
 
@@ -148,19 +141,25 @@ body {
 </div>
 
 <script>
-// время Киев
+// Киев время
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
-// часы
-function updateClocks() {
-  const n=getKyivNow();
-  const t=n.getHours().toString().padStart(2,"0")+":"+
-           n.getMinutes().toString().padStart(2,"0");
+// дата и часы с секундами
+function updateDateTime() {
+  const now = getKyivNow();
 
-  document.getElementById("clock1").textContent=t;
-  document.getElementById("clock2").textContent=t;
+  const d = String(now.getDate()).padStart(2,"0");
+  const m = String(now.getMonth()+1).padStart(2,"0");
+  const y = now.getFullYear();
+
+  const h = String(now.getHours()).padStart(2,"0");
+  const min = String(now.getMinutes()).padStart(2,"0");
+  const s = String(now.getSeconds()).padStart(2,"0");
+
+  document.getElementById("date").textContent = `${d}.${m}.${y}`;
+  document.getElementById("time").textContent = `${h}:${min}:${s}`;
 }
 
 // разница
@@ -181,7 +180,7 @@ function render(el,data){
 
   arr.forEach(x=>{
     let rowClass="train";
-    let timeClass="time";
+    let timeClass="time-cell";
     let label=x.time;
 
     if(x.diff<0) timeClass+=" passed";
@@ -204,7 +203,7 @@ function render(el,data){
   });
 }
 
-// 🚆 поезда
+// поезда
 function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(r=>r.json())
@@ -217,28 +216,28 @@ function loadTrains(){
     });
 }
 
-// 🌦 погода
+// погода
 function loadWeather(){
   fetch("https://api.open-meteo.com/v1/forecast?latitude=48.484&longitude=34.016&current_weather=true")
     .then(r=>r.json())
     .then(d=>{
       const w=d.current_weather;
 
-      document.getElementById("weather").innerHTML=
-        "🌦 Вільногірськ<br>"+
-        "🌡 "+w.temperature+"°C<br>"+
-        "💨 "+w.windspeed+" км/год";
+      document.getElementById("weather").innerHTML =
+        "🌦 Вільногірськ<br>" +
+        "🌡 " + w.temperature + "°C<br>" +
+        "💨 " + w.windspeed + " км/год";
     });
 }
 
 // запуск
 loadTrains();
 loadWeather();
-updateClocks();
+updateDateTime();
 
 setInterval(loadTrains,30000);
 setInterval(loadWeather,600000);
-setInterval(updateClocks,1000);
+setInterval(updateDateTime,1000);
 </script>
 
 </body>
