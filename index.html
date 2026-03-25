@@ -6,19 +6,28 @@
 <title>Vilnohirsk.online</title>
 
 <style>
-body {
+html, body {
   margin:0;
+  padding:0;
+  height:100%;
+}
+
+body {
   color:#fff;
   font-family:Arial;
   display:flex;
   justify-content:center;
+  align-items:flex-start; /* ВАЖНО: убрали центр по вертикали */
+
+  min-height:100vh;
 
   background: linear-gradient(-45deg,
     #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93,
     #a5ca49,#8cc454,#41bc81,#74bf54,#53bc67
   );
   background-size:400% 400%;
-  animation: gradientMove 60s ease infinite; /* ЕЩЕ МЕДЛЕННЕЕ */
+  background-attachment: fixed; /* фикс фона */
+  animation: gradientMove 60s ease infinite;
 }
 
 @keyframes gradientMove {
@@ -31,6 +40,7 @@ body {
   width:100%;
   max-width:900px;
   padding:10px;
+  padding-bottom:30px; /* защита от нижней полосы */
 }
 
 .container {
