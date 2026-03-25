@@ -21,7 +21,6 @@ body {
   padding:10px;
 }
 
-/* блоки */
 .container {
   display:flex;
   flex-direction:column;
@@ -64,7 +63,6 @@ body {
   color:#ffffff;
   border-bottom:2px solid #444;
   padding-bottom:8px;
-  letter-spacing:0.5px;
   text-shadow:0 0 6px rgba(255,255,255,0.2);
 }
 
@@ -73,9 +71,26 @@ body {
 }
 
 .train {
-  padding:8px 0;
+  padding:10px 0;
   border-bottom:1px solid #222;
   font-size: clamp(14px, 3.5vw, 26px);
+  cursor:pointer;
+}
+
+.train:hover {
+  background:rgba(255,255,255,0.05);
+}
+
+/* шторка */
+.dropdown {
+  display:none;
+  padding:10px;
+  margin:6px 0;
+  background:#111;
+  border-left:3px solid #00ff9c;
+  font-size: clamp(13px, 3vw, 20px);
+  line-height:1.6;
+  color:#ccc;
 }
 
 /* колонки */
@@ -89,16 +104,14 @@ body {
   word-break:break-word;
 }
 
-/* цвета поездов */
+/* цвета */
 .future div { color:#00ff9c !important; }
 .soon div { color:#ffcc00 !important; }
 .passed div { color:#555 !important; }
 
-/* ПРИМЕТКИ */
+/* приметки */
 .notes-title {
-  text-align:left;
   margin-top:10px;
-  font-size: clamp(14px, 3vw, 22px);
   color:#ff3b3b;
   font-weight:bold;
 }
@@ -107,7 +120,6 @@ body {
   margin-top:6px;
   color:#00ff9c;
   font-style:italic;
-  font-size: clamp(13px, 2.8vw, 20px);
 }
 </style>
 </head>
@@ -117,7 +129,6 @@ body {
 <div class="wrapper">
 <div class="container">
 
-<!-- ДАТА -->
 <div class="widget">
   <div class="datetime">
     <div class="date" id="date"></div>
@@ -125,7 +136,6 @@ body {
   </div>
 </div>
 
-<!-- РАСПИСАНИЕ -->
 <div class="widget">
   <div class="table-head">
     <div>№</div>
@@ -134,7 +144,6 @@ body {
   </div>
   <div id="list"></div>
 
-  <!-- ПРИМЕТКИ -->
   <div class="notes-title">Примітки:</div>
   <div class="notes-text">
     Наразі жодних змін у розкладі та скасувань приміських електропоїздів немає...
@@ -145,28 +154,23 @@ body {
 </div>
 
 <script>
-// время Киев
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
-// дата + часы
 function updateDateTime() {
   const now = getKyivNow();
-
   const d = String(now.getDate()).padStart(2,"0");
   const m = String(now.getMonth()+1).padStart(2,"0");
   const y = now.getFullYear();
-
   const h = String(now.getHours()).padStart(2,"0");
   const min = String(now.getMinutes()).padStart(2,"0");
   const s = String(now.getSeconds()).padStart(2,"0");
 
-  document.getElementById("date").textContent = `${d}.${m}.${y}`;
-  document.getElementById("time").textContent = `${h}:${min}:${s}`;
+  date.textContent = `${d}.${m}.${y}`;
+  time.textContent = `${h}:${min}:${s}`;
 }
 
-// разница
 function getDiff(time){
   const now=getKyivNow();
   const [h,m]=time.split(":").map(Number);
@@ -175,52 +179,56 @@ function getDiff(time){
   return Math.floor((t-now)/60000);
 }
 
-// порядок
-const order = [
-  "6008","6010","6005","6018","6015",
-  "6038","6035","6037","6044","6043"
-];
+const order = ["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-// рендер
+function toggle(id){
+  const el = document.getElementById(id);
+  el.style.display = el.style.display === "block" ? "none" : "block";
+}
+
 function render(el,data){
   data.sort((a,b)=> order.indexOf(a.number) - order.indexOf(b.number));
-
   el.innerHTML="";
 
   data.forEach(x=>{
     const diff = getDiff(x.time);
-
     let cls="train";
     let label=x.time;
 
-    if(diff < 0){
-      cls+=" passed";
-    } else if(diff <= 10){
-      cls+=" soon";
-      label="≈ "+diff+" хв";
-    } else {
-      cls+=" future";
-    }
+    if(diff < 0){ cls+=" passed"; }
+    else if(diff <= 10){ cls+=" soon"; label="≈ "+diff+" хв"; }
+    else { cls+=" future"; }
+
+    const is6008 = x.number === "6008";
 
     el.innerHTML+=`
-      <div class="${cls}">
-        <div>${x.number}</div>
-        <div class="route">${x.route}</div>
-        <div class="time-cell">${label}</div>
-      </div>`;
+      <div>
+        <div class="${cls}" onclick="${is6008 ? "toggle('d6008')" : ""}">
+          <div>${x.number}</div>
+          <div class="route">${x.route}</div>
+          <div class="time-cell">${label}</div>
+        </div>
+
+        ${is6008 ? `
+        <div class="dropdown" id="d6008">
+          Пʼятихатки-Пас. — 04:43<br>
+          Вільногірськ — 05:16<br>
+          Верхівцеве — 05:35<br>
+          Верхньодніпровськ — 06:15<br>
+          Камʼянське-Пас. — 06:42<br>
+          Дніпро-Гол. — 07:22 (прибуття)
+        </div>` : ""}
+      </div>
+    `;
   });
 }
 
-// загрузка
 function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(r=>r.json())
-    .then(d=>{
-      render(document.getElementById("list"), d.trains);
-    });
+    .then(d=> render(list, d.trains));
 }
 
-// запуск
 loadTrains();
 updateDateTime();
 
