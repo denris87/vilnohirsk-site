@@ -49,8 +49,31 @@ updateClock();
 </script>
 
 <div class="widget">
-  🚆 Поезда (сюда вставим твой виджет)
+  <div id="train-list">Завантаження...</div>
 </div>
+
+<script>
+function loadTrains() {
+  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
+    .then(res => res.json())
+    .then(data => {
+      const list = document.getElementById("train-list");
+
+      list.innerHTML = data.trains.map(train => `
+        <div style="margin:10px 0; border-bottom:1px solid #00ff88; padding-bottom:5px;">
+          <strong>${train.number}</strong> — ${train.route}<br>
+          🕒 ${train.time}
+        </div>
+      `).join("");
+    })
+    .catch(() => {
+      document.getElementById("train-list").innerText = "Ошибка загрузки";
+    });
+}
+
+loadTrains();
+setInterval(loadTrains, 30000); // обновление каждые 30 сек
+</script>
 
 <div class="widget">
   🌦 Погода
