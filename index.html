@@ -70,7 +70,7 @@ body {
   text-align:center;
 }
 
-/* ВАЖНО: выравнивание колонок */
+/* выравнивание */
 .train div:nth-child(1),
 .details-row div:nth-child(1) {
   text-align:center;
@@ -225,6 +225,18 @@ function render(el,data){
         <div class="details-row"><div></div><div>Верхньодніпровськ</div><div>06:15</div></div>
         <div class="details-row"><div></div><div>Камʼянське-Пас.</div><div>06:42</div></div>
         <div class="details-row"><div></div><div>Дніпро-Гол. (прибуття)</div><div>07:22</div></div>
+      </div>`;
+    }
+
+    if(x.number === "6010"){
+      el.innerHTML+=`
+      <div class="details" id="${id}">
+        <div class="details-row"><div></div><div>Пʼятихатки-Пас.</div><div>05:30</div></div>
+        <div class="details-row"><div></div><div>Вільногірськ</div><div>06:01</div></div>
+        <div class="details-row"><div></div><div>Верхівцеве</div><div>06:19</div></div>
+        <div class="details-row"><div></div><div>Верхньодніпровськ</div><div>06:38</div></div>
+        <div class="details-row"><div></div><div>Камʼянське-Пас.</div><div>07:17</div></div>
+        <div class="details-row"><div></div><div>Дніпро-Гол. (прибуття)</div><div>08:09</div></div>
       </div>`;
     }
   });
