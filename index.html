@@ -128,7 +128,7 @@ body {
 <!-- РАСПИСАНИЕ -->
 <div class="widget">
   <div class="table-head">
-    <div>№ поїзда</div>
+    <div>№</div>
     <div>Маршрут</div>
     <div>Відпр.</div>
   </div>
@@ -204,7 +204,7 @@ function render(el,data){
 
     el.innerHTML+=`
       <div class="${cls}">
-        <div>№${x.number}</div>
+        <div>${x.number}</div>
         <div class="route">${x.route}</div>
         <div class="time-cell">${label}</div>
       </div>`;
