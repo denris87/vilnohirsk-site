@@ -10,20 +10,29 @@ body {
   background:#000;
   color:#fff;
   font-family:Arial;
+  display:flex;
+  justify-content:center;
 }
 
-/* контейнер вертикально */
+/* ОСНОВНОЙ БЛОК ПО ЦЕНТРУ */
+.wrapper {
+  width:100%;
+  max-width:900px;
+  padding:20px 10px;
+}
+
+/* вертикально */
 .container {
-  padding:10px;
   display:flex;
   flex-direction:column;
-  gap:12px;
+  gap:16px;
 }
 
 .widget {
   background:#0b0b0b;
-  padding:12px;
-  border-radius:14px;
+  padding:14px;
+  border-radius:16px;
+  box-shadow:0 0 10px rgba(0,255,156,0.1);
 }
 
 /* верх */
@@ -36,6 +45,7 @@ body {
 .header {
   color:#00ff9c;
   font-weight:bold;
+  font-size:14px;
 }
 
 /* часы */
@@ -63,7 +73,7 @@ body {
 
 .train {
   padding:6px 0;
-  border-bottom:1px solid #333;
+  border-bottom:1px solid #222;
 }
 
 /* выравнивание */
@@ -87,13 +97,15 @@ body {
 /* погода */
 .weather {
   text-align:center;
-  font-size:20px;
+  font-size:22px;
   color:#00ff9c;
 }
 </style>
 </head>
 
 <body>
+
+<div class="wrapper">
 
 <div class="container">
 
@@ -131,9 +143,10 @@ body {
 </div>
 
 </div>
+</div>
 
 <script>
-// ⏰ Киевское время
+// время Киев
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
@@ -186,7 +199,7 @@ function render(el,data){
   });
 }
 
-// 🚆 загрузка электричек
+// поезда
 function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(r=>r.json())
@@ -199,7 +212,7 @@ function loadTrains(){
     });
 }
 
-// 🌦 погода
+// погода
 function loadWeather(){
   fetch("https://api.open-meteo.com/v1/forecast?latitude=48.484&longitude=34.016&current_weather=true")
     .then(r=>r.json())
