@@ -70,11 +70,10 @@ body {
   text-align:center;
 }
 
-.train {
-  padding:8px 0;
-  border-bottom:1px solid #222;
-  font-size: clamp(14px, 3.5vw, 26px);
-  cursor:pointer;
+/* ВАЖНО: выравнивание колонок */
+.train div:nth-child(1),
+.details-row div:nth-child(1) {
+  text-align:center;
 }
 
 .route {
@@ -86,6 +85,13 @@ body {
   text-align:center;
 }
 
+.train {
+  padding:8px 0;
+  border-bottom:1px solid #222;
+  font-size: clamp(14px, 3.5vw, 26px);
+  cursor:pointer;
+}
+
 /* шторка */
 .details {
   display:none;
@@ -94,12 +100,12 @@ body {
   font-size: clamp(13px, 3vw, 22px);
 }
 
-.details-row div:nth-child(2) {
+.details-row div:nth-child(2),
+.details-row div:nth-child(3) {
   text-align:center;
 }
 
 .details-row div:nth-child(3) {
-  text-align:center;
   color:#00ff9c;
 }
 
