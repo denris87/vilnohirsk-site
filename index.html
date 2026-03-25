@@ -33,13 +33,6 @@ body {
   border-radius:14px;
 }
 
-/* дата */
-.datetime {
-  text-align:center;
-  color:#00ff9c;
-  font-family:"Courier New";
-}
-
 /* таблица */
 .table-head,
 .train,
@@ -81,8 +74,14 @@ body {
 /* шторка */
 .details {
   display:none;
-  border-bottom:1px solid #222;
-  padding:8px 0;
+}
+
+.details.open {
+  display:block;
+}
+
+.details-row {
+  padding:2px 0;
 }
 
 .details-row div:nth-child(2),
@@ -119,13 +118,6 @@ body {
 <div class="container">
 
 <div class="widget">
-  <div class="datetime">
-    <div id="date"></div>
-    <div id="time"></div>
-  </div>
-</div>
-
-<div class="widget">
   <div class="table-head">
     <div>№</div>
     <div>Маршрут прямування</div>
@@ -149,34 +141,22 @@ let opened = null;
 function toggle(id){
   const el = document.getElementById(id);
 
-  // если клик по уже открытому — закрываем
   if(opened === id){
-    el.style.display = "none";
+    el.classList.remove("open");
     opened = null;
     return;
   }
 
-  // закрыть предыдущий
   if(opened){
-    const prev = document.getElementById(opened);
-    if(prev) prev.style.display = "none";
+    document.getElementById(opened)?.classList.remove("open");
   }
 
-  // открыть новый
-  el.style.display = "block";
+  el.classList.add("open");
   opened = id;
 }
 
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
-}
-
-function updateDateTime() {
-  const now = getKyivNow();
-  document.getElementById("date").textContent =
-    `${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  document.getElementById("time").textContent =
-    `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
 }
 
 function getDiff(time){
@@ -248,9 +228,7 @@ function loadTrains(){
 }
 
 loadTrains();
-updateDateTime();
 setInterval(loadTrains,30000);
-setInterval(updateDateTime,1000);
 </script>
 
 </body>
