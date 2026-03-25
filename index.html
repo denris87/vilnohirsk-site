@@ -1,3 +1,6 @@
+Вот полный обновлённый скрипт с блоком **«Примітки» под расписанием** 👇
+
+```html
 <!DOCTYPE html>
 <html lang="uk">
 <head>
@@ -83,13 +86,27 @@ body {
 
 .route {
   text-align:center;
-  word-break:break-word; /* 🔥 перенос текста */
+  word-break:break-word;
 }
 
 /* цвета */
 .future div { color:#00ff9c !important; }
 .soon div { color:#ffcc00 !important; }
 .passed div { color:#555 !important; }
+
+/* ПРИМЕТКИ */
+.notes-title {
+  text-align:left;
+  margin-top:10px;
+  font-size: clamp(14px, 3vw, 22px);
+}
+
+.notes-text {
+  margin-top:6px;
+  color:#ff3b3b;
+  font-style:italic;
+  font-size: clamp(13px, 2.8vw, 20px);
+}
 </style>
 </head>
 
@@ -114,6 +131,12 @@ body {
     <div>Відпр.</div>
   </div>
   <div id="list"></div>
+
+  <!-- ПРИМЕТКИ -->
+  <div class="notes-title">Примітки:</div>
+  <div class="notes-text">
+    Наразі жодних змін у розкладі та скасувать приміських електропоїздів немає
+  </div>
 </div>
 
 </div>
@@ -205,3 +228,10 @@ setInterval(updateDateTime,1000);
 
 </body>
 </html>
+```
+
+Если хочешь — могу дальше:
+
+* сделать рамку под примітки
+* добавить иконку ⚠️
+* или выводить примітки с сервера автоматически 🚀
