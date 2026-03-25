@@ -23,6 +23,8 @@ function updateClocks() {
 
 // разница времени
 function getDiff(time) {
+  if (!time || time === "—") return -999;
+
   const now = getKyivNow();
   const [h, m] = time.split(":").map(Number);
 
@@ -32,7 +34,7 @@ function getDiff(time) {
   return Math.floor((t - now) / 60000);
 }
 
-// рендер таблицы
+// рендер
 function render(list, data) {
   const arr = data
     .map(x => ({ ...x, diff: getDiff(x.time) }))
@@ -44,7 +46,7 @@ function render(list, data) {
 
   arr.forEach(x => {
     let cls = "time";
-    let label = x.time;
+    let label = x.time || "—";
 
     if (x.diff < 0) cls += " passed";
 
@@ -60,7 +62,7 @@ function render(list, data) {
 
     el.innerHTML = `
       <div>№${x.number}</div>
-      <div class="route">${x.route}</div>
+      <div class="route">${x.route || x.direction || ""}</div>
       <div class="${cls}">${label}</div>
     `;
 
@@ -68,15 +70,22 @@ function render(list, data) {
   });
 }
 
-// 🚆 загрузка данных с Railway
+// 🚆 загрузка
 function loadTrains() {
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(res => res.json())
     .then(data => {
 
-      // 🔥 делим по направлению (правильно)
-      const dnipro = data.trains.filter(t => t.route.includes("→ Дніпро"));
-      const pyat = data.trains.filter(t => t.route.includes("→ П'ятихатки"));
+      // универсально (работает с любой структурой)
+      const dnipro = data.trains.filter(t =>
+        (t.route && t.route.includes("Дніпро")) ||
+        (t.direction && t.direction.includes("Дніпро"))
+      );
+
+      const pyat = data.trains.filter(t =>
+        (t.route && t.route.includes("П'ятихатки")) ||
+        (t.direction && t.direction.includes("П'ятихатки"))
+      );
 
       render(document.getElementById("list1"), dnipro);
       render(document.getElementById("list2"), pyat);
@@ -94,27 +103,19 @@ function loadWeather() {
     .then(data => {
       const w = data.current_weather;
 
-      let emoji = "🌤";
-      if (w.weathercode > 60) emoji = "🌧";
-      if (w.weathercode < 3) emoji = "☀️";
-
       document.getElementById("weather").innerHTML = `
-        ${emoji} Вільногірськ<br>
+        🌦 Вільногірськ<br>
         🌡 ${w.temperature}°C<br>
         💨 ${w.windspeed} км/год
       `;
-    })
-    .catch(() => {
-      document.getElementById("weather").innerText = "Помилка погоди";
     });
 }
 
-// 🚀 запуск
+// запуск
 loadTrains();
 loadWeather();
 updateClocks();
 
-// 🔁 обновления
 setInterval(loadTrains, 30000);
 setInterval(loadWeather, 600000);
 setInterval(updateClocks, 1000);
