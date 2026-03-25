@@ -5,77 +5,52 @@
 <title>Vilnohirsk.online</title>
 
 <style>
-body {
-  margin:0;
-  background:#000;
-  color:#fff;
-  font-family: Arial;
-}
-
-.container {
-  padding:10px;
-}
+body { margin:0; background:#000; color:#fff; font-family:Arial; }
+.container { padding:10px; display:flex; flex-wrap:wrap; gap:12px; }
 
 .widget {
-  flex: 1 1 340px;
-  background: #0b0b0b;
-  padding: 12px;
-  border-radius: 14px;
+  flex:1 1 340px;
+  background:#0b0b0b;
+  padding:12px;
+  border-radius:14px;
 }
 
-/* верх */
 .top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 6px;
+  display:flex;
+  justify-content:space-between;
 }
 
-.header {
-  color: #00ff9c;
-  font-weight: bold;
-  font-size: 14px;
-}
+.header { color:#00ff9c; font-weight:bold; }
 
-/* часы */
 .clock {
-  font-size: 22px;
-  font-weight: bold;
-  color: #00ff9c;
-  letter-spacing: 2px;
-  font-family: "Courier New", monospace;
-  margin-top: -6px;
+  font-size:22px;
+  font-weight:bold;
+  color:#00ff9c;
+  font-family:"Courier New";
 }
 
 /* таблица */
 .table-head {
-  display: grid;
-  grid-template-columns: 70px 1fr 80px;
-  font-size: 11px;
-  color: #777;
-  padding-bottom: 4px;
-  border-bottom: 1px solid #333;
+  display:grid;
+  grid-template-columns:70px 1fr 80px;
+  font-size:11px;
+  color:#777;
+  border-bottom:1px solid #333;
 }
 
 .train {
-  display: grid;
-  grid-template-columns: 70px 1fr 80px;
-  font-size: 13px;
-  padding: 6px 0;
-  border-bottom: 1px solid #333;
-  align-items: center;
+  display:grid;
+  grid-template-columns:70px 1fr 80px;
+  padding:6px 0;
+  border-bottom:1px solid #333;
 }
 
-.route { text-align: center; }
+.route { text-align:center; }
+.time { text-align:right; font-weight:bold; }
 
-.time {
-  text-align: right;
-  font-weight: bold;
-}
-
-.next { color: #00ff9c; }
-.soon { color: #ffcc00; }
-.passed { color: #555; }
+.next { color:#00ff9c; }
+.soon { color:#ffcc00; }
+.passed { color:#555; }
 
 /* погода */
 .weather {
@@ -88,43 +63,35 @@ body {
 
 <body>
 
-<div class="container" style="display:flex; flex-wrap:wrap; gap:12px;">
+<div class="container">
 
-<!-- ПЯТИХАТКИ → ДНІПРО -->
+<!-- П'ятихатки → Дніпро -->
 <div class="widget">
   <div class="top-bar">
     <div class="header">🚆 П'ятихатки-Пас. → Дніпро-Гол.</div>
-    <div class="clock" id="clock1">--:--</div>
+    <div class="clock" id="clock1"></div>
   </div>
-
   <div class="table-head">
-    <div>№</div>
-    <div class="route">Маршрут</div>
-    <div class="time">Відпр.</div>
+    <div>№</div><div>Маршрут</div><div>Відпр.</div>
   </div>
-
   <div id="list1"></div>
 </div>
 
-<!-- ДНІПРО → ПЯТИХАТКИ -->
+<!-- Дніпро → П'ятихатки -->
 <div class="widget">
   <div class="top-bar">
     <div class="header">🚆 Дніпро-Гол. → П'ятихатки-Пас.</div>
-    <div class="clock" id="clock2">--:--</div>
+    <div class="clock" id="clock2"></div>
   </div>
-
   <div class="table-head">
-    <div>№</div>
-    <div class="route">Маршрут</div>
-    <div class="time">Відпр.</div>
+    <div>№</div><div>Маршрут</div><div>Відпр.</div>
   </div>
-
   <div id="list2"></div>
 </div>
 
-<!-- ПОГОДА -->
+<!-- Погода -->
 <div class="widget">
-  <div class="weather" id="weather">Завантаження погоди...</div>
+  <div class="weather" id="weather">Завантаження...</div>
 </div>
 
 </div>
@@ -132,92 +99,85 @@ body {
 <script>
 // ⏰ Киевское время
 function getKyivNow() {
-  return new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Kyiv" }));
+  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
-let blink = true;
-
+// часы
 function updateClocks() {
-  const now = getKyivNow();
-  let h = String(now.getHours()).padStart(2, "0");
-  let m = String(now.getMinutes()).padStart(2, "0");
+  const n=getKyivNow();
+  const t=n.getHours().toString().padStart(2,"0")+":"+
+           n.getMinutes().toString().padStart(2,"0");
 
-  const separator = blink ? ":" : " ";
-  blink = !blink;
-
-  const time = h + separator + m;
-
-  document.getElementById("clock1").textContent = time;
-  document.getElementById("clock2").textContent = time;
+  document.getElementById("clock1").textContent=t;
+  document.getElementById("clock2").textContent=t;
 }
 
 // разница времени
-function getDiff(time) {
-  const now = getKyivNow();
-  const [h, m] = time.split(":").map(Number);
-  const t = new Date(now);
-  t.setHours(h, m, 0, 0);
-  return Math.floor((t - now) / 60000);
+function getDiff(time){
+  const now=getKyivNow();
+  const [h,m]=time.split(":").map(Number);
+  const t=new Date(now);
+  t.setHours(h,m,0,0);
+  return Math.floor((t-now)/60000);
 }
 
 // рендер
-function render(list, data) {
-  const arr = data.map(x => ({ ...x, diff: getDiff(x.time) }));
-  const next = arr.find(x => x.diff >= 0);
+function render(el,data){
+  const arr=data.map(x=>({...x,diff:getDiff(x.time)}));
+  const next=arr.find(x=>x.diff>=0);
 
-  list.innerHTML = "";
+  el.innerHTML="";
 
-  arr.forEach(x => {
-    let cls = "time";
-    let label = x.time;
+  arr.forEach(x=>{
+    let cls="time";
+    let label=x.time;
 
-    if (x.diff < 0) cls += " passed";
+    if(x.diff<0) cls+=" passed";
 
-    if (x.diff >= 0 && x.diff <= 10) {
-      cls += " soon";
-      label = "≈ " + x.diff + " хв";
+    if(x.diff>=0 && x.diff<=10){
+      cls+=" soon";
+      label="≈ "+x.diff+" хв";
     }
 
-    if (next && x.number === next.number) cls += " next";
+    if(next && x.number===next.number) cls+=" next";
 
-    const el = document.createElement("div");
-    el.className = "train";
-
-    el.innerHTML = `
-      <div>№${x.number}</div>
-      <div class="route">${x.route}</div>
-      <div class="${cls}">${label}</div>
-    `;
-
-    list.appendChild(el);
+    el.innerHTML+=`
+      <div class="train">
+        <div>№${x.number}</div>
+        <div class="route">${x.route}</div>
+        <div class="${cls}">${label}</div>
+      </div>`;
   });
 }
 
-// 🚆 загрузка поездов
-function loadTrains() {
+// 🚆 загрузка электричек
+function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
-    .then(res => res.json())
-    .then(data => {
-      const dnipro = data.trains.filter(t => t.route.includes("Дніпро"));
-      const pyat = data.trains.filter(t => t.route.includes("П'ятихатки"));
+    .then(r=>r.json())
+    .then(d=>{
+      const dnipro=d.trains.filter(t=>t.direction.includes("Дніпро"));
+      const pyat=d.trains.filter(t=>t.direction.includes("П'ятихатки"));
 
-      render(document.getElementById("list1"), dnipro);
-      render(document.getElementById("list2"), pyat);
+      render(document.getElementById("list1"),dnipro);
+      render(document.getElementById("list2"),pyat);
+    })
+    .catch(()=>{
+      document.getElementById("list1").innerText="Помилка";
+      document.getElementById("list2").innerText="Помилка";
     });
 }
 
 // 🌦 погода
-function loadWeather() {
+function loadWeather(){
   fetch("https://api.open-meteo.com/v1/forecast?latitude=48.484&longitude=34.016&current_weather=true")
-    .then(res => res.json())
-    .then(data => {
-      const w = data.current_weather;
+    .then(r=>r.json())
+    .then(d=>{
+      const w=d.current_weather;
 
-      document.getElementById("weather").innerHTML = `
-        🌦 Вільногірськ<br>
-        🌡 ${w.temperature}°C<br>
-        💨 ${w.windspeed} км/год
-      `;
+      document.getElementById("weather").innerHTML=
+        "🌦 Вільногірськ<br>"+
+        "🌡 "+w.temperature+"°C<br>"+
+        "💨 "+w.windspeed+" км/год";
     });
 }
 
@@ -226,9 +186,9 @@ loadTrains();
 loadWeather();
 updateClocks();
 
-setInterval(loadTrains, 30000);
-setInterval(loadWeather, 600000);
-setInterval(updateClocks, 1000);
+setInterval(loadTrains,30000);
+setInterval(loadWeather,600000);
+setInterval(updateClocks,1000);
 </script>
 
 </body>
