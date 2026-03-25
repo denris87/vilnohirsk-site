@@ -33,7 +33,7 @@ body {
   box-shadow:0 0 10px rgba(0,255,156,0.1);
 }
 
-/* ДАТА И ВРЕМЯ ПО ЦЕНТРУ */
+/* дата и время */
 .datetime {
   text-align:center;
   color:#00ff9c;
@@ -41,7 +41,7 @@ body {
 }
 
 .date {
-  font-size:48px; /* увеличена */
+  font-size:48px;
   font-weight:bold;
 }
 
@@ -53,11 +53,10 @@ body {
 .table-head,
 .train {
   display:grid;
-  grid-template-columns: 60px 1fr 70px;
+  grid-template-columns: 80px 1fr 80px;
   align-items:center;
 }
 
-/* ЗАГОЛОВКИ ПО ЦЕНТРУ */
 .table-head div {
   text-align:center;
 }
@@ -92,9 +91,7 @@ body {
 }
 
 /* цвета */
-.next { color:#00ff9c; }
 .train.next div { color:#00ff9c !important; }
-
 .soon { color:#ffcc00; }
 .passed { color:#555; }
 </style>
@@ -105,7 +102,7 @@ body {
 <div class="wrapper">
 <div class="container">
 
-<!-- ДАТА И ЧАСЫ -->
+<!-- ДАТА -->
 <div class="widget">
   <div class="datetime">
     <div class="date" id="date"></div>
@@ -113,24 +110,14 @@ body {
   </div>
 </div>
 
-<!-- П'ятихатки → Дніпро -->
+<!-- ОБЩЕЕ РАСПИСАНИЕ -->
 <div class="widget">
   <div class="table-head">
     <div>№</div>
     <div>Маршрут</div>
     <div>Відпр.</div>
   </div>
-  <div id="list1"></div>
-</div>
-
-<!-- Дніпро → П'ятихатки -->
-<div class="widget">
-  <div class="table-head">
-    <div>№</div>
-    <div>Маршрут</div>
-    <div>Відпр.</div>
-  </div>
-  <div id="list2"></div>
+  <div id="list"></div>
 </div>
 
 </div>
@@ -142,7 +129,7 @@ function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
-// дата и часы
+// дата и время
 function updateDateTime() {
   const now = getKyivNow();
 
@@ -167,8 +154,17 @@ function getDiff(time){
   return Math.floor((t-now)/60000);
 }
 
+// СТРОГИЙ ПОРЯДОК
+const order = [
+  "6008","6010","6005","6018","6015",
+  "6038","6035","6037","6044","6043"
+];
+
 // рендер
 function render(el,data){
+  // сортировка по твоему порядку
+  data.sort((a,b)=> order.indexOf(a.number) - order.indexOf(b.number));
+
   const arr=data.map(x=>({...x,diff:getDiff(x.time)}));
   const next=arr.find(x=>x.diff>=0);
 
@@ -199,16 +195,12 @@ function render(el,data){
   });
 }
 
-// поезда
+// загрузка
 function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(r=>r.json())
     .then(d=>{
-      const dnipro=d.trains.filter(t=>t.direction.includes("Дніпро"));
-      const pyat=d.trains.filter(t=>t.direction.includes("П'ятихатки"));
-
-      render(document.getElementById("list1"),dnipro);
-      render(document.getElementById("list2"),pyat);
+      render(document.getElementById("list"), d.trains);
     });
 }
 
