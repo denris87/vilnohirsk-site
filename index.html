@@ -33,7 +33,6 @@ body {
   border-radius:14px;
 }
 
-/* дата */
 .datetime {
   text-align:center;
   color:#00ff9c;
@@ -49,7 +48,6 @@ body {
   font-size: clamp(18px, 4vw, 36px);
 }
 
-/* таблица */
 .table-head,
 .train,
 .details-row {
@@ -61,7 +59,6 @@ body {
 .table-head {
   font-size: clamp(13px, 3vw, 22px);
   font-weight:700;
-  color:#ffffff;
   border-bottom:2px solid #444;
   padding-bottom:8px;
 }
@@ -70,17 +67,7 @@ body {
   text-align:center;
 }
 
-.train div:nth-child(1),
-.details-row div:nth-child(1) {
-  text-align:center;
-}
-
-.route {
-  text-align:center;
-  word-break:break-word;
-}
-
-.time-cell {
+.route, .time-cell {
   text-align:center;
 }
 
@@ -91,7 +78,6 @@ body {
   cursor:pointer;
 }
 
-/* шторка */
 .details {
   display:none;
   padding:10px 0;
@@ -108,12 +94,10 @@ body {
   color:#00ff9c;
 }
 
-/* цвета */
 .future div { color:#00ff9c !important; }
 .soon div { color:#ffcc00 !important; }
 .passed div { color:#555 !important; }
 
-/* примітки */
 .notes-title {
   margin-top:10px;
   color:#ff3b3b;
@@ -142,7 +126,7 @@ body {
 <div class="widget">
   <div class="table-head">
     <div>№</div>
-    <div>Маршрут прямування</div>
+    <div>Маршрут</div>
     <div>Відпр.</div>
   </div>
 
@@ -150,7 +134,7 @@ body {
 
   <div class="notes-title">Примітки:</div>
   <div class="notes-text">
-    Наразі жодних змін у розкладі та скасувань приміських електропоїздів немає...
+    Наразі жодних змін у розкладі немає
   </div>
 </div>
 
@@ -164,12 +148,8 @@ function getKyivNow() {
 
 function updateDateTime() {
   const now = getKyivNow();
-
-  document.getElementById("date").textContent =
-    `${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-
-  document.getElementById("time").textContent =
-    `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+  date.textContent = `${now.getDate().toString().padStart(2,"0")}.${(now.getMonth()+1).toString().padStart(2,"0")}.${now.getFullYear()}`;
+  time.textContent = `${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}:${now.getSeconds().toString().padStart(2,"0")}`;
 }
 
 function getDiff(time){
@@ -180,32 +160,22 @@ function getDiff(time){
   return Math.floor((t-now)/60000);
 }
 
-const order = [
-  "6008","6010","6005","6018","6015",
-  "6038","6035","6037","6044","6043"
-];
+const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
 function render(el,data){
-  data.sort((a,b)=> order.indexOf(a.number) - order.indexOf(b.number));
-
+  data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
   el.innerHTML="";
 
   data.forEach(x=>{
-    const diff = getDiff(x.time);
-
+    const diff=getDiff(x.time);
     let cls="train";
     let label=x.time;
 
-    if(diff < 0){
-      cls+=" passed";
-    } else if(diff <= 10){
-      cls+=" soon";
-      label="≈ "+diff+" хв";
-    } else {
-      cls+=" future";
-    }
+    if(diff<0) cls+=" passed";
+    else if(diff<=10){cls+=" soon";label="≈ "+diff+" хв";}
+    else cls+=" future";
 
-    const id = "details-"+x.number;
+    const id="d-"+x.number;
 
     el.innerHTML+=`
       <div class="${cls}" onclick="toggle('${id}')">
@@ -215,33 +185,37 @@ function render(el,data){
       </div>
     `;
 
-    if(x.number === "6043"){
-      el.innerHTML+=`
-      <div class="details" id="${id}">
-        <div class="details-row"><div></div><div>Дніпро-Гол.</div><div>20:18</div></div>
-        <div class="details-row"><div></div><div>Камʼянське-Пас.</div><div>21:16</div></div>
-        <div class="details-row"><div></div><div>Верхньодніпровськ</div><div>21:42</div></div>
-        <div class="details-row"><div></div><div>Верхівцеве</div><div>22:01</div></div>
-        <div class="details-row"><div></div><div>Вільногірськ</div><div>22:22</div></div>
-        <div class="details-row"><div></div><div>Пʼятихатки-Пас. (прибуття)</div><div>23:10</div></div>
+    const schedules={
+      "6008":[["Пʼятихатки-Пас.","04:43"],["Вільногірськ","05:16"],["Верхівцеве","05:35"],["Верхньодніпровськ","06:15"],["Камʼянське-Пас.","06:42"],["Дніпро-Гол.","07:22"]],
+      "6010":[["Пʼятихатки-Пас.","05:30"],["Вільногірськ","06:01"],["Верхівцеве","06:19"],["Верхньодніпровськ","06:38"],["Камʼянське-Пас.","07:17"],["Дніпро-Гол.","08:09"]],
+      "6005":[["Дніпро-Гол.","04:52"],["Камʼянське-Пас.","05:48"],["Верхньодніпровськ","06:14"],["Верхівцеве","06:33"],["Вільногірськ","06:54"],["Пʼятихатки-Пас.","07:28"]],
+      "6018":[["Пʼятихатки-Пас.","08:29"],["Вільногірськ","09:00"],["Верхівцеве","09:21"],["Верхньодніпровськ","09:40"],["Камʼянське-Пас.","10:04"],["Дніпро-Гол.","10:57"]],
+      "6015":[["Дніпро-Гол.","08:22"],["Камʼянське-Пас.","09:20"],["Верхньодніпровськ","09:46"],["Верхівцеве","10:35"],["Вільногірськ","10:56"],["Пʼятихатки-Пас.","11:30"]],
+      "6038":[["Пʼятихатки-Пас.","16:50"],["Вільногірськ","17:23"],["Верхівцеве","17:44"],["Верхньодніпровськ","18:03"],["Камʼянське-Пас.","18:27"],["Дніпро-Гол.","19:17"]],
+      "6035":[["Дніпро-Гол.","16:38"],["Камʼянське-Пас.","17:44"],["Верхньодніпровськ","18:10"],["Верхівцеве","18:29"],["Вільногірськ","18:50"],["Пʼятихатки-Пас.","19:22"]],
+      "6037":[["Дніпро-Гол.","17:34"],["Камʼянське-Пас.","18:33"],["Верхньодніпровськ","18:59"],["Верхівцеве","19:18"],["Вільногірськ","19:39"],["Пʼятихатки-Пас.","20:14"]],
+      "6044":[["Пʼятихатки-Пас.","20:37"],["Вільногірськ","21:21"],["Верхівцеве","21:40"],["Верхньодніпровськ","21:58"],["Камʼянське-Пас.","22:22"],["Дніпро-Гол.","23:12"]],
+      "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
+    };
+
+    if(schedules[x.number]){
+      el.innerHTML+=`<div class="details" id="${id}">
+        ${schedules[x.number].map(s=>`<div class="details-row"><div></div><div>${s[0]}</div><div>${s[1]}</div></div>`).join("")}
       </div>`;
     }
 
-    // остальные поезда уже есть (как раньше)
   });
 }
 
 function toggle(id){
-  const el = document.getElementById(id);
-  el.style.display = (el.style.display === "block") ? "none" : "block";
+  const el=document.getElementById(id);
+  el.style.display = el.style.display==="block"?"none":"block";
 }
 
 function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
-    .then(r=>r.json())
-    .then(d=>{
-      render(document.getElementById("list"), d.trains);
-    });
+  .then(r=>r.json())
+  .then(d=>render(list,d.trains));
 }
 
 loadTrains();
