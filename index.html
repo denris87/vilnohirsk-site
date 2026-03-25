@@ -32,8 +32,21 @@
 <h1>📡 Vilnohirsk.online</h1>
 
 <div class="widget">
-  ⏰ Часы (добавим позже)
+  <div id="clock" style="font-size:32px; font-weight:bold;"></div>
 </div>
+
+<script>
+function updateClock() {
+  const now = new Date();
+  const time = now.toLocaleTimeString('uk-UA', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  document.getElementById('clock').innerText = time;
+}
+setInterval(updateClock, 1000);
+updateClock();
+</script>
 
 <div class="widget">
   🚆 Поезда (сюда вставим твой виджет)
