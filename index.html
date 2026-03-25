@@ -53,7 +53,7 @@ body {
   font-family:"Courier New";
 }
 
-/* ЧЕТКАЯ СЕТКА */
+/* таблица */
 .table-head,
 .train {
   display:grid;
@@ -73,38 +73,23 @@ body {
   border-bottom:1px solid #222;
 }
 
-/* выравнивание колонок */
-.table-head div:nth-child(1),
-.train div:nth-child(1) {
-  text-align:left;
-  padding-left:2px;
-}
-
-.table-head div:nth-child(2),
+/* выравнивание */
 .route {
   text-align:center;
-}
-
-.table-head div:nth-child(3),
-.time {
-  text-align:right;
-  padding-right:4px;
-}
-
-/* маршрут */
-.route {
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
 
-/* время */
 .time {
+  text-align:right;
   font-weight:bold;
 }
 
 /* цвета */
 .next { color:#00ff9c; }
+.train.next div { color:#00ff9c !important; }
+
 .soon { color:#ffcc00; }
 .passed { color:#555; }
 
@@ -122,12 +107,12 @@ body {
 <div class="wrapper">
 <div class="container">
 
-<!-- ПОГОДА -->
+<!-- 🌦 ПОГОДА -->
 <div class="widget">
   <div class="weather" id="weather">Завантаження...</div>
 </div>
 
-<!-- П'ятихатки → Дніпро -->
+<!-- 🚆 П'ятихатки → Дніпро -->
 <div class="widget">
   <div class="top-bar">
     <div class="header">🚆 П'ятихатки-Пас. → Дніпро-Гол.</div>
@@ -143,7 +128,7 @@ body {
   <div id="list1"></div>
 </div>
 
-<!-- Дніпро → П'ятихатки -->
+<!-- 🚆 Дніпро → П'ятихатки -->
 <div class="widget">
   <div class="top-bar">
     <div class="header">🚆 Дніпро-Гол. → П'ятихатки-Пас.</div>
@@ -163,7 +148,7 @@ body {
 </div>
 
 <script>
-// Киев время
+// время Киев
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
@@ -195,28 +180,31 @@ function render(el,data){
   el.innerHTML="";
 
   arr.forEach(x=>{
-    let cls="time";
+    let rowClass="train";
+    let timeClass="time";
     let label=x.time;
 
-    if(x.diff<0) cls+=" passed";
+    if(x.diff<0) timeClass+=" passed";
 
     if(x.diff>=0 && x.diff<=10){
-      cls+=" soon";
+      timeClass+=" soon";
       label="≈ "+x.diff+" хв";
     }
 
-    if(next && x.number===next.number) cls+=" next";
+    if(next && x.number===next.number){
+      rowClass+=" next";
+    }
 
     el.innerHTML+=`
-      <div class="train">
+      <div class="${rowClass}">
         <div>№${x.number}</div>
         <div class="route">${x.route}</div>
-        <div class="${cls}">${label}</div>
+        <div class="${timeClass}">${label}</div>
       </div>`;
   });
 }
 
-// поезда
+// 🚆 поезда
 function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(r=>r.json())
@@ -229,7 +217,7 @@ function loadTrains(){
     });
 }
 
-// погода
+// 🌦 погода
 function loadWeather(){
   fetch("https://api.open-meteo.com/v1/forecast?latitude=48.484&longitude=34.016&current_weather=true")
     .then(r=>r.json())
