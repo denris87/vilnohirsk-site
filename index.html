@@ -16,21 +16,20 @@ body {
 
 .wrapper {
   width:100%;
-  max-width:850px;
+  max-width:900px;
   padding:20px 10px;
 }
 
 .container {
   display:flex;
   flex-direction:column;
-  gap:18px;
+  gap:20px;
 }
 
 .widget {
   background:#0b0b0b;
-  padding:16px;
+  padding:18px;
   border-radius:16px;
-  box-shadow:0 0 10px rgba(0,255,156,0.1);
 }
 
 /* дата */
@@ -41,19 +40,19 @@ body {
 }
 
 .date {
-  font-size:48px;
+  font-size:60px;
   font-weight:bold;
 }
 
 .time {
-  font-size:28px;
+  font-size:36px;
 }
 
 /* таблица */
 .table-head,
 .train {
   display:grid;
-  grid-template-columns: 80px 1fr 80px;
+  grid-template-columns: 120px 1fr 120px;
   align-items:center;
 }
 
@@ -62,15 +61,16 @@ body {
 }
 
 .table-head {
-  font-size:12px;
+  font-size:22px;
   color:#777;
   border-bottom:1px solid #333;
-  padding-bottom:6px;
+  padding-bottom:10px;
 }
 
 .train {
-  padding:6px 0;
+  padding:10px 0;
   border-bottom:1px solid #222;
+  font-size:26px; /* УВЕЛИЧИЛ */
 }
 
 /* колонки */
@@ -90,10 +90,10 @@ body {
   font-weight:bold;
 }
 
-/* цвета состояний */
-.future div { color:#00ff9c !important; }   /* ещё не прибыл */
-.soon div { color:#ffcc00 !important; }     /* скоро */
-.passed div { color:#555 !important; }      /* ушёл */
+/* цвета */
+.future div { color:#00ff9c !important; }
+.soon div { color:#ffcc00 !important; }
+.passed div { color:#555 !important; }
 </style>
 </head>
 
@@ -124,12 +124,12 @@ body {
 </div>
 
 <script>
-// время Киев
+// Киев время
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
-// дата + часы
+// дата и время
 function updateDateTime() {
   const now = getKyivNow();
 
@@ -145,7 +145,7 @@ function updateDateTime() {
   document.getElementById("time").textContent = `${h}:${min}:${s}`;
 }
 
-// разница времени
+// разница
 function getDiff(time){
   const now=getKyivNow();
   const [h,m]=time.split(":").map(Number);
