@@ -51,7 +51,8 @@ body {
 
 /* таблица */
 .table-head,
-.train {
+.train,
+.details-row {
   display:grid;
   grid-template-columns: 20% 1fr 20%;
   align-items:center;
@@ -63,7 +64,6 @@ body {
   color:#ffffff;
   border-bottom:2px solid #444;
   padding-bottom:8px;
-  text-shadow:0 0 6px rgba(255,255,255,0.2);
 }
 
 .table-head div {
@@ -71,32 +71,10 @@ body {
 }
 
 .train {
-  padding:10px 0;
+  padding:8px 0;
   border-bottom:1px solid #222;
   font-size: clamp(14px, 3.5vw, 26px);
   cursor:pointer;
-}
-
-.train:hover {
-  background:rgba(255,255,255,0.05);
-}
-
-/* шторка */
-.dropdown {
-  display:none;
-  padding:10px;
-  margin:6px 0;
-  background:#111;
-  border-left:3px solid #00ff9c;
-  font-size: clamp(13px, 3vw, 20px);
-  line-height:1.6;
-  color:#ccc;
-}
-
-/* колонки */
-.train div:nth-child(1),
-.time-cell {
-  text-align:center;
 }
 
 .route {
@@ -104,12 +82,33 @@ body {
   word-break:break-word;
 }
 
+.time-cell {
+  text-align:center;
+}
+
+/* шторка */
+.details {
+  display:none;
+  padding:10px 0;
+  border-bottom:1px solid #222;
+  font-size: clamp(13px, 3vw, 22px);
+}
+
+.details-row div:nth-child(2) {
+  text-align:center;
+}
+
+.details-row div:nth-child(3) {
+  text-align:center;
+  color:#00ff9c;
+}
+
 /* цвета */
 .future div { color:#00ff9c !important; }
 .soon div { color:#ffcc00 !important; }
 .passed div { color:#555 !important; }
 
-/* приметки */
+/* примітки */
 .notes-title {
   margin-top:10px;
   color:#ff3b3b;
@@ -117,7 +116,6 @@ body {
 }
 
 .notes-text {
-  margin-top:6px;
   color:#00ff9c;
   font-style:italic;
 }
@@ -142,6 +140,7 @@ body {
     <div>Маршрут прямування</div>
     <div>Відпр.</div>
   </div>
+
   <div id="list"></div>
 
   <div class="notes-title">Примітки:</div>
@@ -160,15 +159,12 @@ function getKyivNow() {
 
 function updateDateTime() {
   const now = getKyivNow();
-  const d = String(now.getDate()).padStart(2,"0");
-  const m = String(now.getMonth()+1).padStart(2,"0");
-  const y = now.getFullYear();
-  const h = String(now.getHours()).padStart(2,"0");
-  const min = String(now.getMinutes()).padStart(2,"0");
-  const s = String(now.getSeconds()).padStart(2,"0");
 
-  date.textContent = `${d}.${m}.${y}`;
-  time.textContent = `${h}:${min}:${s}`;
+  document.getElementById("date").textContent =
+    `${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+
+  document.getElementById("time").textContent =
+    `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
 }
 
 function getDiff(time){
@@ -179,54 +175,66 @@ function getDiff(time){
   return Math.floor((t-now)/60000);
 }
 
-const order = ["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
-
-function toggle(id){
-  const el = document.getElementById(id);
-  el.style.display = el.style.display === "block" ? "none" : "block";
-}
+const order = [
+  "6008","6010","6005","6018","6015",
+  "6038","6035","6037","6044","6043"
+];
 
 function render(el,data){
   data.sort((a,b)=> order.indexOf(a.number) - order.indexOf(b.number));
+
   el.innerHTML="";
 
   data.forEach(x=>{
     const diff = getDiff(x.time);
+
     let cls="train";
     let label=x.time;
 
-    if(diff < 0){ cls+=" passed"; }
-    else if(diff <= 10){ cls+=" soon"; label="≈ "+diff+" хв"; }
-    else { cls+=" future"; }
+    if(diff < 0){
+      cls+=" passed";
+    } else if(diff <= 10){
+      cls+=" soon";
+      label="≈ "+diff+" хв";
+    } else {
+      cls+=" future";
+    }
 
-    const is6008 = x.number === "6008";
+    const id = "details-"+x.number;
 
     el.innerHTML+=`
-      <div>
-        <div class="${cls}" onclick="${is6008 ? "toggle('d6008')" : ""}">
-          <div>${x.number}</div>
-          <div class="route">${x.route}</div>
-          <div class="time-cell">${label}</div>
-        </div>
-
-        ${is6008 ? `
-        <div class="dropdown" id="d6008">
-          Пʼятихатки-Пас. — 04:43<br>
-          Вільногірськ — 05:16<br>
-          Верхівцеве — 05:35<br>
-          Верхньодніпровськ — 06:15<br>
-          Камʼянське-Пас. — 06:42<br>
-          Дніпро-Гол. — 07:22 (прибуття)
-        </div>` : ""}
+      <div class="${cls}" onclick="toggle('${id}')">
+        <div>${x.number}</div>
+        <div class="route">${x.route}</div>
+        <div class="time-cell">${label}</div>
       </div>
     `;
+
+    if(x.number === "6008"){
+      el.innerHTML+=`
+      <div class="details" id="${id}">
+        <div class="details-row"><div></div><div>Пʼятихатки-Пас.</div><div>04:43</div></div>
+        <div class="details-row"><div></div><div>Вільногірськ</div><div>05:16</div></div>
+        <div class="details-row"><div></div><div>Верхівцеве</div><div>05:35</div></div>
+        <div class="details-row"><div></div><div>Верхньодніпровськ</div><div>06:15</div></div>
+        <div class="details-row"><div></div><div>Камʼянське-Пас.</div><div>06:42</div></div>
+        <div class="details-row"><div></div><div>Дніпро-Гол. (прибуття)</div><div>07:22</div></div>
+      </div>`;
+    }
   });
+}
+
+function toggle(id){
+  const el = document.getElementById(id);
+  el.style.display = (el.style.display === "block") ? "none" : "block";
 }
 
 function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(r=>r.json())
-    .then(d=> render(list, d.trains));
+    .then(d=>{
+      render(document.getElementById("list"), d.trains);
+    });
 }
 
 loadTrains();
