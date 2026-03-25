@@ -76,8 +76,36 @@ setInterval(loadTrains, 30000); // обновление каждые 30 сек
 </script>
 
 <div class="widget">
-  🌦 Погода
+  <div id="weather">Завантаження погоди...</div>
 </div>
+
+<script>
+function loadWeather() {
+  fetch("https://api.open-meteo.com/v1/forecast?latitude=48.484&longitude=34.016&current_weather=true")
+    .then(res => res.json())
+    .then(data => {
+      const w = data.current_weather;
+
+      let emoji = "🌤";
+      if (w.weathercode > 60) emoji = "🌧";
+      if (w.weathercode < 3) emoji = "☀️";
+
+      document.getElementById("weather").innerHTML = `
+        <div style="font-size:20px;">
+          ${emoji} Вільногірськ<br>
+          🌡 ${w.temperature}°C<br>
+          💨 ${w.windspeed} км/год
+        </div>
+      `;
+    })
+    .catch(() => {
+      document.getElementById("weather").innerText = "Помилка погоди";
+    });
+}
+
+loadWeather();
+setInterval(loadWeather, 600000); // обновление каждые 10 мин
+</script>
 
 </body>
 </html>
