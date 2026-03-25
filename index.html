@@ -21,7 +21,6 @@ body {
   padding:10px;
 }
 
-/* блоки */
 .container {
   display:flex;
   flex-direction:column;
@@ -41,55 +40,67 @@ body {
   font-family:"Courier New";
 }
 
-.date {
-  font-size: clamp(28px, 6vw, 60px);
-  font-weight:bold;
-}
-
-.time {
-  font-size: clamp(18px, 4vw, 36px);
-}
+.date { font-size:40px; }
+.time { font-size:24px; }
 
 /* таблица */
 .table-head,
 .train {
   display:grid;
-  grid-template-columns: 20% 1fr 20%;
+  grid-template-columns: 20% 1fr 25%;
   align-items:center;
 }
 
 .table-head {
-  font-size: clamp(12px, 2.5vw, 20px);
   color:#777;
   border-bottom:1px solid #333;
-  padding-bottom:6px;
 }
 
-.table-head div {
-  text-align:center;
-}
+.table-head div { text-align:center; }
 
 .train {
-  padding:8px 0;
+  padding:10px 0;
   border-bottom:1px solid #222;
-  font-size: clamp(14px, 3.5vw, 26px);
+  font-size:18px;
 }
 
-/* колонки */
-.train div:nth-child(1),
-.time-cell {
-  text-align:center;
-}
+.route { text-align:center; }
+.time-cell { text-align:center; }
 
-.route {
-  text-align:center;
-  word-break:break-word; /* 🔥 перенос текста */
+/* кнопка i */
+.info-btn {
+  margin-left:6px;
+  background:#00ff9c;
+  color:#000;
+  border-radius:50%;
+  width:18px;
+  height:18px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:12px;
+  cursor:pointer;
 }
 
 /* цвета */
-.future div { color:#00ff9c !important; }
-.soon div { color:#ffcc00 !important; }
-.passed div { color:#555 !important; }
+.future div { color:#00ff9c; }
+.soon div { color:#ffcc00; }
+.passed div { color:#555; }
+
+/* ПРИМІТКИ */
+.notes-title {
+  text-align:center;
+  font-size:20px;
+  color:#00ff9c;
+  margin-bottom:8px;
+}
+
+.notes-text {
+  text-align:center;
+  color:red;
+  font-style:italic;
+  font-size:16px;
+}
 </style>
 </head>
 
@@ -98,15 +109,15 @@ body {
 <div class="wrapper">
 <div class="container">
 
-<!-- ДАТА -->
+<!-- дата -->
 <div class="widget">
   <div class="datetime">
-    <div class="date" id="date"></div>
-    <div class="time" id="time"></div>
+    <div id="date"></div>
+    <div id="time"></div>
   </div>
 </div>
 
-<!-- РАСПИСАНИЕ -->
+<!-- список -->
 <div class="widget">
   <div class="table-head">
     <div>№</div>
@@ -116,29 +127,31 @@ body {
   <div id="list"></div>
 </div>
 
+<!-- ПРИМІТКИ -->
+<div class="widget">
+  <div class="notes-title">Примітки</div>
+  <div class="notes-text">
+    Наразі жодних змін у розкладі та скасувать приміських електропоїздів немає
+  </div>
+</div>
+
 </div>
 </div>
 
 <script>
-// время Киев
+// время
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
-// дата + часы
 function updateDateTime() {
   const now = getKyivNow();
 
-  const d = String(now.getDate()).padStart(2,"0");
-  const m = String(now.getMonth()+1).padStart(2,"0");
-  const y = now.getFullYear();
+  document.getElementById("date").textContent =
+    now.toLocaleDateString("uk-UA");
 
-  const h = String(now.getHours()).padStart(2,"0");
-  const min = String(now.getMinutes()).padStart(2,"0");
-  const s = String(now.getSeconds()).padStart(2,"0");
-
-  document.getElementById("date").textContent = `${d}.${m}.${y}`;
-  document.getElementById("time").textContent = `${h}:${min}:${s}`;
+  document.getElementById("time").textContent =
+    now.toLocaleTimeString("uk-UA");
 }
 
 // разница
@@ -155,6 +168,29 @@ const order = [
   "6008","6010","6005","6018","6015",
   "6038","6035","6037","6044","6043"
 ];
+
+// модал данные
+const details = {
+  "6008": `
+    <b>№6008</b><br><br>
+    П'ятихатки-Пас. → Дніпро-Гол.<br><br>
+    Вільногірськ — 05:15 / 05:16<br>
+    Верхівцеве — 05:35 / 05:36<br>
+    Кам'янське — 06:40 / 06:42<br>
+    Дніпро — 07:32
+  `
+};
+
+// модал
+function openModal(num){
+  document.getElementById("modalText").innerHTML =
+    details[num] || "Немає даних";
+  document.getElementById("modal").style.display="flex";
+}
+
+function closeModal(){
+  document.getElementById("modal").style.display="none";
+}
 
 // рендер
 function render(el,data){
@@ -177,9 +213,13 @@ function render(el,data){
       cls+=" future";
     }
 
+    const infoBtn = x.number === "6008"
+      ? `<span class="info-btn" onclick="openModal('6008')">i</span>`
+      : "";
+
     el.innerHTML+=`
       <div class="${cls}">
-        <div>№${x.number}</div>
+        <div>№${x.number} ${infoBtn}</div>
         <div class="route">${x.route}</div>
         <div class="time-cell">${label}</div>
       </div>`;
