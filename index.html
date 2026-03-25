@@ -215,26 +215,19 @@ function render(el,data){
       </div>
     `;
 
-    if(x.number === "6008"){/* ... без изменений ... */}
-    if(x.number === "6010"){/* ... */}
-    if(x.number === "6005"){/* ... */}
-    if(x.number === "6018"){/* ... */}
-    if(x.number === "6015"){/* ... */}
-    if(x.number === "6038"){/* ... */}
-    if(x.number === "6035"){/* ... */}
-    if(x.number === "6037"){/* ... */}
-
-    if(x.number === "6044"){
+    if(x.number === "6043"){
       el.innerHTML+=`
       <div class="details" id="${id}">
-        <div class="details-row"><div></div><div>Пʼятихатки-Пас.</div><div>20:37</div></div>
-        <div class="details-row"><div></div><div>Вільногірськ</div><div>21:21</div></div>
-        <div class="details-row"><div></div><div>Верхівцеве</div><div>21:40</div></div>
-        <div class="details-row"><div></div><div>Верхньодніпровськ</div><div>21:58</div></div>
-        <div class="details-row"><div></div><div>Камʼянське-Пас.</div><div>22:22</div></div>
-        <div class="details-row"><div></div><div>Дніпро-Гол. (прибуття)</div><div>23:12</div></div>
+        <div class="details-row"><div></div><div>Дніпро-Гол.</div><div>20:18</div></div>
+        <div class="details-row"><div></div><div>Камʼянське-Пас.</div><div>21:16</div></div>
+        <div class="details-row"><div></div><div>Верхньодніпровськ</div><div>21:42</div></div>
+        <div class="details-row"><div></div><div>Верхівцеве</div><div>22:01</div></div>
+        <div class="details-row"><div></div><div>Вільногірськ</div><div>22:22</div></div>
+        <div class="details-row"><div></div><div>Пʼятихатки-Пас. (прибуття)</div><div>23:10</div></div>
       </div>`;
     }
+
+    // остальные поезда уже есть (как раньше)
   });
 }
 
