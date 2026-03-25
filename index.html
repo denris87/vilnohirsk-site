@@ -67,21 +67,6 @@ body {
 .route { text-align:center; }
 .time-cell { text-align:center; }
 
-/* кнопка i */
-.info-btn {
-  margin-left:6px;
-  background:#00ff9c;
-  color:#000;
-  border-radius:50%;
-  width:18px;
-  height:18px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  font-size:12px;
-  cursor:pointer;
-}
-
 /* цвета */
 .future div { color:#00ff9c; }
 .soon div { color:#ffcc00; }
@@ -169,29 +154,6 @@ const order = [
   "6038","6035","6037","6044","6043"
 ];
 
-// модал данные
-const details = {
-  "6008": `
-    <b>№6008</b><br><br>
-    П'ятихатки-Пас. → Дніпро-Гол.<br><br>
-    Вільногірськ — 05:15 / 05:16<br>
-    Верхівцеве — 05:35 / 05:36<br>
-    Кам'янське — 06:40 / 06:42<br>
-    Дніпро — 07:32
-  `
-};
-
-// модал
-function openModal(num){
-  document.getElementById("modalText").innerHTML =
-    details[num] || "Немає даних";
-  document.getElementById("modal").style.display="flex";
-}
-
-function closeModal(){
-  document.getElementById("modal").style.display="none";
-}
-
 // рендер
 function render(el,data){
   data.sort((a,b)=> order.indexOf(a.number) - order.indexOf(b.number));
@@ -213,13 +175,9 @@ function render(el,data){
       cls+=" future";
     }
 
-    const infoBtn = x.number === "6008"
-      ? `<span class="info-btn" onclick="openModal('6008')">i</span>`
-      : "";
-
     el.innerHTML+=`
       <div class="${cls}">
-        <div>№${x.number} ${infoBtn}</div>
+        <div>№${x.number}</div>
         <div class="route">${x.route}</div>
         <div class="time-cell">${label}</div>
       </div>`;
