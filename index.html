@@ -239,6 +239,18 @@ function render(el,data){
         <div class="details-row"><div></div><div>Дніпро-Гол. (прибуття)</div><div>08:09</div></div>
       </div>`;
     }
+
+    if(x.number === "6005"){
+      el.innerHTML+=`
+      <div class="details" id="${id}">
+        <div class="details-row"><div></div><div>Дніпро-Гол.</div><div>04:52</div></div>
+        <div class="details-row"><div></div><div>Камʼянське-Пас.</div><div>05:48</div></div>
+        <div class="details-row"><div></div><div>Верхньодніпровськ</div><div>06:14</div></div>
+        <div class="details-row"><div></div><div>Верхівцеве</div><div>06:33</div></div>
+        <div class="details-row"><div></div><div>Вільногірськ</div><div>06:54</div></div>
+        <div class="details-row"><div></div><div>Пʼятихатки-Пас. (прибуття)</div><div>07:28</div></div>
+      </div>`;
+    }
   });
 }
 
