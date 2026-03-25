@@ -103,19 +103,14 @@ body {
   color:#00ff9c;
 }
 
-/* ПОДСВЕТКА */
-.future div { 
-  color:#00ff9c !important; 
-  font-weight:bold;
-}
+/* ПОДСВЕТКА ТОЛЬКО ВРЕМЕНИ */
+.future .time-cell { color:#00ff9c; font-weight:bold; }
+.soon .time-cell { color:#ffcc00; font-weight:bold; }
+.passed .time-cell { color:#888; }
 
-.soon div { 
-  color:#ffcc00 !important; 
-  font-weight:bold;
-}
-
-.passed div { 
-  color:#888 !important; 
+/* остальной текст */
+.train div:not(.time-cell) {
+  color:#ffffff;
 }
 
 /* примітки */
@@ -155,7 +150,7 @@ body {
 
   <div class="notes-title">Примітки:</div>
   <div class="notes-text">
-    Наразі жодних змін у розкладі та скасувань приміських електропоїздів немає...
+    Наразі жодних змін у розкладі немає
   </div>
 </div>
 
