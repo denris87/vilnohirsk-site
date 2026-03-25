@@ -21,6 +21,7 @@ body {
   padding:10px;
 }
 
+/* блоки */
 .container {
   display:flex;
   flex-direction:column;
@@ -40,52 +41,55 @@ body {
   font-family:"Courier New";
 }
 
-.date { font-size:40px; }
-.time { font-size:24px; }
+.date {
+  font-size: clamp(28px, 6vw, 60px);
+  font-weight:bold;
+}
+
+.time {
+  font-size: clamp(18px, 4vw, 36px);
+}
 
 /* таблица */
 .table-head,
 .train {
   display:grid;
-  grid-template-columns: 20% 1fr 25%;
+  grid-template-columns: 20% 1fr 20%;
   align-items:center;
 }
 
 .table-head {
+  font-size: clamp(12px, 2.5vw, 20px);
   color:#777;
   border-bottom:1px solid #333;
+  padding-bottom:6px;
 }
 
-.table-head div { text-align:center; }
+.table-head div {
+  text-align:center;
+}
 
 .train {
-  padding:10px 0;
+  padding:8px 0;
   border-bottom:1px solid #222;
-  font-size:18px;
+  font-size: clamp(14px, 3.5vw, 26px);
 }
 
-.route { text-align:center; }
-.time-cell { text-align:center; }
+/* колонки */
+.train div:nth-child(1),
+.time-cell {
+  text-align:center;
+}
+
+.route {
+  text-align:center;
+  word-break:break-word; /* 🔥 перенос текста */
+}
 
 /* цвета */
-.future div { color:#00ff9c; }
-.soon div { color:#ffcc00; }
-.passed div { color:#555; }
-
-/* ПРИМІТКИ */
-.notes-title {
-  text-align:center;
-  font-size:20px;
-  color:#00ff9c;
-  margin-bottom:8px;
-}
-
-.notes-text {
-  text-align:center;
-  color:red;
-  font-style:italic;
-  font-size:16px;
-}
+.future div { color:#00ff9c !important; }
+.soon div { color:#ffcc00 !important; }
+.passed div { color:#555 !important; }
 </style>
 </head>
 
@@ -94,15 +98,15 @@ body {
 <div class="wrapper">
 <div class="container">
 
-<!-- дата -->
+<!-- ДАТА -->
 <div class="widget">
   <div class="datetime">
-    <div id="date"></div>
-    <div id="time"></div>
+    <div class="date" id="date"></div>
+    <div class="time" id="time"></div>
   </div>
 </div>
 
-<!-- список -->
+<!-- РАСПИСАНИЕ -->
 <div class="widget">
   <div class="table-head">
     <div>№</div>
@@ -112,31 +116,29 @@ body {
   <div id="list"></div>
 </div>
 
-<!-- ПРИМІТКИ -->
-<div class="widget">
-  <div class="notes-title">Примітки</div>
-  <div class="notes-text">
-    Наразі жодних змін у розкладі та скасувать приміських електропоїздів немає
-  </div>
-</div>
-
 </div>
 </div>
 
 <script>
-// время
+// время Киев
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
+// дата + часы
 function updateDateTime() {
   const now = getKyivNow();
 
-  document.getElementById("date").textContent =
-    now.toLocaleDateString("uk-UA");
+  const d = String(now.getDate()).padStart(2,"0");
+  const m = String(now.getMonth()+1).padStart(2,"0");
+  const y = now.getFullYear();
 
-  document.getElementById("time").textContent =
-    now.toLocaleTimeString("uk-UA");
+  const h = String(now.getHours()).padStart(2,"0");
+  const min = String(now.getMinutes()).padStart(2,"0");
+  const s = String(now.getSeconds()).padStart(2,"0");
+
+  document.getElementById("date").textContent = `${d}.${m}.${y}`;
+  document.getElementById("time").textContent = `${h}:${min}:${s}`;
 }
 
 // разница
