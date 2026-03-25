@@ -13,28 +13,18 @@ body {
   display:flex;
   justify-content:center;
 
-  /* ГРАДИЕНТ */
   background: linear-gradient(-45deg,
-    #f1df30,
-    #04b6cb,
-    #1cbca4,
-    #c5d444,
-    #26bc93,
-    #a5ca49,
-    #8cc454,
-    #41bc81,
-    #74bf54,
-    #53bc67
+    #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93,
+    #a5ca49,#8cc454,#41bc81,#74bf54,#53bc67
   );
-  background-size: 400% 400%;
+  background-size:400% 400%;
   animation: gradientMove 12s ease infinite;
 }
 
-/* АНИМАЦИЯ */
 @keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {background-position:0% 50%;}
+  50% {background-position:100% 50%;}
+  100% {background-position:0% 50%;}
 }
 
 .wrapper {
@@ -50,8 +40,8 @@ body {
 }
 
 .widget {
-  background: rgba(0,0,0,0.6); /* стекло эффект */
-  backdrop-filter: blur(6px);
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(6px);
   padding:14px;
   border-radius:14px;
 }
@@ -89,12 +79,7 @@ body {
   padding-bottom:8px;
 }
 
-.route {
-  text-align:center;
-  width:100%;
-}
-
-.time-cell {
+.route, .time-cell {
   text-align:center;
   width:100%;
 }
@@ -106,6 +91,7 @@ body {
   cursor:pointer;
 }
 
+/* шторка */
 .details {
   display:none;
   padding:10px 0;
@@ -117,10 +103,20 @@ body {
   color:#00ff9c;
 }
 
-/* цвета поездов */
-.future div { color:#ffffff !important; }
-.soon div { color:#ffeb3b !important; }
-.passed div { color:#cccccc !important; }
+/* ПОДСВЕТКА */
+.future div { 
+  color:#00ff9c !important; 
+  font-weight:bold;
+}
+
+.soon div { 
+  color:#ffcc00 !important; 
+  font-weight:bold;
+}
+
+.passed div { 
+  color:#888 !important; 
+}
 
 /* примітки */
 .notes-title {
@@ -159,7 +155,7 @@ body {
 
   <div class="notes-title">Примітки:</div>
   <div class="notes-text">
-    Наразі жодних змін у розкладі немає
+    Наразі жодних змін у розкладі та скасувань приміських електропоїздів немає...
   </div>
 </div>
 
