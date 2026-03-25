@@ -33,7 +33,7 @@ body {
   box-shadow:0 0 10px rgba(0,255,156,0.1);
 }
 
-/* дата и время */
+/* дата */
 .datetime {
   text-align:center;
   color:#00ff9c;
@@ -90,10 +90,10 @@ body {
   font-weight:bold;
 }
 
-/* цвета */
-.train.next div { color:#00ff9c !important; }
-.soon { color:#ffcc00; }
-.passed { color:#555; }
+/* цвета состояний */
+.future div { color:#00ff9c !important; }   /* ещё не прибыл */
+.soon div { color:#ffcc00 !important; }     /* скоро */
+.passed div { color:#555 !important; }      /* ушёл */
 </style>
 </head>
 
@@ -110,7 +110,7 @@ body {
   </div>
 </div>
 
-<!-- ОБЩЕЕ РАСПИСАНИЕ -->
+<!-- СПИСОК -->
 <div class="widget">
   <div class="table-head">
     <div>№</div>
@@ -124,12 +124,12 @@ body {
 </div>
 
 <script>
-// Киев время
+// время Киев
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
-// дата и время
+// дата + часы
 function updateDateTime() {
   const now = getKyivNow();
 
@@ -145,7 +145,7 @@ function updateDateTime() {
   document.getElementById("time").textContent = `${h}:${min}:${s}`;
 }
 
-// разница
+// разница времени
 function getDiff(time){
   const now=getKyivNow();
   const [h,m]=time.split(":").map(Number);
@@ -154,7 +154,7 @@ function getDiff(time){
   return Math.floor((t-now)/60000);
 }
 
-// СТРОГИЙ ПОРЯДОК
+// порядок
 const order = [
   "6008","6010","6005","6018","6015",
   "6038","6035","6037","6044","6043"
@@ -162,35 +162,30 @@ const order = [
 
 // рендер
 function render(el,data){
-  // сортировка по твоему порядку
   data.sort((a,b)=> order.indexOf(a.number) - order.indexOf(b.number));
-
-  const arr=data.map(x=>({...x,diff:getDiff(x.time)}));
-  const next=arr.find(x=>x.diff>=0);
 
   el.innerHTML="";
 
-  arr.forEach(x=>{
-    let rowClass="train";
-    let timeClass="time-cell";
-    let label=x.time;
+  data.forEach(x=>{
+    const diff = getDiff(x.time);
 
-    if(x.diff<0) timeClass+=" passed";
+    let cls = "train";
+    let label = x.time;
 
-    if(x.diff>=0 && x.diff<=10){
-      timeClass+=" soon";
-      label="≈ "+x.diff+" хв";
+    if(diff < 0){
+      cls += " passed";
+    } else if(diff <= 10){
+      cls += " soon";
+      label = "≈ " + diff + " хв";
+    } else {
+      cls += " future";
     }
 
-    if(next && x.number===next.number){
-      rowClass+=" next";
-    }
-
-    el.innerHTML+=`
-      <div class="${rowClass}">
+    el.innerHTML += `
+      <div class="${cls}">
         <div>№${x.number}</div>
         <div class="route">${x.route}</div>
-        <div class="${timeClass}">${label}</div>
+        <div class="time-cell">${label}</div>
       </div>`;
   });
 }
