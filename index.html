@@ -14,14 +14,12 @@ body {
   justify-content:center;
 }
 
-/* ОСНОВНОЙ БЛОК ПО ЦЕНТРУ */
 .wrapper {
   width:100%;
-  max-width:900px;
+  max-width:850px;
   padding:20px 10px;
 }
 
-/* вертикально */
 .container {
   display:flex;
   flex-direction:column;
@@ -48,7 +46,6 @@ body {
   font-size:14px;
 }
 
-/* часы */
 .clock {
   font-size:22px;
   font-weight:bold;
@@ -56,11 +53,11 @@ body {
   font-family:"Courier New";
 }
 
-/* таблица */
+/* ЧЕТКАЯ СЕТКА */
 .table-head,
 .train {
   display:grid;
-  grid-template-columns: 80px 1fr 80px;
+  grid-template-columns: 60px 1fr 70px;
   align-items:center;
 }
 
@@ -76,16 +73,33 @@ body {
   border-bottom:1px solid #222;
 }
 
-/* выравнивание */
+/* выравнивание колонок */
+.table-head div:nth-child(1),
+.train div:nth-child(1) {
+  text-align:left;
+  padding-left:2px;
+}
+
+.table-head div:nth-child(2),
 .route {
   text-align:center;
+}
+
+.table-head div:nth-child(3),
+.time {
+  text-align:right;
+  padding-right:4px;
+}
+
+/* маршрут */
+.route {
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
 }
 
+/* время */
 .time {
-  text-align:right;
   font-weight:bold;
 }
 
@@ -106,15 +120,14 @@ body {
 <body>
 
 <div class="wrapper">
-
 <div class="container">
 
-<!-- 🌦 ПОГОДА -->
+<!-- ПОГОДА -->
 <div class="widget">
   <div class="weather" id="weather">Завантаження...</div>
 </div>
 
-<!-- 🚆 П'ятихатки → Дніпро -->
+<!-- П'ятихатки → Дніпро -->
 <div class="widget">
   <div class="top-bar">
     <div class="header">🚆 П'ятихатки-Пас. → Дніпро-Гол.</div>
@@ -122,13 +135,15 @@ body {
   </div>
 
   <div class="table-head">
-    <div>№</div><div>Маршрут</div><div>Відпр.</div>
+    <div>№</div>
+    <div>Маршрут</div>
+    <div>Відпр.</div>
   </div>
 
   <div id="list1"></div>
 </div>
 
-<!-- 🚆 Дніпро → П'ятихатки -->
+<!-- Дніпро → П'ятихатки -->
 <div class="widget">
   <div class="top-bar">
     <div class="header">🚆 Дніпро-Гол. → П'ятихатки-Пас.</div>
@@ -136,7 +151,9 @@ body {
   </div>
 
   <div class="table-head">
-    <div>№</div><div>Маршрут</div><div>Відпр.</div>
+    <div>№</div>
+    <div>Маршрут</div>
+    <div>Відпр.</div>
   </div>
 
   <div id="list2"></div>
@@ -146,7 +163,7 @@ body {
 </div>
 
 <script>
-// время Киев
+// Киев время
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
@@ -161,7 +178,7 @@ function updateClocks() {
   document.getElementById("clock2").textContent=t;
 }
 
-// разница времени
+// разница
 function getDiff(time){
   const now=getKyivNow();
   const [h,m]=time.split(":").map(Number);
