@@ -1,3 +1,134 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Vilnohirsk.online</title>
+
+<style>
+body {
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family: Arial;
+}
+
+.container {
+  padding:10px;
+}
+
+.widget {
+  flex: 1 1 340px;
+  background: #0b0b0b;
+  padding: 12px;
+  border-radius: 14px;
+}
+
+/* верх */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.header {
+  color: #00ff9c;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+/* часы */
+.clock {
+  font-size: 22px;
+  font-weight: bold;
+  color: #00ff9c;
+  letter-spacing: 2px;
+  font-family: "Courier New", monospace;
+  margin-top: -6px;
+}
+
+/* таблица */
+.table-head {
+  display: grid;
+  grid-template-columns: 70px 1fr 80px;
+  font-size: 11px;
+  color: #777;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #333;
+}
+
+.train {
+  display: grid;
+  grid-template-columns: 70px 1fr 80px;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid #333;
+  align-items: center;
+}
+
+.route { text-align: center; }
+
+.time {
+  text-align: right;
+  font-weight: bold;
+}
+
+.next { color: #00ff9c; }
+.soon { color: #ffcc00; }
+.passed { color: #555; }
+
+/* погода */
+.weather {
+  text-align:center;
+  font-size:18px;
+  color:#00ff9c;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" style="display:flex; flex-wrap:wrap; gap:12px;">
+
+<!-- ПЯТИХАТКИ → ДНІПРО -->
+<div class="widget">
+  <div class="top-bar">
+    <div class="header">🚆 П'ятихатки-Пас. → Дніпро-Гол.</div>
+    <div class="clock" id="clock1">--:--</div>
+  </div>
+
+  <div class="table-head">
+    <div>№</div>
+    <div class="route">Маршрут</div>
+    <div class="time">Відпр.</div>
+  </div>
+
+  <div id="list1"></div>
+</div>
+
+<!-- ДНІПРО → ПЯТИХАТКИ -->
+<div class="widget">
+  <div class="top-bar">
+    <div class="header">🚆 Дніпро-Гол. → П'ятихатки-Пас.</div>
+    <div class="clock" id="clock2">--:--</div>
+  </div>
+
+  <div class="table-head">
+    <div>№</div>
+    <div class="route">Маршрут</div>
+    <div class="time">Відпр.</div>
+  </div>
+
+  <div id="list2"></div>
+</div>
+
+<!-- ПОГОДА -->
+<div class="widget">
+  <div class="weather" id="weather">Завантаження погоди...</div>
+</div>
+
+</div>
+
 <script>
 // ⏰ Киевское время
 function getKyivNow() {
@@ -8,7 +139,6 @@ let blink = true;
 
 function updateClocks() {
   const now = getKyivNow();
-
   let h = String(now.getHours()).padStart(2, "0");
   let m = String(now.getMinutes()).padStart(2, "0");
 
@@ -23,30 +153,23 @@ function updateClocks() {
 
 // разница времени
 function getDiff(time) {
-  if (!time || time === "—") return -999;
-
   const now = getKyivNow();
   const [h, m] = time.split(":").map(Number);
-
   const t = new Date(now);
   t.setHours(h, m, 0, 0);
-
   return Math.floor((t - now) / 60000);
 }
 
 // рендер
 function render(list, data) {
-  const arr = data
-    .map(x => ({ ...x, diff: getDiff(x.time) }))
-    .sort((a, b) => a.time.localeCompare(b.time));
-
+  const arr = data.map(x => ({ ...x, diff: getDiff(x.time) }));
   const next = arr.find(x => x.diff >= 0);
 
   list.innerHTML = "";
 
   arr.forEach(x => {
     let cls = "time";
-    let label = x.time || "—";
+    let label = x.time;
 
     if (x.diff < 0) cls += " passed";
 
@@ -62,7 +185,7 @@ function render(list, data) {
 
     el.innerHTML = `
       <div>№${x.number}</div>
-      <div class="route">${x.route || x.direction || ""}</div>
+      <div class="route">${x.route}</div>
       <div class="${cls}">${label}</div>
     `;
 
@@ -70,29 +193,16 @@ function render(list, data) {
   });
 }
 
-// 🚆 загрузка
+// 🚆 загрузка поездов
 function loadTrains() {
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(res => res.json())
     .then(data => {
-
-      // универсально (работает с любой структурой)
-      const dnipro = data.trains.filter(t =>
-        (t.route && t.route.includes("Дніпро")) ||
-        (t.direction && t.direction.includes("Дніпро"))
-      );
-
-      const pyat = data.trains.filter(t =>
-        (t.route && t.route.includes("П'ятихатки")) ||
-        (t.direction && t.direction.includes("П'ятихатки"))
-      );
+      const dnipro = data.trains.filter(t => t.route.includes("Дніпро"));
+      const pyat = data.trains.filter(t => t.route.includes("П'ятихатки"));
 
       render(document.getElementById("list1"), dnipro);
       render(document.getElementById("list2"), pyat);
-    })
-    .catch(() => {
-      document.getElementById("list1").innerText = "Помилка";
-      document.getElementById("list2").innerText = "Помилка";
     });
 }
 
@@ -120,3 +230,6 @@ setInterval(loadTrains, 30000);
 setInterval(loadWeather, 600000);
 setInterval(updateClocks, 1000);
 </script>
+
+</body>
+</html>
