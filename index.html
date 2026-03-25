@@ -48,10 +48,6 @@ setInterval(updateClock, 1000);
 updateClock();
 </script>
 
-<div class="widget">
-  <div id="train-list">Завантаження...</div>
-</div>
-
 <script>
 function loadTrains() {
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
@@ -60,19 +56,21 @@ function loadTrains() {
       const list = document.getElementById("train-list");
 
       list.innerHTML = data.trains.map(train => `
-        <div style="margin:10px 0; border-bottom:1px solid #00ff88; padding-bottom:5px;">
-          <strong>${train.number}</strong> — ${train.route}<br>
-          🕒 ${train.time}
+        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #00ff88; padding:8px 0;">
+          <div>
+            <strong>${train.type}</strong> №${train.number}<br>
+            → ${train.direction}
+          </div>
+          <div style="font-size:18px; font-weight:bold;">
+            ${train.time}
+          </div>
         </div>
       `).join("");
-    })
-    .catch(() => {
-      document.getElementById("train-list").innerText = "Ошибка загрузки";
     });
 }
 
 loadTrains();
-setInterval(loadTrains, 30000); // обновление каждые 30 сек
+setInterval(loadTrains, 30000);
 </script>
 
 <div class="widget">
