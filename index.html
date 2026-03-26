@@ -143,13 +143,14 @@ body {
   grid-column:2;
 }
 
-/* 🔥 маршрут в одну строку с авто-уменьшением */
+/* 🔥 увеличенный маршрут (+2 размера) */
 .route {
   white-space:nowrap;
   overflow:hidden;
   width:100%;
   text-align:center;
-  font-size: clamp(10px, 2.5vw, 22px);
+  font-size: clamp(12px, 3vw, 24px);
+  font-weight:500;
 }
 
 /* зелёное время в шторках */
@@ -269,7 +270,6 @@ function getKyivNow(){
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
-/* ✅ исправленные часы */
 function updateDateTime(){
   const now=getKyivNow();
 
