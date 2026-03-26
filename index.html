@@ -120,12 +120,23 @@ body {
   padding-bottom:8px;
 }
 
+/* 🔥 одинаковый размер */
 .train {
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
   cursor:pointer;
+  font-size:22px;
 }
 
+.route {
+  white-space:nowrap;
+  overflow:hidden;
+  text-align:center;
+  width:100%;
+  font-size:22px;
+}
+
+/* шторки */
 .details {
   display:none;
   padding:10px 0;
@@ -143,22 +154,12 @@ body {
   grid-column:2;
 }
 
-/* 🔥 маршрут в одну строку с авто-уменьшением */
-.route {
-  white-space:nowrap;
-  overflow:hidden;
-  width:100%;
-  text-align:center;
-  font-size: clamp(10px, 2.5vw, 22px);
-}
-
-/* зелёное время в шторках */
 .details-row div:nth-child(3) {
   color:#00ff9c;
   font-weight:bold;
 }
 
-/* цвета времени */
+/* цвета */
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
@@ -168,7 +169,7 @@ body {
   position:relative;
 }
 
-/* 🔴 точка */
+/* точка */
 .alert-dot {
   position:absolute;
   top:-4px;
@@ -235,6 +236,8 @@ body {
 
 const changes = {
   "6008":"тест1",
+  "6010":"тест2",
+  "6035":"тест3"
 };
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
@@ -267,7 +270,6 @@ function getKyivNow(){
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
-/* ✅ исправленные часы */
 function updateDateTime(){
   const now=getKyivNow();
 
