@@ -40,7 +40,14 @@ body {
     #a5ca49,#8cc454,#41bc81,#74bf54,#53bc67
   );
   background-size:400% 400%;
+  background-attachment: fixed;
   animation: gradientMove 60s ease infinite;
+}
+
+@supports (-webkit-touch-callout: none) {
+  body {
+    min-height: -webkit-fill-available;
+  }
 }
 
 @keyframes gradientMove {
@@ -53,6 +60,7 @@ body {
   width:100%;
   max-width:900px;
   padding:10px;
+  padding-bottom: calc(20px + var(--safe-bottom));
 }
 
 .container {
@@ -62,15 +70,14 @@ body {
 }
 
 .widget {
-  position:relative;
   background:rgba(0,0,0,0.6);
   backdrop-filter:blur(6px);
   padding:14px;
   border-radius:16px;
 }
 
-/* ДАТА */
-.datetime-center {
+/* дата */
+.datetime {
   text-align:center;
   font-family:"Courier New";
 }
@@ -84,29 +91,28 @@ body {
   font-size: clamp(18px, 4vw, 36px);
 }
 
-/* ПОГОДА */
-.weather {
-  position:absolute;
-  top:10px;
-  right:15px;
-  display:flex;
-  flex-direction:column;
-  align-items:flex-end;
-  gap:2px;
-  max-width:120px;
-}
-
-.weather-icon {
-  font-size:26px;
-}
-
-.weather-temp {
-  font-size:22px;
+/* табло */
+.info-header {
+  text-align:center;
+  color:#ff3b3b;
   font-weight:bold;
+  font-size: clamp(14px,3vw,20px);
+  cursor:pointer;
 }
 
-.weather-wind {
-  font-size:14px;
+.info-count {
+  font-size: 12px;
+  margin-left:6px;
+  position:relative;
+  top:-6px;
+}
+
+.info-content {
+  display:none;
+  margin-top:8px;
+  font-size: clamp(12px,2.8vw,18px);
+  line-height:1.3;
+  color:#ffffff;
 }
 
 /* таблица */
@@ -120,34 +126,44 @@ body {
 }
 
 .table-head {
+  font-size: clamp(13px, 3vw, 22px);
   font-weight:700;
   border-bottom:2px solid #aaa;
   padding-bottom:8px;
 }
 
+.route, .time-cell {
+  text-align:center;
+  width:100%;
+}
+
 .train {
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
+  font-size: clamp(14px, 3.5vw, 26px);
   cursor:pointer;
-}
-
-/* ОТМЕНА ПЕРЕНОСА */
-.route {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width:100%;
-  text-align:center;
 }
 
 .details {
   display:none;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.2);
+  font-size: clamp(13px, 3vw, 22px);
+}
+
+.details-row div:nth-child(3) {
+  color:#00ff9c;
 }
 
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
 
+.train div:not(.time-cell) {
+  color:#ffffff;
+}
+
+/* примітки */
 .notes-title {
   margin-top:10px;
   color:#ff3b3b;
@@ -166,15 +182,9 @@ body {
 <div class="container">
 
 <div class="widget">
-  <div class="datetime-center">
+  <div class="datetime">
     <div class="date" id="date"></div>
     <div class="time" id="time"></div>
-  </div>
-
-  <div class="weather">
-    <div class="weather-icon" id="weatherIcon">☁️</div>
-    <div class="weather-temp" id="weatherTemp">--°</div>
-    <div class="weather-wind" id="weatherWind"></div>
   </div>
 </div>
 
@@ -204,35 +214,21 @@ body {
 </div>
 
 <script>
-function getKyivNow() {
-  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
+if (window.Telegram && Telegram.WebApp) {
+  Telegram.WebApp.expand();
 }
 
-function updateDateTime() {
-  const now = getKyivNow();
-  date.textContent = `${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  time.textContent = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-}
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("copy", e => e.preventDefault());
+document.addEventListener("cut", e => e.preventDefault());
+document.addEventListener("selectstart", e => e.preventDefault());
+document.addEventListener("dragstart", e => e.preventDefault());
 
-function getWeatherEmoji(temp){
-  if(temp <= 0) return "❄️";
-  if(temp <= 10) return "🌥️";
-  if(temp <= 20) return "☁️";
-  return "☀️";
-}
-
-function loadWeather(){
-  fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&windspeed_unit=ms")
-  .then(r=>r.json())
-  .then(d=>{
-    const temp = Math.round(d.current_weather.temperature);
-    const wind = Math.round(d.current_weather.windspeed);
-
-    document.getElementById("weatherTemp").textContent = temp + "°";
-    document.getElementById("weatherWind").textContent = wind + " м/с";
-    document.getElementById("weatherIcon").textContent = getWeatherEmoji(temp);
-  });
-}
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && ["c","u","x","s"].includes(e.key.toLowerCase())) {
+    e.preventDefault();
+  }
+});
 
 function toggleInfo(){
   const el=document.getElementById("infoBox");
@@ -242,6 +238,16 @@ function toggleInfo(){
 function updateInfoCount(){
   const count = document.querySelectorAll(".notice").length;
   document.getElementById("infoCount").textContent = count > 0 ? count : "";
+}
+
+function getKyivNow() {
+  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
+}
+
+function updateDateTime() {
+  const now = getKyivNow();
+  date.textContent = `${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+  time.textContent = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
 }
 
 function getDiff(time){
@@ -310,13 +316,11 @@ function loadTrains(){
 }
 
 loadTrains();
-loadWeather();
 updateDateTime();
 updateInfoCount();
 
 setInterval(loadTrains,30000);
 setInterval(updateDateTime,1000);
-setInterval(loadWeather,600000);
 </script>
 
 </body>
