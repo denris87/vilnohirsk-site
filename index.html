@@ -17,6 +17,11 @@ html, body {
   height:100%;
 }
 
+* {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 body {
   color:#fff;
   font-family:Arial;
@@ -41,26 +46,26 @@ body {
 
 .wrapper {
   width:100%;
-  max-width:500px;
-  padding:8px;
+  max-width:900px;
+  padding:10px;
 }
 
 .container {
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:14px;
 }
 
 .top-row {
   display:grid;
   grid-template-columns: 1fr 1fr;
-  gap:10px;
+  gap:14px;
 }
 
 .widget {
   background:rgba(0,0,0,0.6);
-  padding:10px;
-  border-radius:14px;
+  padding:14px;
+  border-radius:16px;
 }
 
 /* дата */
@@ -72,91 +77,104 @@ body {
 .weekdays {
   display:flex;
   justify-content:center;
-  gap:4px;
-  font-size:12px;
+  gap:6px;
 }
 
 .day.active {
   background:red;
-  border-radius:5px;
-  padding:2px 4px;
+  border-radius:6px;
 }
 
 /* погода */
 .weather {
   text-align:center;
+  line-height:1.4;
 }
 
-.weather-city { font-weight:bold; }
-.weather-temp { font-size:20px; font-weight:bold; }
-.weather-wind { font-size:11px; }
+.weather-city {
+  font-weight:bold;
+}
+
+.weather-temp {
+  font-size:22px;
+  font-weight:bold;
+}
+
+.weather-wind {
+  font-size:12px;
+}
 
 /* таблица */
 .table-head,
 .train,
 .details-row {
   display:grid;
-  grid-template-columns: 18% 1fr 22%;
+  grid-template-columns: 20% 1fr 20%;
   align-items:center;
+  justify-items:center;
 }
 
 .table-head {
   font-weight:700;
   border-bottom:2px solid #aaa;
-  padding-bottom:6px;
+  padding-bottom:8px;
 }
 
-/* 🔽 номер меньше */
-.train-number {
-  position:relative;
-  font-size:14px;
-}
-
-/* 🔽 время меньше */
-.time-cell {
-  font-size:14px;
-  text-align:right;
-}
-
-/* 🔼 маршрут больше */
-.route {
-  white-space:nowrap;
-  width:95%;
-  text-align:center;
-  font-size:18px;
-}
-
-/* строка */
 .train {
-  padding:8px 0;
+  padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
   cursor:pointer;
 }
 
-/* шторки */
 .details {
   display:none;
-  padding:6px 0;
-  font-size:13px;
+  padding:10px 0;
 }
 
+.details-divider {
+  grid-column:2;
+  width:60%;
+  height:1px;
+  background:#fff;
+  margin:10px auto;
+}
+
+.details-note {
+  grid-column:2;
+}
+
+/* 🔥 маршрут в одну строку с авто-уменьшением */
+.route {
+  white-space:nowrap;
+  overflow:hidden;
+  width:100%;
+  text-align:center;
+  font-size: clamp(10px, 2.5vw, 22px);
+}
+
+/* зелёное время в шторках */
 .details-row div:nth-child(3) {
   color:#00ff9c;
   font-weight:bold;
 }
 
-/* цвета */
+/* цвета времени */
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
 
-/* точка */
+/* номер */
+.train-number {
+  position:relative;
+}
+
+/* 🔴 точка */
 .alert-dot {
   position:absolute;
-  top:-3px;
-  right:-5px;
-  width:5px;
-  height:5px;
+  top:-4px;
+  right:-6px;
+  width:6px;
+  height:6px;
   background:#ff3b3b;
   border-radius:50%;
   animation: blink 1s infinite;
@@ -236,28 +254,42 @@ const schedules={
   "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
 };
 
-/* авто размер */
-function fitText(el){
-  let size = 18;
-  el.style.fontSize = size+"px";
-  while(el.scrollWidth > el.clientWidth && size > 12){
-    size--;
-    el.style.fontSize = size+"px";
-  }
-}
-
-function fitAll(){
-  document.querySelectorAll(".route").forEach(fitText);
+function getWeatherEmoji(code){
+  if(code === 0) return "☀️";
+  if(code <= 2) return "⛅";
+  if(code <= 3) return "☁️";
+  if(code <= 48) return "🌫️";
+  if(code <= 67) return "🌧️";
+  if(code <= 77) return "🌨️";
+  if(code <= 99) return "⛈️";
+  return "🌡️";
 }
 
 function getKyivNow(){
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
+/* ✅ исправленные часы */
 function updateDateTime(){
   const now=getKyivNow();
-  date.textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  time.textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+
+  const d=String(now.getDate()).padStart(2,"0");
+  const m=String(now.getMonth()+1).padStart(2,"0");
+  const y=now.getFullYear();
+
+  const h=String(now.getHours()).padStart(2,"0");
+  const min=String(now.getMinutes()).padStart(2,"0");
+  const s=String(now.getSeconds()).padStart(2,"0");
+
+  date.textContent=`${d}.${m}.${y}`;
+  time.textContent=`${h}:${min}:${s}`;
+
+  const days=document.querySelectorAll(".day");
+  days.forEach(d=>d.classList.remove("active"));
+
+  let i=now.getDay();
+  i=i===0?6:i-1;
+  days[i].classList.add("active");
 }
 
 function loadWeather(){
@@ -265,10 +297,11 @@ function loadWeather(){
   .then(r=>r.json())
   .then(d=>{
     const w=d.current_weather;
+    const emoji=getWeatherEmoji(w.weathercode);
 
     weather.innerHTML=`
       <div class="weather-city">Вільногірськ</div>
-      <div class="weather-temp">${Math.round(w.temperature)}°C</div>
+      <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
       <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
     `;
   });
@@ -319,12 +352,12 @@ function render(el,data){
             <div>${s[1]}</div>
           </div>
         `).join("")}
+
+        <div class="details-divider"></div>
         <div class="details-note">${note}</div>
       </div>`;
     }
   });
-
-  setTimeout(fitAll,50);
 }
 
 function toggle(id){
