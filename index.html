@@ -127,12 +127,13 @@ body {
   font-size:22px;
 }
 
-/* маршрут */
+/* 🔥 уменьшенный базовый размер */
 .route {
   white-space:nowrap;
   text-align:center;
   width:100%;
   display:block;
+  font-size:18px;
 }
 
 /* шторки */
@@ -254,13 +255,13 @@ const schedules={
   "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
 };
 
-/* 🔥 авто-подгон шрифта */
+/* авто-подгон */
 function fitText(el){
-  let size = 22;
+  let size = 18;
   el.style.fontSize = size + "px";
 
   while(el.scrollWidth > el.clientWidth && size > 10){
-    size -= 1;
+    size--;
     el.style.fontSize = size + "px";
   }
 }
@@ -353,7 +354,7 @@ function render(el,data){
     }
   });
 
-  setTimeout(fitAll, 50);
+  setTimeout(fitAll,50);
 }
 
 function toggle(id){
