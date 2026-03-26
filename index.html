@@ -143,6 +143,15 @@ body {
   grid-column:2;
 }
 
+/* 🔥 маршрут в одну строку с авто-уменьшением */
+.route {
+  white-space:nowrap;
+  overflow:hidden;
+  width:100%;
+  text-align:center;
+  font-size: clamp(10px, 2.5vw, 22px);
+}
+
 /* зелёное время в шторках */
 .details-row div:nth-child(3) {
   color:#00ff9c;
@@ -154,16 +163,16 @@ body {
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
 
-/* контейнер номера */
+/* номер */
 .train-number {
   position:relative;
 }
 
-/* 🔴 точка в углу */
+/* 🔴 точка */
 .alert-dot {
   position:absolute;
   top:-4px;
-  right:-8px;
+  right:-6px;
   width:6px;
   height:6px;
   background:#ff3b3b;
@@ -260,11 +269,20 @@ function getKyivNow(){
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
+/* ✅ исправленные часы */
 function updateDateTime(){
   const now=getKyivNow();
 
-  date.textContent=`${now.getDate()}.${now.getMonth()+1}.${now.getFullYear()}`;
-  time.textContent=`${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+  const d=String(now.getDate()).padStart(2,"0");
+  const m=String(now.getMonth()+1).padStart(2,"0");
+  const y=now.getFullYear();
+
+  const h=String(now.getHours()).padStart(2,"0");
+  const min=String(now.getMinutes()).padStart(2,"0");
+  const s=String(now.getSeconds()).padStart(2,"0");
+
+  date.textContent=`${d}.${m}.${y}`;
+  time.textContent=`${h}:${min}:${s}`;
 
   const days=document.querySelectorAll(".day");
   days.forEach(d=>d.classList.remove("active"));
@@ -312,13 +330,12 @@ function render(el,data){
     else cls+=" future";
 
     const id="d-"+x.number;
-
     const dot = changes[x.number] ? `<span class="alert-dot"></span>` : "";
 
     el.innerHTML+=`
       <div class="${cls}" onclick="toggle('${id}')">
         <div class="train-number">${x.number}${dot}</div>
-        <div>${x.route}</div>
+        <div class="route">${x.route}</div>
         <div class="time-cell">${label}</div>
       </div>
     `;
