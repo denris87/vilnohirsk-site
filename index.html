@@ -38,19 +38,6 @@ body {
   animation: gradientMove 60s ease infinite;
 }
 
-/* 🔥 grain эффект */
-body::after {
-  content:"";
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  pointer-events:none;
-  opacity:0.08;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-}
-
 @keyframes gradientMove {
   0% {background-position:0% 50%;}
   50% {background-position:100% 50%;}
@@ -76,10 +63,9 @@ body::after {
 }
 
 .widget {
-  background:rgba(0,0,0,0.7);
+  background:rgba(0,0,0,0.6);
   padding:14px;
   border-radius:16px;
-  backdrop-filter: blur(6px);
 }
 
 /* 📅 дата + время */
@@ -151,11 +137,6 @@ body::after {
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
   cursor:pointer;
-  transition: background 0.2s;
-}
-
-.train:hover {
-  background:rgba(255,255,255,0.05);
 }
 
 /* ПЛАВНЫЕ ШТОРКИ */
@@ -200,27 +181,20 @@ body::after {
   font-weight:600;
 }
 
-/* 🔥 НЕОН */
-.future .time-cell,
+/* 🔥 цвета времени в шторках */
 .details-row .time-green {
   color:#00ff9c;
   font-weight:bold;
-  text-shadow:
-    0 0 5px #00ff9c,
-    0 0 10px #00ff9c,
-    0 0 20px rgba(0,255,156,0.6);
 }
 
-.soon .time-cell {
-  color:#ffcc00;
-  font-weight:bold;
-  text-shadow:0 0 6px rgba(255,204,0,0.7);
+.details-row .time-passed {
+  color:#888;
 }
 
-.details-row .time-passed,
-.passed .time-cell {
-  color:#777;
-}
+/* цвета времени основной */
+.future .time-cell { color:#00ff9c; font-weight:bold; }
+.soon .time-cell { color:#ffcc00; font-weight:bold; }
+.passed .time-cell { color:#888; }
 
 /* номер */
 .train-number {
