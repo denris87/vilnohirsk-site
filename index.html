@@ -17,6 +17,13 @@ html, body {
   height:100%;
 }
 
+/* ЗАПРЕТ ВЫДЕЛЕНИЯ */
+* {
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
 body {
   color:#fff;
   font-family:Arial;
@@ -94,11 +101,9 @@ body {
   cursor:pointer;
 }
 
-/* ВОТ ТУТ ГЛАВНОЕ ИЗМЕНЕНИЕ */
 .info-count {
   font-size: 12px;
   margin-left:6px;
-  vertical-align:top;
   position:relative;
   top:-6px;
 }
@@ -188,7 +193,6 @@ body {
   </div>
 </div>
 
-<!-- ТАБЛО -->
 <div class="widget">
   <div class="info-header" onclick="toggleInfo()">
     інформація<span class="info-count" id="infoCount"></span>
@@ -196,7 +200,7 @@ body {
 
   <div class="info-content" id="infoBox">
     <div class="notice">№6015 Дніпро-Гол. – Пʼятихатки-Пас. прямує зі станції Верхньодніпровськ з затримкою <span class="delay">+39 хвилин</span></div>
-    <div class="notice">№6018 Пʼятихатки-Стик. – Дніпро-Гол. зі станції Верхньодніпровськ з затримкою <span class="delay">+47 хвилин</span></div>
+    <div class="notice">№6018 Пʼятихатки-Стик. – Дніпро-Гол. зі станції Верхньодніпровськ з затримкою <span class="delay">+47 хвилин</span>.</div>
   </div>
 </div>
 
@@ -211,7 +215,7 @@ body {
 
   <div class="notes-title">Примітки:</div>
   <div class="notes-text">
-    Наразі жодних змін у розкладі немає...
+    Наразі жодних змін у розкладі та скасувань приміських електропоїздів немає...
   </div>
 </div>
 
@@ -219,10 +223,25 @@ body {
 </div>
 
 <script>
+// Telegram
 if (window.Telegram && Telegram.WebApp) {
   Telegram.WebApp.expand();
 }
 
+/* БЛОК КОПИРОВАНИЯ */
+document.addEventListener("contextmenu", e => e.preventDefault());
+document.addEventListener("copy", e => e.preventDefault());
+document.addEventListener("cut", e => e.preventDefault());
+document.addEventListener("selectstart", e => e.preventDefault());
+document.addEventListener("dragstart", e => e.preventDefault());
+
+document.addEventListener("keydown", e => {
+  if (e.ctrlKey && ["c","u","x","s"].includes(e.key.toLowerCase())) {
+    e.preventDefault();
+  }
+});
+
+/* логика */
 function toggleInfo(){
   const el=document.getElementById("infoBox");
   el.style.display = el.style.display==="block"?"none":"block";
