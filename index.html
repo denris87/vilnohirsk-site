@@ -74,6 +74,7 @@ body {
   backdrop-filter:blur(6px);
   padding:14px;
   border-radius:16px;
+  position:relative;
 }
 
 /* дата */
@@ -89,6 +90,25 @@ body {
 
 .time {
   font-size: clamp(18px, 4vw, 36px);
+}
+
+/* погода */
+.weather {
+  position:absolute;
+  top:10px;
+  right:14px;
+  text-align:right;
+  font-size: clamp(12px, 3vw, 18px);
+  line-height:1.2;
+}
+
+.weather-temp {
+  font-weight:bold;
+}
+
+.weather-wind {
+  font-size: 12px;
+  opacity:0.9;
 }
 
 /* табло */
@@ -182,6 +202,10 @@ body {
 <div class="container">
 
 <div class="widget">
+  <div class="weather" id="weather">
+    Завантаження...
+  </div>
+
   <div class="datetime">
     <div class="date" id="date"></div>
     <div class="time" id="time"></div>
@@ -250,6 +274,33 @@ function updateDateTime() {
   time.textContent = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
 }
 
+/* Погода */
+function getWeatherEmoji(code){
+  if(code === 0) return "☀️";
+  if(code <= 2) return "⛅";
+  if(code <= 3) return "☁️";
+  if(code <= 48) return "🌫️";
+  if(code <= 67) return "🌧️";
+  if(code <= 77) return "🌨️";
+  if(code <= 99) return "⛈️";
+  return "🌡️";
+}
+
+function loadWeather(){
+  fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&timezone=Europe%2FKyiv")
+  .then(r=>r.json())
+  .then(d=>{
+    const w=d.current_weather;
+    const emoji=getWeatherEmoji(w.weathercode);
+
+    document.getElementById("weather").innerHTML = `
+      <div>${emoji} Вільногірськ</div>
+      <div class="weather-temp">${Math.round(w.temperature)}°C</div>
+      <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
+    `;
+  });
+}
+
 function getDiff(time){
   const now=getKyivNow();
   const [h,m]=time.split(":").map(Number);
@@ -316,11 +367,13 @@ function loadTrains(){
 }
 
 loadTrains();
+loadWeather();
 updateDateTime();
 updateInfoCount();
 
 setInterval(loadTrains,30000);
 setInterval(updateDateTime,1000);
+setInterval(loadWeather,600000);
 </script>
 
 </body>
