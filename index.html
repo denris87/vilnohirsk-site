@@ -127,13 +127,13 @@ body {
   font-size:22px;
 }
 
-/* 🔥 уменьшенный базовый размер */
+/* 🔥 маршрут */
 .route {
   white-space:nowrap;
   text-align:center;
-  width:100%;
+  width:95%; /* запас */
   display:block;
-  font-size:18px;
+  font-size:16px; /* уменьшили */
 }
 
 /* шторки */
@@ -255,12 +255,12 @@ const schedules={
   "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
 };
 
-/* авто-подгон */
+/* 🔥 улучшенный fit */
 function fitText(el){
-  let size = 18;
+  let size = 16;
   el.style.fontSize = size + "px";
 
-  while(el.scrollWidth > el.clientWidth && size > 10){
+  while(el.scrollWidth > el.clientWidth * 0.95 && size > 10){
     size--;
     el.style.fontSize = size + "px";
   }
