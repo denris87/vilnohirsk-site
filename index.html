@@ -120,7 +120,6 @@ body {
   padding-bottom:8px;
 }
 
-/* 🔥 одинаковый размер */
 .train {
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
@@ -128,12 +127,12 @@ body {
   font-size:22px;
 }
 
+/* маршрут */
 .route {
   white-space:nowrap;
-  overflow:hidden;
   text-align:center;
   width:100%;
-  font-size:22px;
+  display:block;
 }
 
 /* шторки */
@@ -255,15 +254,19 @@ const schedules={
   "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
 };
 
-function getWeatherEmoji(code){
-  if(code === 0) return "☀️";
-  if(code <= 2) return "⛅";
-  if(code <= 3) return "☁️";
-  if(code <= 48) return "🌫️";
-  if(code <= 67) return "🌧️";
-  if(code <= 77) return "🌨️";
-  if(code <= 99) return "⛈️";
-  return "🌡️";
+/* 🔥 авто-подгон шрифта */
+function fitText(el){
+  let size = 22;
+  el.style.fontSize = size + "px";
+
+  while(el.scrollWidth > el.clientWidth && size > 10){
+    size -= 1;
+    el.style.fontSize = size + "px";
+  }
+}
+
+function fitAll(){
+  document.querySelectorAll(".route").forEach(fitText);
 }
 
 function getKyivNow(){
@@ -273,16 +276,8 @@ function getKyivNow(){
 function updateDateTime(){
   const now=getKyivNow();
 
-  const d=String(now.getDate()).padStart(2,"0");
-  const m=String(now.getMonth()+1).padStart(2,"0");
-  const y=now.getFullYear();
-
-  const h=String(now.getHours()).padStart(2,"0");
-  const min=String(now.getMinutes()).padStart(2,"0");
-  const s=String(now.getSeconds()).padStart(2,"0");
-
-  date.textContent=`${d}.${m}.${y}`;
-  time.textContent=`${h}:${min}:${s}`;
+  date.textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+  time.textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
 
   const days=document.querySelectorAll(".day");
   days.forEach(d=>d.classList.remove("active"));
@@ -297,11 +292,10 @@ function loadWeather(){
   .then(r=>r.json())
   .then(d=>{
     const w=d.current_weather;
-    const emoji=getWeatherEmoji(w.weathercode);
 
     weather.innerHTML=`
       <div class="weather-city">Вільногірськ</div>
-      <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
+      <div class="weather-temp">${Math.round(w.temperature)}°C</div>
       <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
     `;
   });
@@ -358,6 +352,8 @@ function render(el,data){
       </div>`;
     }
   });
+
+  setTimeout(fitAll, 50);
 }
 
 function toggle(id){
