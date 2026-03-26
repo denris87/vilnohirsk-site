@@ -132,20 +132,6 @@ body {
   padding-bottom:8px;
 }
 
-/* новый стиль заголовка времени */
-.time-header {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  line-height:1.1;
-}
-
-.time-header small {
-  font-size:10px;
-  font-weight:normal;
-  opacity:0.8;
-}
-
 .route, .time-cell {
   text-align:center;
   width:100%;
@@ -175,14 +161,6 @@ body {
 
 .train div:not(.time-cell) {
   color:#ffffff;
-}
-
-/* подпись */
-.footer-note {
-  text-align:right;
-  font-size:12px;
-  color:#ccc;
-  margin-top:6px;
 }
 
 /* примітки */
@@ -221,17 +199,10 @@ body {
   <div class="table-head">
     <div>№</div>
     <div>Маршрут</div>
-    <div class="time-header">
-      <div>Відпр.</div>
-      <small>зі ст. Вільногірськ</small>
-    </div>
+    <div>Відпр.</div>
   </div>
 
   <div id="list"></div>
-
-  <div class="footer-note">
-    час відправлення зі ст. Вільногірськ
-  </div>
 
   <div class="notes-title">Примітки:</div>
   <div class="notes-text">
