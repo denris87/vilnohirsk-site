@@ -2,138 +2,75 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vilnohirsk.online</title>
 
 <style>
-:root {
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
-}
-
-html, body {
+body{
   margin:0;
-  padding:0;
-  height:100%;
-}
-
-body {
-  color:#fff;
   font-family:Arial;
-  display:flex;
-  justify-content:center;
-  padding:10px;
-  background: linear-gradient(-45deg,#1cbca4,#74bf54,#53bc67);
-}
-
-/* контейнер */
-.container {
-  width:100%;
-  max-width:900px;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-/* верх */
-.top-row {
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-}
-
-.widget {
-  background:rgba(0,0,0,0.6);
-  padding:16px;
-  border-radius:20px;
-}
-
-/* дата */
-.datetime {
-  text-align:center;
-}
-
-.date {
-  font-size:22px;
-  font-weight:bold;
-}
-
-.time {
-  margin-top:6px;
-  font-size:22px;
-}
-
-/* дни */
-.weekdays {
-  display:flex;
-  justify-content:center;
-  gap:6px;
-  margin:6px 0;
-}
-
-.day {
-  padding:4px 8px;
-  border-radius:6px;
-}
-
-.day.active {
-  background:red;
-}
-
-/* погода */
-.weather {
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  height:100%;
-}
-
-/* вкладки */
-.tabs {
-  display:flex;
-  gap:8px;
-  margin-bottom:10px;
-}
-
-.tab {
-  flex:1;
-  text-align:center;
-  padding:8px;
-  border-radius:10px;
-  background:rgba(255,255,255,0.1);
   color:#fff;
-  font-weight:bold;
-  cursor:pointer;
+  background:linear-gradient(135deg,#1cbca4,#8bc34a);
+  display:flex;
+  justify-content:center;
 }
 
-.tab.active {
-  background:#ff2b2b;
+.container{
+  width:95%;
+  max-width:900px;
+  margin-top:10px;
+}
+
+/* блок */
+.block{
+  background:rgba(0,0,0,0.5);
+  border-radius:20px;
+  padding:15px;
+  margin-bottom:12px;
 }
 
 /* таблица */
 .table-head,
 .train,
-.details-row {
+.details-row{
   display:grid;
   grid-template-columns:20% 1fr 20%;
   text-align:center;
 }
 
-.train {
+.table-head{
+  font-weight:bold;
+  border-bottom:2px solid #aaa;
+  padding-bottom:6px;
+}
+
+.train{
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
   cursor:pointer;
 }
 
-.details {
+.details{
   display:none;
-  font-size:14px;
-  padding-bottom:10px;
+  padding-bottom:8px;
 }
 
 .details-row div:nth-child(3){
   color:#00ff9c;
+}
+
+/* цвета времени */
+.future .time{color:#00ff9c;}
+.passed .time{color:#888;}
+.soon .time{color:#ffcc00;}
+
+/* примітки */
+.notes{
+  margin-top:10px;
+}
+
+.notes b{
+  color:#ff3b3b;
 }
 </style>
 </head>
@@ -142,55 +79,19 @@ body {
 
 <div class="container">
 
-<div class="top-row">
+<div class="block">
 
-<div class="widget">
-  <div class="datetime">
-    <div class="date" id="date"></div>
-
-    <div class="weekdays">
-      <div class="day">пн</div>
-      <div class="day">вт</div>
-      <div class="day">ср</div>
-      <div class="day">чт</div>
-      <div class="day">пт</div>
-      <div class="day">сб</div>
-      <div class="day">нд</div>
-    </div>
-
-    <div class="time" id="time"></div>
-  </div>
+<div class="table-head">
+  <div>№</div>
+  <div>Маршрут прямування</div>
+  <div>Відпр.</div>
 </div>
 
-<div class="widget">
-  <div class="weather" id="weather"></div>
-</div>
+<div id="list"></div>
 
-</div>
-
-<div class="widget">
-
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('electric',this)">Електрички</div>
-  <div class="tab" onclick="switchTab('train',this)">Потяги</div>
-  <div class="tab" onclick="switchTab('bus',this)">Автобуси</div>
-</div>
-
-<div id="electric" class="section active">
-  <div class="table-head">
-    <div>№</div>
-    <div>Маршрут</div>
-    <div>Відпр.</div>
-  </div>
-  <div id="list"></div>
-</div>
-
-<div id="train" class="section" style="display:none;text-align:center;padding:20px;">
-  Немає даних
-</div>
-
-<div id="bus" class="section" style="display:none;text-align:center;padding:20px;">
-  Немає даних
+<div class="notes">
+  <b>Примітки:</b><br>
+  <i>Наразі жодних змін у розкладі немає...</i>
 </div>
 
 </div>
@@ -199,63 +100,73 @@ body {
 
 <script>
 
-/* вкладки */
-function switchTab(id,el){
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  el.classList.add("active");
-
-  document.querySelectorAll(".section").forEach(s=>s.style.display="none");
-  document.getElementById(id).style.display="block";
+/* текущее время */
+function getNow(){
+  return new Date();
 }
 
-/* время */
-function updateTime(){
-  const now=new Date();
-  date.textContent=now.toLocaleDateString("uk-UA");
-  time.textContent=now.toLocaleTimeString("uk-UA");
-
-  const days=document.querySelectorAll(".day");
-  days.forEach(d=>d.classList.remove("active"));
-
-  let i=now.getDay();
-  i=i===0?6:i-1;
-  days[i].classList.add("active");
+function getDiff(time){
+  const now=getNow();
+  const [h,m]=time.split(":").map(Number);
+  const t=new Date(now);
+  t.setHours(h,m,0,0);
+  return Math.floor((t-now)/60000);
 }
-setInterval(updateTime,1000);
-updateTime();
 
-/* погода */
-fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true")
-.then(r=>r.json())
-.then(d=>{
-  const w=d.current_weather;
-  weather.innerHTML=`
-    <div>Вільногірськ</div>
-    <div style="font-size:26px;font-weight:bold;">🌤 ${Math.round(w.temperature)}°C</div>
-    <div>💨 ${Math.round(w.windspeed)} м/с</div>
-  `;
-});
-
-/* расписание + шторки */
+/* данные */
 const trains=[
-{n:"6008",r:"Дніпро",t:"07:22",d:[["Вільногірськ","05:16"],["Дніпро","07:22"]]},
-{n:"6010",r:"Камʼянське",t:"08:09",d:[["Вільногірськ","06:01"],["Камʼянське","08:09"]]}
+{n:"6008",r:"П'ятихатки-Пас. → Дніпро-Гол.",t:"05:16",
+d:[["Пʼятихатки-Пас.","04:43"],["Вільногірськ","05:16"],["Дніпро-Гол.","07:22"]]},
+{n:"6010",r:"П'ятихатки-Пас. → Дніпро-Гол.",t:"06:01",
+d:[["Пʼятихатки-Пас.","05:30"],["Вільногірськ","06:01"],["Дніпро-Гол.","08:09"]]},
+{n:"6005",r:"Дніпро-Гол. → П'ятихатки-Пас.",t:"06:54",
+d:[["Дніпро-Гол.","04:52"],["Вільногірськ","06:54"],["Пʼятихатки-Пас.","07:28"]]},
+{n:"6018",r:"П'ятихатки-Пас. → Дніпро-Гол.",t:"09:00",
+d:[["Пʼятихатки-Пас.","08:29"],["Вільногірськ","09:00"],["Дніпро-Гол.","10:57"]]},
+{n:"6015",r:"Дніпро-Гол. → П'ятихатки-Пас.",t:"10:56",
+d:[["Дніпро-Гол.","08:22"],["Вільногірськ","10:56"],["Пʼятихатки-Пас.","11:30"]]},
+{n:"6038",r:"П'ятихатки-Пас. → Дніпро-Гол.",t:"17:23",
+d:[["Пʼятихатки-Пас.","16:50"],["Вільногірськ","17:23"],["Дніпро-Гол.","19:17"]]},
+{n:"6035",r:"Дніпро-Гол. → П'ятихатки-Пас.",t:"18:50",
+d:[["Дніпро-Гол.","16:38"],["Вільногірськ","18:50"],["Пʼятихатки-Пас.","19:22"]]},
+{n:"6037",r:"Дніпро-Гол. → П'ятихатки-Пас.",t:"19:39",
+d:[["Дніпро-Гол.","17:34"],["Вільногірськ","19:39"],["Пʼятихатки-Пас.","20:14"]]},
+{n:"6044",r:"П'ятихатки-Пас. → Дніпро-Гол.",t:"21:21",
+d:[["Пʼятихатки-Пас.","20:37"],["Вільногірськ","21:21"],["Дніпро-Гол.","23:12"]]},
+{n:"6043",r:"Дніпро-Гол. → П'ятихатки-Пас.",t:"22:22",
+d:[["Дніпро-Гол.","20:18"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]}
 ];
 
+/* рендер */
 function render(){
   list.innerHTML="";
+
   trains.forEach(x=>{
+    const diff=getDiff(x.t);
+    let cls="train";
+    let time=x.t;
+
+    if(diff<0) cls+=" passed";
+    else if(diff<=10){cls+=" soon"; time="≈ "+diff+" хв";}
+    else cls+=" future";
+
     const id="d"+x.n;
 
     list.innerHTML+=`
-    <div class="train" onclick="toggle('${id}')">
+    <div class="${cls}" onclick="toggle('${id}')">
       <div>${x.n}</div>
       <div>${x.r}</div>
-      <div>${x.t}</div>
+      <div class="time">${time}</div>
     </div>
 
     <div class="details" id="${id}">
-      ${x.d.map(s=>`<div class="details-row"><div></div><div>${s[0]}</div><div>${s[1]}</div></div>`).join("")}
+      ${x.d.map(s=>`
+        <div class="details-row">
+          <div></div>
+          <div>${s[0]}</div>
+          <div>${s[1]}</div>
+        </div>
+      `).join("")}
     </div>
     `;
   });
@@ -267,6 +178,7 @@ function toggle(id){
 }
 
 render();
+setInterval(render,60000);
 
 </script>
 
