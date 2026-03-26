@@ -69,7 +69,6 @@ body {
   gap:14px;
 }
 
-/* новый блок для двух карточек */
 .top-row {
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -100,6 +99,23 @@ body {
 
 .time {
   font-weight:500;
+}
+
+/* дни недели */
+.weekdays {
+  margin-top:10px;
+  display:flex;
+  justify-content:space-between;
+  font-size: clamp(12px, 2.5vw, 16px);
+}
+
+.day {
+  padding:4px 6px;
+  border-radius:6px;
+}
+
+.day.active {
+  border:2px solid red;
 }
 
 /* погода */
@@ -209,13 +225,23 @@ body {
 <div class="wrapper">
 <div class="container">
 
-<!-- ДВА БЛОКА -->
 <div class="top-row">
 
 <div class="widget">
   <div class="datetime">
     <div class="date" id="date"></div>
     <div class="time" id="time"></div>
+
+    <div class="weekdays" id="weekdays">
+      <div class="day">пн</div>
+      <div class="day">вт</div>
+      <div class="day">ср</div>
+      <div class="day">чт</div>
+      <div class="day">пт</div>
+      <div class="day">сб</div>
+      <div class="day">нд</div>
+    </div>
+
   </div>
 </div>
 
@@ -283,10 +309,23 @@ function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
+function updateWeekday(now){
+  const days=document.querySelectorAll(".day");
+  days.forEach(d=>d.classList.remove("active"));
+
+  let index = now.getDay(); // 0-6 (вс-сб)
+  index = index === 0 ? 6 : index - 1; // делаем пн=0
+
+  days[index].classList.add("active");
+}
+
 function updateDateTime() {
   const now = getKyivNow();
+
   date.textContent = `${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
   time.textContent = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+
+  updateWeekday(now);
 }
 
 /* Погода */
