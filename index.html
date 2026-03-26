@@ -198,18 +198,18 @@ body {
   font-size: clamp(13px, 3vw, 22px);
 }
 
-/* линия */
+/* 🔥 линия только по центру */
 .details-divider {
-  grid-column: 1 / -1;
-  width:100%;
+  grid-column: 2;
+  width:60%;
   height:1px;
   background:#fff;
-  margin:10px 0;
+  margin:10px auto;
 }
 
 /* текст */
 .details-note {
-  grid-column: 1 / -1;
+  grid-column: 2;
   width:100%;
   text-align:left;
   font-size: clamp(12px, 2.8vw, 18px);
@@ -300,9 +300,7 @@ body {
 
 <script>
 
-/* 🔥 изменения по поездам */
 const changes = {
-  // пример:
   // "6008": "Запізнення +10 хв"
 };
 
