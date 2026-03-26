@@ -103,10 +103,11 @@ body {
 
 /* дни недели */
 .weekdays {
-  margin-top:10px;
+  margin:6px 0; /* уменьшили отступ */
   display:flex;
   justify-content:space-between;
-  font-size: clamp(12px, 2.5vw, 16px);
+  font-size: clamp(13px, 2.8vw, 18px);
+  font-weight:bold; /* сделали жирным */
 }
 
 .day {
@@ -230,7 +231,6 @@ body {
 <div class="widget">
   <div class="datetime">
     <div class="date" id="date"></div>
-    <div class="time" id="time"></div>
 
     <div class="weekdays" id="weekdays">
       <div class="day">пн</div>
@@ -242,6 +242,7 @@ body {
       <div class="day">нд</div>
     </div>
 
+    <div class="time" id="time"></div>
   </div>
 </div>
 
@@ -313,8 +314,8 @@ function updateWeekday(now){
   const days=document.querySelectorAll(".day");
   days.forEach(d=>d.classList.remove("active"));
 
-  let index = now.getDay(); // 0-6 (вс-сб)
-  index = index === 0 ? 6 : index - 1; // делаем пн=0
+  let index = now.getDay();
+  index = index === 0 ? 6 : index - 1;
 
   days[index].classList.add("active");
 }
