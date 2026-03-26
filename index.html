@@ -144,6 +144,19 @@ body {
   cursor:pointer;
 }
 
+/* подпись под временем */
+.time-wrapper {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.time-note {
+  font-size:10px;
+  color:#ccc;
+  margin-top:2px;
+}
+
 .details {
   display:none;
   padding:10px 0;
@@ -187,15 +200,11 @@ body {
   </div>
 </div>
 
-<!-- ПУСТОЕ ТАБЛО -->
 <div class="widget">
   <div class="info-header" onclick="toggleInfo()">
     інформація<span class="info-count" id="infoCount"></span>
   </div>
-
-  <div class="info-content" id="infoBox">
-    <!-- уведомлений нет -->
-  </div>
+  <div class="info-content" id="infoBox"></div>
 </div>
 
 <div class="widget">
@@ -209,7 +218,7 @@ body {
 
   <div class="notes-title">Примітки:</div>
   <div class="notes-text">
-    Наразі жодних змін у розкладі немає...
+    Наразі жодних змін у розкладі та скасувань приміських електропоїздів немає...
   </div>
 </div>
 
@@ -221,7 +230,7 @@ if (window.Telegram && Telegram.WebApp) {
   Telegram.WebApp.expand();
 }
 
-/* блок копирования */
+/* защита */
 document.addEventListener("contextmenu", e => e.preventDefault());
 document.addEventListener("copy", e => e.preventDefault());
 document.addEventListener("cut", e => e.preventDefault());
@@ -282,7 +291,7 @@ function render(el,data){
   data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
   el.innerHTML="";
 
-  data.forEach(x=>{
+  data.forEach((x,index)=>{
     const diff=getDiff(x.time);
     let cls="train";
     let label=x.time;
@@ -292,12 +301,16 @@ function render(el,data){
     else cls+=" future";
 
     const id="d-"+x.number;
+    const isLast = index === data.length - 1;
 
     el.innerHTML+=`
       <div class="${cls}" onclick="toggle('${id}')">
         <div>${x.number}</div>
         <div class="route">${x.route}</div>
-        <div class="time-cell">${label}</div>
+        <div class="time-wrapper">
+          <div class="time-cell">${label}</div>
+          ${isLast ? `<div class="time-note">час відправлення зі ст. Вільногірськ</div>` : ``}
+        </div>
       </div>
     `;
 
