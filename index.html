@@ -17,7 +17,6 @@ html, body {
   height:100%;
 }
 
-/* ЗАПРЕТ ВЫДЕЛЕНИЯ */
 * {
   -webkit-user-select: none;
   -webkit-touch-callout: none;
@@ -116,11 +115,6 @@ body {
   color:#ffffff;
 }
 
-.delay {
-  color:#ff3b3b;
-  font-weight:bold;
-}
-
 /* таблица */
 .table-head,
 .train,
@@ -193,14 +187,14 @@ body {
   </div>
 </div>
 
+<!-- ПУСТОЕ ТАБЛО -->
 <div class="widget">
   <div class="info-header" onclick="toggleInfo()">
     інформація<span class="info-count" id="infoCount"></span>
   </div>
 
   <div class="info-content" id="infoBox">
-    <div class="notice">№6015 Дніпро-Гол. – Пʼятихатки-Пас. прямує зі станції Верхньодніпровськ з затримкою <span class="delay">+39 хвилин</span></div>
-    <div class="notice">№6018 Пʼятихатки-Стик. – Дніпро-Гол. зі станції Верхньодніпровськ з затримкою <span class="delay">+47 хвилин</span></div>
+    <!-- уведомлений нет -->
   </div>
 </div>
 
@@ -223,12 +217,11 @@ body {
 </div>
 
 <script>
-// Telegram
 if (window.Telegram && Telegram.WebApp) {
   Telegram.WebApp.expand();
 }
 
-/* БЛОК КОПИРОВАНИЯ */
+/* блок копирования */
 document.addEventListener("contextmenu", e => e.preventDefault());
 document.addEventListener("copy", e => e.preventDefault());
 document.addEventListener("cut", e => e.preventDefault());
@@ -241,7 +234,7 @@ document.addEventListener("keydown", e => {
   }
 });
 
-/* логика */
+/* табло */
 function toggleInfo(){
   const el=document.getElementById("infoBox");
   el.style.display = el.style.display==="block"?"none":"block";
