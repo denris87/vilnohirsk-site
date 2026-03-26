@@ -92,6 +92,15 @@ body {
   font-weight:bold;
   font-size: clamp(14px,3vw,20px);
   cursor:pointer;
+  position:relative;
+}
+
+.info-count {
+  font-size: 12px;
+  color:#fff;
+  position:absolute;
+  top:-6px;
+  right:-10px;
 }
 
 .info-content {
@@ -179,12 +188,16 @@ body {
   </div>
 </div>
 
-<!-- ТАБЛО С ШТОРКОЙ -->
+<!-- ТАБЛО -->
 <div class="widget">
-  <div class="info-header" onclick="toggleInfo()">інформація</div>
+  <div class="info-header" onclick="toggleInfo()">
+    інформація
+    <span class="info-count" id="infoCount"></span>
+  </div>
+
   <div class="info-content" id="infoBox">
-    №6015 Дніпро-Гол. – Пʼятихатки-Пас. прямує зі станції Верхньодніпровськ з затримкою <span class="delay">+39 хвилин</span><br>
-    №6018 Пʼятихатки-Стик. – Дніпро-Гол. зі станції Верхньодніпровськ з затримкою <span class="delay">+47 хвилин</span>.
+    <div class="notice">№6015 Дніпро-Гол. – Пʼятихатки-Пас. прямує зі станції Верхньодніпровськ з затримкою <span class="delay">+39 хвилин</span></div>
+    <div class="notice">№6018 Пʼятихатки-Стик. – Дніпро-Гол. зі станції Верхньодніпровськ з затримкою <span class="delay">+47 хвилин</span></div>
   </div>
 </div>
 
@@ -199,7 +212,7 @@ body {
 
   <div class="notes-title">Примітки:</div>
   <div class="notes-text">
-    Наразі жодних змін у розкладі та скасувань приміських електропоїздів немає...
+    Наразі жодних змін у розкладі  немає...
   </div>
 </div>
 
@@ -214,6 +227,11 @@ if (window.Telegram && Telegram.WebApp) {
 function toggleInfo(){
   const el=document.getElementById("infoBox");
   el.style.display = el.style.display==="block"?"none":"block";
+}
+
+function updateInfoCount(){
+  const count = document.querySelectorAll(".notice").length;
+  document.getElementById("infoCount").textContent = count > 0 ? count : "";
 }
 
 function getKyivNow() {
@@ -293,6 +311,7 @@ function loadTrains(){
 
 loadTrains();
 updateDateTime();
+updateInfoCount();
 
 setInterval(loadTrains,30000);
 setInterval(updateDateTime,1000);
