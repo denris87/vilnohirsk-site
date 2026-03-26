@@ -1,265 +1,114 @@
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Vilnohirsk.online</title>
+const express = require("express");
 
-<style>
-:root {
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
-}
+const app = express();
 
-html, body {
-  margin:0;
-  padding:0;
-  height:100%;
-}
+// CORS
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  next();
+});
 
-* {
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  user-select: none;
-}
+const PORT = process.env.PORT;
 
-body {
-  color:#fff;
-  font-family:Arial;
-  display:flex;
-  justify-content:center;
-  align-items:flex-start;
-  min-height:100vh;
-  padding-top:var(--safe-top);
-  padding-bottom:var(--safe-bottom);
+// функция проверки
+function runsToday(train, todayStr) {
+  if (train.exceptions.includes(todayStr)) return false;
 
-  background: linear-gradient(-45deg,
-    #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93,
-    #a5ca49,#8cc454,#41bc81,#74bf54,#53bc67
-  );
-  background-size:400% 400%;
-  animation: gradientMove 60s ease infinite;
-}
+  for (let period of train.schedule) {
+    if (todayStr >= period.from && todayStr <= period.to) {
+      const day = parseInt(todayStr.slice(-2));
 
-@keyframes gradientMove {
-  0% {background-position:0% 50%;}
-  50% {background-position:100% 50%;}
-  100% {background-position:0% 50%;}
-}
-
-.wrapper {
-  width:100%;
-  max-width:900px;
-  padding:10px;
-}
-
-.container {
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-.top-row {
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:14px;
-}
-
-.widget {
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(6px);
-  padding:14px;
-  border-radius:16px;
-}
-
-/* таблица */
-.table-head,
-.train,
-.details-row {
-  display:grid;
-  grid-template-columns: 20% 1fr 20%;
-  align-items:center;
-  justify-items:center;
-}
-
-.table-head {
-  border-bottom:2px solid #aaa;
-  padding-bottom:8px;
-}
-
-.train {
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.2);
-  cursor:pointer;
-}
-
-.details {
-  display:none;
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.2);
-}
-
-.details-row div:nth-child(3) {
-  color:#00ff9c;
-}
-
-.future .time-cell { color:#00ff9c; font-weight:bold; }
-.soon .time-cell { color:#ffcc00; font-weight:bold; }
-.passed .time-cell { color:#888; }
-
-/* пустые строки */
-.empty-row {
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.2);
-  opacity:0.4;
-}
-</style>
-</head>
-
-<body>
-
-<div class="wrapper">
-<div class="container">
-
-<div class="top-row">
-
-<div class="widget">
-  <div id="date"></div>
-  <div id="time"></div>
-</div>
-
-<div class="widget">
-  <div id="weather">Завантаження...</div>
-</div>
-
-</div>
-
-<!-- ОСНОВНОЕ ТАБЛО -->
-<div class="widget">
-  <div class="table-head">
-    <div>№</div>
-    <div>Маршрут прямування</div>
-    <div>Відпр.</div>
-  </div>
-
-  <div id="list"></div>
-</div>
-
-<!-- ВТОРОЙ БЛОК -->
-<div class="widget">
-  <div class="table-head">
-    <div>№</div>
-    <div>Маршрут прямування</div>
-    <div>Відпр.</div>
-  </div>
-
-  <div>
-    <div class="empty-row"></div>
-    <div class="empty-row"></div>
-    <div class="empty-row"></div>
-    <div class="empty-row"></div>
-    <div class="empty-row"></div>
-  </div>
-</div>
-
-</div>
-</div>
-
-<script>
-const list = document.getElementById("list");
-
-function getKyivNow() {
-  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
-}
-
-function updateDateTime() {
-  const now = getKyivNow();
-  document.getElementById("date").textContent = now.toLocaleDateString();
-  document.getElementById("time").textContent = now.toLocaleTimeString();
-}
-
-function loadWeather(){
-  fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&timezone=Europe%2FKyiv")
-  .then(r=>r.json())
-  .then(d=>{
-    const w=d.current_weather;
-    document.getElementById("weather").innerHTML =
-      `🌡 ${w.temperature}°C | 💨 ${w.windspeed} м/с`;
-  });
-}
-
-function getDiff(time){
-  const now=getKyivNow();
-  const [h,m]=time.split(":").map(Number);
-  const t=new Date(now);
-  t.setHours(h,m,0,0);
-  return Math.floor((t-now)/60000);
-}
-
-const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
-
-const schedules={
-  "6008":[["Пʼятихатки-Пас.","04:43"],["Вільногірськ","05:16"]],
-  "6010":[["Пʼятихатки-Пас.","05:30"],["Вільногірськ","06:01"]]
-};
-
-function render(el,data){
-  data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
-  el.innerHTML="";
-
-  data.forEach(x=>{
-    const diff=getDiff(x.time);
-    let cls="train";
-    let label=x.time;
-
-    if(diff<0) cls+=" passed";
-    else if(diff<=10){cls+=" soon";label="≈ "+diff+" хв";}
-    else cls+=" future";
-
-    const id="d-"+x.number;
-
-    el.innerHTML+=`
-      <div class="${cls}" onclick="toggle('${id}')">
-        <div>${x.number}</div>
-        <div>${x.route}</div>
-        <div class="time-cell">${label}</div>
-      </div>
-    `;
-
-    if(schedules[x.number]){
-      el.innerHTML+=`
-      <div class="details" id="${id}">
-        ${schedules[x.number].map(s=>`
-          <div class="details-row">
-            <div></div>
-            <div>${s[0]}</div>
-            <div>${s[1]}</div>
-          </div>
-        `).join("")}
-      </div>`;
+      if (
+        (period.parity === "even" && day % 2 === 0) ||
+        (period.parity === "odd" && day % 2 !== 0)
+      ) {
+        return true;
+      } else {
+        return false;
+      }
     }
+  }
+  return false;
+}
+
+// главная
+app.get("/", (req, res) => {
+  res.send("🚀 Сервер працює");
+});
+
+// API
+app.get("/schedule", (req, res) => {
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  const trains = [
+    {
+      number: "61",
+      route: "Івано-Франківськ → Дніпро",
+      time: "10:48",
+      schedule: [
+        { from: "2026-02-02", to: "2026-03-30", parity: "even" },
+        { from: "2026-04-01", to: "2026-05-31", parity: "odd" },
+        { from: "2026-06-02", to: "2026-07-30", parity: "even" },
+        { from: "2026-08-01", to: "2026-08-31", parity: "odd" },
+        { from: "2026-09-02", to: "2026-10-30", parity: "even" },
+        { from: "2026-11-01", to: "2027-01-01", parity: "odd" }
+      ],
+      exceptions: [
+        "2026-03-10","2026-03-12","2026-03-22","2026-03-24","2026-03-26",
+        "2026-04-03","2026-04-05","2026-04-07","2026-04-09"
+      ]
+    },
+    {
+      number: "41",
+      route: "Дніпро → Трускавець",
+      time: "18:05",
+      schedule: [
+        { from: "2026-02-01", to: "2026-03-31", parity: "odd" },
+        { from: "2026-04-02", to: "2026-05-30", parity: "even" },
+        { from: "2026-06-01", to: "2026-07-31", parity: "odd" },
+        { from: "2026-08-02", to: "2026-08-30", parity: "even" },
+        { from: "2026-09-01", to: "2026-10-31", parity: "odd" },
+        { from: "2026-11-02", to: "2027-01-01", parity: "even" }
+      ],
+      exceptions: [
+        "2026-03-09","2026-03-11","2026-03-21",
+        "2026-03-23","2026-03-25","2026-03-27"
+      ]
+    }
+  ];
+
+  const result = trains.map(train => {
+    const [h, m] = train.time.split(":");
+    const trainMinutes = parseInt(h) * 60 + parseInt(m);
+    const diff = trainMinutes - currentMinutes;
+
+    const isRunning = runsToday(train, todayStr);
+
+    return {
+      number: train.number,
+      route: train.route,
+      time: train.time,
+      runsToday: isRunning,
+      minutesLeft: diff,
+      status: !isRunning
+        ? "not_running"
+        : diff < 0
+        ? "gone"
+        : diff < 60
+        ? "soon"
+        : "later"
+    };
   });
-}
 
-function toggle(id){
-  const el=document.getElementById(id);
-  el.style.display = el.style.display==="block"?"none":"block";
-}
+  res.json({
+    station: "Вільногірськ",
+    date: todayStr,
+    trains: result
+  });
+});
 
-function loadTrains(){
-  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
-  .then(r=>r.json())
-  .then(d=>render(list,d.trains));
-}
-
-loadTrains();
-loadWeather();
-updateDateTime();
-
-setInterval(loadTrains,30000);
-setInterval(updateDateTime,1000);
-setInterval(loadWeather,600000);
-</script>
-
-</body>
-</html>
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
+});
