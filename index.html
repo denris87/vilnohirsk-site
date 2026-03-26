@@ -38,7 +38,6 @@ body {
   animation: gradientMove 60s ease infinite;
 }
 
-/* фиксим дергание на iOS */
 @supports (-webkit-touch-callout: none) {
   body {
     min-height: -webkit-fill-available;
@@ -86,6 +85,28 @@ body {
   font-size: clamp(18px, 4vw, 36px);
 }
 
+/* табло информации */
+.info-board {
+  background:rgba(0,0,0,0.75);
+  border-radius:14px;
+  padding:12px;
+}
+
+.info-title {
+  text-align:center;
+  color:#ff3b3b;
+  font-weight:bold;
+  font-size: clamp(18px,4vw,28px);
+  margin-bottom:8px;
+}
+
+.info-text {
+  color:#00ff9c;
+  font-size: clamp(14px,3.5vw,22px);
+  text-align:left;
+  line-height:1.4;
+}
+
 /* таблица */
 .table-head,
 .train,
@@ -115,7 +136,6 @@ body {
   cursor:pointer;
 }
 
-/* шторка */
 .details {
   display:none;
   padding:10px 0;
@@ -127,7 +147,6 @@ body {
   color:#00ff9c;
 }
 
-/* подсветка */
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
@@ -136,7 +155,6 @@ body {
   color:#ffffff;
 }
 
-/* примітки */
 .notes-title {
   margin-top:10px;
   color:#ff3b3b;
@@ -161,6 +179,15 @@ body {
   </div>
 </div>
 
+<!-- ТАБЛО -->
+<div class="widget info-board">
+  <div class="info-title">інформация</div>
+  <div class="info-text">
+    №6015 Дніпро-Гол. – Пʼятихатки-Пас. прямує зі станції Верхньодніпровськ з затримкою +39 хвилин<br>
+    №6018 Пʼятихатки-Стик. – Дніпро-Гол. зі станції Верхньодніпровськ з затримкою +47 хвилин.
+  </div>
+</div>
+
 <div class="widget">
   <div class="table-head">
     <div>№</div>
@@ -180,7 +207,6 @@ body {
 </div>
 
 <script>
-// Telegram Mini App fix (если используешь SDK)
 if (window.Telegram && Telegram.WebApp) {
   Telegram.WebApp.expand();
 }
