@@ -103,15 +103,16 @@ body {
 
 /* дни недели */
 .weekdays {
-  margin:6px 0; /* уменьшили отступ */
+  margin:6px 0;
   display:flex;
-  justify-content:space-between;
+  justify-content:center; /* центрируем */
+  gap:6px; /* уменьшили расстояние */
   font-size: clamp(13px, 2.8vw, 18px);
-  font-weight:bold; /* сделали жирным */
+  font-weight:bold;
 }
 
 .day {
-  padding:4px 6px;
+  padding:2px 4px; /* уменьшили внутренние отступы */
   border-radius:6px;
 }
 
