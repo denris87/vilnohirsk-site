@@ -132,6 +132,20 @@ body {
   padding-bottom:8px;
 }
 
+/* новый стиль заголовка времени */
+.time-header {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  line-height:1.1;
+}
+
+.time-header small {
+  font-size:10px;
+  font-weight:normal;
+  opacity:0.8;
+}
+
 .route, .time-cell {
   text-align:center;
   width:100%;
@@ -207,12 +221,14 @@ body {
   <div class="table-head">
     <div>№</div>
     <div>Маршрут</div>
-    <div>Відпр.</div>
+    <div class="time-header">
+      <div>Відпр.</div>
+      <small>зі ст. Вільногірськ</small>
+    </div>
   </div>
 
   <div id="list"></div>
 
-  <!-- НОВАЯ ПОДПИСЬ -->
   <div class="footer-note">
     час відправлення зі ст. Вільногірськ
   </div>
