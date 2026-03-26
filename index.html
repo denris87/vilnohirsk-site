@@ -68,7 +68,7 @@ body {
   border-radius:16px;
 }
 
-/* 📅 дата + время увеличены */
+/* 📅 дата + время */
 .datetime {
   text-align:center;
   font-family:"Courier New";
@@ -139,9 +139,24 @@ body {
   cursor:pointer;
 }
 
+/* 🔥 ПЛАВНЫЕ ШТОРКИ */
 .details {
-  display:none;
-  padding:10px 0;
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+  transform:translateY(-5px);
+  transition:all 0.4s ease;
+  background:rgba(255,255,255,0.05);
+  border-radius:10px;
+  margin:4px 0;
+  padding:0 10px;
+}
+
+.details.open {
+  max-height:500px;
+  opacity:1;
+  transform:translateY(0);
+  padding:10px;
 }
 
 .details-divider {
@@ -373,7 +388,7 @@ function render(el,data){
 
 function toggle(id){
   const el=document.getElementById(id);
-  el.style.display = el.style.display==="block"?"none":"block";
+  el.classList.toggle("open");
 }
 
 function loadTrains(){
