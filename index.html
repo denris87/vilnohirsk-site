@@ -106,19 +106,31 @@ body {
   padding-bottom:6px;
 }
 
-.train {
-  padding:8px 0;
-  border-bottom:1px solid rgba(255,255,255,0.2);
-  font-size:16px;
-  cursor:pointer;
+/* 🔽 номер меньше */
+.train-number {
+  position:relative;
+  font-size:14px;
 }
 
-/* маршрут */
+/* 🔽 время меньше */
+.time-cell {
+  font-size:14px;
+  text-align:right;
+}
+
+/* 🔼 маршрут больше */
 .route {
   white-space:nowrap;
   width:95%;
   text-align:center;
-  font-size:14px;
+  font-size:18px;
+}
+
+/* строка */
+.train {
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,0.2);
+  cursor:pointer;
 }
 
 /* шторки */
@@ -139,8 +151,6 @@ body {
 .passed .time-cell { color:#888; }
 
 /* точка */
-.train-number { position:relative; }
-
 .alert-dot {
   position:absolute;
   top:-3px;
@@ -193,7 +203,7 @@ body {
 <div class="widget">
   <div class="table-head">
     <div>№</div>
-    <div>Маршрут прямування</div>
+    <div>Маршрут</div>
     <div>Відпр.</div>
   </div>
 
@@ -228,9 +238,9 @@ const schedules={
 
 /* авто размер */
 function fitText(el){
-  let size = 14;
+  let size = 18;
   el.style.fontSize = size+"px";
-  while(el.scrollWidth > el.clientWidth && size > 10){
+  while(el.scrollWidth > el.clientWidth && size > 12){
     size--;
     el.style.fontSize = size+"px";
   }
@@ -246,7 +256,6 @@ function getKyivNow(){
 
 function updateDateTime(){
   const now=getKyivNow();
-
   date.textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
   time.textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
 }
