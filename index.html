@@ -105,19 +105,20 @@ body {
 .weekdays {
   margin:6px 0;
   display:flex;
-  justify-content:center; /* центрируем */
-  gap:6px; /* уменьшили расстояние */
+  justify-content:center;
+  gap:6px;
   font-size: clamp(13px, 2.8vw, 18px);
   font-weight:bold;
 }
 
 .day {
-  padding:2px 4px; /* уменьшили внутренние отступы */
+  padding:3px 6px;
   border-radius:6px;
 }
 
 .day.active {
-  border:2px solid red;
+  background:red; /* полностью красный */
+  color:#fff;
 }
 
 /* погода */
