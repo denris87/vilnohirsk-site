@@ -72,54 +72,47 @@ body {
   border-radius:16px;
 }
 
-.datetime {
-  text-align:center;
-  font-family:"Courier New";
-}
-
-.weekdays {
-  display:flex;
-  justify-content:center;
-  gap:6px;
-  margin:6px 0;
-}
-
-.day.active {
-  background:red;
-  border-radius:6px;
-}
-
+/* таблица */
 .table-head,
 .train,
 .details-row {
   display:grid;
   grid-template-columns: 20% 1fr 20%;
-  justify-items:center;
   align-items:center;
+  justify-items:center;
 }
 
 .table-head {
   border-bottom:2px solid #aaa;
-  padding-bottom:6px;
+  padding-bottom:8px;
 }
 
 .train {
-  padding:8px 0;
+  padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
   cursor:pointer;
 }
 
 .details {
   display:none;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.2);
 }
 
-.future .time-cell { color:#00ff9c; }
-.soon .time-cell { color:#ffcc00; }
+.details-row div:nth-child(3) {
+  color:#00ff9c;
+}
+
+.future .time-cell { color:#00ff9c; font-weight:bold; }
+.soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
 
-.notes-title { color:#ff3b3b; margin-top:10px; }
-.notes-text { font-style:italic; }
-
+/* пустые строки */
+.empty-row {
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.2);
+  opacity:0.4;
+}
 </style>
 </head>
 
@@ -131,19 +124,8 @@ body {
 <div class="top-row">
 
 <div class="widget">
-  <div class="datetime">
-    <div id="date"></div>
-    <div class="weekdays" id="weekdays">
-      <div class="day">пн</div>
-      <div class="day">вт</div>
-      <div class="day">ср</div>
-      <div class="day">чт</div>
-      <div class="day">пт</div>
-      <div class="day">сб</div>
-      <div class="day">нд</div>
-    </div>
-    <div id="time"></div>
-  </div>
+  <div id="date"></div>
+  <div id="time"></div>
 </div>
 
 <div class="widget">
@@ -152,7 +134,7 @@ body {
 
 </div>
 
-<!-- 1 ТАБЛО -->
+<!-- ОСНОВНОЕ ТАБЛО -->
 <div class="widget">
   <div class="table-head">
     <div>№</div>
@@ -161,12 +143,9 @@ body {
   </div>
 
   <div id="list"></div>
-
-  <div class="notes-title">Примітки:</div>
-  <div class="notes-text">Наразі жодних змін у розкладі немає...</div>
 </div>
 
-<!-- 2 ТАБЛО -->
+<!-- ВТОРОЙ БЛОК -->
 <div class="widget">
   <div class="table-head">
     <div>№</div>
@@ -174,17 +153,20 @@ body {
     <div>Відпр.</div>
   </div>
 
-  <div id="list2"></div>
+  <div>
+    <div class="empty-row"></div>
+    <div class="empty-row"></div>
+    <div class="empty-row"></div>
+    <div class="empty-row"></div>
+    <div class="empty-row"></div>
+  </div>
 </div>
 
 </div>
 </div>
 
 <script>
-const dateEl = document.getElementById("date");
-const timeEl = document.getElementById("time");
 const list = document.getElementById("list");
-const list2 = document.getElementById("list2");
 
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
@@ -192,8 +174,8 @@ function getKyivNow() {
 
 function updateDateTime() {
   const now = getKyivNow();
-  dateEl.textContent = now.toLocaleDateString();
-  timeEl.textContent = now.toLocaleTimeString();
+  document.getElementById("date").textContent = now.toLocaleDateString();
+  document.getElementById("time").textContent = now.toLocaleTimeString();
 }
 
 function loadWeather(){
@@ -214,33 +196,60 @@ function getDiff(time){
   return Math.floor((t-now)/60000);
 }
 
+const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
+
+const schedules={
+  "6008":[["Пʼятихатки-Пас.","04:43"],["Вільногірськ","05:16"]],
+  "6010":[["Пʼятихатки-Пас.","05:30"],["Вільногірськ","06:01"]]
+};
+
 function render(el,data){
+  data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
   el.innerHTML="";
+
   data.forEach(x=>{
     const diff=getDiff(x.time);
     let cls="train";
+    let label=x.time;
 
     if(diff<0) cls+=" passed";
-    else if(diff<=10) cls+=" soon";
+    else if(diff<=10){cls+=" soon";label="≈ "+diff+" хв";}
     else cls+=" future";
 
+    const id="d-"+x.number;
+
     el.innerHTML+=`
-      <div class="${cls}">
+      <div class="${cls}" onclick="toggle('${id}')">
         <div>${x.number}</div>
         <div>${x.route}</div>
-        <div class="time-cell">${x.time}</div>
+        <div class="time-cell">${label}</div>
       </div>
     `;
+
+    if(schedules[x.number]){
+      el.innerHTML+=`
+      <div class="details" id="${id}">
+        ${schedules[x.number].map(s=>`
+          <div class="details-row">
+            <div></div>
+            <div>${s[0]}</div>
+            <div>${s[1]}</div>
+          </div>
+        `).join("")}
+      </div>`;
+    }
   });
+}
+
+function toggle(id){
+  const el=document.getElementById(id);
+  el.style.display = el.style.display==="block"?"none":"block";
 }
 
 function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
   .then(r=>r.json())
-  .then(d=>{
-    render(list,d.trains);
-    render(list2,d.trains);
-  });
+  .then(d=>render(list,d.trains));
 }
 
 loadTrains();
