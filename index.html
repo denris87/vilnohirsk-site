@@ -15,7 +15,6 @@ html, body {
   margin:0;
   padding:0;
   height:100%;
-  scroll-behavior:smooth;
 }
 
 * {
@@ -39,7 +38,6 @@ body {
     #a5ca49,#8cc454,#41bc81,#74bf54,#53bc67
   );
   background-size:400% 400%;
-  background-attachment: fixed;
   animation: gradientMove 60s ease infinite;
 }
 
@@ -72,28 +70,7 @@ body {
   backdrop-filter:blur(6px);
   padding:14px;
   border-radius:16px;
-}
-
-/* кнопки переключения */
-.tabs {
-  display:flex;
-  justify-content:space-between;
-  gap:6px;
-  margin-bottom:10px;
-}
-
-.tab {
-  flex:1;
-  text-align:center;
-  padding:6px;
-  border-radius:10px;
-  background:rgba(255,255,255,0.1);
-  cursor:pointer;
-  font-size:14px;
-}
-
-.tab:hover {
-  background:rgba(255,255,255,0.2);
+  min-height:120px;
 }
 
 /* дни недели */
@@ -128,6 +105,38 @@ body {
   font-size:24px;
 }
 
+/* ВКЛАДКИ */
+.tabs {
+  display:flex;
+  gap:6px;
+  margin-bottom:10px;
+}
+
+.tab {
+  flex:1;
+  text-align:center;
+  padding:6px;
+  border-radius:6px;
+  background:#ffe066;
+  color:#ff2b2b;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.tab.active {
+  background:#ff2b2b;
+  color:#fff;
+}
+
+/* секции */
+.section {
+  display:none;
+}
+
+.section.active {
+  display:block;
+}
+
 /* таблица */
 .table-head,
 .train {
@@ -137,17 +146,8 @@ body {
 }
 
 .train {
-  padding:8px 0;
+  padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
-}
-
-/* скрытые блоки */
-.section {
-  display:none;
-}
-
-.section.active {
-  display:block;
 }
 </style>
 </head>
@@ -160,7 +160,8 @@ body {
 <div class="top-row">
 
 <div class="widget">
-  <div class="date" id="date"></div>
+  <div id="date"></div>
+
   <div class="weekdays">
     <div class="day">пн</div>
     <div class="day">вт</div>
@@ -170,7 +171,8 @@ body {
     <div class="day">сб</div>
     <div class="day">нд</div>
   </div>
-  <div class="time" id="time"></div>
+
+  <div id="time"></div>
 </div>
 
 <div class="widget">
@@ -181,11 +183,11 @@ body {
 
 <div class="widget">
 
-<!-- КНОПКИ -->
+<!-- ВКЛАДКИ -->
 <div class="tabs">
-  <div class="tab" onclick="showSection('electric')">електрички</div>
-  <div class="tab" onclick="showSection('trains')">потяги</div>
-  <div class="tab" onclick="showSection('bus')">автобуси</div>
+  <div class="tab active" onclick="switchTab('electric',this)">Електрички</div>
+  <div class="tab" onclick="switchTab('trains',this)">Потяги</div>
+  <div class="tab" onclick="switchTab('bus',this)">Автобуси</div>
 </div>
 
 <!-- ЭЛЕКТРИЧКИ -->
@@ -214,7 +216,10 @@ body {
 </div>
 
 <script>
-function showSection(id){
+function switchTab(id,el){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+
   document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
 }
@@ -240,7 +245,7 @@ fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&cur
   `;
 });
 
-/* тест данные поездов */
+/* пример поездов */
 list.innerHTML = `
 <div class="train"><div>6008</div><div>Дніпро</div><div>07:22</div></div>
 <div class="train"><div>6010</div><div>Камʼянське</div><div>08:09</div></div>
