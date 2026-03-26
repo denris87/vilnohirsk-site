@@ -17,11 +17,6 @@ html, body {
   height:100%;
 }
 
-* {
-  -webkit-user-select: none;
-  user-select: none;
-}
-
 body {
   color:#fff;
   font-family:Arial;
@@ -46,26 +41,26 @@ body {
 
 .wrapper {
   width:100%;
-  max-width:900px;
-  padding:10px;
+  max-width:500px;
+  padding:8px;
 }
 
 .container {
   display:flex;
   flex-direction:column;
-  gap:14px;
+  gap:10px;
 }
 
 .top-row {
   display:grid;
   grid-template-columns: 1fr 1fr;
-  gap:14px;
+  gap:10px;
 }
 
 .widget {
   background:rgba(0,0,0,0.6);
-  padding:14px;
-  border-radius:16px;
+  padding:10px;
+  border-radius:14px;
 }
 
 /* дата */
@@ -77,81 +72,60 @@ body {
 .weekdays {
   display:flex;
   justify-content:center;
-  gap:6px;
+  gap:4px;
+  font-size:12px;
 }
 
 .day.active {
   background:red;
-  border-radius:6px;
+  border-radius:5px;
+  padding:2px 4px;
 }
 
 /* погода */
 .weather {
   text-align:center;
-  line-height:1.4;
 }
 
-.weather-city {
-  font-weight:bold;
-}
-
-.weather-temp {
-  font-size:22px;
-  font-weight:bold;
-}
-
-.weather-wind {
-  font-size:12px;
-}
+.weather-city { font-weight:bold; }
+.weather-temp { font-size:20px; font-weight:bold; }
+.weather-wind { font-size:11px; }
 
 /* таблица */
 .table-head,
 .train,
 .details-row {
   display:grid;
-  grid-template-columns: 20% 1fr 20%;
+  grid-template-columns: 18% 1fr 22%;
   align-items:center;
-  justify-items:center;
 }
 
 .table-head {
   font-weight:700;
   border-bottom:2px solid #aaa;
-  padding-bottom:8px;
+  padding-bottom:6px;
 }
 
 .train {
-  padding:10px 0;
+  padding:8px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
+  font-size:16px;
   cursor:pointer;
-  font-size:22px;
 }
 
-/* 🔥 маршрут */
+/* маршрут */
 .route {
   white-space:nowrap;
+  width:95%;
   text-align:center;
-  width:95%; /* запас */
-  display:block;
-  font-size:16px; /* уменьшили */
+  font-size:14px;
 }
 
 /* шторки */
 .details {
   display:none;
-  padding:10px 0;
-}
-
-.details-divider {
-  grid-column:2;
-  width:60%;
-  height:1px;
-  background:#fff;
-  margin:10px auto;
-}
-
-.details-note {
-  grid-column:2;
+  padding:6px 0;
+  font-size:13px;
 }
 
 .details-row div:nth-child(3) {
@@ -164,18 +138,15 @@ body {
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
 
-/* номер */
-.train-number {
-  position:relative;
-}
-
 /* точка */
+.train-number { position:relative; }
+
 .alert-dot {
   position:absolute;
-  top:-4px;
-  right:-6px;
-  width:6px;
-  height:6px;
+  top:-3px;
+  right:-5px;
+  width:5px;
+  height:5px;
   background:#ff3b3b;
   border-radius:50%;
   animation: blink 1s infinite;
@@ -222,7 +193,7 @@ body {
 <div class="widget">
   <div class="table-head">
     <div>№</div>
-    <div>Маршрут</div>
+    <div>Маршрут прямування</div>
     <div>Відпр.</div>
   </div>
 
@@ -255,14 +226,13 @@ const schedules={
   "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
 };
 
-/* 🔥 улучшенный fit */
+/* авто размер */
 function fitText(el){
-  let size = 16;
-  el.style.fontSize = size + "px";
-
-  while(el.scrollWidth > el.clientWidth * 0.95 && size > 10){
+  let size = 14;
+  el.style.fontSize = size+"px";
+  while(el.scrollWidth > el.clientWidth && size > 10){
     size--;
-    el.style.fontSize = size + "px";
+    el.style.fontSize = size+"px";
   }
 }
 
@@ -279,13 +249,6 @@ function updateDateTime(){
 
   date.textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
   time.textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-
-  const days=document.querySelectorAll(".day");
-  days.forEach(d=>d.classList.remove("active"));
-
-  let i=now.getDay();
-  i=i===0?6:i-1;
-  days[i].classList.add("active");
 }
 
 function loadWeather(){
@@ -347,8 +310,6 @@ function render(el,data){
             <div>${s[1]}</div>
           </div>
         `).join("")}
-
-        <div class="details-divider"></div>
         <div class="details-note">${note}</div>
       </div>`;
     }
