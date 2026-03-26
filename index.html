@@ -68,16 +68,29 @@ body {
   border-radius:16px;
 }
 
-/* дата */
+/* 📅 дата + время увеличены */
 .datetime {
   text-align:center;
   font-family:"Courier New";
 }
 
+#date {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight:900;
+}
+
+#time {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight:900;
+}
+
+/* дни недели */
 .weekdays {
   display:flex;
   justify-content:center;
   gap:6px;
+  font-size: clamp(16px, 3.5vw, 24px);
+  font-weight:900;
 }
 
 .day.active {
@@ -143,7 +156,7 @@ body {
   grid-column:2;
 }
 
-/* 🔥 маршрут немного уменьшен (-0.5) */
+/* маршрут */
 .route {
   white-space:nowrap;
   overflow:hidden;
@@ -222,7 +235,7 @@ body {
 <div class="widget">
   <div class="table-head">
     <div>№</div>
-    <div>Маршрут прямування</div>
+    <div>Маршрут</div>
     <div>Відпр.</div>
   </div>
 
@@ -235,7 +248,9 @@ body {
 <script>
 
 const changes = {
- // "6008": "Запізнення +10 хв"
+  "6008":"тест1",
+  "6010":"тест2",
+  "6035":"тест3"
 };
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
