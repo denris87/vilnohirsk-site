@@ -117,7 +117,7 @@ body {
 }
 
 .day.active {
-  background:red; /* полностью красный */
+  background:red;
   color:#fff;
 }
 
@@ -351,8 +351,8 @@ function loadWeather(){
     const emoji=getWeatherEmoji(w.weathercode);
 
     document.getElementById("weather").innerHTML = `
-      <div>${emoji} Вільногірськ</div>
-      <div class="weather-temp">${Math.round(w.temperature)}°C</div>
+      <div>Вільногірськ</div>
+      <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
       <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
     `;
   });
