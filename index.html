@@ -70,15 +70,17 @@ body {
   border-radius:16px;
 }
 
-/* дата + погода */
+/* ДАТА + ПОГОДА */
 .datetime {
   display:flex;
   justify-content:space-between;
   align-items:center;
 }
 
-.datetime-left {
-  text-align:left;
+/* центр */
+.datetime-center {
+  width:100%;
+  text-align:center;
   font-family:"Courier New";
 }
 
@@ -91,21 +93,36 @@ body {
   font-size: clamp(18px, 4vw, 36px);
 }
 
-/* погода */
+/* погода справа */
 .weather {
+  position:absolute;
+  right:25px;
   text-align:right;
-  font-size: clamp(14px, 3vw, 22px);
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:4px;
+}
+
+/* увеличенные элементы */
+.weather-icon {
+  font-size:28px;
 }
 
 .weather-temp {
+  font-size:24px;
   font-weight:bold;
 }
 
 .weather-desc {
-  font-size: clamp(12px, 2.5vw, 16px);
+  font-size:16px;
 }
 
-/* остальное без изменений */
+.weather-wind {
+  font-size:14px;
+}
+
+/* остальное */
 .info-header {
   text-align:center;
   color:#ff3b3b;
@@ -173,18 +190,21 @@ body {
 <div class="wrapper">
 <div class="container">
 
-<div class="widget">
+<div class="widget" style="position:relative;">
   <div class="datetime">
-    <div class="datetime-left">
+
+    <div class="datetime-center">
       <div class="date" id="date"></div>
       <div class="time" id="time"></div>
     </div>
 
     <div class="weather">
-      <div id="weatherIcon">☁️</div>
+      <div class="weather-icon" id="weatherIcon">☁️</div>
       <div class="weather-temp" id="weatherTemp">--°</div>
       <div class="weather-desc" id="weatherDesc">завантаження...</div>
+      <div class="weather-wind" id="weatherWind"></div>
     </div>
+
   </div>
 </div>
 
@@ -214,7 +234,7 @@ body {
 </div>
 
 <script>
-// время Киев
+// Киев время
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
@@ -225,10 +245,9 @@ function updateDateTime() {
   time.textContent = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
 }
 
-// ЭМОДЗИ
+// эмодзи
 function getWeatherEmoji(desc){
   desc = desc.toLowerCase();
-
   if(desc.includes("соняч")) return "☀️";
   if(desc.includes("хмар")) return "☁️";
   if(desc.includes("дощ")) return "🌧️";
@@ -237,7 +256,7 @@ function getWeatherEmoji(desc){
   return "🌤️";
 }
 
-// ПОГОДА (через украинский API)
+// погода
 function loadWeather(){
   fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&windspeed_unit=ms")
   .then(r=>r.json())
@@ -248,12 +267,13 @@ function loadWeather(){
     let desc = "мінлива хмарність";
 
     document.getElementById("weatherTemp").textContent = temp + "°";
-    document.getElementById("weatherDesc").textContent = desc + " • " + wind + " м/с";
+    document.getElementById("weatherDesc").textContent = desc;
+    document.getElementById("weatherWind").textContent = wind + " м/с";
     document.getElementById("weatherIcon").textContent = getWeatherEmoji(desc);
   });
 }
 
-// остальной код без изменений
+// остальной код
 function toggleInfo(){
   const el=document.getElementById("infoBox");
   el.style.display = el.style.display==="block"?"none":"block";
@@ -337,7 +357,7 @@ updateInfoCount();
 
 setInterval(loadTrains,30000);
 setInterval(updateDateTime,1000);
-setInterval(loadWeather,600000); // каждые 10 мин
+setInterval(loadWeather,600000);
 </script>
 
 </body>
