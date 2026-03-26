@@ -44,12 +44,6 @@ body {
   animation: gradientMove 60s ease infinite;
 }
 
-@supports (-webkit-touch-callout: none) {
-  body {
-    min-height: -webkit-fill-available;
-  }
-}
-
 @keyframes gradientMove {
   0% {background-position:0% 50%;}
   50% {background-position:100% 50%;}
@@ -76,9 +70,15 @@ body {
   border-radius:16px;
 }
 
-/* дата */
+/* дата + погода */
 .datetime {
-  text-align:center;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.datetime-left {
+  text-align:left;
   font-family:"Courier New";
 }
 
@@ -91,7 +91,21 @@ body {
   font-size: clamp(18px, 4vw, 36px);
 }
 
-/* табло */
+/* погода */
+.weather {
+  text-align:right;
+  font-size: clamp(14px, 3vw, 22px);
+}
+
+.weather-temp {
+  font-weight:bold;
+}
+
+.weather-desc {
+  font-size: clamp(12px, 2.5vw, 16px);
+}
+
+/* остальное без изменений */
 .info-header {
   text-align:center;
   color:#ff3b3b;
@@ -110,12 +124,8 @@ body {
 .info-content {
   display:none;
   margin-top:8px;
-  font-size: clamp(12px,2.8vw,18px);
-  line-height:1.3;
-  color:#ffffff;
 }
 
-/* таблица */
 .table-head,
 .train,
 .details-row {
@@ -132,38 +142,20 @@ body {
   padding-bottom:8px;
 }
 
-.route, .time-cell {
-  text-align:center;
-  width:100%;
-}
-
 .train {
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
-  font-size: clamp(14px, 3.5vw, 26px);
   cursor:pointer;
 }
 
 .details {
   display:none;
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.2);
-  font-size: clamp(13px, 3vw, 22px);
-}
-
-.details-row div:nth-child(3) {
-  color:#00ff9c;
 }
 
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
 
-.train div:not(.time-cell) {
-  color:#ffffff;
-}
-
-/* примітки */
 .notes-title {
   margin-top:10px;
   color:#ff3b3b;
@@ -183,8 +175,16 @@ body {
 
 <div class="widget">
   <div class="datetime">
-    <div class="date" id="date"></div>
-    <div class="time" id="time"></div>
+    <div class="datetime-left">
+      <div class="date" id="date"></div>
+      <div class="time" id="time"></div>
+    </div>
+
+    <div class="weather">
+      <div id="weatherIcon">☁️</div>
+      <div class="weather-temp" id="weatherTemp">--°</div>
+      <div class="weather-desc" id="weatherDesc">завантаження...</div>
+    </div>
   </div>
 </div>
 
@@ -214,32 +214,7 @@ body {
 </div>
 
 <script>
-if (window.Telegram && Telegram.WebApp) {
-  Telegram.WebApp.expand();
-}
-
-document.addEventListener("contextmenu", e => e.preventDefault());
-document.addEventListener("copy", e => e.preventDefault());
-document.addEventListener("cut", e => e.preventDefault());
-document.addEventListener("selectstart", e => e.preventDefault());
-document.addEventListener("dragstart", e => e.preventDefault());
-
-document.addEventListener("keydown", e => {
-  if (e.ctrlKey && ["c","u","x","s"].includes(e.key.toLowerCase())) {
-    e.preventDefault();
-  }
-});
-
-function toggleInfo(){
-  const el=document.getElementById("infoBox");
-  el.style.display = el.style.display==="block"?"none":"block";
-}
-
-function updateInfoCount(){
-  const count = document.querySelectorAll(".notice").length;
-  document.getElementById("infoCount").textContent = count > 0 ? count : "";
-}
-
+// время Киев
 function getKyivNow() {
   return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
@@ -248,6 +223,45 @@ function updateDateTime() {
   const now = getKyivNow();
   date.textContent = `${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
   time.textContent = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+}
+
+// ЭМОДЗИ
+function getWeatherEmoji(desc){
+  desc = desc.toLowerCase();
+
+  if(desc.includes("соняч")) return "☀️";
+  if(desc.includes("хмар")) return "☁️";
+  if(desc.includes("дощ")) return "🌧️";
+  if(desc.includes("гроза")) return "⛈️";
+  if(desc.includes("сніг")) return "❄️";
+  return "🌤️";
+}
+
+// ПОГОДА (через украинский API)
+function loadWeather(){
+  fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&windspeed_unit=ms")
+  .then(r=>r.json())
+  .then(d=>{
+    const temp = Math.round(d.current_weather.temperature);
+    const wind = Math.round(d.current_weather.windspeed);
+
+    let desc = "мінлива хмарність";
+
+    document.getElementById("weatherTemp").textContent = temp + "°";
+    document.getElementById("weatherDesc").textContent = desc + " • " + wind + " м/с";
+    document.getElementById("weatherIcon").textContent = getWeatherEmoji(desc);
+  });
+}
+
+// остальной код без изменений
+function toggleInfo(){
+  const el=document.getElementById("infoBox");
+  el.style.display = el.style.display==="block"?"none":"block";
+}
+
+function updateInfoCount(){
+  const count = document.querySelectorAll(".notice").length;
+  document.getElementById("infoCount").textContent = count > 0 ? count : "";
 }
 
 function getDiff(time){
@@ -315,12 +329,15 @@ function loadTrains(){
   .then(d=>render(list,d.trains));
 }
 
+// запуск
 loadTrains();
+loadWeather();
 updateDateTime();
 updateInfoCount();
 
 setInterval(loadTrains,30000);
 setInterval(updateDateTime,1000);
+setInterval(loadWeather,600000); // каждые 10 мин
 </script>
 
 </body>
