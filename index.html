@@ -19,35 +19,23 @@ html, body {
 
 * {
   -webkit-user-select: none;
-  -webkit-touch-callout: none;
   user-select: none;
 }
 
 body {
   color:#fff;
   font-family:Arial;
-
   display:flex;
   justify-content:center;
   align-items:flex-start;
-
   min-height:100vh;
-  padding-top:var(--safe-top);
-  padding-bottom:var(--safe-bottom);
 
   background: linear-gradient(-45deg,
     #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93,
     #a5ca49,#8cc454,#41bc81,#74bf54,#53bc67
   );
   background-size:400% 400%;
-  background-attachment: fixed;
   animation: gradientMove 60s ease infinite;
-}
-
-@supports (-webkit-touch-callout: none) {
-  body {
-    min-height: -webkit-fill-available;
-  }
 }
 
 @keyframes gradientMove {
@@ -60,7 +48,6 @@ body {
   width:100%;
   max-width:900px;
   padding:10px;
-  padding-bottom: calc(20px + var(--safe-bottom));
 }
 
 .container {
@@ -77,89 +64,44 @@ body {
 
 .widget {
   background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(6px);
   padding:14px;
   border-radius:16px;
-  position:relative;
 }
 
-/* дата и время */
+/* дата */
 .datetime {
   text-align:center;
   font-family:"Courier New";
 }
 
-.date, .time {
-  font-size: clamp(16px, 3vw, 24px);
-}
-
-.date {
-  font-weight:900;
-}
-
-.time {
-  font-weight:500;
-}
-
-/* дни недели */
 .weekdays {
-  margin:6px 0;
   display:flex;
   justify-content:center;
   gap:6px;
-  font-size: clamp(13px, 2.8vw, 18px);
-  font-weight:bold;
-}
-
-.day {
-  padding:3px 6px;
-  border-radius:6px;
 }
 
 .day.active {
   background:red;
-  color:#fff;
+  border-radius:6px;
 }
 
 /* погода */
 .weather {
   text-align:center;
-  font-size: clamp(14px, 3vw, 20px);
-  line-height:1.3;
+  line-height:1.4;
+}
+
+.weather-city {
+  font-weight:bold;
 }
 
 .weather-temp {
+  font-size:22px;
   font-weight:bold;
-  font-size: clamp(18px, 4vw, 26px);
 }
 
 .weather-wind {
-  font-size: 12px;
-  opacity:0.9;
-}
-
-/* табло */
-.info-header {
-  text-align:center;
-  color:#ff3b3b;
-  font-weight:bold;
-  font-size: clamp(14px,3vw,20px);
-  cursor:pointer;
-}
-
-.info-count {
-  font-size: 12px;
-  margin-left:6px;
-  position:relative;
-  top:-6px;
-}
-
-.info-content {
-  display:none;
-  margin-top:8px;
-  font-size: clamp(12px,2.8vw,18px);
-  line-height:1.3;
-  color:#ffffff;
+  font-size:12px;
 }
 
 /* таблица */
@@ -173,58 +115,65 @@ body {
 }
 
 .table-head {
-  font-size: clamp(13px, 3vw, 22px);
   font-weight:700;
   border-bottom:2px solid #aaa;
   padding-bottom:8px;
 }
 
-.route, .time-cell {
-  text-align:center;
-  width:100%;
-}
-
 .train {
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
-  font-size: clamp(14px, 3.5vw, 26px);
   cursor:pointer;
 }
 
 .details {
   display:none;
   padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.2);
-  font-size: clamp(13px, 3vw, 22px);
 }
 
-/* 🔥 линия только по центру */
 .details-divider {
-  grid-column: 2;
+  grid-column:2;
   width:60%;
   height:1px;
   background:#fff;
   margin:10px auto;
 }
 
-/* текст */
 .details-note {
-  grid-column: 2;
-  width:100%;
-  text-align:left;
-  font-size: clamp(12px, 2.8vw, 18px);
+  grid-column:2;
 }
 
+/* зелёное время в шторках */
 .details-row div:nth-child(3) {
   color:#00ff9c;
+  font-weight:bold;
 }
 
+/* цвета времени */
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
 
-.train div:not(.time-cell) {
-  color:#ffffff;
+/* контейнер номера */
+.train-number {
+  position:relative;
+}
+
+/* 🔴 точка в углу */
+.alert-dot {
+  position:absolute;
+  top:-4px;
+  right:-8px;
+  width:6px;
+  height:6px;
+  background:#ff3b3b;
+  border-radius:50%;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,100% {opacity:1;}
+  50% {opacity:0;}
 }
 </style>
 </head>
@@ -238,9 +187,9 @@ body {
 
 <div class="widget">
   <div class="datetime">
-    <div class="date" id="date"></div>
+    <div id="date"></div>
 
-    <div class="weekdays" id="weekdays">
+    <div class="weekdays">
       <div class="day">пн</div>
       <div class="day">вт</div>
       <div class="day">ср</div>
@@ -250,34 +199,24 @@ body {
       <div class="day">нд</div>
     </div>
 
-    <div class="time" id="time"></div>
+    <div id="time"></div>
   </div>
 </div>
 
 <div class="widget">
-  <div class="weather" id="weather">
-    Завантаження...
-  </div>
+  <div class="weather" id="weather">Завантаження...</div>
 </div>
 
-</div>
-
-<div class="widget">
-  <div class="info-header" onclick="toggleInfo()">
-    інформація<span class="info-count" id="infoCount"></span>
-  </div>
-  <div class="info-content" id="infoBox"></div>
 </div>
 
 <div class="widget">
   <div class="table-head">
     <div>№</div>
-    <div>Маршрут прямування</div>
+    <div>Маршрут</div>
     <div>Відпр.</div>
   </div>
 
   <div id="list"></div>
-
 </div>
 
 </div>
@@ -286,94 +225,10 @@ body {
 <script>
 
 const changes = {
-   "6008": "тест1",
-  "6010": "тест2",
-  "6035": "тест3"
+  "6008":"тест1",
+  "6010":"тест2",
+  "6035":"тест3"
 };
-
-if (window.Telegram && Telegram.WebApp) {
-  Telegram.WebApp.expand();
-}
-
-document.addEventListener("contextmenu", e => e.preventDefault());
-document.addEventListener("copy", e => e.preventDefault());
-document.addEventListener("cut", e => e.preventDefault());
-document.addEventListener("selectstart", e => e.preventDefault());
-document.addEventListener("dragstart", e => e.preventDefault());
-
-document.addEventListener("keydown", e => {
-  if (e.ctrlKey && ["c","u","x","s"].includes(e.key.toLowerCase())) {
-    e.preventDefault();
-  }
-});
-
-function toggleInfo(){
-  const el=document.getElementById("infoBox");
-  el.style.display = el.style.display==="block"?"none":"block";
-}
-
-function updateInfoCount(){
-  const count = Object.keys(changes).length;
-  document.getElementById("infoCount").textContent = count > 0 ? count : "";
-}
-
-function getKyivNow() {
-  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
-}
-
-function updateWeekday(now){
-  const days=document.querySelectorAll(".day");
-  days.forEach(d=>d.classList.remove("active"));
-
-  let index = now.getDay();
-  index = index === 0 ? 6 : index - 1;
-
-  days[index].classList.add("active");
-}
-
-function updateDateTime() {
-  const now = getKyivNow();
-
-  date.textContent = `${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  time.textContent = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-
-  updateWeekday(now);
-}
-
-/* Погода */
-function getWeatherEmoji(code){
-  if(code === 0) return "☀️";
-  if(code <= 2) return "⛅";
-  if(code <= 3) return "☁️";
-  if(code <= 48) return "🌫️";
-  if(code <= 67) return "🌧️";
-  if(code <= 77) return "🌨️";
-  if(code <= 99) return "⛈️";
-  return "🌡️";
-}
-
-function loadWeather(){
-  fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&timezone=Europe%2FKyiv")
-  .then(r=>r.json())
-  .then(d=>{
-    const w=d.current_weather;
-    const emoji=getWeatherEmoji(w.weathercode);
-
-    document.getElementById("weather").innerHTML = `
-      <div>Вільногірськ</div>
-      <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
-      <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
-    `;
-  });
-}
-
-function getDiff(time){
-  const now=getKyivNow();
-  const [h,m]=time.split(":").map(Number);
-  const t=new Date(now);
-  t.setHours(h,m,0,0);
-  return Math.floor((t-now)/60000);
-}
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
@@ -390,12 +245,65 @@ const schedules={
   "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
 };
 
+function getWeatherEmoji(code){
+  if(code === 0) return "☀️";
+  if(code <= 2) return "⛅";
+  if(code <= 3) return "☁️";
+  if(code <= 48) return "🌫️";
+  if(code <= 67) return "🌧️";
+  if(code <= 77) return "🌨️";
+  if(code <= 99) return "⛈️";
+  return "🌡️";
+}
+
+function getKyivNow(){
+  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
+}
+
+function updateDateTime(){
+  const now=getKyivNow();
+
+  date.textContent=`${now.getDate()}.${now.getMonth()+1}.${now.getFullYear()}`;
+  time.textContent=`${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+
+  const days=document.querySelectorAll(".day");
+  days.forEach(d=>d.classList.remove("active"));
+
+  let i=now.getDay();
+  i=i===0?6:i-1;
+  days[i].classList.add("active");
+}
+
+function loadWeather(){
+  fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&timezone=Europe%2FKyiv")
+  .then(r=>r.json())
+  .then(d=>{
+    const w=d.current_weather;
+    const emoji=getWeatherEmoji(w.weathercode);
+
+    weather.innerHTML=`
+      <div class="weather-city">Вільногірськ</div>
+      <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
+      <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
+    `;
+  });
+}
+
+function getDiff(time){
+  const now=getKyivNow();
+  const [h,m]=time.split(":").map(Number);
+  const t=new Date(now);
+  t.setHours(h,m,0,0);
+  return Math.floor((t-now)/60000);
+}
+
 function render(el,data){
   data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
   el.innerHTML="";
 
   data.forEach(x=>{
     const diff=getDiff(x.time);
+
     let cls="train";
     let label=x.time;
 
@@ -405,18 +313,21 @@ function render(el,data){
 
     const id="d-"+x.number;
 
+    const dot = changes[x.number] ? `<span class="alert-dot"></span>` : "";
+
     el.innerHTML+=`
       <div class="${cls}" onclick="toggle('${id}')">
-        <div>${x.number}</div>
-        <div class="route">${x.route}</div>
+        <div class="train-number">${x.number}${dot}</div>
+        <div>${x.route}</div>
         <div class="time-cell">${label}</div>
       </div>
     `;
 
     if(schedules[x.number]){
-      const note = changes[x.number] ? changes[x.number] : "змін немає...";
+      const note=changes[x.number]||"змін немає...";
 
-      el.innerHTML+=`<div class="details" id="${id}">
+      el.innerHTML+=`
+      <div class="details" id="${id}">
         ${schedules[x.number].map(s=>`
           <div class="details-row">
             <div></div>
@@ -446,11 +357,11 @@ function loadTrains(){
 loadTrains();
 loadWeather();
 updateDateTime();
-updateInfoCount();
 
 setInterval(loadTrains,30000);
 setInterval(updateDateTime,1000);
 setInterval(loadWeather,600000);
+
 </script>
 
 </body>
