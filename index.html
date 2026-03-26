@@ -85,7 +85,7 @@ body {
   font-size: clamp(18px, 4vw, 36px);
 }
 
-/* табло информации (теперь как обычный widget) */
+/* табло */
 .info-title {
   text-align:center;
   color:#ff3b3b;
@@ -95,10 +95,15 @@ body {
 }
 
 .info-text {
-  color:#00ff9c;
+  color:#ffffff;
   font-size: clamp(12px,2.8vw,18px);
   text-align:left;
   line-height:1.3;
+}
+
+.delay {
+  color:#ff3b3b;
+  font-weight:bold;
 }
 
 /* таблица */
@@ -177,8 +182,8 @@ body {
 <div class="widget">
   <div class="info-title">інформация</div>
   <div class="info-text">
-    №6015 Дніпро-Гол. – Пʼятихатки-Пас. прямує зі станції Верхньодніпровськ з затримкою +39 хвилин<br>
-    №6018 Пʼятихатки-Стик. – Дніпро-Гол. зі станції Верхньодніпровськ з затримкою +47 хвилин.
+    №6015 Дніпро-Гол. – Пʼятихатки-Пас. прямує зі станції Верхньодніпровськ з затримкою <span class="delay">+39 хвилин</span><br>
+    №6018 Пʼятихатки-Стик. – Дніпро-Гол. зі станції Верхньодніпровськ з затримкою <span class="delay">+47 хвилин</span>.
   </div>
 </div>
 
