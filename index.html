@@ -92,15 +92,15 @@ body {
   font-weight:bold;
   font-size: clamp(14px,3vw,20px);
   cursor:pointer;
-  position:relative;
 }
 
+/* ВОТ ТУТ ГЛАВНОЕ ИЗМЕНЕНИЕ */
 .info-count {
   font-size: 12px;
-  color:#fff;
-  position:absolute;
+  margin-left:6px;
+  vertical-align:top;
+  position:relative;
   top:-6px;
-  right:-10px;
 }
 
 .info-content {
@@ -191,8 +191,7 @@ body {
 <!-- ТАБЛО -->
 <div class="widget">
   <div class="info-header" onclick="toggleInfo()">
-    інформація
-    <span class="info-count" id="infoCount"></span>
+    інформація<span class="info-count" id="infoCount"></span>
   </div>
 
   <div class="info-content" id="infoBox">
@@ -212,7 +211,7 @@ body {
 
   <div class="notes-title">Примітки:</div>
   <div class="notes-text">
-    Наразі жодних змін у розкладі  немає...
+    Наразі жодних змін у розкладі немає...
   </div>
 </div>
 
