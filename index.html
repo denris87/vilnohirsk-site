@@ -2,24 +2,14 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Vilnohirsk.online</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Розклад поїздів</title>
 
 <style>
-:root {
-  --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
-}
-
 html, body {
   margin:0;
   padding:0;
   height:100%;
-}
-
-* {
-  -webkit-user-select: none;
-  user-select: none;
 }
 
 body {
@@ -31,8 +21,7 @@ body {
   min-height:100vh;
 
   background: linear-gradient(-45deg,
-    #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93,
-    #a5ca49,#8cc454,#41bc81,#74bf54,#53bc67
+    #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93
   );
   background-size:400% 400%;
   animation: gradientMove 60s ease infinite;
@@ -50,63 +39,14 @@ body {
   padding:10px;
 }
 
-.container {
-  display:flex;
-  flex-direction:column;
-  gap:14px;
-}
-
-.top-row {
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:14px;
-}
-
 .widget {
   background:rgba(0,0,0,0.6);
   padding:14px;
   border-radius:16px;
 }
 
-.datetime {
-  text-align:center;
-  font-family:"Courier New";
-}
-
-#date,#time {
-  font-size: clamp(20px, 4vw, 30px);
-  font-weight:900;
-}
-
-.weekdays {
-  display:flex;
-  justify-content:center;
-  gap:6px;
-  font-size: clamp(16px, 3.5vw, 24px);
-  font-weight:900;
-}
-
-.day.active {
-  background:red;
-  border-radius:6px;
-}
-
-.weather {
-  text-align:center;
-  line-height:1.4;
-  opacity:1;
-  transition:opacity 0.6s ease;
-}
-
-.weather.fade { opacity:0; }
-
-.weather-city { font-weight:bold; }
-.weather-temp { font-size:22px; font-weight:bold; }
-.weather-wind { font-size:12px; }
-
 .table-head,
-.train,
-.details-row {
+.train {
   display:grid;
   grid-template-columns: 20% 1fr 20%;
   align-items:center;
@@ -125,27 +65,21 @@ body {
   cursor:pointer;
 }
 
+/* шторки */
 .details {
   max-height:0;
   overflow:hidden;
   opacity:0;
-  transform:translateY(-5px);
   transition:all 0.4s ease;
-  background:rgba(255,255,255,0.05);
-  border-radius:10px;
-  margin:4px 0;
-  padding:0 10px;
 }
 
 .details.open {
   max-height:2000px;
   opacity:1;
-  transform:translateY(0);
-  padding:10px;
+  padding:10px 0;
 }
 
 .details-divider {
-  grid-column:2;
   width:60%;
   height:1px;
   background:#fff;
@@ -153,54 +87,15 @@ body {
 }
 
 .details-note {
-  grid-column:2;
   text-align:center;
   font-weight:bold;
-  margin-bottom:10px;
 }
 
-.route {
-  white-space:nowrap;
-  overflow:hidden;
-  width:100%;
-  text-align:center;
-  font-size: clamp(13px, 3.4vw, 26px);
-  font-weight:600;
-}
-
-/* цвета */
-.details-row .time-green { color:#00ff9c; font-weight:bold; }
-.details-row .time-passed { color:#888; }
-
-.future .time-cell { color:#00ff9c; font-weight:bold; }
-.soon .time-cell { color:#ffcc00; font-weight:bold; }
-.passed .time-cell { color:#888; }
-
-/* точка */
-.train-number { position:relative; }
-
-.alert-dot {
-  position:absolute;
-  top:-4px;
-  right:-6px;
-  width:6px;
-  height:6px;
-  background:#ff3b3b;
-  border-radius:50%;
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%,100% {opacity:1;}
-  50% {opacity:0;}
-}
-
-/* 6008 адаптив */
+/* 🔥 СЕТКА */
 .schedule-grid {
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  margin-top:10px;
+  gap:10px;
 }
 
 @media (max-width:600px){
@@ -220,16 +115,10 @@ body {
 .schedule-row {
   display:flex;
   justify-content:space-between;
-  gap:8px;
+  gap:10px;
   padding:6px 0;
-  font-size:13px;
   border-bottom:1px dashed #aaa;
-}
-
-.station-number {
-  margin-right:6px;
-  color:#ffcc00;
-  font-weight:bold;
+  font-size:14px;
 }
 
 .schedule-row span:first-child {
@@ -238,8 +127,14 @@ body {
 }
 
 .schedule-row span:last-child {
-  min-width:45px;
+  min-width:50px;
   text-align:right;
+  font-weight:bold;
+}
+
+.station-number {
+  margin-right:6px;
+  color:#ffcc00;
   font-weight:bold;
 }
 
@@ -252,45 +147,17 @@ body {
 <body>
 
 <div class="wrapper">
-<div class="container">
-
-<div class="top-row">
-
-<div class="widget">
-  <div class="datetime">
-    <div id="date"></div>
-
-    <div class="weekdays">
-      <div class="day">пн</div>
-      <div class="day">вт</div>
-      <div class="day">ср</div>
-      <div class="day">чт</div>
-      <div class="day">пт</div>
-      <div class="day">сб</div>
-      <div class="day">нд</div>
-    </div>
-
-    <div id="time"></div>
-  </div>
-</div>
-
-<div class="widget">
-  <div class="weather" id="weather">Завантаження...</div>
-</div>
-
-</div>
 
 <div class="widget">
   <div class="table-head">
     <div>№</div>
-    <div>Маршрут прямування</div>
+    <div>Маршрут</div>
     <div>Відпр.</div>
   </div>
 
   <div id="list"></div>
 </div>
 
-</div>
 </div>
 
 <script>
@@ -305,11 +172,24 @@ const fullSchedule6008 = [
 ["з.п. 178 км","07:14"],["Діївка","07:18"],["з.п. 184 км","07:23"],["Горяїнове","07:27"],["Дніпро-Гол.","07:32"]
 ];
 
-function render6008Grid(){
-  let counter = 1;
+/* 6010 */
+const fullSchedule6010 = [
+["П'ятихатки-Пас.","05:30"],["з.п. Касинівка","05:39"],["з.п. 88 км","05:46"],["Ерастівка","05:51"],
+["Вільногірськ","06:01"],["Верхівцеве","06:19"],["з.п. 119 км","06:22"],
+["з.п. 125 км","06:27"],["з.п. 128 км","06:31"],["Верхньодніпровськ","06:38"],
+["з.п. 139 км","06:45"],["Воскобійня","06:49"],["з.п. 149 км","06:57"],
+["Кам'янське-Пас.","07:17"],["Запоріжжя-Кам’янське","07:23"],
+["з.п. 160 км","07:26"],["з.п. 164 км","07:31"],["з.п. 165 км","07:34"],
+["з.п. 169 км","07:39"],["Сухачівка","07:42"],["з.п. 175 км","07:46"],
+["з.п. 178 км","07:50"],["Діївка","07:54"],["з.п. 184 км","07:59"],
+["Горяїнове","08:03"],["Дніпро-Гол.","08:09"]
+];
+
+function renderGrid(data){
+  let i=1;
   const cols=[];
-  for(let i=0;i<fullSchedule6008.length;i+=10){
-    cols.push(fullSchedule6008.slice(i,i+10));
+  for(let j=0;j<data.length;j+=10){
+    cols.push(data.slice(j,j+10));
   }
 
   return `
@@ -318,7 +198,7 @@ function render6008Grid(){
         <div class="schedule-column">
           ${col.map(r=>`
             <div class="schedule-row">
-              <span><span class="station-number">${counter++}.</span>${r[0]}</span>
+              <span><span class="station-number">${i++}.</span>${r[0]}</span>
               <span>${r[1]}</span>
             </div>
           `).join("")}
@@ -328,130 +208,35 @@ function render6008Grid(){
   `;
 }
 
-/* изменения */
-const changes = {
-  "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
-  "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
-  "6018": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
-  "6037": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 17:40",
-  "6035": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове і далі за цим розкладом"
-};
-
-function getKyivNow(){
-  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
-}
-
-function getDiff(time){
-  const now=getKyivNow();
-  const [h,m]=time.split(":").map(Number);
-  const t=new Date(now);
-  t.setHours(h,m,0,0);
-  return Math.floor((t-now)/60000);
-}
-
 function render(el,data){
   el.innerHTML="";
-
   data.forEach(x=>{
-    const diff=getDiff(x.time);
-
-    let cls="train";
-    let label=x.time;
-
-    if(diff<0) cls+=" passed";
-    else if(diff<=10){cls+=" soon";label="≈ "+diff+" хв";}
-    else cls+=" future";
-
     const id="d-"+x.number;
-    const note = changes[x.number] || "змін немає...";
-    const dot = changes[x.number] ? `<span class="alert-dot"></span>` : "";
 
     el.innerHTML+=`
-      <div class="${cls}" onclick="toggle('${id}')">
-        <div class="train-number">${x.number}${dot}</div>
-        <div class="route">${x.route}</div>
-        <div class="time-cell">${label}</div>
+      <div class="train" onclick="toggle('${id}')">
+        <div>${x.number}</div>
+        <div>${x.route}</div>
+        <div>${x.time}</div>
       </div>
 
       <div class="details" id="${id}">
-        ${x.number==="6008" ? render6008Grid() : ""}
-
+        ${x.number==="6008" ? renderGrid(fullSchedule6008) : ""}
+        ${x.number==="6010" ? renderGrid(fullSchedule6010) : ""}
         <div class="details-divider"></div>
-        <div class="details-note">${note}</div>
+        <div class="details-note">змін немає...</div>
       </div>
     `;
   });
-}
-
-const cities = [
-  { name:"Вільногірськ", lat:48.48, lon:34.02 },
-  { name:"Дніпро", lat:48.45, lon:34.98 }
-];
-
-let cityIndex = 0;
-
-function getWeatherEmoji(code){
-  if(code === 0) return "☀️";
-  if(code <= 2) return "⛅";
-  if(code <= 3) return "☁️";
-  if(code <= 48) return "🌫️";
-  if(code <= 67) return "🌧️";
-  if(code <= 77) return "🌨️";
-  if(code <= 99) return "⛈️";
-  return "🌡️";
-}
-
-function loadWeather(){
-  const city = cities[cityIndex];
-  const el = document.getElementById("weather");
-
-  el.classList.add("fade");
-
-  setTimeout(()=>{
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&timezone=Europe%2FKyiv`)
-    .then(r=>r.json())
-    .then(d=>{
-      const w=d.current_weather;
-      const emoji=getWeatherEmoji(w.weathercode);
-
-      el.innerHTML=`
-        <div class="weather-city">${city.name}</div>
-        <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
-        <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
-      `;
-
-      el.classList.remove("fade");
-    });
-
-    cityIndex = (cityIndex + 1) % cities.length;
-
-  },600);
-}
-
-function updateDateTime(){
-  const now=getKyivNow();
-
-  date.textContent=now.toLocaleDateString("uk-UA");
-  time.textContent=now.toLocaleTimeString("uk-UA");
 }
 
 function toggle(id){
   document.getElementById(id).classList.toggle("open");
 }
 
-function loadTrains(){
-  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
-  .then(r=>r.json())
-  .then(d=>render(list,d.trains));
-}
-
-loadTrains();
-updateDateTime();
-loadWeather();
-
-setInterval(loadTrains,30000);
-setInterval(updateDateTime,1000);
-setInterval(loadWeather,7000);
+fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
+.then(r=>r.json())
+.then(d=>render(list,d.trains));
 
 </script>
 
