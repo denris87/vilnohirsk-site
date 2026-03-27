@@ -69,7 +69,7 @@ body {
   border-radius: 12px;
   flex: 1;
   min-width: 0;
-  min-height: 110px;
+  min-height: 115px; /* Трохи збільшив для нових розмірів */
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -90,15 +90,16 @@ body {
   color: #fff;
 }
 
+/* 🔥 ДНІ ТИЖНЯ ЗБІЛЬШЕНО В 2 РАЗИ */
 .weekdays {
   display:flex;
   justify-content:center;
-  gap:3px;
-  font-size: clamp(10px, 2.5vw, 13px);
+  gap:4px;
+  font-size: clamp(16px, 4vw, 20px); /* Було ~8-10px, тепер ~16-20px */
   font-weight:900;
-  margin: 5px 0;
+  margin: 6px 0;
 }
-.day.active { background:red; border-radius:4px; padding: 0 4px; }
+.day.active { background:red; border-radius:4px; padding: 0 5px; }
 
 /* Погода */
 .weather-box { 
@@ -177,7 +178,6 @@ body {
   margin: 5px 0;
 }
 
-/* Червоний текст змін */
 .details-note {
   text-align: center;
   font-weight: bold;
@@ -203,7 +203,13 @@ body {
   font-size: 12px;
 }
 
-/* Виділення Вільногірська */
+.station-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 75%;
+}
+
 .row-highlight {
   background: rgba(255, 204, 0, 0.15) !important;
   border: 1px solid var(--highlight-color) !important;
@@ -272,7 +278,6 @@ body {
 </div>
 
 <script>
-/* ТЕКСТ ПЕРЕКЛАДЕНО НА УКРАЇНСЬКУ */
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
