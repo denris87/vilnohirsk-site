@@ -159,7 +159,7 @@ body {
 }
 
 .details.open {
-  max-height:700px;
+  max-height:800px;
   opacity:1;
   transform:translateY(0);
   padding:10px;
@@ -175,16 +175,12 @@ body {
 
 .details-note {
   grid-column:2;
+  text-align:center;
+  font-weight:bold;
   margin-bottom:10px;
 }
 
-/* новый блок изменений */
-.details-change-title {
-  text-align:center;
-  font-weight:bold;
-  margin:6px 0;
-}
-
+/* маршрут */
 .route {
   white-space:nowrap;
   overflow:hidden;
@@ -194,6 +190,7 @@ body {
   font-weight:600;
 }
 
+/* 🔥 цвета времени в шторках */
 .details-row .time-green {
   color:#00ff9c;
   font-weight:bold;
@@ -203,14 +200,17 @@ body {
   color:#888;
 }
 
+/* цвета времени основной */
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
 
+/* номер */
 .train-number {
   position:relative;
 }
 
+/* 🔴 точка */
 .alert-dot {
   position:absolute;
   top:-4px;
@@ -283,27 +283,11 @@ const cities = [
 let cityIndex = 0;
 
 const changes = {
-    "6008": "є зміни в розкладі",
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
     "6018": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
-    "6037": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 17:40"
-};
-
-const specialChanges = {
-  "6035": {
-    date: "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 16:44",
-    data: [
-      ["Дніпро-Гол.","-"],
-      ["ст. Горяїнове","16:44"],
-      ["Камʼянське-Пас.","17:48"],
-      ["Верхньодніпровськ","18:14"],
-      ["Верхівцеве","18:33"],
-      ["Вільногірськ","18:54"],
-      ["Пʼятихатки-Пас.","19:26"],
-       ["Пʼятихатки-Пас.","19:33"]
-    ]
-  }
+    "6037": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 17:40",
+    "6035": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 16:44"
 };
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
@@ -320,6 +304,17 @@ const schedules={
   "6044":[["Пʼятихатки-Стик.","20:29"],["Пʼятихатки-Пас.","20:37"],["Вільногірськ","21:21"],["Верхівцеве","21:40"],["Верхньодніпровськ","21:58"],["Камʼянське-Пас.","22:22"],["Дніпро-Гол.","23:12"]],
   "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
 };
+
+const changesSchedule6035 = [
+["Дніпро-Гол.","-"],
+["ст. Горяїнове","16:44"],
+["Камʼянське-Пас.","17:48"],
+["Верхньодніпровськ","18:14"],
+["Верхівцеве","18:33"],
+["Вільногірськ","18:54"],
+["Пʼятихатки-Пас.","19:26"],
+["Пʼятихатки-Сик.","19:33"]
+];
 
 function getWeatherEmoji(code){
   if(code === 0) return "☀️";
@@ -364,6 +359,7 @@ function getKyivNow(){
 }
 
 function isPast(time){
+  if(time === "-") return false;
   const now=getKyivNow();
   const [h,m]=time.split(":").map(Number);
   const t=new Date(now);
@@ -429,24 +425,6 @@ function render(el,data){
     if(schedules[x.number]){
       const note=changes[x.number]||"змін немає...";
 
-      let specialHTML = "";
-
-      if(specialChanges[x.number]){
-        const sc = specialChanges[x.number];
-
-        specialHTML = `
-        <div class="details-divider"></div>
-        <div class="details-change-title">${sc.date}</div>
-        ${sc.data.map(s=>`
-          <div class="details-row">
-            <div></div>
-            <div>${s[0]}</div>
-            <div>${s[1]}</div>
-          </div>
-        `).join("")}
-        `;
-      }
-
       el.innerHTML+=`
       <div class="details" id="${id}">
         ${schedules[x.number].map(s=>{
@@ -462,7 +440,16 @@ function render(el,data){
         <div class="details-divider"></div>
         <div class="details-note">${note}</div>
 
-        ${specialHTML}
+        ${x.number === "6035" ? `
+          ${changesSchedule6035.map(s=>`
+            <div class="details-row">
+              <div></div>
+              <div>${s[0]}</div>
+              <div>${s[1]}</div>
+            </div>
+          `).join("")}
+        ` : ""}
+
       </div>`;
     }
   });
