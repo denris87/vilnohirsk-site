@@ -166,7 +166,6 @@ body {
   margin:15px auto;
 }
 
-/* 🔥 КРАСНЫЙ ЦВЕТ ДЛЯ ПРИМЕЧАНИЙ */
 .details-note {
   text-align:center;
   font-weight:bold;
@@ -223,6 +222,10 @@ body {
   font-size: clamp(13px, 3.4vw, 26px);
   font-weight:600;
 }
+
+/* Цвета времени */
+.time-green { color:#00ff9c; font-weight:bold; }
+.time-passed { color:#888; }
 
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
@@ -330,9 +333,22 @@ const changesSchedule6035 = [
   ["з.п. 77 км","19:20"],["П'ятихатки-Пас.","19:26"],["П'ятихатки-Стикова","19:33"]
 ];
 
+function getKyivNow(){
+  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
+}
+
+function isPast(time){
+  if(time === "---" || time === "—") return false;
+  const now = getKyivNow();
+  const [h, m] = time.split(":").map(Number);
+  const t = new Date(now);
+  t.setHours(h, m, 0, 0);
+  return t < now;
+}
+
 function renderGrid(data, isChanges = false){
-  let i=1;
-  const cols=[];
+  let i = 1;
+  const cols = [];
   for(let j=0; j<data.length; j+=10){
     cols.push(data.slice(j, j+10));
   }
@@ -340,12 +356,15 @@ function renderGrid(data, isChanges = false){
     <div class="schedule-grid">
       ${cols.map(col=>`
         <div class="schedule-column">
-          ${col.map(r=>`
+          ${col.map(r=>{
+            const passed = isPast(r[1]);
+            const timeClass = passed ? 'time-passed' : 'time-green';
+            return `
             <div class="schedule-row">
               <span><span class="station-number" style="${isChanges ? 'color:#fff' : ''}">${i++}.</span>${r[0]}</span>
-              <span>${r[1]}</span>
-            </div>
-          `).join("")}
+              <span class="${timeClass}">${r[1]}</span>
+            </div>`;
+          }).join("")}
         </div>
       `).join("")}
     </div>
@@ -381,10 +400,6 @@ function loadWeather(){
     });
     cityIndex = (cityIndex + 1) % cities.length;
   },600);
-}
-
-function getKyivNow(){
-  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
 function updateDateTime(){
