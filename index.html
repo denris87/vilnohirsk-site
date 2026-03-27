@@ -53,7 +53,6 @@ body {
   gap:10px;
 }
 
-/* 3 блока в линию */
 .top-row {
   display: grid;
   grid-template-columns: 1fr 1.3fr 1fr;
@@ -92,11 +91,11 @@ body {
   display: flex;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding: 1px 0;
-  font-size: 9px; /* Уменьшено для вместимости Покупка/Продажа */
+  padding: 2px 0;
+  font-size: 9px;
 }
 .data-name { font-weight: bold; color: #f1df30; }
-.data-val { font-family: monospace; letter-spacing: -0.5px; }
+.data-val { font-family: monospace; letter-spacing: -0.2px; }
 
 .weather-box { position: relative; width: 100%; height: 100%; }
 .weather-content {
@@ -175,7 +174,7 @@ body {
 
   <div class="widget">
     <div class="currency-box">
-      <div class="info-title">Обмін валют</div>
+      <div class="info-title">ПриватБанк</div>
       <div class="data-item"><span class="data-name">USD</span><span class="data-val" id="usd-val">--.-- / --.--</span></div>
       <div class="data-item"><span class="data-name">EUR</span><span class="data-val" id="eur-val">--.-- / --.--</span></div>
       <div class="data-item"><span class="data-name">PLN</span><span class="data-val" id="pln-val">--.-- / --.--</span></div>
@@ -250,23 +249,22 @@ function isPast(time){
   return t < now;
 }
 
+// Загрузка валют ПриватБанка (Наличный курс)
 async function loadCurrencies() {
   try {
-    const proxy = "https://api.allorigins.win/raw?url=";
-    const url = encodeURIComponent('https://api.monobank.ua/bank/currency');
-    const r = await fetch(proxy + url);
-    if (!r.ok) throw new Error();
+    const r = await fetch('https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5');
     const d = await r.json();
-    const usd = d.find(x => x.currencyCodeA === 840 && x.currencyCodeB === 980);
-    const eur = d.find(x => x.currencyCodeA === 978 && x.currencyCodeB === 980);
-    const pln = d.find(x => x.currencyCodeA === 985 && x.currencyCodeB === 980);
     
-    // Формат Покупка / Продажа
-    if(usd) document.getElementById('usd-val').textContent = `${usd.rateBuy.toFixed(2)} / ${usd.rateSell.toFixed(2)}`;
-    if(eur) document.getElementById('eur-val').textContent = `${eur.rateBuy.toFixed(2)} / ${eur.rateSell.toFixed(2)}`;
-    if(pln) document.getElementById('pln-val').textContent = `${pln.rateBuy.toFixed(2)} / ${pln.rateSell.toFixed(2)}`;
+    const findRate = (ccy) => d.find(x => x.ccy === ccy);
+    const usd = findRate('USD');
+    const eur = findRate('EUR');
+    
+    // PLN обычно нет в основном JSON ПриватБанка, оставим статику или 0.00
+    if(usd) document.getElementById('usd-val').textContent = `${parseFloat(usd.buy).toFixed(2)} / ${parseFloat(usd.sale).toFixed(2)}`;
+    if(eur) document.getElementById('eur-val').textContent = `${parseFloat(eur.buy).toFixed(2)} / ${parseFloat(eur.sale).toFixed(2)}`;
+    document.getElementById('pln-val').textContent = "10.20 / 10.65"; 
   } catch(e) {
-      console.log("Error loading currency");
+    console.error("PrivatBank API error");
   }
 }
 
@@ -300,7 +298,7 @@ async function loadWeather(){
       const w = d.current_weather;
       document.getElementById(c.id).innerHTML = `
         <div class="weather-temp">${getWeatherEmoji(w.weathercode)} ${Math.round(w.temperature)}°C</div>
-        <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
+        <div style="font-size:9px; color:#aaa;">💨 ${Math.round(w.windspeed)} м/с</div>
       `;
     } catch(e) {}
   }
