@@ -43,119 +43,171 @@ body {
 
 .wrapper {
   width:100%;
-  max-width:950px;
+  max-width:900px;
   padding:10px;
 }
 
 .container {
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:14px;
 }
 
-/* 3 блока в линию */
 .top-row {
-  display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr;
-  gap: 8px;
-  align-items: stretch;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
 }
 
 .widget {
-  background: rgba(0,0,0,0.6);
-  padding: 8px;
-  border-radius: 12px;
-  min-height: 100px;
+  background:rgba(0,0,0,0.6);
+  padding:14px;
+  border-radius:16px;
+  min-height: 110px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
 }
 
-/* Стили даты/времени */
-.datetime { text-align:center; font-family:"Courier New", monospace; }
-#date { font-size: 12px; font-weight:900; }
-#time { font-size: 15px; font-weight:900; }
+.datetime {
+  text-align:center;
+  font-family:"Courier New", monospace;
+}
+
+#date {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight:900;
+}
+
+#time {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight:900;
+}
+
 .weekdays {
   display:flex;
   justify-content:center;
-  gap:2px;
-  font-size: 8px;
+  gap:6px;
+  font-size: clamp(16px, 3.5vw, 24px);
   font-weight:900;
-  margin: 3px 0;
 }
-.day.active { background:red; border-radius:3px; padding: 0 2px; }
 
-/* Стили валют */
-.currency-box { width: 100%; }
-.info-title { text-align:center; font-size:8px; margin-bottom: 4px; color: #aaa; text-transform: uppercase; }
-.data-item {
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding: 1px 0;
-  font-size: 9px;
+.day.active {
+  background:red;
+  border-radius:6px;
+  padding: 0 4px;
 }
-.data-name { font-weight: bold; color: #f1df30; }
-.data-val { font-family: monospace; letter-spacing: -0.2px; }
 
-/* Стили погоды */
-.weather-box { position: relative; width: 100%; height: 100%; }
-.weather-content {
-  position: absolute;
-  width: 100%;
-  top: 50%;
-  left: 0;
-  transform: translateY(-50%) translateX(20px);
-  transition: all 0.6s ease-in-out;
-  opacity: 0;
-  text-align: center;
+.weather {
+  text-align:center;
+  line-height:1.4;
 }
-.weather-content.active { opacity: 1; transform: translateY(-50%) translateX(0); }
-.weather-city { font-weight:bold; font-size: 10px; color: #04b6cb; margin-bottom: 2px; }
-.weather-temp { font-size: 16px; font-weight:bold; }
-.weather-wind { font-size: 9px; color: #aaa; }
 
-/* Список поездов */
-.train-list-widget { background: rgba(0,0,0,0.6); padding: 10px; border-radius: 16px; }
+.weather-city {
+  font-weight:bold;
+  font-size: 16px;
+}
+
+.weather-temp {
+  font-size:24px;
+  font-weight:bold;
+}
+
+.weather-wind {
+  font-size:12px;
+}
+
+.train-list-widget {
+  background:rgba(0,0,0,0.6);
+  padding:14px;
+  border-radius:16px;
+}
+
 .table-head {
+  display:grid;
+  grid-template-columns: 20% 1fr 20%;
+  align-items:center;
+  justify-items:center;
   font-weight:700;
   border-bottom:2px solid #aaa;
   padding-bottom:8px;
-  display:grid;
-  grid-template-columns: 15% 1fr 20%;
-  justify-items:center;
-  font-size: 13px;
 }
+
 .train {
   display:grid;
-  grid-template-columns: 15% 1fr 20%;
+  grid-template-columns: 20% 1fr 20%;
   align-items:center;
   justify-items:center;
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
   cursor:pointer;
 }
+
 .details {
   max-height:0;
   overflow:hidden;
   opacity:0;
+  transform:translateY(-5px);
   transition:all 0.4s ease;
   background:rgba(255,255,255,0.05);
   border-radius:10px;
+  margin:4px 0;
 }
-.details.open { max-height:5000px; opacity:1; padding:10px; margin-top: 5px; }
-.details-note { text-align:center; font-weight:bold; color: #ff4d4d; margin: 10px 0; text-shadow: 0 0 5px rgba(0,0,0,0.5); }
 
-.schedule-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-@media (max-width:600px){ .schedule-grid { grid-template-columns:1fr; } }
-.schedule-row { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px dashed rgba(255,255,255,0.2); font-size:11px; }
-.station-number { color:#ffcc00; font-weight:bold; margin-right:4px; }
+.details.open {
+  max-height:5000px;
+  opacity:1;
+  transform:translateY(0);
+  padding:10px;
+}
+
+.details-note {
+  text-align:center;
+  font-weight:bold;
+  margin-bottom:10px;
+  color: #ff4d4d;
+  text-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
+
+.schedule-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:10px;
+}
+
+@media (max-width:600px){
+  .schedule-grid { grid-template-columns:1fr; }
+}
+
+.schedule-row {
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:6px 0;
+  border-bottom:1px dashed rgba(255,255,255,0.2);
+  font-size:14px;
+}
+
+.station-number { color:#ffcc00; font-weight:bold; margin-right:6px; }
 .time-green { color:#00ff9c; font-weight:bold; }
 .time-passed { color:#888; }
-.alert-dot { position:absolute; top:-2px; right:-5px; width:6px; height:6px; background:#ff3b3b; border-radius:50%; animation: blink 1s infinite; }
-@keyframes blink { 0%,100% {opacity:1;} 50% {opacity:0;} }
+
+.alert-dot {
+  position:absolute;
+  top:-4px;
+  right:-6px;
+  width:6px;
+  height:6px;
+  background:#ff3b3b;
+  border-radius:50%;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,100% {opacity:1;}
+  50% {opacity:0;}
+}
 </style>
 </head>
 
@@ -165,15 +217,6 @@ body {
 <div class="container">
 
 <div class="top-row">
-  <div class="widget">
-    <div class="currency-box">
-      <div class="info-title">ПриватБанк</div>
-      <div class="data-item"><span class="data-name">USD</span><span class="data-val" id="usd-val">--.-- / --.--</span></div>
-      <div class="data-item"><span class="data-name">EUR</span><span class="data-val" id="eur-val">--.-- / --.--</span></div>
-      <div class="data-item"><span class="data-name">PLN</span><span class="data-val" id="pln-val">--.-- / --.--</span></div>
-    </div>
-  </div>
-
   <div class="widget">
     <div class="datetime">
       <div id="date"></div>
@@ -187,16 +230,7 @@ body {
   </div>
 
   <div class="widget">
-    <div class="weather-box">
-      <div class="weather-content active" id="w-vil">
-        <div class="weather-city">Вільногірськ</div>
-        <div id="vil-data">...</div>
-      </div>
-      <div class="weather-content" id="w-dni">
-        <div class="weather-city">Дніпро</div>
-        <div id="dni-data">...</div>
-      </div>
-    </div>
+    <div class="weather" id="weather">Завантаження...</div>
   </div>
 </div>
 
@@ -244,43 +278,17 @@ const changesSchedule6035 = [
   ["з.п. 77 км","19:20"],["П'ятихатки-Пас.","19:26"],["П'ятихатки-Стикова","19:33"]
 ];
 
-function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
+function getKyivNow(){
+  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
+}
 
 function isPast(time){
   if(time === "---" || time === "—") return false;
   const now = getKyivNow();
   const [h, m] = time.split(":").map(Number);
-  const t = new Date(now); t.setHours(h, m, 0, 0);
+  const t = new Date(now);
+  t.setHours(h, m, 0, 0);
   return t < now;
-}
-
-async function loadCurrencies() {
-  try {
-    const proxy = "https://api.allorigins.win/raw?url=";
-    const url = encodeURIComponent('https://api.monobank.ua/bank/currency');
-    const r = await fetch(proxy + url);
-    if (!r.ok) throw new Error();
-    const d = await r.json();
-    const usd = d.find(x => x.currencyCodeA === 840 && x.currencyCodeB === 980);
-    const eur = d.find(x => x.currencyCodeA === 978 && x.currencyCodeB === 980);
-    const pln = d.find(x => x.currencyCodeA === 985 && x.currencyCodeB === 980);
-    
-    if(usd) document.getElementById('usd-val').textContent = `${usd.rateBuy.toFixed(2)} / ${usd.rateSell.toFixed(2)}`;
-    if(eur) document.getElementById('eur-val').textContent = `${eur.rateBuy.toFixed(2)} / ${eur.rateSell.toFixed(2)}`;
-    if(pln) document.getElementById('pln-val').textContent = `${pln.rateBuy.toFixed(2)} / ${pln.rateSell.toFixed(2)}`;
-  } catch(e) {
-      console.log("Error loading currency");
-  }
-}
-
-function initWeatherSlider() {
-  const slides = [document.getElementById('w-vil'), document.getElementById('w-dni')];
-  let cur = 0;
-  setInterval(() => {
-    slides[cur].classList.remove('active');
-    cur = (cur + 1) % slides.length;
-    slides[cur].classList.add('active');
-  }, 7000);
 }
 
 function getWeatherEmoji(code){
@@ -294,41 +302,46 @@ function getWeatherEmoji(code){
   return "🌡️";
 }
 
-async function loadWeather(){
-  const cities_coords = [{id: 'vil-data', lat: 48.48, lon: 34.02}, {id: 'dni-data', lat: 48.45, lon: 34.98}];
-  for(let c of cities_coords){
-    try {
-      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
-      const d = await r.json();
-      const w = d.current_weather;
-      document.getElementById(c.id).innerHTML = `
-        <div class="weather-temp">${getWeatherEmoji(w.weathercode)} ${Math.round(w.temperature)}°C</div>
-        <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
-      `;
-    } catch(e) {}
-  }
+function loadWeather(){
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&timezone=Europe%2FKyiv`)
+  .then(r=>r.json())
+  .then(d=>{
+    const w=d.current_weather;
+    const emoji = getWeatherEmoji(w.weathercode);
+    document.getElementById("weather").innerHTML=`
+      <div class="weather-city">Вільногірськ</div>
+      <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
+      <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
+    `;
+  });
 }
 
 function updateDateTime(){
   const now=getKyivNow();
   document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
   document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+
   const days=document.querySelectorAll(".day");
   days.forEach(d=>d.classList.remove("active"));
-  let i=now.getDay(); i=i===0?6:i-1;
+  let i=now.getDay();
+  i=i===0?6:i-1;
   days[i].classList.add("active");
 }
 
 function renderGrid(data, isChanges = false){
-  let i = 1; const cols = [];
-  for(let j=0; j<data.length; j+=10){ cols.push(data.slice(j, j+10)); }
+  let i = 1;
+  const cols = [];
+  for(let j=0; j<data.length; j+=10){
+    cols.push(data.slice(j, j+10));
+  }
   return `
     <div class="schedule-grid">
       ${cols.map(col=>`
         <div class="schedule-column" style="background:rgba(255,255,255,0.1); border-radius:8px; padding:5px;">
           ${col.map(r=>{
             const passed = isPast(r[1]);
-            return `<div class="schedule-row">
+            return `
+            <div class="schedule-row">
               <span><span class="station-number" style="${isChanges ? 'color:#fff' : ''}">${i++}.</span>${r[0]}</span>
               <span class="${passed ? 'time-passed' : 'time-green'}">${r[1]}</span>
             </div>`;
@@ -341,7 +354,12 @@ function renderGrid(data, isChanges = false){
 
 function render(el,data){
   data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
-  el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content"></div>`;
+  el.innerHTML=`
+    <div class="table-head">
+      <div>№</div><div>Маршрут прямування</div><div>Відпр.</div>
+    </div>
+    <div id="trains-content"></div>
+  `;
   const container = document.getElementById('trains-content');
   data.forEach(x=>{
     const diff = Math.floor((new Date(getKyivNow().setHours(...x.time.split(':'),0,0)) - getKyivNow())/60000);
@@ -350,24 +368,32 @@ function render(el,data){
     container.innerHTML+=`
       <div class="${cls}" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div style="position:relative">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
-        <div style="font-weight:600; text-align:center; font-size:12px;">${x.route}</div>
-        <div style="font-weight:bold; font-size:14px;">${diff>=0 && diff<=10 ? '≈ '+diff+' хв' : x.time}</div>
+        <div style="font-weight:600; text-align:center">${x.route}</div>
+        <div style="font-weight:bold">${diff>=0 && diff<=10 ? '≈ '+diff+' хв' : x.time}</div>
       </div>
       <div class="details" id="${id}">
         ${renderGrid(fullSchedules[x.number])}
         <div style="width:60%; height:1px; background:#fff; margin:15px auto;"></div>
         <div class="details-note">${changes[x.number] || "змін немає..."}</div>
         ${x.number === "6035" ? renderGrid(changesSchedule6035, true) : ""}
-      </div>`;
+      </div>
+    `;
   });
 }
 
 function loadTrains(){
-  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>render(list,d.trains));
+  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
+  .then(r=>r.json())
+  .then(d=>render(list,d.trains));
 }
 
-loadTrains(); updateDateTime(); loadWeather(); loadCurrencies(); initWeatherSlider();
-setInterval(loadTrains,30000); setInterval(updateDateTime,1000); setInterval(loadWeather,600000);
+loadTrains();
+updateDateTime();
+loadWeather();
+
+setInterval(loadTrains,30000);
+setInterval(updateDateTime,1000);
+setInterval(loadWeather,600000);
 </script>
 
 </body>
