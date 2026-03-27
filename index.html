@@ -43,7 +43,7 @@ body {
 
 .wrapper {
   width:100%;
-  max-width:900px;
+  max-width:950px;
   padding:10px;
 }
 
@@ -53,119 +53,72 @@ body {
   gap:10px;
 }
 
-/* 2 блока сверху */
+/* 🔥 СЕТКА: 3 БЛОКА В ЛИНИЮ */
 .top-row {
   display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 10px;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 8px;
   align-items: stretch;
 }
 
 .widget {
   background: rgba(0,0,0,0.6);
-  padding: 10px;
-  border-radius: 16px;
-  min-height: 110px;
+  padding: 8px;
+  border-radius: 12px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   position: relative;
-}
-
-/* Правый комбинированный блок */
-.combo-widget {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.currency-box {
-  border-right: 1px solid rgba(255,255,255,0.1);
-  padding-right: 10px;
-}
-
-.weather-box {
-  position: relative;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-@media (max-width: 600px) {
-  .top-row { grid-template-columns: 1fr; }
-  .combo-widget { grid-template-columns: 1.2fr 1fr; }
-}
-
-.datetime {
-  text-align:center;
-  font-family:"Courier New", monospace;
-}
-
-#date, #time {
-  font-size: clamp(14px, 3.5vw, 18px);
-  font-weight:900;
-}
-
+/* Компактные стили для времени */
+.datetime { text-align:center; font-family:"Courier New", monospace; }
+#date { font-size: 13px; font-weight:900; }
+#time { font-size: 16px; font-weight:900; }
 .weekdays {
   display:flex;
   justify-content:center;
-  gap:3px;
-  font-size: clamp(10px, 2.5vw, 12px);
+  gap:2px;
+  font-size: 9px;
   font-weight:900;
-  margin: 4px 0;
+  margin: 3px 0;
 }
+.day.active { background:red; border-radius:3px; padding: 0 2px; }
 
-.day.active {
-  background:red;
-  border-radius:4px;
-  padding: 0 3px;
-}
-
-/* Анимация для погоды */
-.weather-content {
-  position: absolute;
-  width: 100%;
-  transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-  opacity: 0;
-  transform: translateX(20px);
-  text-align: center;
-}
-
-.weather-content.active {
-  position: relative;
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.info-title {
-  text-align:center; 
-  font-size:10px; 
-  margin-bottom: 5px;
-  text-transform: uppercase;
-  color: #aaa;
-}
-
+/* Компактные стили для валют */
+.currency-box { width: 100%; }
+.info-title { text-align:center; font-size:9px; margin-bottom: 4px; color: #aaa; text-transform: uppercase; }
 .data-item {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-  padding: 2px 0;
-  font-size: clamp(10px, 2.5vw, 12px);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 1px 0;
+  font-size: 10px;
 }
-
 .data-name { font-weight: bold; color: #f1df30; }
 .data-val { font-family: monospace; }
 
-.weather-temp { font-size: clamp(16px, 4vw, 20px); font-weight:bold; margin: 2px 0; }
-.weather-city { font-weight:bold; font-size: 11px; color: #04b6cb; }
-
-.train-list-widget {
-  background: rgba(0,0,0,0.6);
-  padding: 10px;
-  border-radius: 16px;
+/* Компактные стили для погоды */
+.weather-box { position: relative; width: 100%; height: 100%; }
+.weather-content {
+  position: absolute;
+  width: 100%;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%) translateX(20px);
+  transition: all 0.6s ease-in-out;
+  opacity: 0;
+  text-align: center;
 }
+.weather-content.active { opacity: 1; transform: translateY(-50%) translateX(0); }
+.weather-city { font-weight:bold; font-size: 10px; color: #04b6cb; margin-bottom: 2px; }
+.weather-temp { font-size: 16px; font-weight:bold; }
+.weather-wind { font-size: 9px; color: #aaa; }
 
+/* Список поездов */
+.train-list-widget { background: rgba(0,0,0,0.6); padding: 10px; border-radius: 16px; }
 .table-head {
   font-weight:700;
   border-bottom:2px solid #aaa;
@@ -173,19 +126,17 @@ body {
   display:grid;
   grid-template-columns: 15% 1fr 20%;
   justify-items:center;
-  font-size: 14px;
+  font-size: 13px;
 }
-
 .train {
   display:grid;
   grid-template-columns: 15% 1fr 20%;
   align-items:center;
   justify-items:center;
-  padding:12px 0;
+  padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
   cursor:pointer;
 }
-
 .details {
   max-height:0;
   overflow:hidden;
@@ -194,50 +145,16 @@ body {
   background:rgba(255,255,255,0.05);
   border-radius:10px;
 }
+.details.open { max-height:5000px; opacity:1; padding:10px; margin-top: 5px; }
+.details-note { text-align:center; font-weight:bold; color: #ff4d4d; margin: 10px 0; text-shadow: 0 0 5px rgba(0,0,0,0.5); }
 
-.details.open {
-  max-height:5000px;
-  opacity:1;
-  padding:10px;
-}
-
-.details-note {
-  text-align:center;
-  font-weight:bold;
-  color: #ff4d4d; 
-  margin: 10px 0;
-  text-shadow: 0 0 5px rgba(0,0,0,0.5);
-}
-
-.schedule-grid {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-}
-
+.schedule-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
 @media (max-width:600px){ .schedule-grid { grid-template-columns:1fr; } }
-
-.schedule-row {
-  display:flex;
-  justify-content:space-between;
-  padding:3px 0;
-  border-bottom:1px dashed rgba(255,255,255,0.2);
-  font-size:11px;
-}
-
+.schedule-row { display:flex; justify-content:space-between; padding:3px 0; border-bottom:1px dashed rgba(255,255,255,0.2); font-size:11px; }
 .station-number { color:#ffcc00; font-weight:bold; margin-right:4px; }
 .time-green { color:#00ff9c; font-weight:bold; }
 .time-passed { color:#888; }
-
-.alert-dot {
-  position:absolute;
-  top:-2px; right:-5px;
-  width:6px; height:6px;
-  background:#ff3b3b;
-  border-radius:50%;
-  animation: blink 1s infinite;
-}
-
+.alert-dot { position:absolute; top:-2px; right:-5px; width:6px; height:6px; background:#ff3b3b; border-radius:50%; animation: blink 1s infinite; }
 @keyframes blink { 0%,100% {opacity:1;} 50% {opacity:0;} }
 </style>
 </head>
@@ -260,22 +177,24 @@ body {
     </div>
   </div>
 
-  <div class="widget combo-widget">
+  <div class="widget">
     <div class="currency-box">
-      <div class="info-title">Обмін валют</div>
-      <div class="data-item"><span class="data-name">🇺🇸 USD</span><span class="data-val" id="usd-val">--.--</span></div>
-      <div class="data-item"><span class="data-name">🇪🇺 EUR</span><span class="data-val" id="eur-val">--.--</span></div>
-      <div class="data-item"><span class="data-name">🇵🇱 PLN</span><span class="data-val" id="pln-val">--.--</span></div>
+      <div class="info-title">Курс валют</div>
+      <div class="data-item"><span class="data-name">USD</span><span class="data-val" id="usd-val">--.--</span></div>
+      <div class="data-item"><span class="data-name">EUR</span><span class="data-val" id="eur-val">--.--</span></div>
+      <div class="data-item"><span class="data-name">PLN</span><span class="data-val" id="pln-val">--.--</span></div>
     </div>
-    
+  </div>
+
+  <div class="widget">
     <div class="weather-box">
       <div class="weather-content active" id="w-vil">
         <div class="weather-city">Вільногірськ</div>
-        <div id="vil-data">Завантаження...</div>
+        <div id="vil-data">...</div>
       </div>
       <div class="weather-content" id="w-dni">
         <div class="weather-city">Дніпро</div>
-        <div id="dni-data">Завантаження...</div>
+        <div id="dni-data">...</div>
       </div>
     </div>
   </div>
@@ -325,20 +244,16 @@ const changesSchedule6035 = [
   ["з.п. 77 км","19:20"],["П'ятихатки-Пас.","19:26"],["П'ятихатки-Стикова","19:33"]
 ];
 
-function getKyivNow(){
-  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
-}
+function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
 
 function isPast(time){
   if(time === "---" || time === "—") return false;
   const now = getKyivNow();
   const [h, m] = time.split(":").map(Number);
-  const t = new Date(now);
-  t.setHours(h, m, 0, 0);
+  const t = new Date(now); t.setHours(h, m, 0, 0);
   return t < now;
 }
 
-// Валюты Monobank
 async function loadCurrencies() {
   try {
     const r = await fetch('https://api.monobank.ua/bank/currency');
@@ -346,13 +261,12 @@ async function loadCurrencies() {
     const usd = d.find(x => x.currencyCodeA === 840 && x.currencyCodeB === 980);
     const eur = d.find(x => x.currencyCodeA === 978 && x.currencyCodeB === 980);
     const pln = d.find(x => x.currencyCodeA === 985 && x.currencyCodeB === 980);
-    if(usd) document.getElementById('usd-val').textContent = `${usd.rateBuy.toFixed(2)} / ${usd.rateSell.toFixed(2)}`;
-    if(eur) document.getElementById('eur-val').textContent = `${eur.rateBuy.toFixed(2)} / ${eur.rateSell.toFixed(2)}`;
-    if(pln) document.getElementById('pln-val').textContent = `${pln.rateBuy.toFixed(2)} / ${pln.rateSell.toFixed(2)}`;
+    if(usd) document.getElementById('usd-val').textContent = usd.rateBuy.toFixed(2);
+    if(eur) document.getElementById('eur-val').textContent = eur.rateBuy.toFixed(2);
+    if(pln) document.getElementById('pln-val').textContent = pln.rateBuy.toFixed(2);
   } catch(e) {}
 }
 
-// Слайдер только для погоды
 function initWeatherSlider() {
   const slides = [document.getElementById('w-vil'), document.getElementById('w-dni')];
   let cur = 0;
@@ -375,11 +289,7 @@ function getWeatherEmoji(code){
 }
 
 async function loadWeather(){
-  const cities_coords = [
-    {id: 'vil-data', lat: 48.48, lon: 34.02},
-    {id: 'dni-data', lat: 48.45, lon: 34.98}
-  ];
-  
+  const cities_coords = [{id: 'vil-data', lat: 48.48, lon: 34.02}, {id: 'dni-data', lat: 48.45, lon: 34.98}];
   for(let c of cities_coords){
     try {
       const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
@@ -387,7 +297,7 @@ async function loadWeather(){
       const w = d.current_weather;
       document.getElementById(c.id).innerHTML = `
         <div class="weather-temp">${getWeatherEmoji(w.weathercode)} ${Math.round(w.temperature)}°C</div>
-        <div style="font-size:10px; color:#aaa;">💨 ${Math.round(w.windspeed)} м/с</div>
+        <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
       `;
     } catch(e) {}
   }
@@ -404,19 +314,17 @@ function updateDateTime(){
 }
 
 function renderGrid(data, isChanges = false){
-  let i = 1;
-  const cols = [];
+  let i = 1; const cols = [];
   for(let j=0; j<data.length; j+=10){ cols.push(data.slice(j, j+10)); }
   return `
     <div class="schedule-grid">
       ${cols.map(col=>`
-        <div class="schedule-column">
+        <div class="schedule-column" style="background:rgba(255,255,255,0.1); border-radius:8px; padding:5px;">
           ${col.map(r=>{
             const passed = isPast(r[1]);
-            const timeClass = passed ? 'time-passed' : 'time-green';
             return `<div class="schedule-row">
               <span><span class="station-number" style="${isChanges ? 'color:#fff' : ''}">${i++}.</span>${r[0]}</span>
-              <span class="${timeClass}">${r[1]}</span>
+              <span class="${passed ? 'time-passed' : 'time-green'}">${r[1]}</span>
             </div>`;
           }).join("")}
         </div>
@@ -436,8 +344,8 @@ function render(el,data){
     container.innerHTML+=`
       <div class="${cls}" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div style="position:relative">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
-        <div style="font-weight:600; text-align:center">${x.route}</div>
-        <div style="font-weight:bold">${diff>=0 && diff<=10 ? '≈ '+diff+' хв' : x.time}</div>
+        <div style="font-weight:600; text-align:center; font-size:12px;">${x.route}</div>
+        <div style="font-weight:bold; font-size:14px;">${diff>=0 && diff<=10 ? '≈ '+diff+' хв' : x.time}</div>
       </div>
       <div class="details" id="${id}">
         ${renderGrid(fullSchedules[x.number])}
