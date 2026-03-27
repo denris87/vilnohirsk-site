@@ -68,7 +68,6 @@ body {
   border-radius:16px;
 }
 
-/* дата */
 .datetime {
   text-align:center;
   font-family:"Courier New";
@@ -79,7 +78,6 @@ body {
   font-weight:900;
 }
 
-/* дни */
 .weekdays {
   display:flex;
   justify-content:center;
@@ -93,7 +91,6 @@ body {
   border-radius:6px;
 }
 
-/* погода */
 .weather {
   text-align:center;
   line-height:1.4;
@@ -107,7 +104,6 @@ body {
 .weather-temp { font-size:22px; font-weight:bold; }
 .weather-wind { font-size:12px; }
 
-/* таблица */
 .table-head,
 .train,
 .details-row {
@@ -129,7 +125,6 @@ body {
   cursor:pointer;
 }
 
-/* ШТОРКИ */
 .details {
   max-height:0;
   overflow:hidden;
@@ -143,7 +138,7 @@ body {
 }
 
 .details.open {
-  max-height:1500px;
+  max-height:2000px;
   opacity:1;
   transform:translateY(0);
   padding:10px;
@@ -164,7 +159,6 @@ body {
   margin-bottom:10px;
 }
 
-/* маршрут */
 .route {
   white-space:nowrap;
   overflow:hidden;
@@ -174,7 +168,7 @@ body {
   font-weight:600;
 }
 
-/* цвета времени */
+/* цвета */
 .details-row .time-green { color:#00ff9c; font-weight:bold; }
 .details-row .time-passed { color:#888; }
 
@@ -201,7 +195,7 @@ body {
   50% {opacity:0;}
 }
 
-/* 6008 сетка */
+/* 6008 адаптив */
 .schedule-grid {
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -209,18 +203,44 @@ body {
   margin-top:10px;
 }
 
+@media (max-width:600px){
+  .schedule-grid { grid-template-columns:1fr; }
+}
+
+@media (min-width:601px) and (max-width:900px){
+  .schedule-grid { grid-template-columns:repeat(2,1fr); }
+}
+
 .schedule-column {
   background:rgba(255,255,255,0.1);
   border-radius:10px;
-  padding:6px;
+  padding:8px;
 }
 
 .schedule-row {
   display:flex;
   justify-content:space-between;
-  padding:4px 0;
-  font-size:12px;
+  gap:8px;
+  padding:6px 0;
+  font-size:13px;
   border-bottom:1px dashed #aaa;
+}
+
+.station-number {
+  margin-right:6px;
+  color:#ffcc00;
+  font-weight:bold;
+}
+
+.schedule-row span:first-child {
+  flex:1;
+  white-space:normal;
+}
+
+.schedule-row span:last-child {
+  min-width:45px;
+  text-align:right;
+  font-weight:bold;
 }
 
 .schedule-row:last-child {
@@ -286,6 +306,7 @@ const fullSchedule6008 = [
 ];
 
 function render6008Grid(){
+  let counter = 1;
   const cols=[];
   for(let i=0;i<fullSchedule6008.length;i+=10){
     cols.push(fullSchedule6008.slice(i,i+10));
@@ -297,7 +318,7 @@ function render6008Grid(){
         <div class="schedule-column">
           ${col.map(r=>`
             <div class="schedule-row">
-              <span>${r[0]}</span>
+              <span><span class="station-number">${counter++}.</span>${r[0]}</span>
               <span>${r[1]}</span>
             </div>
           `).join("")}
@@ -361,8 +382,6 @@ function render(el,data){
     `;
   });
 }
-
-/* остальное как было */
 
 const cities = [
   { name:"Вільногірськ", lat:48.48, lon:34.02 },
