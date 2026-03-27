@@ -175,6 +175,7 @@ body {
   text-align:center;
   font-weight:bold;
   color: #ff4d4d; 
+  text-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
 
 .schedule-grid {
@@ -191,6 +192,12 @@ body {
   padding:4px 0;
   border-bottom:1px dashed rgba(255,255,255,0.2);
   font-size:12px;
+}
+
+.station-number {
+  margin-right:6px;
+  color:#ffcc00;
+  font-weight:bold;
 }
 
 .time-green { color:#00ff9c; font-weight:bold; }
@@ -237,18 +244,9 @@ body {
     </div>
     <div class="slide-content" id="slide-currency">
       <div class="info-title">Обмін валют</div>
-      <div class="data-item">
-        <span class="data-name">🇺🇸 USD</span>
-        <span class="data-val" id="usd-val">41.20 / 41.80</span>
-      </div>
-      <div class="data-item">
-        <span class="data-name">🇪🇺 EUR</span>
-        <span class="data-val" id="eur-val">44.50 / 45.30</span>
-      </div>
-      <div class="data-item">
-        <span class="data-name">🇵🇱 PLN</span>
-        <span class="data-val" id="pln-val">10.10 / 10.60</span>
-      </div>
+      <div class="data-item"><span class="data-name">🇺🇸 USD</span><span class="data-val" id="usd-val">--.-- / --.--</span></div>
+      <div class="data-item"><span class="data-name">🇪🇺 EUR</span><span class="data-val" id="eur-val">--.-- / --.--</span></div>
+      <div class="data-item"><span class="data-name">🇵🇱 PLN</span><span class="data-val" id="pln-val">--.-- / --.--</span></div>
     </div>
   </div>
 
@@ -314,7 +312,6 @@ function isPast(time){
   return t < now;
 }
 
-// Загрузка валют с Монобанка
 async function loadCurrencies() {
   try {
     const r = await fetch('https://api.monobank.ua/bank/currency');
@@ -322,14 +319,12 @@ async function loadCurrencies() {
     const usd = d.find(x => x.currencyCodeA === 840 && x.currencyCodeB === 980);
     const eur = d.find(x => x.currencyCodeA === 978 && x.currencyCodeB === 980);
     const pln = d.find(x => x.currencyCodeA === 985 && x.currencyCodeB === 980);
-
     if(usd) document.getElementById('usd-val').textContent = `${usd.rateBuy.toFixed(2)} / ${usd.rateSell.toFixed(2)}`;
     if(eur) document.getElementById('eur-val').textContent = `${eur.rateBuy.toFixed(2)} / ${eur.rateSell.toFixed(2)}`;
     if(pln) document.getElementById('pln-val').textContent = `${pln.rateBuy.toFixed(2)} / ${pln.rateSell.toFixed(2)}`;
-  } catch(e) { console.error("Monobank error"); }
+  } catch(e) {}
 }
 
-// Ротация слайдов каждые 7 секунд
 function initSlider() {
   const slides = [document.getElementById('slide-fuel'), document.getElementById('slide-currency')];
   let cur = 0;
@@ -362,14 +357,26 @@ function renderGrid(data, isChanges = false){
   `;
 }
 
+function getWeatherEmoji(code){
+  if(code === 0) return "☀️";
+  if(code <= 2) return "⛅";
+  if(code <= 3) return "☁️";
+  if(code <= 48) return "🌫️";
+  if(code <= 67) return "🌧️";
+  if(code <= 77) return "🌨️";
+  if(code <= 99) return "⛈️";
+  return "🌡️";
+}
+
 function loadWeather(){
   fetch(`https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&timezone=Europe%2FKyiv`)
   .then(r=>r.json())
   .then(d=>{
     const w=d.current_weather;
+    const emoji = getWeatherEmoji(w.weathercode);
     document.getElementById("weather").innerHTML=`
       <div style="font-weight:bold; font-size:14px;">Вільногірськ</div>
-      <div class="weather-temp">🌡️ ${Math.round(w.temperature)}°C</div>
+      <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
       <div style="font-size:11px;">💨 ${Math.round(w.windspeed)} м/с</div>
     `;
   });
