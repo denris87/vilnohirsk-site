@@ -20,20 +20,17 @@ html, body {
 * {
   -webkit-user-select: none;
   user-select: none;
+  box-sizing: border-box;
 }
 
 body {
   color:#fff;
-  font-family:Arial;
+  font-family:Arial, sans-serif;
   display:flex;
   justify-content:center;
   align-items:flex-start;
   min-height:100vh;
-
-  background: linear-gradient(-45deg,
-    #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93,
-    #a5ca49,#8cc454,#41bc81,#74bf54,#53bc67
-  );
+  background: linear-gradient(-45deg, #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93,#a5ca49,#8cc454,#41bc81,#74bf54,#53bc67);
   background-size:400% 400%;
   animation: gradientMove 60s ease infinite;
 }
@@ -53,24 +50,22 @@ body {
 .container {
   display:flex;
   flex-direction:column;
-  gap:14px;
-}
-
-.top-row {
-  display:grid;
-  grid-template-columns: 1fr 1fr 1fr;
   gap:10px;
 }
 
-@media (max-width: 600px) {
-  .top-row { grid-template-columns: 1fr; }
+/* 🔥 ГЛАВНОЕ ИЗМЕНЕНИЕ: 3 блока в одну линию */
+.top-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  align-items: stretch;
 }
 
 .widget {
-  background:rgba(0,0,0,0.6);
-  padding:14px;
-  border-radius:16px;
-  min-height: 110px;
+  background: rgba(0,0,0,0.6);
+  padding: 10px;
+  border-radius: 16px;
+  min-height: 120px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -78,42 +73,51 @@ body {
   overflow: hidden;
 }
 
+/* Адаптивность для совсем маленьких экранов */
+@media (max-width: 480px) {
+  .top-row { gap: 5px; }
+  .widget { padding: 5px; border-radius: 12px; }
+}
+
 .datetime {
   text-align:center;
-  font-family:"Courier New";
+  font-family:"Courier New", monospace;
 }
 
 #date, #time {
-  font-size: clamp(18px, 3.5vw, 24px);
+  font-size: clamp(14px, 3.5vw, 18px);
   font-weight:900;
 }
 
 .weekdays {
   display:flex;
   justify-content:center;
-  gap:6px;
-  font-size: clamp(14px, 3vw, 18px);
+  gap:3px;
+  font-size: clamp(10px, 2.5vw, 12px);
   font-weight:900;
+  margin: 4px 0;
 }
 
 .day.active {
   background:red;
-  border-radius:6px;
-  padding: 0 4px;
+  border-radius:4px;
+  padding: 0 3px;
 }
 
-/* Слайдер для топлива и валют */
 .slide-content {
   position: absolute;
-  width: calc(100% - 28px);
+  width: calc(100% - 20px);
+  left: 10px;
   transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(15px);
   pointer-events: none;
 }
 
 .slide-content.active {
   position: relative;
+  left: 0;
+  width: 100%;
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
@@ -121,10 +125,9 @@ body {
 
 .info-title {
   text-align:center; 
-  font-size:11px; 
-  margin-bottom: 4px;
+  font-size:10px; 
+  margin-bottom: 5px;
   text-transform: uppercase;
-  letter-spacing: 1px;
   color: #aaa;
 }
 
@@ -133,25 +136,41 @@ body {
   justify-content: space-between;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding: 2px 0;
-  font-size: 13px;
+  font-size: clamp(11px, 2.8vw, 13px);
 }
 
-.data-name { font-weight: bold; color: #f1df30; display: flex; align-items: center; gap: 5px; }
+.data-name { font-weight: bold; color: #f1df30; display: flex; align-items: center; gap: 3px; }
 .data-val { font-family: monospace; }
 
 .weather {
   text-align:center;
-  line-height:1.4;
 }
 
-.weather-temp { font-size:20px; font-weight:bold; }
+.weather-city { font-weight:bold; font-size: 12px; margin-bottom: 2px; }
+.weather-temp { font-size: clamp(16px, 4vw, 20px); font-weight:bold; }
+
+.train-list-widget {
+  background: rgba(0,0,0,0.6);
+  padding: 10px;
+  border-radius: 16px;
+}
+
+.table-head {
+  font-weight:700;
+  border-bottom:2px solid #aaa;
+  padding-bottom:8px;
+  display:grid;
+  grid-template-columns: 15% 1fr 20%;
+  justify-items:center;
+  font-size: 14px;
+}
 
 .train {
   display:grid;
-  grid-template-columns: 20% 1fr 20%;
+  grid-template-columns: 15% 1fr 20%;
   align-items:center;
   justify-items:center;
-  padding:10px 0;
+  padding:12px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
   cursor:pointer;
 }
@@ -169,19 +188,20 @@ body {
   max-height:5000px;
   opacity:1;
   padding:10px;
+  margin-top: 5px;
 }
 
 .details-note {
   text-align:center;
   font-weight:bold;
   color: #ff4d4d; 
-  text-shadow: 0 0 5px rgba(0,0,0,0.5);
+  margin: 10px 0;
 }
 
 .schedule-grid {
   display:grid;
   grid-template-columns:repeat(3,1fr);
-  gap:10px;
+  gap:8px;
 }
 
 @media (max-width:600px){ .schedule-grid { grid-template-columns:1fr; } }
@@ -189,23 +209,18 @@ body {
 .schedule-row {
   display:flex;
   justify-content:space-between;
-  padding:4px 0;
+  padding:3px 0;
   border-bottom:1px dashed rgba(255,255,255,0.2);
-  font-size:12px;
+  font-size:11px;
 }
 
-.station-number {
-  margin-right:6px;
-  color:#ffcc00;
-  font-weight:bold;
-}
-
+.station-number { color:#ffcc00; font-weight:bold; margin-right:4px; }
 .time-green { color:#00ff9c; font-weight:bold; }
 .time-passed { color:#888; }
 
 .alert-dot {
   position:absolute;
-  top:-4px; right:-6px;
+  top:-2px; right:-5px;
   width:6px; height:6px;
   background:#ff3b3b;
   border-radius:50%;
@@ -234,7 +249,7 @@ body {
     </div>
   </div>
 
-  <div class="widget" id="slider-widget">
+  <div class="widget">
     <div class="slide-content active" id="slide-fuel">
       <div class="info-title">Укрнафта</div>
       <div class="data-item"><span class="data-name">А-92</span><span class="data-val">51.00</span></div>
@@ -255,7 +270,10 @@ body {
   </div>
 </div>
 
-<div class="widget">
+<div class="train-list-widget">
+  <div class="table-head">
+    <div>№</div><div>Маршрут прямування</div><div>Відпр.</div>
+  </div>
   <div id="list"></div>
 </div>
 
@@ -375,7 +393,7 @@ function loadWeather(){
     const w=d.current_weather;
     const emoji = getWeatherEmoji(w.weathercode);
     document.getElementById("weather").innerHTML=`
-      <div style="font-weight:bold; font-size:14px;">Вільногірськ</div>
+      <div style="font-weight:bold; font-size:12px;">Вільногірськ</div>
       <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
       <div style="font-size:11px;">💨 ${Math.round(w.windspeed)} м/с</div>
     `;
@@ -394,14 +412,13 @@ function updateDateTime(){
 
 function render(el,data){
   data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
-  el.innerHTML=`<div style="font-weight:700; border-bottom:2px solid #aaa; padding-bottom:8px; display:grid; grid-template-columns: 20% 1fr 20%; justify-items:center;">
-    <div>№</div><div>Маршрут</div><div>Відпр.</div>
-  </div>`;
+  el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content"></div>`;
+  const container = document.getElementById('trains-content');
   data.forEach(x=>{
     const diff = Math.floor((new Date(getKyivNow().setHours(...x.time.split(':'),0,0)) - getKyivNow())/60000);
     let cls="train " + (diff < 0 ? "passed" : (diff <= 10 ? "soon" : "future"));
     const id="d-"+x.number;
-    el.innerHTML+=`<div class="${cls}" onclick="document.getElementById('${id}').classList.toggle('open')">
+    container.innerHTML+=`<div class="${cls}" onclick="document.getElementById('${id}').classList.toggle('open')">
       <div style="position:relative">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
       <div style="font-weight:600; text-align:center">${x.route}</div>
       <div style="font-weight:bold">${diff>=0 && diff<=10 ? '≈ '+diff+' хв' : x.time}</div>
