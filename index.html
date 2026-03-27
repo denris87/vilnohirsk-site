@@ -58,7 +58,6 @@ body {
 
 .top-row {
   display:grid;
-  /* Изменено на 3 колонки для нового блока */
   grid-template-columns: 1fr 1fr 1fr;
   gap:10px;
 }
@@ -71,9 +70,12 @@ body {
   background:rgba(0,0,0,0.6);
   padding:14px;
   border-radius:16px;
+  min-height: 110px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
 }
 
 .datetime {
@@ -81,12 +83,7 @@ body {
   font-family:"Courier New";
 }
 
-#date {
-  font-size: clamp(18px, 3.5vw, 24px);
-  font-weight:900;
-}
-
-#time {
+#date, #time {
   font-size: clamp(18px, 3.5vw, 24px);
   font-weight:900;
 }
@@ -105,64 +102,55 @@ body {
   padding: 0 4px;
 }
 
-/* Стили для топлива */
-.fuel-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 14px;
+/* Слайдер для топлива и валют */
+.slide-content {
+  position: absolute;
+  width: calc(100% - 28px);
+  transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+  opacity: 0;
+  transform: translateY(20px);
+  pointer-events: none;
 }
 
-.fuel-item {
+.slide-content.active {
+  position: relative;
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.info-title {
+  text-align:center; 
+  font-size:11px; 
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #aaa;
+}
+
+.data-item {
   display: flex;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255,255,255,0.1);
-  padding-bottom: 2px;
+  padding: 2px 0;
+  font-size: 13px;
 }
 
-.fuel-name { font-weight: bold; color: #f1df30; }
-.fuel-price { font-family: monospace; }
+.data-name { font-weight: bold; color: #f1df30; display: flex; align-items: center; gap: 5px; }
+.data-val { font-family: monospace; }
 
 .weather {
   text-align:center;
   line-height:1.4;
-  opacity:1;
-  transition:opacity 0.6s ease;
 }
 
-.weather.fade {
-  opacity:0;
-}
+.weather-temp { font-size:20px; font-weight:bold; }
 
-.weather-city {
-  font-weight:bold;
-  font-size: 14px;
-}
-
-.weather-temp {
-  font-size:20px;
-  font-weight:bold;
-}
-
-.weather-wind {
-  font-size:11px;
-}
-
-.table-head,
 .train {
   display:grid;
   grid-template-columns: 20% 1fr 20%;
   align-items:center;
   justify-items:center;
-}
-
-.table-head {
-  font-weight:700;
-  border-bottom:2px solid #aaa;
-  padding-bottom:8px;
-}
-
-.train {
   padding:10px 0;
   border-bottom:1px solid rgba(255,255,255,0.2);
   cursor:pointer;
@@ -172,112 +160,52 @@ body {
   max-height:0;
   overflow:hidden;
   opacity:0;
-  transform:translateY(-5px);
   transition:all 0.4s ease;
   background:rgba(255,255,255,0.05);
   border-radius:10px;
-  margin:4px 0;
-  padding:0 10px;
 }
 
 .details.open {
   max-height:5000px;
   opacity:1;
-  transform:translateY(0);
   padding:10px;
-}
-
-.details-divider {
-  width:60%;
-  height:1px;
-  background:#fff;
-  margin:15px auto;
 }
 
 .details-note {
   text-align:center;
   font-weight:bold;
-  margin-bottom:10px;
   color: #ff4d4d; 
-  text-shadow: 0 0 5px rgba(0,0,0,0.5);
 }
 
 .schedule-grid {
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:10px;
-  margin-top:10px;
 }
 
-@media (max-width:600px){
-  .schedule-grid { grid-template-columns:1fr; }
-}
-
-@media (min-width:601px) and (max-width:900px){
-  .schedule-grid { grid-template-columns:repeat(2,1fr); }
-}
-
-.schedule-column {
-  background:rgba(255,255,255,0.1);
-  border-radius:10px;
-  padding:8px;
-}
+@media (max-width:600px){ .schedule-grid { grid-template-columns:1fr; } }
 
 .schedule-row {
   display:flex;
   justify-content:space-between;
-  gap:10px;
-  padding:6px 0;
-  border-bottom:1px dashed rgba(255,255,255,0.3);
-  font-size:13px;
+  padding:4px 0;
+  border-bottom:1px dashed rgba(255,255,255,0.2);
+  font-size:12px;
 }
 
-.station-number {
-  margin-right:6px;
-  color:#ffcc00;
-  font-weight:bold;
-}
-
-.schedule-row:last-child {
-  border-bottom:none;
-}
-
-.route {
-  white-space:nowrap;
-  overflow:hidden;
-  width:100%;
-  text-align:center;
-  font-size: clamp(13px, 3.4vw, 26px);
-  font-weight:600;
-}
-
-/* Цвета времени */
 .time-green { color:#00ff9c; font-weight:bold; }
 .time-passed { color:#888; }
 
-.future .time-cell { color:#00ff9c; font-weight:bold; }
-.soon .time-cell { color:#ffcc00; font-weight:bold; }
-.passed .time-cell { color:#888; }
-
-.train-number {
-  position:relative;
-}
-
 .alert-dot {
   position:absolute;
-  top:-4px;
-  right:-6px;
-  width:6px;
-  height:6px;
+  top:-4px; right:-6px;
+  width:6px; height:6px;
   background:#ff3b3b;
   border-radius:50%;
   animation: blink 1s infinite;
 }
 
-@keyframes blink {
-  0%,100% {opacity:1;}
-  50% {opacity:0;}
-}
+@keyframes blink { 0%,100% {opacity:1;} 50% {opacity:0;} }
 </style>
 </head>
 
@@ -299,13 +227,28 @@ body {
     </div>
   </div>
 
-  <div class="widget">
-    <div class="fuel-list" id="fuel">
-      <div style="text-align:center; font-size:12px;">Укрнафта</div>
-      <div class="fuel-item"><span class="fuel-name">А-92</span><span class="fuel-price" id="p-92">--.--</span></div>
-      <div class="fuel-item"><span class="fuel-name">А-98</span><span class="fuel-price" id="p-98">--.--</span></div>
-      <div class="fuel-item"><span class="fuel-name">ДП</span><span class="fuel-price" id="p-dt">--.--</span></div>
-      <div class="fuel-item"><span class="fuel-name">Газ</span><span class="fuel-price" id="p-gas">--.--</span></div>
+  <div class="widget" id="slider-widget">
+    <div class="slide-content active" id="slide-fuel">
+      <div class="info-title">Укрнафта</div>
+      <div class="data-item"><span class="data-name">А-92</span><span class="data-val">51.00</span></div>
+      <div class="data-item"><span class="data-name">А-95+</span><span class="data-val">59.90</span></div>
+      <div class="data-item"><span class="data-name">ДП</span><span class="data-val">52.50</span></div>
+      <div class="data-item"><span class="data-name">Газ</span><span class="data-val">28.40</span></div>
+    </div>
+    <div class="slide-content" id="slide-currency">
+      <div class="info-title">Обмін валют</div>
+      <div class="data-item">
+        <span class="data-name">🇺🇸 USD</span>
+        <span class="data-val" id="usd-val">41.20 / 41.80</span>
+      </div>
+      <div class="data-item">
+        <span class="data-name">🇪🇺 EUR</span>
+        <span class="data-val" id="eur-val">44.50 / 45.30</span>
+      </div>
+      <div class="data-item">
+        <span class="data-name">🇵🇱 PLN</span>
+        <span class="data-val" id="pln-val">10.10 / 10.60</span>
+      </div>
     </div>
   </div>
 
@@ -315,11 +258,6 @@ body {
 </div>
 
 <div class="widget">
-  <div class="table-head">
-    <div>№</div>
-    <div>Маршрут прямування</div>
-    <div>Відпр.</div>
-  </div>
   <div id="list"></div>
 </div>
 
@@ -327,14 +265,6 @@ body {
 </div>
 
 <script>
-
-const cities = [
-  { name:"Вільногірськ", lat:48.48, lon:34.02 },
-  { name:"Дніпро", lat:48.45, lon:34.98 }
-];
-
-let cityIndex = 0;
-
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
@@ -384,27 +314,36 @@ function isPast(time){
   return t < now;
 }
 
-// Новая функция для загрузки цен на топливо
-function loadFuelPrices(){
-  // Имитация актуальных цен Укрнафта
-  const prices = {
-    "p-92": "51.00",
-    "p-98": "59.90",
-    "p-dt": "52.50",
-    "p-gas": "28.40"
-  };
-  
-  for(let id in prices){
-    document.getElementById(id).textContent = prices[id];
-  }
+// Загрузка валют с Монобанка
+async function loadCurrencies() {
+  try {
+    const r = await fetch('https://api.monobank.ua/bank/currency');
+    const d = await r.json();
+    const usd = d.find(x => x.currencyCodeA === 840 && x.currencyCodeB === 980);
+    const eur = d.find(x => x.currencyCodeA === 978 && x.currencyCodeB === 980);
+    const pln = d.find(x => x.currencyCodeA === 985 && x.currencyCodeB === 980);
+
+    if(usd) document.getElementById('usd-val').textContent = `${usd.rateBuy.toFixed(2)} / ${usd.rateSell.toFixed(2)}`;
+    if(eur) document.getElementById('eur-val').textContent = `${eur.rateBuy.toFixed(2)} / ${eur.rateSell.toFixed(2)}`;
+    if(pln) document.getElementById('pln-val').textContent = `${pln.rateBuy.toFixed(2)} / ${pln.rateSell.toFixed(2)}`;
+  } catch(e) { console.error("Monobank error"); }
+}
+
+// Ротация слайдов каждые 7 секунд
+function initSlider() {
+  const slides = [document.getElementById('slide-fuel'), document.getElementById('slide-currency')];
+  let cur = 0;
+  setInterval(() => {
+    slides[cur].classList.remove('active');
+    cur = (cur + 1) % slides.length;
+    slides[cur].classList.add('active');
+  }, 7000);
 }
 
 function renderGrid(data, isChanges = false){
   let i = 1;
   const cols = [];
-  for(let j=0; j<data.length; j+=10){
-    cols.push(data.slice(j, j+10));
-  }
+  for(let j=0; j<data.length; j+=10){ cols.push(data.slice(j, j+10)); }
   return `
     <div class="schedule-grid">
       ${cols.map(col=>`
@@ -412,8 +351,7 @@ function renderGrid(data, isChanges = false){
           ${col.map(r=>{
             const passed = isPast(r[1]);
             const timeClass = passed ? 'time-passed' : 'time-green';
-            return `
-            <div class="schedule-row">
+            return `<div class="schedule-row">
               <span><span class="station-number" style="${isChanges ? 'color:#fff' : ''}">${i++}.</span>${r[0]}</span>
               <span class="${timeClass}">${r[1]}</span>
             </div>`;
@@ -424,121 +362,58 @@ function renderGrid(data, isChanges = false){
   `;
 }
 
-function getWeatherEmoji(code){
-  if(code === 0) return "☀️";
-  if(code <= 2) return "⛅";
-  if(code <= 3) return "☁️";
-  if(code <= 48) return "🌫️";
-  if(code <= 67) return "🌧️";
-  if(code <= 77) return "🌨️";
-  if(code <= 99) return "⛈️";
-  return "🌡️";
-}
-
 function loadWeather(){
-  const city = cities[cityIndex];
-  const el = document.getElementById("weather");
-  el.classList.add("fade");
-  setTimeout(()=>{
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&timezone=Europe%2FKyiv`)
-    .then(r=>r.json())
-    .then(d=>{
-      const w=d.current_weather;
-      el.innerHTML=`
-        <div class="weather-city">${city.name}</div>
-        <div class="weather-temp">${getWeatherEmoji(w.weathercode)} ${Math.round(w.temperature)}°C</div>
-        <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
-      `;
-      el.classList.remove("fade");
-    });
-    cityIndex = (cityIndex + 1) % cities.length;
-  },600);
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&timezone=Europe%2FKyiv`)
+  .then(r=>r.json())
+  .then(d=>{
+    const w=d.current_weather;
+    document.getElementById("weather").innerHTML=`
+      <div style="font-weight:bold; font-size:14px;">Вільногірськ</div>
+      <div class="weather-temp">🌡️ ${Math.round(w.temperature)}°C</div>
+      <div style="font-size:11px;">💨 ${Math.round(w.windspeed)} м/с</div>
+    `;
+  });
 }
 
 function updateDateTime(){
   const now=getKyivNow();
   document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
   document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-
   const days=document.querySelectorAll(".day");
   days.forEach(d=>d.classList.remove("active"));
-  let i=now.getDay();
-  i=i===0?6:i-1;
+  let i=now.getDay(); i=i===0?6:i-1;
   days[i].classList.add("active");
-}
-
-function getDiff(time){
-  const now=getKyivNow();
-  const [h,m]=time.split(":").map(Number);
-  const t=new Date(now);
-  t.setHours(h,m,0,0);
-  return Math.floor((t-now)/60000);
 }
 
 function render(el,data){
   data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
-  el.innerHTML="";
-
+  el.innerHTML=`<div style="font-weight:700; border-bottom:2px solid #aaa; padding-bottom:8px; display:grid; grid-template-columns: 20% 1fr 20%; justify-items:center;">
+    <div>№</div><div>Маршрут</div><div>Відпр.</div>
+  </div>`;
   data.forEach(x=>{
-    const diff=getDiff(x.time);
-    let cls="train";
-    if(diff<0) cls+=" passed";
-    else if(diff<=10) cls+=" soon";
-    else cls+=" future";
-
-    const label = (diff >= 0 && diff <= 10) ? "≈ "+diff+" хв" : x.time;
+    const diff = Math.floor((new Date(getKyivNow().setHours(...x.time.split(':'),0,0)) - getKyivNow())/60000);
+    let cls="train " + (diff < 0 ? "passed" : (diff <= 10 ? "soon" : "future"));
     const id="d-"+x.number;
-    const dot = changes[x.number] ? `<span class="alert-dot"></span>` : "";
-
-    el.innerHTML+=`
-      <div class="${cls}" onclick="toggle('${id}')">
-        <div class="train-number">${x.number}${dot}</div>
-        <div class="route">${x.route}</div>
-        <div class="time-cell">${label}</div>
-      </div>
-    `;
-
-    if(fullSchedules[x.number]){
-      const note = changes[x.number] || "змін немає...";
-      
-      let additionalInfo = "";
-      if(x.number === "6035") {
-        additionalInfo = renderGrid(changesSchedule6035, true);
-      }
-
-      el.innerHTML+=`
-      <div class="details" id="${id}">
-        ${renderGrid(fullSchedules[x.number])}
-        <div class="details-divider"></div>
-        <div class="details-note">${note}</div>
-        ${additionalInfo}
-      </div>`;
-    }
+    el.innerHTML+=`<div class="${cls}" onclick="document.getElementById('${id}').classList.toggle('open')">
+      <div style="position:relative">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
+      <div style="font-weight:600; text-align:center">${x.route}</div>
+      <div style="font-weight:bold">${diff>=0 && diff<=10 ? '≈ '+diff+' хв' : x.time}</div>
+    </div>
+    <div class="details" id="${id}">
+      ${renderGrid(fullSchedules[x.number])}
+      <div style="width:60%; height:1px; background:#fff; margin:15px auto;"></div>
+      <div class="details-note">${changes[x.number] || "змін немає..."}</div>
+      ${x.number === "6035" ? renderGrid(changesSchedule6035, true) : ""}
+    </div>`;
   });
 }
 
-function toggle(id){
-  document.getElementById(id).classList.toggle("open");
-}
-
 function loadTrains(){
-  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
-  .then(r=>r.json())
-  .then(d=>render(list,d.trains));
+  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>render(list,d.trains));
 }
 
-// Запуск функций
-loadTrains();
-updateDateTime();
-loadWeather();
-loadFuelPrices();
-
-// Интервалы обновлений
-setInterval(loadTrains,30000);
-setInterval(updateDateTime,1000);
-setInterval(loadWeather,7000);
-setInterval(loadFuelPrices, 3600000); // Цены обновляем раз в час
-
+loadTrains(); updateDateTime(); loadWeather(); loadCurrencies(); initSlider();
+setInterval(loadTrains,30000); setInterval(updateDateTime,1000); setInterval(loadWeather,600000);
 </script>
 
 </body>
