@@ -192,6 +192,7 @@ body {
 .station-number { color:#ffcc00; font-weight:bold; margin-right:6px; }
 .time-green { color:#00ff9c; font-weight:bold; }
 .time-passed { color:#888; }
+.time-normal { color:#fff; font-weight:normal; }
 
 .alert-dot {
   position:absolute;
@@ -340,10 +341,14 @@ function renderGrid(data, isChanges = false){
         <div class="schedule-column" style="background:rgba(255,255,255,0.1); border-radius:8px; padding:5px;">
           ${col.map(r=>{
             const passed = isPast(r[1]);
+            // 🔥 Если это блок изменений, ставим класс time-normal (белый)
+            // Иначе (основной график) оставляем логику зеленый/серый
+            const timeClass = isChanges ? 'time-normal' : (passed ? 'time-passed' : 'time-green');
+            
             return `
             <div class="schedule-row">
               <span><span class="station-number" style="${isChanges ? 'color:#fff' : ''}">${i++}.</span>${r[0]}</span>
-              <span class="${passed ? 'time-passed' : 'time-green'}">${r[1]}</span>
+              <span class="${timeClass}">${r[1]}</span>
             </div>`;
           }).join("")}
         </div>
