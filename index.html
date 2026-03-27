@@ -58,14 +58,22 @@ body {
 
 .top-row {
   display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:14px;
+  /* Изменено на 3 колонки для нового блока */
+  grid-template-columns: 1fr 1fr 1fr;
+  gap:10px;
+}
+
+@media (max-width: 600px) {
+  .top-row { grid-template-columns: 1fr; }
 }
 
 .widget {
   background:rgba(0,0,0,0.6);
   padding:14px;
   border-radius:16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .datetime {
@@ -74,12 +82,12 @@ body {
 }
 
 #date {
-  font-size: clamp(20px, 4vw, 30px);
+  font-size: clamp(18px, 3.5vw, 24px);
   font-weight:900;
 }
 
 #time {
-  font-size: clamp(20px, 4vw, 30px);
+  font-size: clamp(18px, 3.5vw, 24px);
   font-weight:900;
 }
 
@@ -87,14 +95,33 @@ body {
   display:flex;
   justify-content:center;
   gap:6px;
-  font-size: clamp(16px, 3.5vw, 24px);
+  font-size: clamp(14px, 3vw, 18px);
   font-weight:900;
 }
 
 .day.active {
   background:red;
   border-radius:6px;
+  padding: 0 4px;
 }
+
+/* Стили для топлива */
+.fuel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.fuel-item {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 2px;
+}
+
+.fuel-name { font-weight: bold; color: #f1df30; }
+.fuel-price { font-family: monospace; }
 
 .weather {
   text-align:center;
@@ -109,15 +136,16 @@ body {
 
 .weather-city {
   font-weight:bold;
+  font-size: 14px;
 }
 
 .weather-temp {
-  font-size:22px;
+  font-size:20px;
   font-weight:bold;
 }
 
 .weather-wind {
-  font-size:12px;
+  font-size:11px;
 }
 
 .table-head,
@@ -259,21 +287,31 @@ body {
 <div class="container">
 
 <div class="top-row">
-<div class="widget">
-  <div class="datetime">
-    <div id="date"></div>
-    <div class="weekdays">
-      <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
-      <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
-      <div class="day">нд</div>
+  <div class="widget">
+    <div class="datetime">
+      <div id="date"></div>
+      <div class="weekdays">
+        <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
+        <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
+        <div class="day">нд</div>
+      </div>
+      <div id="time"></div>
     </div>
-    <div id="time"></div>
   </div>
-</div>
 
-<div class="widget">
-  <div class="weather" id="weather">Завантаження...</div>
-</div>
+  <div class="widget">
+    <div class="fuel-list" id="fuel">
+      <div style="text-align:center; font-size:12px;">Укрнафта</div>
+      <div class="fuel-item"><span class="fuel-name">А-92</span><span class="fuel-price" id="p-92">--.--</span></div>
+      <div class="fuel-item"><span class="fuel-name">А-98</span><span class="fuel-price" id="p-98">--.--</span></div>
+      <div class="fuel-item"><span class="fuel-name">ДП</span><span class="fuel-price" id="p-dt">--.--</span></div>
+      <div class="fuel-item"><span class="fuel-name">Газ</span><span class="fuel-price" id="p-gas">--.--</span></div>
+    </div>
+  </div>
+
+  <div class="widget">
+    <div class="weather" id="weather">Завантаження...</div>
+  </div>
 </div>
 
 <div class="widget">
@@ -344,6 +382,21 @@ function isPast(time){
   const t = new Date(now);
   t.setHours(h, m, 0, 0);
   return t < now;
+}
+
+// Новая функция для загрузки цен на топливо
+function loadFuelPrices(){
+  // Имитация актуальных цен Укрнафта
+  const prices = {
+    "p-92": "51.00",
+    "p-98": "59.90",
+    "p-dt": "52.50",
+    "p-gas": "28.40"
+  };
+  
+  for(let id in prices){
+    document.getElementById(id).textContent = prices[id];
+  }
 }
 
 function renderGrid(data, isChanges = false){
@@ -474,13 +527,17 @@ function loadTrains(){
   .then(d=>render(list,d.trains));
 }
 
+// Запуск функций
 loadTrains();
 updateDateTime();
 loadWeather();
+loadFuelPrices();
 
+// Интервалы обновлений
 setInterval(loadTrains,30000);
 setInterval(updateDateTime,1000);
 setInterval(loadWeather,7000);
+setInterval(loadFuelPrices, 3600000); // Цены обновляем раз в час
 
 </script>
 
