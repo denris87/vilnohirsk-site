@@ -53,7 +53,7 @@ body {
   gap:10px;
 }
 
-/* Верхние блоки в одну линию */
+/* Верхние блоки: 1 линия */
 .top-row {
   display: flex;
   flex-direction: row;
@@ -64,7 +64,7 @@ body {
 
 .widget {
   background: rgba(0,0,0,0.6);
-  padding: 8px 6px;
+  padding: 8px 4px;
   border-radius: 12px;
   flex: 1;
   min-width: 0;
@@ -75,42 +75,51 @@ body {
   align-items: center;
 }
 
-/* 🔥 УВЕЛИЧЕННЫЕ СТИЛИ ДЛЯ ВРЕМЕНИ И ДАТЫ */
+/* 🔥 Дата БОЛЬШЕ, время БЕЛОЕ */
 .datetime { text-align:center; font-family:"Courier New", monospace; width: 100%; }
 #date { 
-  font-size: clamp(14px, 4vw, 20px); /* Увеличено */
-  font-weight:900; 
-  white-space: nowrap; 
+  font-size: clamp(16px, 4.5vw, 24px); 
+  font-weight: 900; 
+  white-space: nowrap;
+  color: #fff;
 }
 #time { 
-  font-size: clamp(18px, 5.5vw, 28px); /* Увеличено */
-  font-weight:900; 
-  white-space: nowrap; 
-  color: #f1df30; /* Добавил легкий акцент на само время */
+  font-size: clamp(12px, 3.5vw, 18px); 
+  font-weight: 900; 
+  white-space: nowrap;
+  color: #fff; /* Оставлено белым */
 }
 
 .weekdays {
   display:flex;
   justify-content:center;
-  gap:3px;
-  font-size: clamp(10px, 2.5vw, 13px); /* Увеличено */
+  gap:2px;
+  font-size: clamp(8px, 2vw, 10px);
   font-weight:900;
   margin: 4px 0;
 }
-.day.active { background:red; border-radius:4px; padding: 0 4px; }
+.day.active { background:red; border-radius:3px; padding: 0 2px; }
 
-/* Стили погоды */
-.weather { text-align: center; width: 100%; }
-.weather-city { font-weight:bold; font-size: clamp(10px, 2.8vw, 14px); color: #04b6cb; white-space: nowrap; }
-.weather-temp { font-size: clamp(18px, 5vw, 26px); font-weight:bold; white-space: nowrap; }
-.weather-wind { font-size: clamp(9px, 2.2vw, 12px); color: #aaa; white-space: nowrap; }
+/* Погода */
+.weather-box { position: relative; width: 100%; height: 40px; }
+.weather-content {
+  position: absolute;
+  width: 100%;
+  top: 0; left: 0;
+  transition: all 0.6s ease-in-out;
+  opacity: 0;
+  text-align: center;
+}
+.weather-content.active { opacity: 1; }
+.weather-city { font-weight:bold; font-size: 10px; color: #04b6cb; margin-bottom: 2px; }
+.weather-temp { font-size: clamp(16px, 4vw, 22px); font-weight:bold; white-space: nowrap; }
+.weather-wind { font-size: 9px; color: #aaa; }
 
-/* Таблица поездов */
+/* Таблица */
 .train-list-widget {
   background:rgba(0,0,0,0.6);
   padding:10px;
   border-radius:16px;
-  width: 100%;
 }
 
 .table-head, .train {
@@ -118,14 +127,13 @@ body {
   grid-template-columns: 15% 1fr 20%;
   align-items: center;
   justify-items: center;
-  width: 100%;
 }
 
 .table-head {
   font-weight: 700;
   border-bottom: 2px solid #aaa;
   padding-bottom: 8px;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .train {
@@ -137,7 +145,7 @@ body {
 .route-text {
   font-weight: 600;
   text-align: center;
-  font-size: clamp(12px, 3.4vw, 16px);
+  font-size: clamp(11px, 3.2vw, 15px);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -147,15 +155,13 @@ body {
 
 .time-val {
   font-weight: bold;
-  font-size: clamp(14px, 3.8vw, 18px);
-  white-space: nowrap;
+  font-size: clamp(13px, 3.5vw, 16px);
 }
 
 .details {
   max-height: 0;
   overflow: hidden;
   opacity: 0;
-  transform: translateY(-5px);
   transition: all 0.4s ease;
   background: rgba(255,255,255,0.05);
   border-radius: 10px;
@@ -164,7 +170,6 @@ body {
 .details.open {
   max-height: 5000px;
   opacity: 1;
-  transform: translateY(0);
   padding: 10px;
   margin: 5px 0;
 }
@@ -184,24 +189,14 @@ body {
   gap: 8px;
 }
 
-@media (max-width: 600px) {
-  .schedule-grid { grid-template-columns: 1fr; }
-}
+@media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } }
 
 .schedule-row {
   display: flex;
   justify-content: space-between;
-  gap: 5px;
   padding: 4px 0;
   border-bottom: 1px dashed rgba(255,255,255,0.2);
   font-size: 12px;
-}
-
-.station-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 75%;
 }
 
 .station-number { color: #ffcc00; font-weight: bold; margin-right: 4px; }
@@ -211,10 +206,8 @@ body {
 
 .alert-dot {
   position: absolute;
-  top: -4px;
-  right: -8px;
-  width: 7px;
-  height: 7px;
+  top: -4px; right: -8px;
+  width: 7px; height: 7px;
   background: #ff3b3b;
   border-radius: 50%;
   animation: blink 1s infinite;
@@ -243,7 +236,16 @@ body {
   </div>
 
   <div class="widget">
-    <div class="weather" id="weather">...</div>
+    <div class="weather-box" id="weather">
+      <div class="weather-content active" id="w-vil">
+        <div class="weather-city">Вільногірськ</div>
+        <div id="vil-data">...</div>
+      </div>
+      <div class="weather-content" id="w-dni">
+        <div class="weather-city">Дніпро</div>
+        <div id="dni-data">...</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -329,9 +331,11 @@ async function loadWeather(){
     const item = results[cur];
     if(item){
       el.innerHTML = `
-        <div class="weather-city">${item.name}</div>
-        <div class="weather-temp">${getWeatherEmoji(item.w.weathercode)} ${Math.round(item.w.temperature)}°C</div>
-        <div class="weather-wind">💨 ${Math.round(item.w.windspeed)} м/с</div>
+        <div class="weather-content active">
+          <div class="weather-city">${item.name}</div>
+          <div class="weather-temp">${getWeatherEmoji(item.w.weathercode)} ${Math.round(item.w.temperature)}°C</div>
+          <div class="weather-wind">💨 ${Math.round(item.w.windspeed)} м/с</div>
+        </div>
       `;
     }
     cur = (cur + 1) % results.length;
