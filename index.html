@@ -46,18 +46,17 @@ body {
 }
 
 .table-head,
-.train,
-.details-row {
+.train {
   display:grid;
-  grid-template-columns: 20% 1fr 20%;
+  grid-template-columns: 15% 1fr 20%;
   align-items:center;
-  justify-items:center;
 }
 
 .table-head {
   font-weight:700;
   border-bottom:2px solid #aaa;
   padding-bottom:8px;
+  text-align:center;
 }
 
 .train {
@@ -66,7 +65,22 @@ body {
   cursor:pointer;
 }
 
-/* старые шторки */
+/* ВСЕ ПО ЦЕНТРУ */
+.train div {
+  text-align:center;
+}
+
+/* маршрут строго по центру */
+.train div:nth-child(2) {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:0 5px;
+  white-space:normal;
+}
+
+/* шторки */
 .details {
   max-height:0;
   overflow:hidden;
@@ -87,7 +101,6 @@ body {
 }
 
 .details-divider {
-  grid-column:2;
   width:60%;
   height:1px;
   background:#fff;
@@ -95,7 +108,6 @@ body {
 }
 
 .details-note {
-  grid-column:2;
   text-align:center;
   font-weight:bold;
   margin-bottom:10px;
@@ -132,17 +144,6 @@ body {
   font-size:14px;
 }
 
-.schedule-row span:first-child {
-  flex:1;
-  white-space:normal;
-}
-
-.schedule-row span:last-child {
-  min-width:55px;
-  text-align:right;
-  font-weight:bold;
-}
-
 .station-number {
   margin-right:6px;
   color:#ffcc00;
@@ -173,7 +174,7 @@ body {
 
 <script>
 
-/* ВСЕ РАСПИСАНИЯ */
+/* ВСЕ РАСПИСАНИЯ — ПОЛНОСТЬЮ (НЕ ТРОГАЛ) */
 
 const fullSchedule6005 = [
 ["Дніпро-Гол.","04:52"],["Горяїнове","04:58"],["з.п. 184 км","05:03"],["Діївка","05:08"],
@@ -289,7 +290,7 @@ const fullSchedule6044 = [
 ["з.п. 178 км","22:53"],["Діївка","22:57"],["з.п. 184 км","23:02"],
 ["Горяїнове","23:06"],["Дніпро-Гол.","23:12"]
 ];
-  
+
 const fullSchedule6043 = [
 ["Дніпро-Гол.","20:18"],["Горяїнове","20:24"],["з.п. 184 км","20:29"],["Діївка","20:35"],
 ["з.п. 178 км","20:40"],["з.п. 175 км","20:44"],["Сухачівка","20:51"],
@@ -302,7 +303,7 @@ const fullSchedule6043 = [
 ["Ерастівка","22:48"],["з.п. 88 км","22:53"],["з.п. Касинівка","22:59"],
 ["з.п. 77 км","23:05"],["П'ятихатки-Пас.","23:10"]
 ];
-  
+
 function renderGrid(data){
   let i=1;
   const cols=[];
