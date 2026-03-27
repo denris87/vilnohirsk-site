@@ -102,6 +102,11 @@ body {
 .weather {
   text-align:center;
   line-height:1.4;
+  transition: opacity 0.6s ease;
+}
+
+.weather.fade {
+  opacity:0;
 }
 
 .weather-city {
@@ -181,27 +186,16 @@ body {
   font-weight:600;
 }
 
-/* 🔥 цвета времени в шторках */
-.details-row .time-green {
-  color:#00ff9c;
-  font-weight:bold;
-}
+/* 🔥 цвета времени */
+.details-row .time-green { color:#00ff9c; font-weight:bold; }
+.details-row .time-passed { color:#888; }
 
-.details-row .time-passed {
-  color:#888;
-}
-
-/* цвета времени основной */
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
 
-/* номер */
-.train-number {
-  position:relative;
-}
+.train-number { position:relative; }
 
-/* 🔴 точка */
 .alert-dot {
   position:absolute;
   top:-4px;
@@ -266,10 +260,7 @@ body {
 
 <script>
 
-const changes = {
-    // "6008": "тест"
-};
-
+const changes = {};
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
 const schedules={
@@ -285,6 +276,14 @@ const schedules={
   "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
 };
 
+/* города */
+const cities=[
+  {name:"Вільногірськ", lat:48.48, lon:34.02},
+  {name:"Дніпро", lat:48.45, lon:34.98}
+];
+
+let cityIndex=0;
+
 function getWeatherEmoji(code){
   if(code === 0) return "☀️";
   if(code <= 2) return "⛅";
@@ -294,6 +293,32 @@ function getWeatherEmoji(code){
   if(code <= 77) return "🌨️";
   if(code <= 99) return "⛈️";
   return "🌡️";
+}
+
+function loadWeather(){
+  const city=cities[cityIndex];
+
+  weather.classList.add("fade");
+
+  setTimeout(()=>{
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&timezone=Europe%2FKyiv`)
+    .then(r=>r.json())
+    .then(d=>{
+      const w=d.current_weather;
+      const emoji=getWeatherEmoji(w.weathercode);
+
+      weather.innerHTML=`
+        <div class="weather-city">${city.name}</div>
+        <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
+        <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
+      `;
+
+      weather.classList.remove("fade");
+    });
+
+    cityIndex = (cityIndex+1) % cities.length;
+
+  },500);
 }
 
 function getKyivNow(){
@@ -328,21 +353,6 @@ function updateDateTime(){
   let i=now.getDay();
   i=i===0?6:i-1;
   days[i].classList.add("active");
-}
-
-function loadWeather(){
-  fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true&timezone=Europe%2FKyiv")
-  .then(r=>r.json())
-  .then(d=>{
-    const w=d.current_weather;
-    const emoji=getWeatherEmoji(w.weathercode);
-
-    weather.innerHTML=`
-      <div class="weather-city">Вільногірськ</div>
-      <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
-      <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
-    `;
-  });
 }
 
 function getDiff(time){
@@ -412,12 +422,12 @@ function loadTrains(){
 }
 
 loadTrains();
-loadWeather();
 updateDateTime();
+loadWeather();
 
 setInterval(loadTrains,30000);
 setInterval(updateDateTime,1000);
-setInterval(loadWeather,600000);
+setInterval(loadWeather,10000);
 
 </script>
 
