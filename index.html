@@ -9,6 +9,7 @@
 :root {
   --safe-top: env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
+  --highlight-color: #ffcc00; /* Золотистый для Вольногорска */
 }
 
 html, body {
@@ -53,7 +54,6 @@ body {
   gap:10px;
 }
 
-/* Верхние блоки: 1 линия */
 .top-row {
   display: flex;
   flex-direction: row;
@@ -68,25 +68,16 @@ body {
   border-radius: 12px;
   flex: 1;
   min-width: 0;
-  min-height: 110px; /* Увеличил высоту для крупных шрифтов */
+  min-height: 110px;
   display: flex;
   flex-direction: column;
-  justify-content: center; /* Центрирование по вертикали */
+  justify-content: center;
   align-items: center;
 }
 
-/* Дата, время, дни — КРУПНО */
 .datetime { text-align:center; font-family:"Courier New", monospace; width: 100%; }
-#date { 
-  font-size: clamp(18px, 4.8vw, 26px); 
-  font-weight: 900; 
-  white-space: nowrap;
-}
-#time { 
-  font-size: clamp(16px, 4.2vw, 22px); 
-  font-weight: 900; 
-  white-space: nowrap;
-}
+#date { font-size: clamp(18px, 4.8vw, 26px); font-weight: 900; white-space: nowrap; }
+#time { font-size: clamp(16px, 4.2vw, 22px); font-weight: 900; white-space: nowrap; }
 
 .weekdays {
   display:flex;
@@ -98,11 +89,10 @@ body {
 }
 .day.active { background:red; border-radius:4px; padding: 0 4px; }
 
-/* Погода — ВЫРАВНИВАНИЕ */
 .weather-box { 
   position: relative; 
   width: 100%; 
-  height: 100%; /* Занимает всю высоту виджета */
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -113,14 +103,12 @@ body {
   transition: all 0.6s ease-in-out;
   opacity: 0;
   text-align: center;
-  /* Убрал лишние отступы, чтобы не съезжало вниз */
 }
 .weather-content.active { opacity: 1; }
 .weather-city { font-weight:bold; font-size: 12px; color: #04b6cb; margin-bottom: 2px; }
 .weather-temp { font-size: clamp(18px, 5vw, 24px); font-weight:bold; white-space: nowrap; }
 .weather-wind { font-size: 10px; color: #aaa; }
 
-/* Таблица */
 .train-list-widget {
   background:rgba(0,0,0,0.6);
   padding:10px;
@@ -158,10 +146,7 @@ body {
   padding: 0 5px;
 }
 
-.time-val {
-  font-weight: bold;
-  font-size: clamp(14px, 3.8vw, 18px);
-}
+.time-val { font-weight: bold; font-size: clamp(14px, 3.8vw, 18px); }
 
 .details {
   max-height: 0;
@@ -198,10 +183,21 @@ body {
 .schedule-row {
   display: flex;
   justify-content: space-between;
-  padding: 4px 0;
+  padding: 4px 6px;
   border-bottom: 1px dashed rgba(255,255,255,0.2);
   font-size: 12px;
 }
+
+/* 🔥 СТИЛЬ ДЛЯ ВЫДЕЛЕНИЯ ВОЛЬНОГОРСКА */
+.row-highlight {
+  background: rgba(255, 204, 0, 0.15) !important;
+  border: 1px solid var(--highlight-color) !important;
+  border-radius: 4px;
+  color: var(--highlight-color) !important;
+  font-weight: bold;
+}
+.row-highlight .station-number { color: #fff !important; }
+.row-highlight span { color: var(--highlight-color) !important; }
 
 .station-number { color: #ffcc00; font-weight: bold; margin-right: 4px; }
 .time-green { color: #00ff9c; font-weight: bold; }
@@ -262,11 +258,11 @@ body {
 
 <script>
 const changes = {
-    "6010": "06-09.04.26 электропоезд курсирует до ст. Горяїнове",
-    "6015": "06-09.04.26 электропоезд отправляется со ст. Горяїнове в 08:28",
-    "6018": "06-09.04.26 электропоезд курсирует до ст. Горяїнове",
-    "6037": "06-09.04.26 электропоезд отправляется со ст. Горяїнове в 17:40",
-    "6035": "06-09.04.26 электропоезд отправляется со ст. Горяїнове и далее по этому расписанию"
+    "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
+    "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
+    "6018": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
+    "6037": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 17:40",
+    "6035": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове і далі за цим розкладом"
 };
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
@@ -367,9 +363,13 @@ function renderGrid(data, isChanges = false){
         <div class="schedule-column" style="background:rgba(255,255,255,0.1); border-radius:8px; padding:5px;">
           ${col.map(r=>{
             const passed = isPast(r[1]);
-            return `<div class="schedule-row">
+            const isVil = r[0].includes("Вільногірськ");
+            const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
+            const timeClass = isChanges || isVil ? 'time-normal' : (passed ? 'time-passed' : 'time-green');
+            
+            return `<div class="${rowClass}">
               <span class="station-name"><span class="station-number">${i++}.</span>${r[0]}</span>
-              <span class="${isChanges ? 'time-normal' : (passed ? 'time-passed' : 'time-green')}">${r[1]}</span>
+              <span class="${timeClass}">${r[1]}</span>
             </div>`;
           }).join("")}
         </div>
