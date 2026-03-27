@@ -53,9 +53,10 @@ body {
   gap:10px;
 }
 
+/* 3 блока в линию */
 .top-row {
   display: grid;
-  grid-template-columns: 1fr 1.2fr 1fr;
+  grid-template-columns: 1fr 1.3fr 1fr;
   gap: 8px;
   align-items: stretch;
 }
@@ -73,29 +74,29 @@ body {
 }
 
 .datetime { text-align:center; font-family:"Courier New", monospace; }
-#date { font-size: 13px; font-weight:900; }
-#time { font-size: 16px; font-weight:900; }
+#date { font-size: 12px; font-weight:900; }
+#time { font-size: 15px; font-weight:900; }
 .weekdays {
   display:flex;
   justify-content:center;
   gap:2px;
-  font-size: 9px;
+  font-size: 8px;
   font-weight:900;
   margin: 3px 0;
 }
 .day.active { background:red; border-radius:3px; padding: 0 2px; }
 
 .currency-box { width: 100%; }
-.info-title { text-align:center; font-size:9px; margin-bottom: 4px; color: #aaa; text-transform: uppercase; }
+.info-title { text-align:center; font-size:8px; margin-bottom: 4px; color: #aaa; text-transform: uppercase; }
 .data-item {
   display: flex;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding: 1px 0;
-  font-size: 10px;
+  font-size: 9px; /* Уменьшено для вместимости Покупка/Продажа */
 }
 .data-name { font-weight: bold; color: #f1df30; }
-.data-val { font-family: monospace; }
+.data-val { font-family: monospace; letter-spacing: -0.5px; }
 
 .weather-box { position: relative; width: 100%; height: 100%; }
 .weather-content {
@@ -174,10 +175,10 @@ body {
 
   <div class="widget">
     <div class="currency-box">
-      <div class="info-title">Курс валют</div>
-      <div class="data-item"><span class="data-name">USD</span><span class="data-val" id="usd-val">41.25</span></div>
-      <div class="data-item"><span class="data-name">EUR</span><span class="data-val" id="eur-val">44.80</span></div>
-      <div class="data-item"><span class="data-name">PLN</span><span class="data-val" id="pln-val">10.45</span></div>
+      <div class="info-title">Обмін валют</div>
+      <div class="data-item"><span class="data-name">USD</span><span class="data-val" id="usd-val">--.-- / --.--</span></div>
+      <div class="data-item"><span class="data-name">EUR</span><span class="data-val" id="eur-val">--.-- / --.--</span></div>
+      <div class="data-item"><span class="data-name">PLN</span><span class="data-val" id="pln-val">--.-- / --.--</span></div>
     </div>
   </div>
 
@@ -249,7 +250,6 @@ function isPast(time){
   return t < now;
 }
 
-// Пытаемся получить курс через прокси, если не выйдет - останутся значения по умолчанию
 async function loadCurrencies() {
   try {
     const proxy = "https://api.allorigins.win/raw?url=";
@@ -260,11 +260,13 @@ async function loadCurrencies() {
     const usd = d.find(x => x.currencyCodeA === 840 && x.currencyCodeB === 980);
     const eur = d.find(x => x.currencyCodeA === 978 && x.currencyCodeB === 980);
     const pln = d.find(x => x.currencyCodeA === 985 && x.currencyCodeB === 980);
-    if(usd) document.getElementById('usd-val').textContent = usd.rateBuy.toFixed(2);
-    if(eur) document.getElementById('eur-val').textContent = eur.rateBuy.toFixed(2);
-    if(pln) document.getElementById('pln-val').textContent = pln.rateBuy.toFixed(2);
+    
+    // Формат Покупка / Продажа
+    if(usd) document.getElementById('usd-val').textContent = `${usd.rateBuy.toFixed(2)} / ${usd.rateSell.toFixed(2)}`;
+    if(eur) document.getElementById('eur-val').textContent = `${eur.rateBuy.toFixed(2)} / ${eur.rateSell.toFixed(2)}`;
+    if(pln) document.getElementById('pln-val').textContent = `${pln.rateBuy.toFixed(2)} / ${pln.rateSell.toFixed(2)}`;
   } catch(e) {
-      console.log("Using default currency values");
+      console.log("Error loading currency");
   }
 }
 
