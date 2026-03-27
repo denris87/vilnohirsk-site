@@ -64,56 +64,61 @@ body {
 
 .widget {
   background: rgba(0,0,0,0.6);
-  padding: 8px 4px;
+  padding: 10px 6px;
   border-radius: 12px;
   flex: 1;
   min-width: 0;
-  min-height: 100px;
+  min-height: 110px; /* Увеличил высоту для крупных шрифтов */
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: center; /* Центрирование по вертикали */
   align-items: center;
 }
 
-/* 🔥 Дата БОЛЬШЕ, время БЕЛОЕ */
+/* Дата, время, дни — КРУПНО */
 .datetime { text-align:center; font-family:"Courier New", monospace; width: 100%; }
 #date { 
-  font-size: clamp(16px, 4.5vw, 24px); 
+  font-size: clamp(18px, 4.8vw, 26px); 
   font-weight: 900; 
   white-space: nowrap;
-  color: #fff;
 }
 #time { 
-  font-size: clamp(12px, 3.5vw, 18px); 
+  font-size: clamp(16px, 4.2vw, 22px); 
   font-weight: 900; 
   white-space: nowrap;
-  color: #fff; /* Оставлено белым */
 }
 
 .weekdays {
   display:flex;
   justify-content:center;
-  gap:2px;
-  font-size: clamp(8px, 2vw, 10px);
+  gap:3px;
+  font-size: clamp(10px, 2.5vw, 13px);
   font-weight:900;
-  margin: 4px 0;
+  margin: 5px 0;
 }
-.day.active { background:red; border-radius:3px; padding: 0 2px; }
+.day.active { background:red; border-radius:4px; padding: 0 4px; }
 
-/* Погода */
-.weather-box { position: relative; width: 100%; height: 40px; }
+/* Погода — ВЫРАВНИВАНИЕ */
+.weather-box { 
+  position: relative; 
+  width: 100%; 
+  height: 100%; /* Занимает всю высоту виджета */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .weather-content {
   position: absolute;
   width: 100%;
-  top: 0; left: 0;
   transition: all 0.6s ease-in-out;
   opacity: 0;
   text-align: center;
+  /* Убрал лишние отступы, чтобы не съезжало вниз */
 }
 .weather-content.active { opacity: 1; }
-.weather-city { font-weight:bold; font-size: 10px; color: #04b6cb; margin-bottom: 2px; }
-.weather-temp { font-size: clamp(16px, 4vw, 22px); font-weight:bold; white-space: nowrap; }
-.weather-wind { font-size: 9px; color: #aaa; }
+.weather-city { font-weight:bold; font-size: 12px; color: #04b6cb; margin-bottom: 2px; }
+.weather-temp { font-size: clamp(18px, 5vw, 24px); font-weight:bold; white-space: nowrap; }
+.weather-wind { font-size: 10px; color: #aaa; }
 
 /* Таблица */
 .train-list-widget {
@@ -145,7 +150,7 @@ body {
 .route-text {
   font-weight: 600;
   text-align: center;
-  font-size: clamp(11px, 3.2vw, 15px);
+  font-size: clamp(12px, 3.5vw, 16px);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -155,7 +160,7 @@ body {
 
 .time-val {
   font-weight: bold;
-  font-size: clamp(13px, 3.5vw, 16px);
+  font-size: clamp(14px, 3.8vw, 18px);
 }
 
 .details {
@@ -180,7 +185,6 @@ body {
   margin-bottom: 10px;
   color: #ff4d4d;
   text-shadow: 0 0 5px rgba(0,0,0,0.5);
-  font-size: 13px;
 }
 
 .schedule-grid {
@@ -258,11 +262,11 @@ body {
 
 <script>
 const changes = {
-    "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
-    "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
-    "6018": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
-    "6037": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 17:40",
-    "6035": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове і далі за цим розкладом"
+    "6010": "06-09.04.26 электропоезд курсирует до ст. Горяїнове",
+    "6015": "06-09.04.26 электропоезд отправляется со ст. Горяїнове в 08:28",
+    "6018": "06-09.04.26 электропоезд курсирует до ст. Горяїнове",
+    "6037": "06-09.04.26 электропоезд отправляется со ст. Горяїнове в 17:40",
+    "6035": "06-09.04.26 электропоезд отправляется со ст. Горяїнове и далее по этому расписанию"
 };
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
