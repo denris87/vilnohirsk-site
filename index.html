@@ -68,7 +68,6 @@ body {
   border-radius:16px;
 }
 
-/* 📅 дата + время */
 .datetime {
   text-align:center;
   font-family:"Courier New";
@@ -84,7 +83,6 @@ body {
   font-weight:900;
 }
 
-/* дни недели */
 .weekdays {
   display:flex;
   justify-content:center;
@@ -98,7 +96,6 @@ body {
   border-radius:6px;
 }
 
-/* погода */
 .weather {
   text-align:center;
   line-height:1.4;
@@ -123,7 +120,6 @@ body {
   font-size:12px;
 }
 
-/* таблица */
 .table-head,
 .train {
   display:grid;
@@ -144,7 +140,6 @@ body {
   cursor:pointer;
 }
 
-/* ПЛАВНЫЕ ШТОРКИ */
 .details {
   max-height:0;
   overflow:hidden;
@@ -158,7 +153,7 @@ body {
 }
 
 .details.open {
-  max-height:3000px; /* Увеличено для длинных сеток */
+  max-height:3500px;
   opacity:1;
   transform:translateY(0);
   padding:10px;
@@ -168,16 +163,17 @@ body {
   width:60%;
   height:1px;
   background:#fff;
-  margin:10px auto;
+  margin:15px auto;
 }
 
 .details-note {
   text-align:center;
   font-weight:bold;
   margin-bottom:10px;
+  color: #ffcc00;
 }
 
-/* Сетка расписания из второго скрипта */
+/* Сетка расписания */
 .schedule-grid {
   display:grid;
   grid-template-columns:repeat(3,1fr);
@@ -204,8 +200,8 @@ body {
   justify-content:space-between;
   gap:10px;
   padding:6px 0;
-  border-bottom:1px dashed #aaa;
-  font-size:14px;
+  border-bottom:1px dashed rgba(255,255,255,0.3);
+  font-size:13px;
 }
 
 .station-number {
@@ -218,7 +214,16 @@ body {
   border-bottom:none;
 }
 
-/* маршрут */
+/* Дополнительная мини-таблица для изменений (как в первом скрипте) */
+.changes-row {
+  display: grid;
+  grid-template-columns: 20% 1fr 20%;
+  align-items: center;
+  justify-items: center;
+  padding: 4px 0;
+  font-size: 14px;
+}
+
 .route {
   white-space:nowrap;
   overflow:hidden;
@@ -228,7 +233,6 @@ body {
   font-weight:600;
 }
 
-/* Цвета времени */
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
@@ -265,12 +269,8 @@ body {
   <div class="datetime">
     <div id="date"></div>
     <div class="weekdays">
-      <div class="day">пн</div>
-      <div class="day">вт</div>
-      <div class="day">ср</div>
-      <div class="day">чт</div>
-      <div class="day">пт</div>
-      <div class="day">сб</div>
+      <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
+      <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
       <div class="day">нд</div>
     </div>
     <div id="time"></div>
@@ -313,7 +313,7 @@ const changes = {
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-/* ПОЛНЫЕ РАСПИСАНИЯ */
+// ПОЛНЫЕ РАСПИСАНИЯ
 const fullSchedules = {
   "6005": [["Дніпро-Гол.","04:52"],["Горяїнове","04:58"],["з.п. 184 км","05:03"],["Діївка","05:08"],["з.п. 178 км","05:13"],["з.п. 175 км","05:17"],["Сухачівка","05:24"],["з.п. 169 км","05:28"],["з.п. 165 км","05:33"],["з.п. 164 км","05:36"],["з.п. 160 км","05:40"],["Запоріжжя-Кам’янське","05:43"],["Кам'янське-Пас.","05:48"],["з.п. 149 км","05:53"],["Воскобійня","06:01"],["з.п. 139 км","06:06"],["Верхньодніпровськ","06:14"],["з.п. 128 км","06:19"],["з.п. 125 км","06:22"],["з.п. 119 км","06:28"],["Верхівцеве","06:33"],["з.п. 114 км","06:40"],["з.п. Гранове","06:44"],["з.п. 104 км","06:49"],["Вільногірськ","06:54"],["Ерастівка","07:04"],["з.п. 88 км","07:11"],["з.п. Касинівка","07:17"],["з.п. 77 км","07:23"],["П'ятихатки-Пас.","07:30"],["П'ятихатки-Стикова","07:38"]],
   "6008": [["П'ятихатки-Пас.","04:43"],["з.п. 77 км","04:49"],["з.п. Касинівка","04:54"],["з.п. 88 км","05:01"],["Ерастівка","05:07"],["Вільногірськ","05:16"],["з.п. 104 км","05:21"],["з.п. Гранове","05:26"],["з.п. 114 км","05:30"],["Верхівцеве","05:36"],["з.п. 119 км","05:39"],["з.п. 125 км","05:44"],["з.п. 128 км","05:48"],["Верхньодніпровськ","06:15"],["з.п. 139 км","06:22"],["Воскобійня","06:28"],["з.п. 149 км","06:36"],["Кам'янське-Пас.","06:42"],["Запоріжжя-Кам’янське","06:47"],["з.п. 160 км","06:50"],["з.п. 164 км","06:55"],["з.п. 165 км","06:58"],["з.п. 169 км","07:03"],["Сухачівка","07:06"],["з.п. 175 км","07:10"],["з.п. 178 км","07:14"],["Діївка","07:18"],["з.п. 184 км","07:23"],["Горяїнове","07:27"],["Дніпро-Гол.","07:32"]],
@@ -326,6 +326,17 @@ const fullSchedules = {
   "6044": [["П'ятихатки-Стикова","20:29"],["П'ятихатки-Пас.","20:37"],["з.п. 77 км","20:42"],["з.п. Касинівка","20:47"],["з.п. 88 км","20:54"],["Ерастівка","21:12"],["Вільногірськ","21:21"],["з.п. 104 км","21:25"],["з.п. Гранове","21:30"],["з.п. 114 км","21:34"],["Верхівцеве","21:40"],["з.п. 119 км (Верхівцеве)","21:43"],["з.п. 125 км","21:47"],["з.п. 128 км","21:51"],["Верхньодніпровськ","21:58"],["з.п. 139 км","22:05"],["Воскобійня","22:09"],["з.п. 149 км","22:17"],["Кам'янське-Пас.","22:22"],["Запоріжжя-Кам’янське","22:27"],["з.п. 160 км","22:30"],["з.п. 164 км","22:35"],["з.п. 165 км","22:38"],["з.п. 169 км","22:42"],["Сухачівка","22:45"],["з.п. 175 км","22:49"],["з.п. 178 км","22:53"],["Діївка","22:57"],["з.п. 184 км","23:02"],["Горяїнове","23:06"],["Дніпро-Гол.","23:12"]],
   "6043": [["Дніпро-Гол.","20:18"],["Горяїнове","20:24"],["з.п. 184 км","20:29"],["Діївка","20:35"],["з.п. 178 км","20:40"],["з.п. 175 км","20:44"],["Сухачівка","20:51"],["з.п. 169 км","20:55"],["з.п. 165 км","21:00"],["з.п. 164 км","21:03"],["з.п. 160 км","21:07"],["Запоріжжя-Кам’янське","21:11"],["Кам'янське-Пас.","21:16"],["з.п. 149 км","21:21"],["Воскобійня","21:29"],["з.п. 139 км","21:34"],["Верхньодніпровськ","21:42"],["з.п. 128 км","21:47"],["з.п. 125 км","21:50"],["з.п. 119 км (Верхівцеве)","21:56"],["Верхівцеве","22:01"],["з.п. 114 км","22:08"],["з.п. Гранове","22:12"],["з.п. 104 км","22:17"],["Вільногірськ","22:22"],["Ерастівка","22:48"],["з.п. 88 км","22:53"],["з.п. Касинівка","22:59"],["з.п. 77 км","23:05"],["П'ятихатки-Пас.","23:10"]]
 };
+
+const changesSchedule6035 = [
+  ["Дніпро-Гол.","-"],
+  ["ст. Горяїнове","16:44"],
+  ["Камʼянське-Пас.","17:48"],
+  ["Верхньодніпровськ","18:14"],
+  ["Верхівцеве","18:33"],
+  ["Вільногірськ","18:54"],
+  ["Пʼятихатки-Пас.","19:26"],
+  ["Пʼятихатки-Сик.","19:33"]
+];
 
 function renderGrid(data){
   let i=1;
@@ -386,15 +397,8 @@ function getKyivNow(){
 
 function updateDateTime(){
   const now=getKyivNow();
-  const d=String(now.getDate()).padStart(2,"0");
-  const m=String(now.getMonth()+1).padStart(2,"0");
-  const y=now.getFullYear();
-  const h=String(now.getHours()).padStart(2,"0");
-  const min=String(now.getMinutes()).padStart(2,"0");
-  const s=String(now.getSeconds()).padStart(2,"0");
-
-  document.getElementById("date").textContent=`${d}.${m}.${y}`;
-  document.getElementById("time").textContent=`${h}:${min}:${s}`;
+  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
 
   const days=document.querySelectorAll(".day");
   days.forEach(d=>d.classList.remove("active"));
@@ -418,12 +422,11 @@ function render(el,data){
   data.forEach(x=>{
     const diff=getDiff(x.time);
     let cls="train";
-    let label=x.time;
-
     if(diff<0) cls+=" passed";
-    else if(diff<=10){cls+=" soon";label="≈ "+diff+" хв";}
+    else if(diff<=10) cls+=" soon";
     else cls+=" future";
 
+    const label = (diff >= 0 && diff <= 10) ? "≈ "+diff+" хв" : x.time;
     const id="d-"+x.number;
     const dot = changes[x.number] ? `<span class="alert-dot"></span>` : "";
 
@@ -437,11 +440,24 @@ function render(el,data){
 
     if(fullSchedules[x.number]){
       const note = changes[x.number] || "змін немає...";
+      
+      let additionalInfo = "";
+      if(x.number === "6035") {
+        additionalInfo = changesSchedule6035.map(s => `
+          <div class="changes-row">
+            <div></div>
+            <div style="text-align:center">${s[0]}</div>
+            <div style="font-weight:bold">${s[1]}</div>
+          </div>
+        `).join("");
+      }
+
       el.innerHTML+=`
       <div class="details" id="${id}">
         ${renderGrid(fullSchedules[x.number])}
         <div class="details-divider"></div>
         <div class="details-note">${note}</div>
+        ${additionalInfo}
       </div>`;
     }
   });
