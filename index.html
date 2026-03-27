@@ -9,7 +9,7 @@
 :root {
   --safe-top: env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
-  --highlight-color: #ffcc00; /* Золотистый для Вольногорска */
+  --highlight-color: #ffcc00; /* Золотистий для Вільногірська */
 }
 
 html, body {
@@ -54,6 +54,7 @@ body {
   gap:10px;
 }
 
+/* Верхні блоки: 1 лінія */
 .top-row {
   display: flex;
   flex-direction: row;
@@ -75,9 +76,19 @@ body {
   align-items: center;
 }
 
+/* Дата ВЕЛИКА, час БІЛИЙ */
 .datetime { text-align:center; font-family:"Courier New", monospace; width: 100%; }
-#date { font-size: clamp(18px, 4.8vw, 26px); font-weight: 900; white-space: nowrap; }
-#time { font-size: clamp(16px, 4.2vw, 22px); font-weight: 900; white-space: nowrap; }
+#date { 
+  font-size: clamp(18px, 4.8vw, 26px); 
+  font-weight: 900; 
+  white-space: nowrap;
+}
+#time { 
+  font-size: clamp(16px, 4.2vw, 22px); 
+  font-weight: 900; 
+  white-space: nowrap;
+  color: #fff;
+}
 
 .weekdays {
   display:flex;
@@ -89,6 +100,7 @@ body {
 }
 .day.active { background:red; border-radius:4px; padding: 0 4px; }
 
+/* Погода */
 .weather-box { 
   position: relative; 
   width: 100%; 
@@ -109,6 +121,7 @@ body {
 .weather-temp { font-size: clamp(18px, 5vw, 24px); font-weight:bold; white-space: nowrap; }
 .weather-wind { font-size: 10px; color: #aaa; }
 
+/* Таблиця */
 .train-list-widget {
   background:rgba(0,0,0,0.6);
   padding:10px;
@@ -164,12 +177,14 @@ body {
   margin: 5px 0;
 }
 
+/* Червоний текст змін */
 .details-note {
   text-align: center;
   font-weight: bold;
   margin-bottom: 10px;
   color: #ff4d4d;
   text-shadow: 0 0 5px rgba(0,0,0,0.5);
+  font-size: 13px;
 }
 
 .schedule-grid {
@@ -188,7 +203,7 @@ body {
   font-size: 12px;
 }
 
-/* 🔥 СТИЛЬ ДЛЯ ВЫДЕЛЕНИЯ ВОЛЬНОГОРСКА */
+/* Виділення Вільногірська */
 .row-highlight {
   background: rgba(255, 204, 0, 0.15) !important;
   border: 1px solid var(--highlight-color) !important;
@@ -257,6 +272,7 @@ body {
 </div>
 
 <script>
+/* ТЕКСТ ПЕРЕКЛАДЕНО НА УКРАЇНСЬКУ */
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
