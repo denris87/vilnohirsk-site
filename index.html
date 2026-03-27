@@ -159,7 +159,7 @@ body {
 }
 
 .details.open {
-  max-height:500px;
+  max-height:700px;
   opacity:1;
   transform:translateY(0);
   padding:10px;
@@ -175,9 +175,16 @@ body {
 
 .details-note {
   grid-column:2;
+  margin-bottom:10px;
 }
 
-/* маршрут */
+/* новый блок изменений */
+.details-change-title {
+  text-align:center;
+  font-weight:bold;
+  margin:6px 0;
+}
+
 .route {
   white-space:nowrap;
   overflow:hidden;
@@ -187,7 +194,6 @@ body {
   font-weight:600;
 }
 
-/* 🔥 цвета времени в шторках */
 .details-row .time-green {
   color:#00ff9c;
   font-weight:bold;
@@ -197,17 +203,14 @@ body {
   color:#888;
 }
 
-/* цвета времени основной */
 .future .time-cell { color:#00ff9c; font-weight:bold; }
 .soon .time-cell { color:#ffcc00; font-weight:bold; }
 .passed .time-cell { color:#888; }
 
-/* номер */
 .train-number {
   position:relative;
 }
 
-/* 🔴 точка */
 .alert-dot {
   position:absolute;
   top:-4px;
@@ -280,6 +283,7 @@ const cities = [
 let cityIndex = 0;
 
 const changes = {
+    "6008": "є зміни в розкладі",
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
     "6018": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
@@ -288,20 +292,20 @@ const changes = {
 
 const specialChanges = {
   "6035": {
-    date: "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове",
+    date: "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 16:44",
     data: [
-      ["Дніпро-Гол.","—"],
+      ["Дніпро-Гол.","-"],
       ["ст. Горяїнове","16:44"],
       ["Камʼянське-Пас.","17:48"],
       ["Верхньодніпровськ","18:14"],
       ["Верхівцеве","18:33"],
       ["Вільногірськ","18:54"],
       ["Пʼятихатки-Пас.","19:26"],
-      ["Пʼятихатки-Стик.","19:33"]
+       ["Пʼятихатки-Пас.","19:33"]
     ]
   }
 };
-  
+
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
 const schedules={
@@ -425,6 +429,24 @@ function render(el,data){
     if(schedules[x.number]){
       const note=changes[x.number]||"змін немає...";
 
+      let specialHTML = "";
+
+      if(specialChanges[x.number]){
+        const sc = specialChanges[x.number];
+
+        specialHTML = `
+        <div class="details-divider"></div>
+        <div class="details-change-title">${sc.date}</div>
+        ${sc.data.map(s=>`
+          <div class="details-row">
+            <div></div>
+            <div>${s[0]}</div>
+            <div>${s[1]}</div>
+          </div>
+        `).join("")}
+        `;
+      }
+
       el.innerHTML+=`
       <div class="details" id="${id}">
         ${schedules[x.number].map(s=>{
@@ -439,6 +461,8 @@ function render(el,data){
 
         <div class="details-divider"></div>
         <div class="details-note">${note}</div>
+
+        ${specialHTML}
       </div>`;
     }
   });
