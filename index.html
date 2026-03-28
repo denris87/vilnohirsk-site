@@ -73,7 +73,8 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  overflow: hidden; /* Щоб контент не виходив за межі при переході */
+  position: relative;
+  overflow: hidden;
 }
 
 .datetime { text-align:center; font-family:"Courier New", monospace; width: 100%; }
@@ -90,30 +91,38 @@ body {
 }
 .day.active { background:red; border-radius:4px; padding: 0 5px; }
 
-/* 🔥 СТИЛІ ДЛЯ ПЛАВНОЇ ПОГОДИ */
+/* 🔥 АНІМАЦІЯ ВСЬОГО БЛОКУ ПОГОДИ */
 .weather-box { 
   position: relative; 
   width: 100%; 
-  height: 80px; /* Фіксована висота для стабільності */
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .weather-content {
   position: absolute;
   width: 100%;
-  transition: opacity 1.2s ease-in-out; /* Плавне зникнення/поява */
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: opacity 1.5s ease-in-out; /* Плавне зникнення всього блоку */
   opacity: 0;
   text-align: center;
   pointer-events: none;
 }
+
 .weather-content.active { 
   opacity: 1; 
   pointer-events: auto;
 }
-.weather-city { font-weight:bold; font-size: 13px; color: #04b6cb; margin-bottom: 2px; }
-.weather-temp { font-size: clamp(20px, 5.5vw, 26px); font-weight:bold; white-space: nowrap; }
-.weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+.weather-city { font-weight:bold; font-size: 12px; color: #04b6cb; margin-bottom: 2px; }
+.weather-temp { font-size: clamp(18px, 5vw, 24px); font-weight:bold; white-space: nowrap; }
+.weather-wind { font-size: 10px; color: #aaa; margin-top: 2px; }
 
 .train-list-widget {
   background:rgba(0,0,0,0.6);
@@ -259,7 +268,6 @@ body {
 </div>
 
 <script>
-// Дані розкладу та константи
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
@@ -267,11 +275,12 @@ const changes = {
     "6037": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 17:40",
     "6035": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове і далі за цим розкладом"
 };
+
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-// Тут будуть ваші об'єкти fullSchedules та changesSchedule6035 (скорочено для читабельності, залишаємо логіку)
-const fullSchedules = { /* ...ваші дані... */ }; 
-const changesSchedule6035 = [ /* ...ваші дані... */ ];
+// Тут ваші повні розклади
+const fullSchedules = { /* ... */ }; 
+const changesSchedule6035 = [ /* ... */ ];
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
 
@@ -294,9 +303,8 @@ function getWeatherEmoji(code){
   return "🌡️";
 }
 
-// 🔥 ФУНКЦІЯ ПЛАВНОЇ ПОГОДИ
 async function loadWeather(){
-  const coords = [{id: 'vil', name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {id: 'dni', name: 'Дніпро', lat: 48.45, lon: 34.98}];
+  const coords = [{name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {name: 'Дніпро', lat: 48.45, lon: 34.98}];
   let results = [];
   
   for(let c of coords){
@@ -304,30 +312,26 @@ async function loadWeather(){
       const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
       const d = await r.json();
       results.push({name: c.name, w: d.current_weather});
-    } catch(e) { console.log("Weather error"); }
+    } catch(e) {}
   }
 
   const container = document.getElementById("weather-container");
   if(results.length === 0) return;
 
-  // Створюємо HTML для кожного міста
   container.innerHTML = results.map((item, index) => `
-    <div class="weather-content ${index === 0 ? 'active' : ''}" id="slide-${index}">
+    <div class="weather-content ${index === 0 ? 'active' : ''}" id="weather-slide-${index}">
       <div class="weather-city">${item.name}</div>
       <div class="weather-temp">${getWeatherEmoji(item.w.weathercode)} ${Math.round(item.w.temperature)}°C</div>
       <div class="weather-wind">💨 ${Math.round(item.w.windspeed)} м/с</div>
     </div>
   `).join("");
 
-  let currentIndex = 0;
+  let current = 0;
   setInterval(() => {
-    const currentSlide = document.getElementById(`slide-${currentIndex}`);
-    currentIndex = (currentIndex + 1) % results.length;
-    const nextSlide = document.getElementById(`slide-${currentIndex}`);
-
-    if(currentSlide) currentSlide.classList.remove('active');
-    if(nextSlide) nextSlide.classList.add('active');
-  }, 7000); // Кожні 7 секунд
+    document.getElementById(`weather-slide-${current}`).classList.remove('active');
+    current = (current + 1) % results.length;
+    document.getElementById(`weather-slide-${current}`).classList.add('active');
+  }, 7000);
 }
 
 function updateDateTime(){
@@ -350,11 +354,9 @@ function renderGrid(data, isChanges = false){
           ${col.map(r=>{
             const passed = isPast(r[1]);
             const isVil = r[0].includes("Вільногірськ");
-            const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
-            const timeClass = isChanges || isVil ? 'time-normal' : (passed ? 'time-passed' : 'time-green');
-            return `<div class="${rowClass}">
+            return `<div class="schedule-row ${isVil ? 'row-highlight' : ''}">
               <span class="station-name"><span class="station-number">${i++}.</span>${r[0]}</span>
-              <span class="${timeClass}">${r[1]}</span>
+              <span class="${isChanges || isVil ? 'time-normal' : (passed ? 'time-passed' : 'time-green')}">${r[1]}</span>
             </div>`;
           }).join("")}
         </div>
@@ -363,37 +365,28 @@ function renderGrid(data, isChanges = false){
   `;
 }
 
-function render(el, data){
-  if(!data) return;
+function render(el,data){
   data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
   el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content"></div>`;
   const container = document.getElementById('trains-content');
   data.forEach(x=>{
     const now = getKyivNow();
     const [h, m] = x.time.split(':').map(Number);
-    const trainTime = new Date(now);
-    trainTime.setHours(h, m, 0, 0);
-    const diff = Math.floor((trainTime - now) / 60000);
-
-    let statusClass = "future";
-    let displayText = x.time;
-
-    if (diff < 0) {
-      statusClass = "passed";
-    } else if (diff <= 10) {
-      statusClass = "soon";
-      displayText = `≈ ${diff} хв`;
-    }
+    const t = new Date(now); t.setHours(h, m, 0, 0);
+    const diff = Math.floor((t - now) / 60000);
+    let sClass = "future", dText = x.time;
+    if (diff < 0) sClass = "passed";
+    else if (diff <= 10) { sClass = "soon"; dText = `≈ ${diff} хв`; }
 
     const id="d-"+x.number;
     container.innerHTML+=`
       <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div style="position:relative">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
         <div class="route-text">${x.route}</div>
-        <div class="time-val ${statusClass}">${displayText}</div>
+        <div class="time-val ${sClass}">${dText}</div>
       </div>
       <div class="details" id="${id}">
-        ${fullSchedules[x.number] ? renderGrid(fullSchedules[x.number]) : "Дані розкладу відсутні"}
+        ${fullSchedules[x.number] ? renderGrid(fullSchedules[x.number]) : "..."}
         <div style="width:60%; height:1px; background:#fff; margin:15px auto;"></div>
         <div class="details-note">${changes[x.number] || "змін немає..."}</div>
         ${x.number === "6035" ? renderGrid(changesSchedule6035, true) : ""}
@@ -402,10 +395,7 @@ function render(el, data){
 }
 
 function loadTrains(){
-  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
-    .then(r=>r.json())
-    .then(d=>render(document.getElementById("list"), d.trains))
-    .catch(e => console.log("API error"));
+  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>render(list,d.trains));
 }
 
 loadTrains(); updateDateTime(); loadWeather();
