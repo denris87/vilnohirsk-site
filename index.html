@@ -1,3 +1,358 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Вільногірськ Онлайн</title>
+
+<style>
+:root {
+  --highlight-color: #ffcc00; 
+  --widget-bg: rgba(0, 0, 0, 0.6);
+  --time-green: #00ff9c;
+  --time-passed: #888;
+}
+
+html, body { 
+  margin: 0; 
+  padding: 0; 
+  height: 100%; 
+}
+* { 
+  -webkit-user-select: none; 
+  user-select: none; 
+  box-sizing: border-box; 
+}
+
+body {
+  color: #fff;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: linear-gradient(-45deg, #f1df30, #04b6cb, #1cbca4, #c5d444, #26bc93, #a5ca49, #8cc454, #41bc81, #74bf54, #53bc67);
+  background-size: 400% 400%;
+  animation: gradientMove 60s ease infinite;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.wrapper { 
+  width: 100%; 
+  max-width: 900px; 
+  padding: 10px; 
+}
+
+.container { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 10px; 
+}
+
+/* ШАПКА */
+.top-row { 
+  display: flex; 
+  flex-direction: row; 
+  justify-content: space-between; 
+  gap: 8px; 
+  width: 100%; 
+}
+
+.widget {
+  background: var(--widget-bg); 
+  padding: 10px 6px; 
+  border-radius: 12px;
+  flex: 1; 
+  min-height: 110px; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+  overflow: hidden;
+}
+
+.datetime { text-align: center; font-family: "Courier New", monospace; width: 100%; }
+#date { font-size: clamp(18px, 4.8vw, 26px); font-weight: 900; white-space: nowrap; }
+#time { font-size: clamp(16px, 4.2vw, 22px); font-weight: 900; white-space: nowrap; color: #fff; }
+
+.weekdays { display: flex; justify-content: center; gap: 4px; font-size: clamp(16px, 4vw, 20px); font-weight: 900; margin: 6px 0; }
+.day { opacity: 0.4; }
+.day.active { background: red; border-radius: 4px; padding: 0 5px; opacity: 1; }
+
+/* ПОГОДА */
+.weather-box { position: relative; width: 100%; height: 85px; display: flex; align-items: center; justify-content: center; }
+.weather-content { position: absolute; width: 100%; transition: opacity 1s ease-in-out; opacity: 0; text-align: center; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.weather-content.active { opacity: 1; pointer-events: auto; }
+.weather-city { font-weight: bold; font-size: 13px; color: #04b6cb; margin-bottom: 2px; }
+.weather-temp { font-size: clamp(20px, 5.5vw, 26px); font-weight: bold; white-space: nowrap; }
+.weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+/* ГРУПА ДЛЯ КОРЕШКІВ І РОЗКЛАДУ */
+.schedule-group { display: flex; flex-direction: column; }
+
+/* ТАБИ (КОРЕШКИ ЯК ПАПКА) */
+.tabs-nav { 
+  display: flex; 
+  width: 50%; 
+  min-width: 240px; 
+  gap: 4px; 
+  margin-bottom: -1px; 
+  position: relative; 
+  z-index: 2; 
+}
+.tab-btn { 
+  flex: 1; 
+  padding: 12px 5px; 
+  border: 1px solid transparent;
+  border-bottom: none; 
+  background: rgba(0, 0, 0, 0.4); 
+  color: rgba(255, 255, 255, 0.6); 
+  font-weight: bold; 
+  cursor: pointer; 
+  border-radius: 16px 16px 0 0; 
+  transition: 0.3s; 
+  font-size: clamp(11px, 3.5vw, 13px); 
+  text-transform: uppercase; 
+  white-space: nowrap;
+}
+.tab-btn.active { 
+  background: var(--widget-bg); 
+  color: #fff; 
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--widget-bg);
+  padding-bottom: 13px; 
+}
+
+.content-section { display: none; }
+.content-section.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ОСНОВНИЙ БЛОК РОЗКЛАДУ */
+.main-list-widget { 
+  background: var(--widget-bg); 
+  padding: 15px 10px; 
+  border-radius: 0 16px 16px 16px; 
+  position: relative; 
+  z-index: 1; 
+  border: 1px solid rgba(255,255,255,0.1); 
+}
+
+/* ЗАГАЛЬНІ СТИЛІ СПИСКУ (ДЛЯ ЕЛЕКТРИЧОК ТА АВТОБУСІВ) */
+.table-head { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; font-weight: 800; border-bottom: 2px solid #aaa; padding-bottom: 8px; margin-bottom: 5px; font-size: 14px; text-transform: uppercase; }
+.train { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.15); cursor: pointer; }
+.train-num-box { position: relative; font-weight: bold; display: inline-block; font-size: 16px; }
+.route-text { font-weight: 600; text-align: center; font-size: clamp(12px, 3.5vw, 15px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; padding: 0 5px; }
+
+.time-val { font-weight: bold; font-size: clamp(14px, 3.8vw, 18px); }
+.time-val.soon { color: #ffcc00; }
+.time-val.future { color: var(--time-green); }
+.time-val.passed { color: var(--time-passed); }
+
+/* ЧЕРВОНА КРАПКА */
+.alert-dot { 
+  position: absolute; 
+  top: -4px; 
+  right: -8px; 
+  width: 7px; 
+  height: 7px; 
+  background: #ff3b3b; 
+  border-radius: 50%; 
+  animation: blink 0.7s infinite alternate; 
+}
+@keyframes blink { 
+  0% { opacity: 1; box-shadow: 0 0 6px #ff3b3b; } 
+  100% { opacity: 0.3; box-shadow: 0 0 1px #ff3b3b; } 
+}
+
+/* ШТОРКИ РОЗКЛАДУ */
+.details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.03); border-radius: 10px; }
+.details.open { max-height: 5000px; opacity: 1; padding: 10px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.05); }
+.schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } }
+.schedule-row { display: flex; justify-content: space-between; padding: 4px 6px; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 11px; align-items: center;}
+.row-highlight { background: rgba(255, 204, 0, 0.15) !important; border-radius: 4px; color: var(--highlight-color) !important; font-weight: bold; }
+.station-number { color: #ffcc00; font-weight: bold; margin-right: 4px; }
+
+.time-green { color: var(--time-green); font-weight: bold; font-family: monospace; font-size: 13px;}
+.time-passed { color: var(--time-passed); font-weight: normal; font-family: monospace; font-size: 13px;}
+.time-normal { color: #fff; font-weight: bold; font-family: monospace; font-size: 13px;}
+
+/* ПРИМІТКИ ПРО ЗМІНИ */
+.details-note { text-align: center; font-weight: bold; color: #ff4d4d; margin-bottom: 10px; text-shadow: 0 0 5px rgba(0,0,0,0.5); font-size: 11px; }
+.details-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.2); margin: 15px auto 10px; }
+
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+<div class="container">
+
+  <div class="top-row">
+    <div class="widget">
+      <div class="datetime">
+        <div id="date"></div>
+        <div class="weekdays">
+          <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
+          <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
+          <div class="day">нд</div>
+        </div>
+        <div id="time"></div>
+      </div>
+    </div>
+
+    <div class="widget">
+      <div class="weather-box" id="weather-container"></div>
+    </div>
+  </div>
+
+  <div class="schedule-group">
+    
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="openTab('trains', this)">Електрички</button>
+      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
+    </div>
+
+    <div class="main-list-widget">
+      
+      <div id="trains" class="content-section active">
+        <div id="list">Завантаження розкладу...</div>
+      </div>
+
+      <div id="buses" class="content-section">
+        <div class="table-head"><div>Тип</div><div>Маршрут прямування</div><div>Статус</div></div>
+        
+        <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
+          <div class="train-num-box">🚌</div>
+          <div class="route-text">Міський автобус</div>
+          <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
+        </div>
+        <div class="details">
+          <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">Від МЦЛ (нова лікарня)</div>
+              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">06:00</span></div>
+              <div class="schedule-row"><span>до маг. Ольга**</span><span class="time-normal">07:30</span></div>
+              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">08:30</span></div>
+              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">10:10</span></div>
+              <div class="schedule-row"><span>до маг. Ольга**</span><span class="time-normal">12:10</span></div>
+              <div class="schedule-row"><span>до маг. Ольга**</span><span class="time-normal">14:10</span></div>
+              <div class="schedule-row"><span>Крім вихідних*</span><span class="time-normal">15:20</span></div>
+              <div class="schedule-row"><span>Крім вихідних*</span><span class="time-normal">16:40</span></div>
+            </div>
+            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">Від залізничного вокзалу</div>
+              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">07:00</span></div>
+              <div class="schedule-row"><span>від маг. Ольга**</span><span class="time-normal">07:40</span></div>
+              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">09:05</span></div>
+              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">11:00</span></div>
+              <div class="schedule-row"><span>від маг. Ольга**</span><span class="time-normal">14:00</span></div>
+              <div class="schedule-row"><span>від маг. Ольга**</span><span class="time-normal">15:00</span></div>
+              <div class="schedule-row"><span>Крім вихідних*</span><span class="time-normal">16:10</span></div>
+            </div>
+          </div>
+          <div class="details-divider"></div>
+          <div class="details-note">*Згідно зміни розкладу електропоїздів.Час відправлення можна уточнювати у водія<br>**Крім вихідних.</div>
+        </div>
+
+        <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
+          <div class="train-num-box">🚌</div>
+          <div class="route-text">До Дніпра (ч/з Божедарівку)</div>
+          <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
+        </div>
+        <div class="details">
+          <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Вільногірська</div>
+              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">06:00</span></div>
+              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">10:00</span></div>
+              <div class="schedule-row"><span>Рейс 3</span><span class="time-normal">13:00</span></div>
+            </div>
+            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Дніпра (АС1)</div>
+              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">07:00</span></div>
+              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">10:00</span></div>
+              <div class="schedule-row"><span>Рейс 3</span><span class="time-normal">13:00</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
+          <div class="train-num-box">🚌</div>
+          <div class="route-text">До Дніпра (ч/з Кам'янське)</div>
+          <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
+        </div>
+        <div class="details">
+          <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Вільногірська</div>
+              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">05:10</span></div>
+              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">14:10</span></div>
+            </div>
+            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Дніпра (АС1)</div>
+              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">08:10</span></div>
+              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">17:10</span></div>
+            </div>
+          </div>
+          <div class="details-divider"></div>
+          <div class="details-note" style="color: #88a8a4;">* Йдуть повз зализничий вокзал Кам'янське-Пас.</div>
+        </div>
+
+        <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
+          <div class="train-num-box">🚌</div>
+          <div class="route-text">Кривий Ріг ⇄ В-Дніпр.</div>
+          <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
+        </div>
+        <div class="details">
+          <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">На Кривий Ріг</div>
+              <div class="schedule-row"><span>З Вільногірська</span><span class="time-normal">06:25</span></div>
+            </div>
+            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">На В-Дніпровськ</div>
+              <div class="schedule-row"><span>З Вільногірська</span><span class="time-normal">16:20</span></div>
+            </div>
+          </div>
+          <div class="details-divider"></div>
+          <div class="details-note">*Крім вихідних</div>
+        </div>
+
+        <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
+          <div class="train-num-box">🚌</div>
+          <div class="route-text">Вільногірськ ⇄ Лихівка</div>
+          <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
+        </div>
+        <div class="details">
+          <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Вільногірська</div>
+              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">10:30</span></div>
+              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">14:45</span></div>
+            </div>
+            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Лихівки</div>
+              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">11:35</span></div>
+              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">15:55</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
 // ЛОГІКА ТАБІВ
 function openTab(tabId, btn) {
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
@@ -31,7 +386,7 @@ async function loadWeather(){
       const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
       const d = await r.json();
       results.push({name: c.name, w: d.current_weather});
-    } catch(e) { }
+    } catch(e) { console.error("Помилка погоди:", e); }
   }
 
   const container = document.getElementById("weather-container");
@@ -123,8 +478,8 @@ function renderTrains(el, data){
     let statusClass = "future";
     let displayText = x.time;
 
-    // Розрахунок часу до відправлення
-    if (x.time !== "—") {
+    // Безпечний розрахунок часу до відправлення
+    if (x.time && x.time !== "—" && x.time !== "---") {
       const [h, m] = x.time.split(':').map(Number);
       const trainTime = new Date(now);
       trainTime.setHours(h, m, 0, 0);
@@ -150,7 +505,7 @@ function renderTrains(el, data){
         <div class="time-val ${statusClass}">${displayText}</div>
       </div>
       <div class="details" id="${id}">
-        ${x.fullSchedule.length > 0 ? renderGrid(x.fullSchedule) : "<div style='text-align:center; padding: 10px; color: #888;'>Дані розкладу відсутні</div>"}
+        ${x.fullSchedule?.length > 0 ? renderGrid(x.fullSchedule) : "<div style='text-align:center; padding: 10px; color: #888;'>Дані розкладу відсутні</div>"}
         <div class="details-divider"></div>
         <div class="details-note">${x.note}</div>
         ${altScheduleHtml}
@@ -166,7 +521,7 @@ function loadTrainsData(){
        renderTrains(document.getElementById("list"), d.trains);
     })
     .catch(e => {
-       console.log("API error", e);
+       console.error("API error", e);
        document.getElementById("list").innerHTML = "<div style='text-align:center; padding: 20px;'>Помилка завантаження даних з сервера 😢</div>";
     });
 }
@@ -177,3 +532,7 @@ loadWeather();
 loadTrainsData();
 setInterval(updateDateTime, 1000); 
 setInterval(loadTrainsData, 30000);
+</script>
+
+</body>
+</html>
