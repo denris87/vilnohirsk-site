@@ -9,8 +9,8 @@
 :root {
   --highlight-color: #ffcc00; 
   --widget-bg: rgba(0, 0, 0, 0.6);
-  --bus-bg: #0d3b36; 
-  --bus-accent: #115c54;
+  --bus-bg: #1b2e2a; 
+  --bus-accent: #214038;
   --time-green: #00ff9c;
   --time-passed: #888;
 }
@@ -96,10 +96,7 @@ body {
 .weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
 
 /* ГРУПА ДЛЯ КОРЕШКІВ І РОЗКЛАДУ */
-.schedule-group {
-  display: flex;
-  flex-direction: column;
-}
+.schedule-group { display: flex; flex-direction: column; }
 
 /* ТАБИ (КОРЕШКИ ЯК ПАПКА) */
 .tabs-nav { 
@@ -195,19 +192,20 @@ body {
 /* АВТОБУСИ */
 .bus-container { display: flex; flex-direction: column; gap: 12px; }
 .bus-card-main { background: var(--bus-bg); border-radius: 16px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); }
-.bus-header-title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fff; }
-.bus-sub-route { text-align: center; font-size: 12px; color: #88a8a4; margin-bottom: 10px; }
+.bus-header-title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 10px; padding-bottom: 10px; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.bus-sub-route { text-align: center; font-size: 12px; color: #88a8a4; margin-bottom: 12px; }
 .bus-grid-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 @media (max-width: 600px) { .bus-grid-rows { grid-template-columns: 1fr; } }
 
-.bus-item { background: var(--bus-accent); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.bus-item { background: var(--bus-accent); border-radius: 8px; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .bus-item-text { display: flex; flex-direction: column; line-height: 1.2; }
 .bus-item-text span { font-size: 14px; font-weight: bold; color: #fff; }
-.bus-item-sub { font-size: 9px !important; color: #88a8a4 !important; font-weight: normal !important; margin-top: 2px; }
+.mono { font-family: monospace; font-size: 16px !important; }
+.bus-item-sub { font-size: 9px !important; color: #88a8a4 !important; font-weight: normal !important; margin-top: 3px; font-family: sans-serif; }
 
-.bus-item .bus-time-label { color: var(--time-green); font-size: 14px; font-family: monospace; font-weight: bold; }
+.bus-item .bus-time-label { color: var(--time-green); font-size: 16px; font-family: monospace; font-weight: bold; }
 .bus-col-label { font-size: 11px; font-weight: bold; color: var(--highlight-color); margin-bottom: 8px; text-transform: uppercase; text-align: left; }
-.bus-note { font-size: 11px; text-align: center; color: #ffcc00; margin-top: 10px; font-style: italic; }
+.bus-note { font-size: 11px; text-align: center; color: #ff4d4d; margin-top: 10px; font-style: italic; }
 </style>
 </head>
 
@@ -320,7 +318,7 @@ body {
                 </div>
               </div>
             </div>
-            <div class="bus-note">* Згідно зміни розкладу електропоїздів<br>Час відправлення можна уточнювати у водія</div>
+            <div class="bus-note" style="color: #ffcc00;">* Згідно зміни розкладу електропоїздів<br>Час відправлення можна уточнювати у водія</div>
           </div>
 
           <div class="bus-card-main">
@@ -329,15 +327,15 @@ body {
             <div class="bus-grid-rows">
               <div>
                 <div class="bus-col-label">З Дніпра (АС1)</div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 1</span></div><span class="bus-time-label">07:00</span></div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 2</span></div><span class="bus-time-label">10:00</span></div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 3</span></div><span class="bus-time-label">13:00</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 1</span></div><span class="bus-time-label">07:00</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 2</span></div><span class="bus-time-label">10:00</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 3</span></div><span class="bus-time-label">13:00</span></div>
               </div>
               <div>
                 <div class="bus-col-label">З Вільногірська</div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 1</span></div><span class="bus-time-label">06:00</span></div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 2</span></div><span class="bus-time-label">10:00</span></div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 3</span></div><span class="bus-time-label">13:00</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 1</span></div><span class="bus-time-label">06:00</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 2</span></div><span class="bus-time-label">10:00</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 3</span></div><span class="bus-time-label">13:00</span></div>
               </div>
             </div>
 
@@ -345,33 +343,32 @@ body {
             <div class="bus-grid-rows">
               <div>
                 <div class="bus-col-label">З Дніпра (АС1)</div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 1</span></div><span class="bus-time-label">08:10</span></div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 2</span></div><span class="bus-time-label">17:10</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 1</span></div><span class="bus-time-label">08:10</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 2</span></div><span class="bus-time-label">17:10</span></div>
               </div>
               <div>
                 <div class="bus-col-label">З Вільногірська</div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 1</span></div><span class="bus-time-label">05:10</span></div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 2</span></div><span class="bus-time-label">14:10</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 1</span></div><span class="bus-time-label">05:10</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 2</span></div><span class="bus-time-label">14:10</span></div>
               </div>
             </div>
-            <div class="bus-note" style="color: #88a8a4;">* Рейси через Кам'янське йдуть повз з/в Кам'янське-Пас.</div>
+            <div class="bus-note" style="color: #88a8a4; text-align: left; font-size: 11px; margin-top: 15px;">* Рейси через Кам'янське йдуть повз з/в Кам'янське-Пас.</div>
           </div>
 
           <div class="bus-card-main">
             <div class="bus-header-title">Кривий Ріг / В-Дніпровськ</div>
+            <div class="bus-sub-route">через Вільногірськ</div>
             <div class="bus-grid-rows">
               <div>
                 <div class="bus-col-label">На Кривий Ріг</div>
-                <div class="bus-item"><div class="bus-item-text"><span>З Вільног.</span></div><span class="bus-time-label">06:25</span></div>
-                <div class="bus-item"><div class="bus-item-text"><span>З Кр. Рогу</span></div><span class="bus-time-label">12:45</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">З Вільног.</span></div><span class="bus-time-label">06:25</span></div>
               </div>
               <div>
                 <div class="bus-col-label">На В-Дніпровськ</div>
-                <div class="bus-item"><div class="bus-item-text"><span>З Вільног.</span></div><span class="bus-time-label">16:20</span></div>
-                <div class="bus-item"><div class="bus-item-text"><span>З В-Дніпр.</span></div><span class="bus-time-label">05:20</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">З Вільног.</span></div><span class="bus-time-label">16:20</span></div>
               </div>
             </div>
-            <div class="bus-note" style="color: #ff4d4d;">* крім суботи та неділі</div>
+            <div class="bus-note" style="color: #ff4d4d;">* крім вихідних</div>
           </div>
 
           <div class="bus-card-main">
@@ -379,13 +376,13 @@ body {
             <div class="bus-grid-rows">
               <div>
                 <div class="bus-col-label">З Вільногірська</div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 1</span></div><span class="bus-time-label">10:30</span></div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 2</span></div><span class="bus-time-label">14:45</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 1</span></div><span class="bus-time-label">10:30</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 2</span></div><span class="bus-time-label">14:45</span></div>
               </div>
               <div>
                 <div class="bus-col-label">З Лихівки</div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 1</span></div><span class="bus-time-label">11:35</span></div>
-                <div class="bus-item"><div class="bus-item-text"><span>Рейс 2</span></div><span class="bus-time-label">15:55</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 1</span></div><span class="bus-time-label">11:35</span></div>
+                <div class="bus-item"><div class="bus-item-text"><span class="mono">Рейс 2</span></div><span class="bus-time-label">15:55</span></div>
               </div>
             </div>
           </div>
@@ -476,7 +473,7 @@ function isPast(timeStr) {
   return t < now;
 }
 
-// ДАНІ РОЗКЛАДУ БЕЗ СКОРОЧЕНЬ
+// ПОВНІ ДАНІ РОЗКЛАДУ
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
@@ -513,7 +510,7 @@ const changesSchedule6035 = [
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-// ФУНКЦІЯ ГЕНЕРАЦІЇ ШТОРКИ
+// ПРАВИЛЬНА ЛОГІКА РОЗБИВКИ НА 3 КОЛОНКИ БЕЗ ВТРАТИ СТАНЦІЙ
 function renderGrid(data, isChanges = false) {
   if (!data || data.length === 0) return "";
   const total = data.length;
