@@ -10,19 +10,12 @@
   --safe-top: env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
   --highlight-color: #ffcc00; 
+  --bus-bg: #0d3b36; /* Темно-зелений колір зі скриншота */
+  --bus-accent: #115c54;
 }
 
-html, body {
-  margin:0;
-  padding:0;
-  height:100%;
-}
-
-* {
-  -webkit-user-select: none;
-  user-select: none;
-  box-sizing: border-box;
-}
+html, body { margin:0; padding:0; height:100%; }
+* { -webkit-user-select: none; user-select: none; box-sizing: border-box; }
 
 body {
   color:#fff;
@@ -42,32 +35,16 @@ body {
   100% {background-position:0% 50%;}
 }
 
-.wrapper {
-  width:100%;
-  max-width:900px;
-  padding:10px;
-}
+.wrapper { width:100%; max-width:900px; padding:10px; }
+.container { display:flex; flex-direction:column; gap:10px; }
 
-.container {
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.top-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-}
+.top-row { display: flex; flex-direction: row; justify-content: space-between; gap: 8px; width: 100%; }
 
 .widget {
   background: rgba(0,0,0,0.6);
   padding: 10px 6px;
   border-radius: 12px;
   flex: 1;
-  min-width: 0;
   min-height: 110px;
   display: flex;
   flex-direction: column;
@@ -76,7 +53,7 @@ body {
   overflow: hidden;
 }
 
-/* СТИЛІ ТАБІВ */
+/* ТАБИ (КОРЕШКИ) */
 .tabs-nav {
   display: flex;
   background: rgba(0,0,0,0.7);
@@ -98,177 +75,79 @@ body {
   font-size: 13px;
   text-transform: uppercase;
 }
-.tab-btn.active {
-  background: #fff;
-  color: #000;
-}
-.content-section {
-  display: none;
-}
-.content-section.active {
-  display: block;
-}
+.tab-btn.active { background: #fff; color: #000; }
+.content-section { display: none; }
+.content-section.active { display: block; }
 
-.datetime { text-align:center; font-family:"Courier New", monospace; width: 100%; }
-#date { font-size: clamp(18px, 4.8vw, 26px); font-weight: 900; white-space: nowrap; }
-#time { font-size: clamp(16px, 4.2vw, 22px); font-weight: 900; white-space: nowrap; color: #fff; }
-
-.weekdays {
-  display:flex;
-  justify-content:center;
-  gap:4px;
-  font-size: clamp(16px, 4vw, 20px);
-  font-weight:900;
-  margin: 6px 0;
-}
-.day.active { background:red; border-radius:4px; padding: 0 5px; }
-
-.weather-box { 
-  position: relative; 
-  width: 100%; 
-  height: 85px; 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.weather-content {
-  position: absolute;
-  width: 100%;
-  transition: opacity 1s ease-in-out; 
-  opacity: 0;
-  text-align: center;
-  pointer-events: none;
+/* ДИЗАЙН АВТОБУСІВ ЗІ СКРИНШОТА */
+.bus-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  gap: 12px;
 }
-.weather-content.active { 
-  opacity: 1; 
-  pointer-events: auto;
+.bus-card-main {
+  background: var(--bus-bg);
+  border-radius: 20px;
+  padding: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
 }
-.weather-city { font-weight:bold; font-size: 13px; color: #04b6cb; margin-bottom: 2px; }
-.weather-temp { font-size: clamp(20px, 5.5vw, 26px); font-weight:bold; white-space: nowrap; }
-.weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
-
-.train-list-widget {
-  background:rgba(0,0,0,0.6);
-  padding:10px;
-  border-radius:16px;
-}
-
-.table-head {
-  display: grid;
-  grid-template-columns: 15% 1fr 20%;
-  align-items: center;
-  justify-items: center;
-  font-weight: 800; 
-  border-bottom: 2px solid #aaa;
-  padding-bottom: 8px;
-  margin-bottom: 5px;
-  font-size: 14px;
-  text-transform: uppercase;
-}
-
-.train {
-  display: grid;
-  grid-template-columns: 15% 1fr 20%;
-  align-items: center;
-  justify-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-  cursor: pointer;
-}
-
-.route-text {
-  font-weight: 600;
+.bus-header-title {
   text-align: center;
-  font-size: clamp(12px, 3.5vw, 16px);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-  padding: 0 5px;
-}
-
-.time-val { font-weight: bold; font-size: clamp(14px, 3.8vw, 18px); }
-.time-val.soon { color: #ffcc00; }
-.time-val.future { color: #00ff9c; }
-.time-val.passed { color: #888; }
-
-.details {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: all 0.4s ease;
-  background: rgba(255,255,255,0.05);
-  border-radius: 10px;
-}
-
-.details.open {
-  max-height: 5000px;
-  opacity: 1;
-  padding: 10px;
-}
-
-.details-note {
-  text-align: center;
+  font-size: 18px;
   font-weight: bold;
-  margin-bottom: 10px;
-  color: #ff4d4d;
-  text-shadow: 0 0 5px rgba(0,0,0,0.5);
-  font-size: 13px;
+  margin-bottom: 15px;
 }
-
-.schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-@media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } }
-
-.schedule-row {
+.bus-sub-route {
+  text-align: center;
+  font-size: 12px;
+  color: #88a8a4;
+  margin-bottom: 10px;
+}
+.bus-grid-rows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.bus-item {
+  background: var(--bus-accent);
+  border-radius: 12px;
+  padding: 8px 12px;
   display: flex;
   justify-content: space-between;
-  padding: 4px 6px;
-  border-bottom: 1px dashed rgba(255,255,255,0.2);
-  font-size: 12px;
+  align-items: center;
+  margin-bottom: 6px;
 }
-
-.row-highlight {
-  background: rgba(255, 204, 0, 0.15) !important;
-  border: 1px solid var(--highlight-color) !important;
-  border-radius: 4px;
-  color: var(--highlight-color) !important;
+.bus-item span { font-size: 14px; font-weight: bold; }
+.bus-item .bus-time-label { color: #f1df30; }
+.bus-col-label {
+  font-size: 11px;
   font-weight: bold;
+  color: #f1df30;
+  margin-bottom: 8px;
+  text-transform: uppercase;
 }
-.row-highlight span { color: var(--highlight-color) !important; }
-
-.station-number { color: #ffcc00; font-weight: bold; margin-right: 4px; }
-.time-green { color: #00ff9c; font-weight: bold; }
-.time-passed { color: #888; }
-.time-normal { color: #fff; font-weight: normal; }
-
-.alert-dot {
-  position: absolute;
-  top: -4px; right: -8px;
-  width: 7px; height: 7px;
-  background: #ff3b3b;
-  border-radius: 50%;
-  animation: blink 1s infinite;
+.bus-note {
+  font-size: 10px;
+  text-align: center;
+  color: #ff4d4d;
+  margin-top: 10px;
+  font-style: italic;
 }
 
-/* СТИЛІ АВТОБУСІВ */
-.bus-card {
-  background: rgba(0,0,0,0.6);
-  border-radius: 16px;
-  padding: 15px;
-  margin-bottom: 10px;
-  border: 1px solid rgba(255,255,255,0.1);
+/* СТИЛІ ЕЛЕКТРИЧОК (БЕЗ ЗМІН) */
+.train-list-widget { background:rgba(0,0,0,0.6); padding:10px; border-radius:16px; }
+.table-head { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; font-weight: 800; border-bottom: 2px solid #aaa; padding-bottom: 8px; font-size: 14px; }
+.train { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.2); cursor: pointer; justify-items: center; }
+.details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.05); border-radius: 10px; }
+.details.open { max-height: 5000px; opacity: 1; padding: 10px; }
+.schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (max-width: 600px) { 
+    .schedule-grid { grid-template-columns: 1fr; } 
+    .bus-grid-rows { grid-template-columns: 1fr; }
 }
-.bus-title { color: var(--highlight-color); text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 16px; }
-.bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.bus-col-title { font-size: 10px; color: var(--highlight-color); margin-bottom: 6px; font-weight: bold; text-align: center; text-transform: uppercase; }
-.bus-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-bottom: 4px; font-size: 12px; }
-.bus-row b { color: #00ff9c; font-family: monospace; font-size: 14px; }
-@media (max-width: 550px) { .bus-grid { grid-template-columns: 1fr; } }
-
+.schedule-row { display: flex; justify-content: space-between; padding: 4px 6px; border-bottom: 1px dashed rgba(255,255,255,0.2); font-size: 12px; }
+.row-highlight { background: rgba(255, 204, 0, 0.15) !important; border-radius: 4px; color: var(--highlight-color) !important; font-weight: bold; }
+.alert-dot { position: absolute; top: -4px; right: -8px; width: 7px; height: 7px; background: #ff3b3b; border-radius: 50%; animation: blink 1s infinite; }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 </style>
 </head>
@@ -280,20 +159,15 @@ body {
 
 <div class="top-row">
   <div class="widget">
-    <div class="datetime">
-      <div id="date"></div>
-      <div class="weekdays">
-        <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
-        <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
-        <div class="day">нд</div>
-      </div>
-      <div id="time"></div>
+    <div id="date" style="font-family: monospace;"></div>
+    <div class="weekdays">
+      <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
+      <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
+      <div class="day">нд</div>
     </div>
+    <div id="time" style="font-family: monospace;"></div>
   </div>
-
-  <div class="widget">
-    <div class="weather-box" id="weather-container"></div>
-  </div>
+  <div class="widget" id="weather-container"></div>
 </div>
 
 <div class="tabs-nav">
@@ -308,61 +182,76 @@ body {
 </div>
 
 <div id="buses" class="content-section">
-  <div class="bus-card">
-      <div class="bus-title">Вільногірськ — Дніпро</div>
-      <div class="bus-grid">
-          <div class="bus-col">
-              <div class="bus-col-title">З Вільногірська</div>
-              <div class="bus-row"><span>через Божедарівку</span><b>06:00</b></div>
-              <div class="bus-row"><span>через Божедарівку</span><b>10:00</b></div>
-              <div class="bus-row"><span>через Божедарівку</span><b>13:00</b></div>
-              <div style="height:5px"></div>
-              <div class="bus-row"><span>через Кам'янське</span><b>05:10</b></div>
-              <div class="bus-row"><span>через Кам'янське</span><b>14:10</b></div>
-          </div>
-          <div class="bus-col">
-              <div class="bus-col-title">З Дніпра (АС1)</div>
-              <div class="bus-row"><span>через Божедарівку</span><b>07:00</b></div>
-              <div class="bus-row"><span>через Божедарівку</span><b>10:00</b></div>
-              <div class="bus-row"><span>через Божедарівку</span><b>13:00</b></div>
-              <div style="height:5px"></div>
-              <div class="bus-row"><span>через Кам'янське</span><b>08:10</b></div>
-              <div class="bus-row"><span>через Кам'янське</span><b>17:10</b></div>
-          </div>
+  <div class="bus-container">
+    
+    <div class="bus-card-main">
+      <div class="bus-header-title">Вільногірськ — Дніпро</div>
+      
+      <div class="bus-sub-route">через смт. Божедарівка</div>
+      <div class="bus-grid-rows">
+        <div>
+          <div class="bus-col-label">З Дніпра (АС1)</div>
+          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">07:00</span></div>
+          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">10:00</span></div>
+          <div class="bus-item"><span>Рейс 3</span><span class="bus-time-label">13:00</span></div>
+        </div>
+        <div>
+          <div class="bus-col-label">З Вільногірська</div>
+          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">06:00</span></div>
+          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">10:00</span></div>
+          <div class="bus-item"><span>Рейс 3</span><span class="bus-time-label">13:00</span></div>
+        </div>
       </div>
-  </div>
 
-  <div class="bus-card">
-      <div class="bus-title">Кривий Ріг / Верхньодніпровськ</div>
-      <div class="bus-grid">
-          <div class="bus-col">
-              <div class="bus-col-title">На Кривий Ріг</div>
-              <div class="bus-row"><span>З Вільногірська</span><b>06:25</b></div>
-              <div class="bus-row"><span>З Кривого Рогу</span><b>12:45</b></div>
-          </div>
-          <div class="bus-col">
-              <div class="bus-col-title">На Верхньодніпровськ</div>
-              <div class="bus-row"><span>З Вільногірська</span><b>16:20</b></div>
-              <div class="bus-row"><span>З Верхньодніпровська</span><b>05:20</b></div>
-          </div>
+      <div class="bus-sub-route" style="margin-top:15px">через м. Кам'янське</div>
+      <div class="bus-grid-rows">
+        <div>
+          <div class="bus-col-label">З Дніпра (АС1)</div>
+          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">08:10</span></div>
+          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">17:10</span></div>
+        </div>
+        <div>
+          <div class="bus-col-label">З Вільногірська</div>
+          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">05:10</span></div>
+          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">14:10</span></div>
+        </div>
       </div>
-      <div style="font-size:10px; color:#ff4d4d; text-align:center; margin-top:8px; font-weight:bold;">* крім суботи та неділі</div>
-  </div>
+      <div class="bus-note">* Рейси через Кам'янське йдуть повз з/в Кам'янське-Пас.</div>
+    </div>
 
-  <div class="bus-card">
-      <div class="bus-title">Вільногірськ — Лихівка</div>
-      <div class="bus-grid">
-          <div class="bus-col">
-              <div class="bus-col-title">З Вільногірська</div>
-              <div class="bus-row"><span>Перший рейс</span><b>10:30</b></div>
-              <div class="bus-row"><span>Другий рейс</span><b>14:45</b></div>
-          </div>
-          <div class="bus-col">
-              <div class="bus-col-title">З Лихівки</div>
-              <div class="bus-row"><span>Перший рейс</span><b>11:35</b></div>
-              <div class="bus-row"><span>Другий рейс</span><b>15:55</b></div>
-          </div>
+    <div class="bus-card-main">
+      <div class="bus-header-title">Кривий Ріг / В-Дніпровськ</div>
+      <div class="bus-grid-rows">
+        <div>
+          <div class="bus-col-label">На Кривий Ріг</div>
+          <div class="bus-item"><span>З Вільног.</span><span class="bus-time-label">06:25</span></div>
+          <div class="bus-item"><span>З Кр. Рогу</span><span class="bus-time-label">12:45</span></div>
+        </div>
+        <div>
+          <div class="bus-col-label">На В-Дніпровськ</div>
+          <div class="bus-item"><span>З Вільног.</span><span class="bus-time-label">16:20</span></div>
+          <div class="bus-item"><span>З В-Дніпр.</span><span class="bus-time-label">05:20</span></div>
+        </div>
       </div>
+      <div class="bus-note">* крім суботи та неділі</div>
+    </div>
+
+    <div class="bus-card-main">
+      <div class="bus-header-title">Вільногірськ — Лихівка</div>
+      <div class="bus-grid-rows">
+        <div>
+          <div class="bus-col-label">З Вільногірська</div>
+          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">10:30</span></div>
+          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">14:45</span></div>
+        </div>
+        <div>
+          <div class="bus-col-label">З Лихівки</div>
+          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">11:35</span></div>
+          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">15:55</span></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -378,6 +267,7 @@ function openTab(tabId, btn) {
   btn.classList.add('active');
 }
 
+// Оригінальні дані електричок
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
@@ -386,8 +276,6 @@ const changes = {
     "6035": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове і далі за цим розкладом"
 };
 
-const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
-
 const fullSchedules = {
   "6005": [["Дніпро-Гол.","04:52"],["Горяїнове","04:58"],["з.п. 184 км","05:03"],["Діївка","05:08"],["з.п. 178 км","05:13"],["з.п. 175 км","05:17"],["Сухачівка","05:24"],["з.п. 169 км","05:28"],["з.п. 165 км","05:33"],["з.п. 164 км","05:36"],["з.п. 160 км","05:40"],["Запоріжжя-Кам’янське","05:43"],["Кам'янське-Пас.","05:48"],["з.п. 149 км","05:53"],["Воскобійня","06:01"],["з.п. 139 км","06:06"],["Верхньодніпровськ","06:14"],["з.п. 128 км","06:19"],["з.п. 125 км","06:22"],["з.п. 119 км","06:28"],["Верхівцеве","06:33"],["з.п. 114 км","06:40"],["з.п. Гранове","06:44"],["з.п. 104 км","06:49"],["Вільногірськ","06:54"],["Ерастівка","07:04"],["з.п. 88 км","07:11"],["з.п. Касинівка","07:17"],["з.п. 77 км","07:23"],["П'ятихатки-Пас.","07:30"],["П'ятихатки-Стикова","07:38"]],
   "6008": [["П'ятихатки-Пас.","04:43"],["з.п. 77 км","04:49"],["з.п. Касинівка","04:54"],["з.п. 88 км","05:01"],["Ерастівка","05:07"],["Вільногірськ","05:16"],["з.п. 104 км","05:21"],["з.п. Гранове","05:26"],["з.п. 114 км","05:30"],["Верхівцеве","05:36"],["з.п. 119 км","05:39"],["з.п. 125 км","05:44"],["з.п. 128 км","05:48"],["Верхньодніпровськ","06:15"],["з.п. 139 км","06:22"],["Воскобійня","06:28"],["з.п. 149 км","06:36"],["Кам'янське-Пас.","06:42"],["Запоріжжя-Кам’янське","06:47"],["з.п. 160 км","06:50"],["з.п. 164 км","06:55"],["з.п. 165 км","06:58"],["з.п. 169 км","07:03"],["Сухачівка","07:06"],["з.п. 175 км","07:10"],["з.п. 178 км","07:14"],["Діївка","07:18"],["з.п. 184 км","07:23"],["Горяїнове","07:27"],["Дніпро-Гол.","07:32"]],
@@ -395,7 +283,7 @@ const fullSchedules = {
   "6015": [["Дніпро-Гол.","08:22"],["Горяїнове","08:28"],["з.п. 184 км","08:33"],["Діївка","08:39"],["з.п. 178 км","08:44"],["з.п. 175 км","08:48"],["Сухачівка","08:55"],["з.п. 169 км","08:59"],["з.п. 165 км","09:04"],["з.п. 164 км","09:07"],["з.п. 160 км","09:11"],["Запоріжжя-Кам’янське","09:15"],["Кам'янське-Пас.","09:20"],["з.п. 149 км","09:25"],["Воскобійня","09:33"],["з.п. 139 км","09:38"],["Верхньодніпровськ","09:46"],["з.п. 128 км","09:51"],["з.п. 125 км","09:54"],["з.п. 119 км","10:00"],["Верхівцеве","10:35"],["з.п. 114 км","10:42"],["з.п. Гранове","10:46"],["з.п. 104 км","10:51"],["Вільногірськ","10:56"],["Ерастівка","11:06"],["з.п. 88 км","11:13"],["з.п. Касинівка","11:19"],["з.п. 77 км","11:25"],["П'ятихатки-Пас.","11:30"]],
   "6018": [["П'ятихатки-Стикова","08:21"],["П'ятихатки-Пас.","08:29"],["з.п. 77 км","08:34"],["з.п. Касинівка","08:39"],["з.п. 88 км","08:46"],["Ерастівка","08:51"],["Вільногірськ","09:00"],["з.п. 104 км","09:05"],["з.п. Гранове","09:10"],["з.п. 114 км","09:14"],["Верхівцеве","09:21"],["з.п. 119 км","09:24"],["з.п. 125 км","09:29"],["з.п. 128 км","09:33"],["Верхньодніпровськ","09:40"],["з.п. 139 км","09:47"],["Воскобійня","09:51"],["з.п. 149 км","09:59"],["Кам'янське-Пас.","10:04"],["Запоріжжя-Кам’янське","10:11"],["з.п. 160 км","10:14"],["з.п. 164 км","10:19"],["з.п. 165 км","10:22"],["з.п. 169 км","10:27"],["Сухачівка","10:30"],["з.п. 175 км","10:34"],["з.п. 178 км","10:38"],["Діївка","10:42"],["з.п. 184 км","10:47"],["Горяїнове","10:51"],["Дніпро-Гол.","10:57"]],
   "6038": [["П'ятихатки-Пас.","16:50"],["з.п. 77 км","16:56"],["з.п. Касинівка","17:02"],["з.п. 88 км","17:09"],["Ерастівка","17:14"],["Вільногірськ","17:23"],["з.п. 104 км","17:28"],["з.п. Гранове","17:33"],["з.п. 114 км","17:37"],["Верхівцеве","17:44"],["з.п. 119 км","17:47"],["з.п. 125 км","17:52"],["з.п. 128 км","17:56"],["Верхньодніпровськ","18:03"],["з.п. 139 км","18:10"],["Воскобійня","18:14"],["з.п. 149 км","18:22"],["Кам'янське-Пас.","18:27"],["Запоріжжя-Кам’янське","18:32"],["з.п. 160 км","18:35"],["з.п. 164 км","18:40"],["з.п. 165 км","18:43"],["з.п. 169 км","18:48"],["Сухачівка","18:51"],["з.п. 175 км","18:55"],["з.п. 178 км","18:59"],["Діївка","19:03"],["з.п. 184 км","19:08"],["Горяїнове","19:12"],["Дніпро-Гол.","20:00"]],
-  "6035": [["Дніпро-Гол.","16:38"],["Горяїнове","16:44"],["з.п. 184 км","16:44"],["Діївка","16:55"],["з.п. 178 км","17:00"],["з.п. 175 км","17:04"],["Сухачівка","17:19"],["з.п. 169 км","17:23"],["з.п. 165 км","17:28"],["з.п. 164 км","17:31"],["з.п. 160 км","17:35"],["Запоріжжя-Кам’янське","17:39"],["Кам'янське-Пас.","17:44"],["з.п. 149 км","17:49"],["Воскобійня","17:57"],["з.п. 139 км","18:02"],["Верхньодніпровськ","18:10"],["з.п. 128 км","18:15"],["з.п. 125 км","18:18"],["з.п. 119 км","18:24"],["Верхівцеве","18:29"],["з.п. 114 км","18:36"],["з.п. Гранове","18:40"],["з.п. 104 км","18:45"],["Вільногірськ","18:50"],["Ерастівка","19:00"],["з.п. 88 км","19:04"],["з.п. Касинівка","19:10"],["з.п. 77 км","19:16"],["П'ятихатки-Пас.","19:22"],["П'ятихатки-Стикова","19:33"]],
+  "6035": [["Дніпро-Гол.","16:38"],["Горяїнове","16:44"],["з.п. 184 км","16:44"],["Діївка","16:55"],["з.п. 178 км","17:00"],["з.п. 175 км","17:04"],["Сухачівка","17:19"],["з.п. 169 км","17:23"],["з.п. 165 км","17:28"],["з.п. 164 км","17:31"],["з.п. 160 км","17:35"],["Запоріжжя-Кам’янське","17:39"],["Кам'янське-Пас.","17:44"],["з.п. 149 км","17:49"],["Воскобійня","17:57"],["з.п. 139 км","18:02"],["Верхньодніпровськ","18:10"],["з.п. 128 км","18:15"],["з.п. 125 км","18:18"],["з.п. 119 км","18:24"],["Верхівцеве","18:29"],["з.п. 114 км","18:36"],["з.п. Гранове","18:40"],["з.п. 104 км","18:45"],["Вільногірськ","18:50"],["Ерастівка","19:00"],["з.п. 88 км","19:04"],["з.п. Касинівка","19:10"],["з.п. 77 км","19:16"],["П'ятихатки-Пас.","19:22"],["П'ятихатки-Стикова","19:29"]],
   "6037": [["Дніпро-Гол.","17:34"],["Горяїнове","17:40"],["з.п. 184 км","17:45"],["Діївка","17:51"],["з.п. 178 км","17:56"],["з.п. 175 км","18:00"],["Сухачівка","18:07"],["з.п. 169 км","18:11"],["з.п. 165 км","18:16"],["з.п. 164 км","18:19"],["з.п. 160 км","18:23"],["Запоріжжя-Кам’янське","18:27"],["Кам'янське-Пас.","18:33"],["з.п. 149 км","18:38"],["Воскобійня","18:46"],["з.п. 139 км","18:51"],["Верхньодніпровськ","18:59"],["з.п. 128 км","19:04"],["з.п. 125 км","19:07"],["з.п. 119 км (Верхівцеве)","19:13"],["Верхівцеве","19:18"],["з.п. 114 км","19:25"],["з.п. Гранове","19:29"],["з.п. 104 км","19:34"],["Вільногірськ","19:39"],["Ерастівка","19:49"],["з.п. 88 км","19:57"],["з.п. Касинівка","20:03"],["з.п. 77 км","20:09"],["П'ятихатки-Пас.","20:40"]],
   "6044": [["П'ятихатки-Стикова","20:29"],["П'ятихатки-Пас.","20:37"],["з.п. 77 км","20:42"],["з.п. Касинівка","20:47"],["з.п. 88 км","20:54"],["Ерастівка","21:12"],["Вільногірськ","21:21"],["з.п. 104 км","21:25"],["з.п. Гранове","21:30"],["з.п. 114 км","21:34"],["Верхівцеве","21:40"],["з.п. 119 км (Верхівцеве)","21:43"],["з.п. 125 км","21:47"],["з.п. 128 км","21:51"],["Верхньодніпровськ","21:58"],["з.п. 139 км","22:05"],["Воскобійня","22:09"],["з.п. 149 км","22:17"],["Кам'янське-Пас.","22:22"],["Запоріжжя-Кам’янське","22:27"],["з.п. 160 км","22:30"],["з.п. 164 км","22:35"],["з.п. 165 км","22:38"],["з.п. 169 км","22:42"],["Сухачівка","22:45"],["з.п. 175 км","22:49"],["з.п. 178 км","22:53"],["Діївка","22:57"],["з.п. 184 км","23:02"],["Горяїнове","23:06"],["Дніпро-Гол.","23:12"]],
   "6043": [["Дніпро-Гол.","20:18"],["Горяїнове","20:24"],["з.п. 184 км","20:29"],["Діївка","20:35"],["з.п. 178 км","20:40"],["з.п. 175 км","20:44"],["Сухачівка","20:51"],["з.п. 169 км","20:55"],["з.п. 165 км","21:00"],["з.п. 164 км","21:03"],["з.п. 160 км","21:07"],["Запоріжжя-Кам’янське","21:11"],["Кам'янське-Пас.","21:16"],["з.п. 149 км","21:21"],["Воскобійня","21:29"],["з.п. 139 км","21:34"],["Верхньодніпровськ","21:42"],["з.п. 128 км","21:47"],["з.п. 125 км","21:50"],["з.п. 119 км (Верхівцеве)","21:56"],["Верхівцеве","22:01"],["з.п. 114 км","22:08"],["з.п. Гранове","22:12"],["з.п. 104 км","22:17"],["Вільногірськ","22:22"],["Ерастівка","22:48"],["з.п. 88 км","22:53"],["з.п. Касинівка","22:59"],["з.п. 77 км","23:05"],["П'ятихатки-Пас.","23:10"]]
@@ -413,6 +301,8 @@ const changesSchedule6035 = [
   ["Ерастівка","19:04"],["з.п. 88 км","19:08"],["з.п. Касинівка","19:14"],
   ["з.п. 77 км","19:20"],["П'ятихатки-Пас.","19:26"],["П'ятихатки-Стикова","19:33"]
 ];
+
+const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
 
@@ -548,14 +438,6 @@ function loadTrains(){
     .then(r=>r.json())
     .then(d=>render(document.getElementById("list"), d.trains))
     .catch(e => console.log("API error"));
-}
-
-// ЛОГІКА ТАБІВ
-function openTab(tabId, btn) {
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  btn.classList.add('active');
 }
 
 loadTrains(); updateDateTime(); loadWeather();
