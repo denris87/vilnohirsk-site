@@ -13,6 +13,8 @@
   --widget-bg: rgba(0, 0, 0, 0.6);
   --bus-bg: #0d3b36; 
   --bus-accent: #115c54;
+  --time-green: #00ff9c;
+  --time-passed: #888;
 }
 
 html, body { margin:0; padding:0; height:100%; }
@@ -54,6 +56,7 @@ body {
 .day { opacity: 0.4; }
 .day.active { background:red; border-radius:4px; padding: 0 5px; opacity: 1; }
 
+/* ПОГОДА */
 .weather-box { position: relative; width: 100%; height: 85px; display: flex; align-items: center; justify-content: center; }
 .weather-content { position: absolute; width: 100%; transition: opacity 1s ease-in-out; opacity: 0; text-align: center; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .weather-content.active { opacity: 1; pointer-events: auto; }
@@ -61,55 +64,58 @@ body {
 .weather-temp { font-size: clamp(20px, 5.5vw, 26px); font-weight:bold; white-space: nowrap; }
 .weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
 
-/* ТАБИ (КОРЕШКИ) */
+/* ТАБИ (КОРЕШКИ ЯК НА ФОТО) */
 .tabs-nav { display: flex; background: rgba(0,0,0,0.7); border-radius: 14px; padding: 4px; gap: 4px; margin-bottom: 0; position: relative; z-index: 2; }
 .tab-btn { flex: 1; padding: 12px; border: none; background: none; color: #fff; font-weight: bold; cursor: pointer; border-radius: 10px 10px 0 0; transition: 0.3s; font-size: 13px; text-transform: uppercase; margin-bottom: -4px; }
 .tab-btn.active { background: var(--widget-bg); color: #fff; border-bottom: none; }
 .content-section { display: none; }
-.content-section.active { display: block; }
+.content-section.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* КОНТЕНТ ЕЛЕКТРИЧОК */
-.train-list-widget { background: var(--widget-bg); padding:10px; border-radius: 0 16px 16px 16px; position: relative; z-index: 1; border: 1px solid rgba(255,255,255,0.1); }
+/* ОСНОВНИЙ БЛОК (СПІЛЬНИЙ ДЛЯ ОБОХ ВКЛАДОК) */
+.main-list-widget { background: var(--widget-bg); padding:15px 10px; border-radius: 0 16px 16px 16px; position: relative; z-index: 1; border: 1px solid rgba(255,255,255,0.1); }
+
+/* ЕЛЕКТРИЧКИ */
 .table-head { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; font-weight: 800; border-bottom: 2px solid #aaa; padding-bottom: 8px; margin-bottom: 5px; font-size: 14px; text-transform: uppercase; }
-.train { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.2); cursor: pointer; }
+.train { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.15); cursor: pointer; }
+.train-num-box { position: relative; font-weight: bold; display: inline-block; }
 .route-text { font-weight: 600; text-align: center; font-size: clamp(12px, 3.5vw, 16px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; padding: 0 5px; }
 
 .time-val { font-weight: bold; font-size: clamp(14px, 3.8vw, 18px); }
 .time-val.soon { color: #ffcc00; }
-.time-val.future { color: #00ff9c; }
-.time-val.passed { color: #888; }
+.time-val.future { color: var(--time-green); }
+.time-val.passed { color: var(--time-passed); }
 
-.alert-dot { position: absolute; top: -4px; right: -8px; width: 7px; height: 7px; background: #ff3b3b; border-radius: 50%; animation: blink 1s infinite; }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+.alert-dot { position: absolute; top: -4px; right: -10px; width: 7px; height: 7px; background: #ff3b3b; border-radius: 50%; animation: blink 1s infinite; }
 
-/* ШТОРКА ТА КОЛЬОРИ ЧАСУ */
-.details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.05); border-radius: 10px; }
-.details.open { max-height: 5000px; opacity: 1; padding: 10px; margin-top: 5px; }
+/* ШТОРКИ РОЗКЛАДУ */
+.details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.03); border-radius: 10px; }
+.details.open { max-height: 5000px; opacity: 1; padding: 10px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.05); }
 .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 @media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } }
-.schedule-row { display: flex; justify-content: space-between; padding: 4px 6px; border-bottom: 1px dashed rgba(255,255,255,0.2); font-size: 12px; }
-.row-highlight { background: rgba(255, 204, 0, 0.15) !important; border: 1px solid var(--highlight-color) !important; border-radius: 4px; font-weight: bold; }
+.schedule-row { display: flex; justify-content: space-between; padding: 4px 6px; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 11px; }
+.row-highlight { background: rgba(255, 204, 0, 0.15) !important; border-radius: 4px; color: var(--highlight-color) !important; font-weight: bold; }
 .station-number { color: #ffcc00; font-weight: bold; margin-right: 4px; }
 
-.time-green { color: #00ff9c; font-weight: bold; }
-.time-passed { color: #888; font-weight: normal; }
-.time-normal { color: #fff; font-weight: bold; } /* Білий колір для зміненого розкладу */
+.time-green { color: var(--time-green); font-weight: bold; }
+.time-passed { color: var(--time-passed); font-weight: normal; }
+.time-normal { color: #fff; font-weight: bold; } /* Білий колір для змін */
 
-/* ПОВІДОМЛЕННЯ В ШТОРЦІ */
-.details-note { text-align: center; font-weight: bold; color: #ff4d4d; margin-bottom: 5px; text-shadow: 0 0 5px rgba(0,0,0,0.5); font-size: 13px; }
-.details-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.3); margin: 15px auto 10px; }
+/* ПРИМІТКИ ПРО ЗМІНИ */
+.details-note { text-align: center; font-weight: bold; color: #ff4d4d; margin-bottom: 10px; text-shadow: 0 0 5px rgba(0,0,0,0.5); font-size: 13px; }
+.details-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.2); margin: 15px auto 10px; }
 
-/* АВТОБУСИ */
-.bus-container { display: flex; flex-direction: column; gap: 12px; background: var(--widget-bg); padding: 15px 10px; border-radius: 0 16px 16px 16px; border: 1px solid rgba(255,255,255,0.1); }
-.bus-card-main { background: var(--bus-bg); border-radius: 20px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-.bus-header-title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+/* АВТОБУСИ (ДИЗАЙН ЗІ СКРИНШОТА) */
+.bus-container { display: flex; flex-direction: column; gap: 12px; }
+.bus-card-main { background: var(--bus-bg); border-radius: 16px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); }
+.bus-header-title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fff; }
 .bus-sub-route { text-align: center; font-size: 12px; color: #88a8a4; margin-bottom: 10px; }
 .bus-grid-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 @media (max-width: 600px) { .bus-grid-rows { grid-template-columns: 1fr; } }
 .bus-item { background: var(--bus-accent); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.bus-item span { font-size: 14px; font-weight: bold; }
-.bus-item .bus-time-label { color: #f1df30; }
-.bus-col-label { font-size: 11px; font-weight: bold; color: #f1df30; margin-bottom: 8px; text-transform: uppercase; }
+.bus-item span { font-size: 14px; font-weight: bold; color: #fff; }
+.bus-item .bus-time-label { color: var(--time-green); }
+.bus-col-label { font-size: 11px; font-weight: bold; color: var(--highlight-color); margin-bottom: 8px; text-transform: uppercase; text-align: left; }
 .bus-note { font-size: 10px; text-align: center; color: #ff4d4d; margin-top: 10px; font-style: italic; }
 </style>
 </head>
@@ -142,80 +148,83 @@ body {
   <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
 </div>
 
-<div id="trains" class="content-section active">
-  <div class="train-list-widget">
-    <div id="list">Завантаження...</div>
+<div class="main-list-widget">
+  
+  <div id="trains" class="content-section active">
+    <div id="list">Завантаження розкладу...</div>
   </div>
-</div>
 
-<div id="buses" class="content-section">
-  <div class="bus-container">
-    <div class="bus-card-main">
-      <div class="bus-header-title">Вільногірськ — Дніпро</div>
-      <div class="bus-sub-route">через смт. Божедарівка</div>
-      <div class="bus-grid-rows">
-        <div>
-          <div class="bus-col-label">З Дніпра (АС1)</div>
-          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">07:00</span></div>
-          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">10:00</span></div>
-          <div class="bus-item"><span>Рейс 3</span><span class="bus-time-label">13:00</span></div>
+  <div id="buses" class="content-section">
+    <div class="bus-container">
+      <div class="bus-card-main">
+        <div class="bus-header-title">Вільногірськ — Дніпро</div>
+        <div class="bus-sub-route">через смт. Божедарівка</div>
+        <div class="bus-grid-rows">
+          <div>
+            <div class="bus-col-label">З Дніпра (АС1)</div>
+            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">07:00</span></div>
+            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">10:00</span></div>
+            <div class="bus-item"><span>Рейс 3</span><span class="bus-time-label">13:00</span></div>
+          </div>
+          <div>
+            <div class="bus-col-label">З Вільногірська</div>
+            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">06:00</span></div>
+            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">10:00</span></div>
+            <div class="bus-item"><span>Рейс 3</span><span class="bus-time-label">13:00</span></div>
+          </div>
         </div>
-        <div>
-          <div class="bus-col-label">З Вільногірська</div>
-          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">06:00</span></div>
-          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">10:00</span></div>
-          <div class="bus-item"><span>Рейс 3</span><span class="bus-time-label">13:00</span></div>
-        </div>
-      </div>
-      <div class="bus-sub-route" style="margin-top:15px">через м. Кам'янське</div>
-      <div class="bus-grid-rows">
-        <div>
-          <div class="bus-col-label">З Дніпра (АС1)</div>
-          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">08:10</span></div>
-          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">17:10</span></div>
-        </div>
-        <div>
-          <div class="bus-col-label">З Вільногірська</div>
-          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">05:10</span></div>
-          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">14:10</span></div>
-        </div>
-      </div>
-      <div class="bus-note">* Рейси через Кам'янське йдуть повз з/в Кам'янське-Пас.</div>
-    </div>
 
-    <div class="bus-card-main">
-      <div class="bus-header-title">Кривий Ріг / В-Дніпровськ</div>
-      <div class="bus-grid-rows">
-        <div>
-          <div class="bus-col-label">На Кривий Ріг</div>
-          <div class="bus-item"><span>З Вільног.</span><span class="bus-time-label">06:25</span></div>
-          <div class="bus-item"><span>З Кр. Рогу</span><span class="bus-time-label">12:45</span></div>
+        <div class="bus-sub-route" style="margin-top:15px">через м. Кам'янське</div>
+        <div class="bus-grid-rows">
+          <div>
+            <div class="bus-col-label">З Дніпра (АС1)</div>
+            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">08:10</span></div>
+            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">17:10</span></div>
+          </div>
+          <div>
+            <div class="bus-col-label">З Вільногірська</div>
+            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">05:10</span></div>
+            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">14:10</span></div>
+          </div>
         </div>
-        <div>
-          <div class="bus-col-label">На В-Дніпровськ</div>
-          <div class="bus-item"><span>З Вільног.</span><span class="bus-time-label">16:20</span></div>
-          <div class="bus-item"><span>З В-Дніпр.</span><span class="bus-time-label">05:20</span></div>
-        </div>
+        <div class="bus-note">* Рейси через Кам'янське йдуть повз з/в Кам'янське-Пас.</div>
       </div>
-      <div class="bus-note">* крім суботи та неділі</div>
-    </div>
 
-    <div class="bus-card-main">
-      <div class="bus-header-title">Вільногірськ — Лихівка</div>
-      <div class="bus-grid-rows">
-        <div>
-          <div class="bus-col-label">З Вільногірська</div>
-          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">10:30</span></div>
-          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">14:45</span></div>
+      <div class="bus-card-main">
+        <div class="bus-header-title">Кривий Ріг / В-Дніпровськ</div>
+        <div class="bus-grid-rows">
+          <div>
+            <div class="bus-col-label">На Кривий Ріг</div>
+            <div class="bus-item"><span>З Вільног.</span><span class="bus-time-label">06:25</span></div>
+            <div class="bus-item"><span>З Кр. Рогу</span><span class="bus-time-label">12:45</span></div>
+          </div>
+          <div>
+            <div class="bus-col-label">На В-Дніпровськ</div>
+            <div class="bus-item"><span>З Вільног.</span><span class="bus-time-label">16:20</span></div>
+            <div class="bus-item"><span>З В-Дніпр.</span><span class="bus-time-label">05:20</span></div>
+          </div>
         </div>
-        <div>
-          <div class="bus-col-label">З Лихівки</div>
-          <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">11:35</span></div>
-          <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">15:55</span></div>
+        <div class="bus-note">* крім суботи та неділі</div>
+      </div>
+
+      <div class="bus-card-main">
+        <div class="bus-header-title">Вільногірськ — Лихівка</div>
+        <div class="bus-grid-rows">
+          <div>
+            <div class="bus-col-label">З Вільногірська</div>
+            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">10:30</span></div>
+            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">14:45</span></div>
+          </div>
+          <div>
+            <div class="bus-col-label">З Лихівки</div>
+            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">11:35</span></div>
+            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">15:55</span></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
 </div>
 
 </div>
@@ -299,7 +308,7 @@ function isPast(timeStr) {
   return t < now;
 }
 
-// РОЗКЛАД ТА ЗМІНИ
+// ПОВНІ ДАНІ РОЗКЛАДУ БЕЗ СКОРОЧЕНЬ
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
@@ -336,16 +345,16 @@ const changesSchedule6035 = [
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-// ПРАВИЛЬНЕ ДІЛЕННЯ НА 3 КОЛОНКИ БЕЗ ВТРАТ
+// ФУНКЦІЯ ГЕНЕРАЦІЇ ШТОРКИ
 function renderGrid(data, isChanges = false) {
   if (!data || data.length === 0) return "";
   const total = data.length;
   const perCol = Math.ceil(total / 3);
   let html = '<div class="schedule-grid">';
   
-  for(let c = 0; c < 3; c++) {
+  for (let c = 0; c < 3; c++) {
     html += '<div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">';
-    for(let j = 0; j < perCol; j++) {
+    for (let j = 0; j < perCol; j++) {
       const idx = c * perCol + j;
       if (idx < total) {
         const r = data[idx];
@@ -355,7 +364,7 @@ function renderGrid(data, isChanges = false) {
         
         let timeClass = '';
         if (isChanges) {
-           timeClass = 'time-normal'; // Текст змін білий (колір тексту розкладу)
+           timeClass = 'time-normal'; 
         } else {
            timeClass = past ? 'time-passed' : 'time-green';
         }
@@ -397,7 +406,7 @@ function renderTrains(el, data){
 
     container.innerHTML+=`
       <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-        <div style="position:relative; font-weight: bold;">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
+        <div class="train-num-box">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
         <div class="route-text">${x.route}</div>
         <div class="time-val ${statusClass}">${displayText}</div>
       </div>
@@ -410,18 +419,18 @@ function renderTrains(el, data){
   });
 }
 
-function loadTrains(){
+function loadTrainsData(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(r=>r.json())
-    .then(d=>render(document.getElementById("list"), d.trains))
+    .then(d=>renderTrains(document.getElementById("list"), d.trains))
     .catch(e => console.log("API error"));
 }
 
-loadTrains(); 
 updateDateTime(); 
-loadWeather();
-setInterval(loadTrains, 30000); 
-setInterval(updateDateTime, 1000);
+loadWeather(); 
+loadTrainsData();
+setInterval(updateDateTime, 1000); 
+setInterval(loadTrainsData, 30000);
 </script>
 
 </body>
