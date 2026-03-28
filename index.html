@@ -9,7 +9,7 @@
 :root {
   --safe-top: env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
-  --highlight-color: #ffcc00; /* Золотистий для Вільногірська */
+  --highlight-color: #ffcc00; 
 }
 
 html, body {
@@ -54,7 +54,6 @@ body {
   gap:10px;
 }
 
-/* Верхні блоки: 1 лінія */
 .top-row {
   display: flex;
   flex-direction: row;
@@ -76,7 +75,6 @@ body {
   align-items: center;
 }
 
-/* Дата, час, дні */
 .datetime { text-align:center; font-family:"Courier New", monospace; width: 100%; }
 #date { font-size: clamp(18px, 4.8vw, 26px); font-weight: 900; white-space: nowrap; }
 #time { font-size: clamp(16px, 4.2vw, 22px); font-weight: 900; white-space: nowrap; color: #fff; }
@@ -91,7 +89,6 @@ body {
 }
 .day.active { background:red; border-radius:4px; padding: 0 5px; }
 
-/* Погода */
 .weather-box { 
   position: relative; 
   width: 100%; 
@@ -112,14 +109,12 @@ body {
 .weather-temp { font-size: clamp(18px, 5vw, 24px); font-weight:bold; white-space: nowrap; }
 .weather-wind { font-size: 10px; color: #aaa; }
 
-/* Таблиця */
 .train-list-widget {
   background:rgba(0,0,0,0.6);
   padding:10px;
   border-radius:16px;
 }
 
-/* 🔥 ШАПКА ТАБЛИЦІ: ПОВЕРНУТО НОРМАЛЬНИЙ РОЗМІР, АЛЕ ЖИРНИЙ */
 .table-head {
   display: grid;
   grid-template-columns: 15% 1fr 20%;
@@ -129,7 +124,7 @@ body {
   border-bottom: 2px solid #aaa;
   padding-bottom: 8px;
   margin-bottom: 5px;
-  font-size: 14px; /* Повернуто до читабельного стандарту */
+  font-size: 14px;
   text-transform: uppercase;
 }
 
@@ -154,7 +149,11 @@ body {
   padding: 0 5px;
 }
 
+/* 🔥 Стилі для головного розкладу */
 .time-val { font-weight: bold; font-size: clamp(14px, 3.8vw, 18px); }
+.time-val.soon { color: #ffcc00; }   /* Жовтий - наближається */
+.time-val.future { color: #00ff9c; } /* Зелений - очікується */
+.time-val.passed { color: #888; }    /* Сірий - уїхав */
 
 .details {
   max-height: 0;
@@ -197,13 +196,6 @@ body {
   font-size: 12px;
 }
 
-.station-name {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 75%;
-}
-
 .row-highlight {
   background: rgba(255, 204, 0, 0.15) !important;
   border: 1px solid var(--highlight-color) !important;
@@ -211,7 +203,6 @@ body {
   color: var(--highlight-color) !important;
   font-weight: bold;
 }
-.row-highlight .station-number { color: #fff !important; }
 .row-highlight span { color: var(--highlight-color) !important; }
 
 .station-number { color: #ffcc00; font-weight: bold; margin-right: 4px; }
@@ -398,14 +389,30 @@ function render(el,data){
   el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content"></div>`;
   const container = document.getElementById('trains-content');
   data.forEach(x=>{
-    const diff = Math.floor((new Date(getKyivNow().setHours(...x.time.split(':'),0,0)) - getKyivNow())/60000);
-    let cls="train " + (diff < 0 ? "passed" : (diff <= 10 ? "soon" : "future"));
+    // 🔥 Розрахунок часу до відправлення
+    const now = getKyivNow();
+    const [h, m] = x.time.split(':').map(Number);
+    const trainTime = new Date(now);
+    trainTime.setHours(h, m, 0, 0);
+    const diff = Math.floor((trainTime - now) / 60000);
+
+    // 🔥 Визначення кольору та тексту
+    let statusClass = "future"; // Зелений за замовчуванням
+    let displayText = x.time;
+
+    if (diff < 0) {
+      statusClass = "passed"; // Сірий - уїхав
+    } else if (diff <= 10) {
+      statusClass = "soon"; // Жовтий - наближається
+      displayText = `≈ ${diff} хв`; // Текст українською
+    }
+
     const id="d-"+x.number;
     container.innerHTML+=`
-      <div class="${cls}" onclick="document.getElementById('${id}').classList.toggle('open')">
+      <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div style="position:relative">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
         <div class="route-text">${x.route}</div>
-        <div class="time-val">${diff>=0 && diff<=10 ? '≈ '+diff+' хв' : x.time}</div>
+        <div class="time-val ${statusClass}">${displayText}</div>
       </div>
       <div class="details" id="${id}">
         ${renderGrid(fullSchedules[x.number])}
