@@ -73,7 +73,7 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  overflow: hidden; /* Щоб контент не виходив за межі при переході */
+  overflow: hidden;
 }
 
 .datetime { text-align:center; font-family:"Courier New", monospace; width: 100%; }
@@ -90,11 +90,11 @@ body {
 }
 .day.active { background:red; border-radius:4px; padding: 0 5px; }
 
-/* 🔥 СТИЛІ ДЛЯ ПЛАВНОЇ ПОГОДИ */
+/* 🔥 ВДОСКОНАЛЕНА ПЛАВНА ПОГОДА */
 .weather-box { 
   position: relative; 
   width: 100%; 
-  height: 80px; /* Фіксована висота для стабільності */
+  height: 85px; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -102,10 +102,15 @@ body {
 .weather-content {
   position: absolute;
   width: 100%;
-  transition: opacity 1.2s ease-in-out; /* Плавне зникнення/поява */
+  /* Збільшено час переходу для приємного затемнення всього блоку */
+  transition: opacity 1s ease-in-out; 
   opacity: 0;
   text-align: center;
   pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 .weather-content.active { 
   opacity: 1; 
@@ -173,7 +178,6 @@ body {
   max-height: 5000px;
   opacity: 1;
   padding: 10px;
-  margin: 5px 0;
 }
 
 .details-note {
@@ -185,12 +189,7 @@ body {
   font-size: 13px;
 }
 
-.schedule-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
+.schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 @media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } }
 
 .schedule-row {
@@ -259,7 +258,7 @@ body {
 </div>
 
 <script>
-// Дані розкладу та константи
+// Дані розкладу (залишаємо ваші повні об'єкти)
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
@@ -269,9 +268,9 @@ const changes = {
 };
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-// Тут будуть ваші об'єкти fullSchedules та changesSchedule6035 (скорочено для читабельності, залишаємо логіку)
-const fullSchedules = { /* ...ваші дані... */ }; 
-const changesSchedule6035 = [ /* ...ваші дані... */ ];
+// Тут повинні бути ваші повні масиви розкладів fullSchedules та changesSchedule6035
+const fullSchedules = { /* ...ваші повні дані... */ };
+const changesSchedule6035 = [ /* ...ваші повні дані... */ ];
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
 
@@ -294,9 +293,12 @@ function getWeatherEmoji(code){
   return "🌡️";
 }
 
-// 🔥 ФУНКЦІЯ ПЛАВНОЇ ПОГОДИ
+// 🔥 ЛОГІКА ПЛАВНОГО ЗАТЕМНЕННЯ ТА ПОЯВИ
 async function loadWeather(){
-  const coords = [{id: 'vil', name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {id: 'dni', name: 'Дніпро', lat: 48.45, lon: 34.98}];
+  const coords = [
+    {id: 'vil', name: 'Вільногірськ', lat: 48.48, lon: 34.02}, 
+    {id: 'dni', name: 'Дніпро', lat: 48.45, lon: 34.98}
+  ];
   let results = [];
   
   for(let c of coords){
@@ -310,7 +312,6 @@ async function loadWeather(){
   const container = document.getElementById("weather-container");
   if(results.length === 0) return;
 
-  // Створюємо HTML для кожного міста
   container.innerHTML = results.map((item, index) => `
     <div class="weather-content ${index === 0 ? 'active' : ''}" id="slide-${index}">
       <div class="weather-city">${item.name}</div>
@@ -320,14 +321,23 @@ async function loadWeather(){
   `).join("");
 
   let currentIndex = 0;
+  
   setInterval(() => {
     const currentSlide = document.getElementById(`slide-${currentIndex}`);
-    currentIndex = (currentIndex + 1) % results.length;
-    const nextSlide = document.getElementById(`slide-${currentIndex}`);
-
+    
+    // 1. Починаємо затемнення всього блоку (opacity 1 -> 0)
     if(currentSlide) currentSlide.classList.remove('active');
-    if(nextSlide) nextSlide.classList.add('active');
-  }, 7000); // Кожні 7 секунд
+    
+    // 2. Чекаємо 1.2 секунди (поки блок повністю зникне), потім міняємо місто
+    setTimeout(() => {
+      currentIndex = (currentIndex + 1) % results.length;
+      const nextSlide = document.getElementById(`slide-${currentIndex}`);
+      
+      // 3. Вмикаємо появу нового блоку (opacity 0 -> 1)
+      if(nextSlide) nextSlide.classList.add('active');
+    }, 1200); 
+
+  }, 7000); 
 }
 
 function updateDateTime(){
@@ -393,7 +403,7 @@ function render(el, data){
         <div class="time-val ${statusClass}">${displayText}</div>
       </div>
       <div class="details" id="${id}">
-        ${fullSchedules[x.number] ? renderGrid(fullSchedules[x.number]) : "Дані розкладу відсутні"}
+        ${fullSchedules[x.number] ? renderGrid(fullSchedules[x.number]) : "Дані відсутні"}
         <div style="width:60%; height:1px; background:#fff; margin:15px auto;"></div>
         <div class="details-note">${changes[x.number] || "змін немає..."}</div>
         ${x.number === "6035" ? renderGrid(changesSchedule6035, true) : ""}
