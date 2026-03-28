@@ -7,8 +7,12 @@
 
 <style>
 :root {
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
   --highlight-color: #ffcc00; 
   --widget-bg: rgba(0, 0, 0, 0.6);
+  --bus-bg: #0d3b36; 
+  --bus-accent: #115c54;
   --time-green: #00ff9c;
   --time-passed: #888;
 }
@@ -92,6 +96,36 @@ body {
 .weather-city { font-weight: bold; font-size: 13px; color: #04b6cb; margin-bottom: 2px; }
 .weather-temp { font-size: clamp(20px, 5.5vw, 26px); font-weight: bold; white-space: nowrap; }
 .weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+/* ВІДКЛЮЧЕННЯ СВІТЛА */
+.outage-widget {
+  background: var(--widget-bg);
+  border-radius: 12px;
+  padding: 12px 15px;
+  border-left: 4px solid #ff4d4d;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.outage-header {
+  color: #ff4d4d;
+  font-weight: bold;
+  font-size: 16px;
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.outage-time-box {
+  text-align: center;
+  font-size: 15px;
+  font-weight: bold;
+  color: var(--highlight-color);
+  margin-bottom: 8px;
+}
+.outage-addresses {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+}
 
 /* ГРУПА ДЛЯ КОРЕШКІВ І РОЗКЛАДУ */
 .schedule-group { display: flex; flex-direction: column; }
@@ -213,6 +247,19 @@ body {
     </div>
   </div>
 
+  <div class="outage-widget">
+    <div class="outage-header">💡 Планове відключення світла</div>
+    <div class="outage-time-box">02 квітня | з 08:00 до 17:30</div>
+    <div class="outage-addresses">
+      <b>за адресами:</b><br>
+      вул. Центральна: 18, 20, 20А, 22, 22А, 24, 24А;<br>
+      вул. Садова: 15, 17, 17А, 19, 19А, 30, 32, 34;<br>
+      вул. Захисників України: 20, 22;<br>
+      вул. Юрія Устенка: 23-29 (непарні);<br>
+      с. КРИНИЧКИ: вул. Криничанська: 1.
+    </div>
+  </div>
+
   <div class="schedule-group">
     
     <div class="tabs-nav">
@@ -231,7 +278,7 @@ body {
         
         <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
           <div class="train-num-box">🚌</div>
-          <div class="route-text">Міський автобус</div>
+          <div class="route-text">Міський: Лікарня ⇄ ЖД</div>
           <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
         </div>
         <div class="details">
@@ -259,7 +306,7 @@ body {
             </div>
           </div>
           <div class="details-divider"></div>
-          <div class="details-note">*Згідно зміни розкладу електропоїздів.Час відправлення можна уточнювати у водія<br>**Крім вихідних.</div>
+          <div class="details-note">*Згідно зміни розкладу електропоїздів. Час відправлення можна уточнювати у водія<br>**Крім вихідних.<br>тест</div>
         </div>
 
         <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
