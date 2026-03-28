@@ -93,6 +93,7 @@ body {
 
 .time-green { color: #00ff9c; font-weight: bold; }
 .time-passed { color: #888; font-weight: normal; }
+.time-normal { color: #fff; font-weight: bold; } /* Білий колір для зміненого розкладу */
 
 /* ПОВІДОМЛЕННЯ В ШТОРЦІ */
 .details-note { text-align: center; font-weight: bold; color: #ff4d4d; margin-bottom: 5px; text-shadow: 0 0 5px rgba(0,0,0,0.5); font-size: 13px; }
@@ -335,7 +336,7 @@ const changesSchedule6035 = [
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-// ШТОРКИ ТА КОЛОНКИ
+// ПРАВИЛЬНЕ ДІЛЕННЯ НА 3 КОЛОНКИ БЕЗ ВТРАТ
 function renderGrid(data, isChanges = false) {
   if (!data || data.length === 0) return "";
   const total = data.length;
@@ -351,7 +352,15 @@ function renderGrid(data, isChanges = false) {
         const past = isPast(r[1]);
         const isVil = r[0].toLowerCase().includes('вільногірськ');
         const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
-        const timeClass = past ? 'time-passed' : 'time-green';
+        
+        let timeClass = '';
+        if (isChanges) {
+           timeClass = 'time-normal'; // Текст змін білий (колір тексту розкладу)
+        } else {
+           timeClass = past ? 'time-passed' : 'time-green';
+        }
+        if (r[1] === "---" || r[1] === "—") timeClass = 'time-passed';
+
         html += `<div class="${rowClass}">
           <span class="station-name"><span class="station-number">${idx + 1}.</span>${r[0]}</span>
           <span class="${timeClass}">${r[1]}</span>
@@ -363,13 +372,13 @@ function renderGrid(data, isChanges = false) {
   return html + '</div>';
 }
 
-function render(el, data){
-  if(!data) return;
+function renderTrains(el, data){
   data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
   el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content"></div>`;
   const container = document.getElementById('trains-content');
   
   data.forEach(x=>{
+    const id="d-"+x.number;
     const now = getKyivNow();
     const [h, m] = x.time.split(':').map(Number);
     const trainTime = new Date(now);
@@ -386,7 +395,6 @@ function render(el, data){
       displayText = `≈ ${diff} хв`;
     }
 
-    const id="d-"+x.number;
     container.innerHTML+=`
       <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div style="position:relative; font-weight: bold;">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
