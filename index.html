@@ -222,130 +222,13 @@ body {
     <div class="main-list-widget">
       
       <div id="trains" class="content-section active">
-        <div id="list">Завантаження розкладу...</div>
+        <div id="list" style="text-align: center; padding: 20px;">Завантаження розкладу електричок...</div>
       </div>
 
       <div id="buses" class="content-section">
-        <div class="table-head"><div>Тип</div><div>Маршрут прямування</div><div>Статус</div></div>
-        
-        <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
-          <div class="train-num-box">🚌</div>
-          <div class="route-text">Міський автобус</div>
-          <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
-        </div>
-        <div class="details">
-          <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">Від МЦЛ (нова лікарня)</div>
-              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">06:00</span></div>
-              <div class="schedule-row"><span>до маг. Ольга**</span><span class="time-normal">07:30</span></div>
-              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">08:30</span></div>
-              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">10:10</span></div>
-              <div class="schedule-row"><span>до маг. Ольга**</span><span class="time-normal">12:10</span></div>
-              <div class="schedule-row"><span>до маг. Ольга**</span><span class="time-normal">14:10</span></div>
-              <div class="schedule-row"><span>Крім вихідних*</span><span class="time-normal">15:20</span></div>
-              <div class="schedule-row"><span>Крім вихідних*</span><span class="time-normal">16:40</span></div>
-            </div>
-            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">Від залізничного вокзалу</div>
-              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">07:00</span></div>
-              <div class="schedule-row"><span>від маг. Ольга**</span><span class="time-normal">07:40</span></div>
-              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">09:05</span></div>
-              <div class="schedule-row"><span>Щоденно*</span><span class="time-normal">11:00</span></div>
-              <div class="schedule-row"><span>від маг. Ольга**</span><span class="time-normal">14:00</span></div>
-              <div class="schedule-row"><span>від маг. Ольга**</span><span class="time-normal">15:00</span></div>
-              <div class="schedule-row"><span>Крім вихідних*</span><span class="time-normal">16:10</span></div>
-            </div>
-          </div>
-          <div class="details-divider"></div>
-          <div class="details-note">*Згідно зміни розкладу електропоїздів.Час відправлення можна уточнювати у водія<br>**Крім вихідних.</div>
-        </div>
-
-        <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
-          <div class="train-num-box">🚌</div>
-          <div class="route-text">До Дніпра (ч/з Божедарівку)</div>
-          <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
-        </div>
-        <div class="details">
-          <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Вільногірська</div>
-              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">06:00</span></div>
-              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">10:00</span></div>
-              <div class="schedule-row"><span>Рейс 3</span><span class="time-normal">13:00</span></div>
-            </div>
-            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Дніпра (АС1)</div>
-              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">07:00</span></div>
-              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">10:00</span></div>
-              <div class="schedule-row"><span>Рейс 3</span><span class="time-normal">13:00</span></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
-          <div class="train-num-box">🚌</div>
-          <div class="route-text">До Дніпра (ч/з Кам'янське)</div>
-          <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
-        </div>
-        <div class="details">
-          <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Вільногірська</div>
-              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">05:10</span></div>
-              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">14:10</span></div>
-            </div>
-            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Дніпра (АС1)</div>
-              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">08:10</span></div>
-              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">17:10</span></div>
-            </div>
-          </div>
-          <div class="details-divider"></div>
-          <div class="details-note" style="color: #88a8a4;">* Йдуть повз зализничий вокзал Кам'янське-Пас.</div>
-        </div>
-
-        <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
-          <div class="train-num-box">🚌</div>
-          <div class="route-text">Кривий Ріг ⇄ В-Дніпр.</div>
-          <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
-        </div>
-        <div class="details">
-          <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">На Кривий Ріг</div>
-              <div class="schedule-row"><span>З Вільногірська</span><span class="time-normal">06:25</span></div>
-            </div>
-            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">На В-Дніпровськ</div>
-              <div class="schedule-row"><span>З Вільногірська</span><span class="time-normal">16:20</span></div>
-            </div>
-          </div>
-          <div class="details-divider"></div>
-          <div class="details-note">*Крім вихідних</div>
-        </div>
-
-        <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
-          <div class="train-num-box">🚌</div>
-          <div class="route-text">Вільногірськ ⇄ Лихівка</div>
-          <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
-        </div>
-        <div class="details">
-          <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Вільногірська</div>
-              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">10:30</span></div>
-              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">14:45</span></div>
-            </div>
-            <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-              <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">З Лихівки</div>
-              <div class="schedule-row"><span>Рейс 1</span><span class="time-normal">11:35</span></div>
-              <div class="schedule-row"><span>Рейс 2</span><span class="time-normal">15:55</span></div>
-            </div>
-          </div>
-        </div>
-
+        <div id="buses-list" style="text-align: center; padding: 20px;">Завантаження розкладу автобусів...</div>
       </div>
+
     </div>
   </div>
 
@@ -430,7 +313,7 @@ function isPast(timeStr) {
   return t < now;
 }
 
-// РЕНДЕР СІТКИ ЗУПИНОК
+// РЕНДЕР СІТКИ ЗУПИНОК (ДЛЯ ЕЛЕКТРИЧОК)
 function renderGrid(data, isChanges = false) {
   if (!data || data.length === 0) return "";
   const total = data.length;
@@ -466,7 +349,7 @@ function renderGrid(data, isChanges = false) {
   return html + '</div>';
 }
 
-// РЕНДЕР СПИСКУ ЕЛЕКТРИЧОК (Беремо дані з Railway)
+// РЕНДЕР СПИСКУ ЕЛЕКТРИЧОК
 function renderTrains(el, data){
   el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content"></div>`;
   const container = document.getElementById('trains-content');
@@ -478,7 +361,6 @@ function renderTrains(el, data){
     let statusClass = "future";
     let displayText = x.time;
 
-    // Безпечний розрахунок часу до відправлення
     if (x.time && x.time !== "—" && x.time !== "---") {
       const [h, m] = x.time.split(':').map(Number);
       const trainTime = new Date(now);
@@ -513,16 +395,64 @@ function renderTrains(el, data){
   });
 }
 
-// ЗАВАНТАЖЕННЯ ДАНИХ З СЕРВЕРА
+// РЕНДЕР СПИСКУ АВТОБУСІВ
+function renderBuses(el, data) {
+  el.innerHTML = `<div class="table-head"><div>Тип</div><div>Маршрут прямування</div><div>Статус</div></div><div id="buses-content"></div>`;
+  const container = document.getElementById('buses-content');
+
+  data.forEach(b => {
+    let colsHtml = '';
+    
+    b.directions.forEach(dir => {
+      let rowsHtml = '';
+      dir.rows.forEach(row => {
+        rowsHtml += `<div class="schedule-row"><span>${row[0]}</span><span class="time-normal">${row[1]}</span></div>`;
+      });
+      colsHtml += `
+        <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
+          <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">${dir.title}</div>
+          ${rowsHtml}
+        </div>
+      `;
+    });
+
+    const noteHtml = b.note ? `<div class="details-divider"></div><div class="details-note" style="color: #88a8a4;">${b.note}</div>` : '';
+
+    container.innerHTML += `
+      <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
+        <div class="train-num-box">🚌</div>
+        <div class="route-text">${b.route}</div>
+        <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
+      </div>
+      <div class="details">
+        <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
+          ${colsHtml}
+        </div>
+        ${noteHtml}
+      </div>
+    `;
+  });
+}
+
+// ЗАВАНТАЖЕННЯ ДАНИХ З СЕРВЕРІВ
 function loadTrainsData(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(r => r.json())
-    .then(d => {
-       renderTrains(document.getElementById("list"), d.trains);
-    })
+    .then(d => renderTrains(document.getElementById("list"), d.trains))
     .catch(e => {
-       console.error("API error", e);
-       document.getElementById("list").innerHTML = "<div style='text-align:center; padding: 20px;'>Помилка завантаження даних з сервера 😢</div>";
+       console.error("API error Trains", e);
+       document.getElementById("list").innerHTML = "<div style='text-align:center; padding: 20px;'>Помилка завантаження електричок 😢</div>";
+    });
+}
+
+function loadBusesData(){
+  // ТУТ МЫ ДОБАВИЛИ ТВОЮ НОВУЮ ССЫЛКУ ДЛЯ АВТОБУСОВ
+  fetch("https://vilnohirskbuses-production.up.railway.app/api/buses")
+    .then(r => r.json())
+    .then(d => renderBuses(document.getElementById("buses-list"), d.buses))
+    .catch(e => {
+       console.error("API error Buses", e);
+       document.getElementById("buses-list").innerHTML = "<div style='text-align:center; padding: 20px;'>Помилка завантаження автобусів 😢</div>";
     });
 }
 
@@ -530,8 +460,9 @@ function loadTrainsData(){
 updateDateTime(); 
 loadWeather(); 
 loadTrainsData();
+loadBusesData(); // Загружаем автобусы при открытии сайта
 setInterval(updateDateTime, 1000); 
-setInterval(loadTrainsData, 30000);
+setInterval(loadTrainsData, 30000); // Обновляем статусы электричек каждые 30 сек
 </script>
 
 </body>
