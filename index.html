@@ -86,7 +86,22 @@ body {
 .time-val.future { color: var(--time-green); }
 .time-val.passed { color: var(--time-passed); }
 
-.alert-dot { position: absolute; top: -4px; right: -10px; width: 7px; height: 7px; background: #ff3b3b; border-radius: 50%; animation: blink 1s infinite; }
+/* ОНОВЛЕНА ЧЕРВОНА КРАПКА (ПУЛЬСАЦІЯ) */
+.alert-dot { 
+  position: absolute; 
+  top: -4px; 
+  right: -12px; 
+  width: 8px; 
+  height: 8px; 
+  background: #ff3b3b; 
+  border-radius: 50%; 
+  box-shadow: 0 0 5px #ff3b3b;
+  animation: pulse 1.2s infinite alternate; 
+}
+@keyframes pulse { 
+  0% { opacity: 1; box-shadow: 0 0 8px #ff3b3b; } 
+  100% { opacity: 0.3; box-shadow: 0 0 2px #ff3b3b; } 
+}
 
 /* ШТОРКИ РОЗКЛАДУ */
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.03); border-radius: 10px; }
@@ -226,8 +241,6 @@ body {
   </div>
 
 </div>
-
-</div>
 </div>
 
 <script>
@@ -240,6 +253,17 @@ function openTab(tabId, btn) {
 }
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
+
+// ДАТА ТА ЧАС
+function updateDateTime(){
+  const now = getKyivNow();
+  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+  const days=document.querySelectorAll(".day");
+  days.forEach(d=>d.classList.remove("active"));
+  let i=now.getDay(); i=i===0?6:i-1;
+  days[i].classList.add("active");
+}
 
 // ПОГОДА
 function getWeatherEmoji(code){
@@ -288,17 +312,6 @@ async function loadWeather(){
   }, 7000); 
 }
 
-// ДАТА ТА ЧАС
-function updateDateTime(){
-  const now = getKyivNow();
-  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-  const days=document.querySelectorAll(".day");
-  days.forEach(d=>d.classList.remove("active"));
-  let i=now.getDay(); i=i===0?6:i-1;
-  days[i].classList.add("active");
-}
-
 function isPast(timeStr) {
   if (!timeStr || timeStr === "---" || timeStr === "—" || !timeStr.includes(":")) return false;
   const now = getKyivNow();
@@ -345,16 +358,16 @@ const changesSchedule6035 = [
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-// ФУНКЦІЯ ГЕНЕРАЦІЇ ШТОРКИ
+// ПРАВИЛЬНЕ ДІЛЕННЯ НА 3 КОЛОНКИ БЕЗ ВТРАТ ЗУПИНОК
 function renderGrid(data, isChanges = false) {
   if (!data || data.length === 0) return "";
   const total = data.length;
   const perCol = Math.ceil(total / 3);
   let html = '<div class="schedule-grid">';
   
-  for (let c = 0; c < 3; c++) {
+  for(let c = 0; c < 3; c++) {
     html += '<div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">';
-    for (let j = 0; j < perCol; j++) {
+    for(let j = 0; j < perCol; j++) {
       const idx = c * perCol + j;
       if (idx < total) {
         const r = data[idx];
@@ -364,7 +377,7 @@ function renderGrid(data, isChanges = false) {
         
         let timeClass = '';
         if (isChanges) {
-           timeClass = 'time-normal'; 
+           timeClass = 'time-normal'; // Текст змін білий (колір тексту розкладу)
         } else {
            timeClass = past ? 'time-passed' : 'time-green';
         }
