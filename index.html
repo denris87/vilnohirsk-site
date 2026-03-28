@@ -64,20 +64,27 @@ body {
 .weather-temp { font-size: clamp(20px, 5.5vw, 26px); font-weight:bold; white-space: nowrap; }
 .weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
 
-/* ТАБИ-КОРЕШКИ ЗМЕНШЕНІ У 2 РАЗИ (50% ШИРИНИ) */
+/* ГРУПА ДЛЯ КОРЕШКІВ І РОЗКЛАДУ (щоб не було щілин) */
+.schedule-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ТАБИ-КОРЕШКИ */
 .tabs-nav { 
   display: flex; 
-  width: 50%; /* ЗАЙМАЮТЬ РІВНО ПОЛОВИНУ */
-  min-width: 240px; /* Запобіжник для дуже маленьких екранів */
+  width: 50%; 
+  min-width: 240px; 
   gap: 4px; 
-  margin-bottom: 0; 
   position: relative; 
   z-index: 2; 
+  margin-bottom: -1px; /* Накладання на 1px вниз щоб закрити рамку */
 }
 .tab-btn { 
   flex: 1; 
   padding: 12px 5px; 
-  border: none; 
+  border: 1px solid transparent; 
+  border-bottom: none;
   background: rgba(0, 0, 0, 0.4); 
   color: rgba(255, 255, 255, 0.6); 
   font-weight: bold; 
@@ -86,26 +93,24 @@ body {
   transition: 0.3s; 
   font-size: clamp(11px, 3.5vw, 13px); 
   text-transform: uppercase; 
-  margin-bottom: -1px; /* Накладання на нижній блок */
   white-space: nowrap;
 }
 .tab-btn.active { 
   background: var(--widget-bg); 
   color: #fff; 
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  padding-bottom: 13px; /* Компенсація накладання */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Рамка з боків і зверху */
+  border-bottom: 1px solid var(--widget-bg); /* Робить низ безшовним з основним блоком */
 }
+
 .content-section { display: none; }
 .content-section.active { display: block; animation: fadeIn 0.4s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ОСНОВНИЙ БЛОК (СТИЛЬ ПАПКИ - Прямий лівий кут) */
+/* ОСНОВНИЙ БЛОК РОЗКЛАДУ */
 .main-list-widget { 
   background: var(--widget-bg); 
   padding: 15px 10px; 
-  border-radius: 0 16px 16px 16px; /* Прямий верхній лівий кут */
+  border-radius: 0 16px 16px 16px; 
   position: relative; 
   z-index: 1; 
   border: 1px solid rgba(255,255,255,0.1); 
@@ -122,7 +127,7 @@ body {
 .time-val.future { color: var(--time-green); }
 .time-val.passed { color: var(--time-passed); }
 
-/* ШВИДКЕ МИГОТІННЯ КРАПКИ */
+/* ЧЕРВОНА КРАПКА */
 .alert-dot { 
   position: absolute; 
   top: -4px; 
@@ -133,7 +138,10 @@ body {
   border-radius: 50%; 
   animation: blink 0.7s infinite alternate; 
 }
-@keyframes blink { 0% { opacity: 1; box-shadow: 0 0 6px #ff3b3b; } 100% { opacity: 0.3; box-shadow: 0 0 1px #ff3b3b; } }
+@keyframes blink { 
+  0% { opacity: 1; box-shadow: 0 0 6px #ff3b3b; } 
+  100% { opacity: 0.3; box-shadow: 0 0 1px #ff3b3b; } 
+}
 
 /* ШТОРКИ РОЗКЛАДУ */
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.03); border-radius: 10px; }
@@ -172,100 +180,103 @@ body {
 <div class="wrapper">
 <div class="container">
 
-<div class="top-row">
-  <div class="widget">
-    <div class="datetime">
-      <div id="date"></div>
-      <div class="weekdays">
-        <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
-        <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
-        <div class="day">нд</div>
+  <div class="top-row">
+    <div class="widget">
+      <div class="datetime">
+        <div id="date"></div>
+        <div class="weekdays">
+          <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
+          <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
+          <div class="day">нд</div>
+        </div>
+        <div id="time"></div>
       </div>
-      <div id="time"></div>
+    </div>
+
+    <div class="widget">
+      <div class="weather-box" id="weather-container"></div>
     </div>
   </div>
 
-  <div class="widget">
-    <div class="weather-box" id="weather-container"></div>
-  </div>
-</div>
+  <div class="schedule-group">
+    
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="openTab('trains', this)">Електрички</button>
+      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
+    </div>
 
-<div class="tabs-nav">
-  <button class="tab-btn active" onclick="openTab('trains', this)">Електрички</button>
-  <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
-</div>
-
-<div class="main-list-widget">
-  
-  <div id="trains" class="content-section active">
-    <div id="list">Завантаження розкладу...</div>
-  </div>
-
-  <div id="buses" class="content-section">
-    <div class="bus-container">
-      <div class="bus-card-main">
-        <div class="bus-header-title">Вільногірськ — Дніпро</div>
-        <div class="bus-sub-route">через смт. Божедарівка</div>
-        <div class="bus-grid-rows">
-          <div>
-            <div class="bus-col-label">З Дніпра (АС1)</div>
-            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">07:00</span></div>
-            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">10:00</span></div>
-            <div class="bus-item"><span>Рейс 3</span><span class="bus-time-label">13:00</span></div>
-          </div>
-          <div>
-            <div class="bus-col-label">З Вільногірська</div>
-            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">06:00</span></div>
-            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">10:00</span></div>
-            <div class="bus-item"><span>Рейс 3</span><span class="bus-time-label">13:00</span></div>
-          </div>
-        </div>
-
-        <div class="bus-sub-route" style="margin-top:15px">через м. Кам'янське</div>
-        <div class="bus-grid-rows">
-          <div>
-            <div class="bus-col-label">З Дніпра (АС1)</div>
-            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">08:10</span></div>
-            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">17:10</span></div>
-          </div>
-          <div>
-            <div class="bus-col-label">З Вільногірська</div>
-            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">05:10</span></div>
-            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">14:10</span></div>
-          </div>
-        </div>
-        <div class="bus-note">* Рейси через Кам'янське йдуть повз з/в Кам'янське-Пас.</div>
+    <div class="main-list-widget">
+      <div id="trains" class="content-section active">
+        <div id="list">Завантаження розкладу...</div>
       </div>
 
-      <div class="bus-card-main">
-        <div class="bus-header-title">Кривий Ріг / В-Дніпровськ</div>
-        <div class="bus-grid-rows">
-          <div>
-            <div class="bus-col-label">На Кривий Ріг</div>
-            <div class="bus-item"><span>З Вільног.</span><span class="bus-time-label">06:25</span></div>
-            <div class="bus-item"><span>З Кр. Рогу</span><span class="bus-time-label">12:45</span></div>
-          </div>
-          <div>
-            <div class="bus-col-label">На В-Дніпровськ</div>
-            <div class="bus-item"><span>З Вільног.</span><span class="bus-time-label">16:20</span></div>
-            <div class="bus-item"><span>З В-Дніпр.</span><span class="bus-time-label">05:20</span></div>
-          </div>
-        </div>
-        <div class="bus-note">* крім суботи та неділі</div>
-      </div>
+      <div id="buses" class="content-section">
+        <div class="bus-container">
+          <div class="bus-card-main">
+            <div class="bus-header-title">Вільногірськ — Дніпро</div>
+            <div class="bus-sub-route">через смт. Божедарівка</div>
+            <div class="bus-grid-rows">
+              <div>
+                <div class="bus-col-label">З Дніпра (АС1)</div>
+                <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">07:00</span></div>
+                <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">10:00</span></div>
+                <div class="bus-item"><span>Рейс 3</span><span class="bus-time-label">13:00</span></div>
+              </div>
+              <div>
+                <div class="bus-col-label">З Вільногірська</div>
+                <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">06:00</span></div>
+                <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">10:00</span></div>
+                <div class="bus-item"><span>Рейс 3</span><span class="bus-time-label">13:00</span></div>
+              </div>
+            </div>
 
-      <div class="bus-card-main">
-        <div class="bus-header-title">Вільногірськ — Лихівка</div>
-        <div class="bus-grid-rows">
-          <div>
-            <div class="bus-col-label">З Вільногірська</div>
-            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">10:30</span></div>
-            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">14:45</span></div>
+            <div class="bus-sub-route" style="margin-top:15px">через м. Кам'янське</div>
+            <div class="bus-grid-rows">
+              <div>
+                <div class="bus-col-label">З Дніпра (АС1)</div>
+                <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">08:10</span></div>
+                <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">17:10</span></div>
+              </div>
+              <div>
+                <div class="bus-col-label">З Вільногірська</div>
+                <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">05:10</span></div>
+                <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">14:10</span></div>
+              </div>
+            </div>
+            <div class="bus-note">* Рейси через Кам'янське йдуть повз з/в Кам'янське-Пас.</div>
           </div>
-          <div>
-            <div class="bus-col-label">З Лихівки</div>
-            <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">11:35</span></div>
-            <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">15:55</span></div>
+
+          <div class="bus-card-main">
+            <div class="bus-header-title">Кривий Ріг / В-Дніпровськ</div>
+            <div class="bus-grid-rows">
+              <div>
+                <div class="bus-col-label">На Кривий Ріг</div>
+                <div class="bus-item"><span>З Вільног.</span><span class="bus-time-label">06:25</span></div>
+                <div class="bus-item"><span>З Кр. Рогу</span><span class="bus-time-label">12:45</span></div>
+              </div>
+              <div>
+                <div class="bus-col-label">На В-Дніпровськ</div>
+                <div class="bus-item"><span>З Вільног.</span><span class="bus-time-label">16:20</span></div>
+                <div class="bus-item"><span>З В-Дніпр.</span><span class="bus-time-label">05:20</span></div>
+              </div>
+            </div>
+            <div class="bus-note">* крім суботи та неділі</div>
+          </div>
+
+          <div class="bus-card-main">
+            <div class="bus-header-title">Вільногірськ — Лихівка</div>
+            <div class="bus-grid-rows">
+              <div>
+                <div class="bus-col-label">З Вільногірська</div>
+                <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">10:30</span></div>
+                <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">14:45</span></div>
+              </div>
+              <div>
+                <div class="bus-col-label">З Лихівки</div>
+                <div class="bus-item"><span>Рейс 1</span><span class="bus-time-label">11:35</span></div>
+                <div class="bus-item"><span>Рейс 2</span><span class="bus-time-label">15:55</span></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -309,7 +320,7 @@ async function loadWeather(){
       const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
       const d = await r.json();
       results.push({name: c.name, w: d.current_weather});
-    } catch(e) {}
+    } catch(e) { console.log("Weather error"); }
   }
 
   const container = document.getElementById("weather-container");
@@ -390,7 +401,7 @@ const changesSchedule6035 = [
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-// ПРАВИЛЬНЕ ДІЛЕННЯ НА 3 КОЛОНКИ БЕЗ ВТРАТ ЗУПИНОК
+// ФУНКЦІЯ ГЕНЕРАЦІЇ ШТОРКИ (3 КОЛОНКИ БЕЗ ВТРАТ)
 function renderGrid(data, isChanges = false) {
   if (!data || data.length === 0) return "";
   const total = data.length;
@@ -409,7 +420,7 @@ function renderGrid(data, isChanges = false) {
         
         let timeClass = '';
         if (isChanges) {
-           timeClass = 'time-normal'; // Текст змін білий (колір тексту розкладу)
+           timeClass = 'time-normal'; 
         } else {
            timeClass = past ? 'time-passed' : 'time-green';
         }
