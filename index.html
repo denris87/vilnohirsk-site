@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Вільногірськ Онлайн</title>
+<title>Vilnohirsk.online</title>
 
 <style>
 :root {
   --safe-top: env(safe-area-inset-top);
   --safe-bottom: env(safe-area-inset-bottom);
-  --highlight-color: #ffcc00; 
 }
 
 html, body {
@@ -21,17 +20,20 @@ html, body {
 * {
   -webkit-user-select: none;
   user-select: none;
-  box-sizing: border-box;
 }
 
 body {
   color:#fff;
-  font-family:Arial, sans-serif;
+  font-family:Arial;
   display:flex;
   justify-content:center;
   align-items:flex-start;
   min-height:100vh;
-  background: linear-gradient(-45deg, #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93,#a5ca49,#8cc454,#41bc81,#74bf54,#53bc67);
+
+  background: linear-gradient(-45deg,
+    #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93,
+    #a5ca49,#8cc454,#41bc81,#74bf54,#53bc67
+  );
   background-size:400% 400%;
   animation: gradientMove 60s ease infinite;
 }
@@ -51,189 +53,179 @@ body {
 .container {
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:14px;
 }
 
 .top-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
 }
 
 .widget {
-  background: rgba(0,0,0,0.6);
-  padding: 10px 6px;
-  border-radius: 12px;
-  flex: 1;
-  min-width: 0;
-  min-height: 110px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.datetime { text-align:center; font-family:"Courier New", monospace; width: 100%; }
-#date { font-size: clamp(18px, 4.8vw, 26px); font-weight: 900; white-space: nowrap; }
-#time { font-size: clamp(16px, 4.2vw, 22px); font-weight: 900; white-space: nowrap; color: #fff; }
-
-.weekdays {
-  display:flex;
-  justify-content:center;
-  gap:4px;
-  font-size: clamp(16px, 4vw, 20px);
-  font-weight:900;
-  margin: 6px 0;
-}
-.day.active { background:red; border-radius:4px; padding: 0 5px; }
-
-/* 🔥 АНІМАЦІЯ ВСЬОГО БЛОКУ ПОГОДИ */
-.weather-box { 
-  position: relative; 
-  width: 100%; 
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.weather-content {
-  position: absolute;
-  width: 100%;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  transition: opacity 1.5s ease-in-out; /* Плавне зникнення всього блоку */
-  opacity: 0;
-  text-align: center;
-  pointer-events: none;
-}
-
-.weather-content.active { 
-  opacity: 1; 
-  pointer-events: auto;
-}
-
-.weather-city { font-weight:bold; font-size: 12px; color: #04b6cb; margin-bottom: 2px; }
-.weather-temp { font-size: clamp(18px, 5vw, 24px); font-weight:bold; white-space: nowrap; }
-.weather-wind { font-size: 10px; color: #aaa; margin-top: 2px; }
-
-.train-list-widget {
   background:rgba(0,0,0,0.6);
-  padding:10px;
+  padding:14px;
   border-radius:16px;
 }
 
+/* 📅 дата + время */
+.datetime {
+  text-align:center;
+  font-family:"Courier New";
+}
+
+#date {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight:900;
+}
+
+#time {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight:900;
+}
+
+/* дни недели */
+.weekdays {
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  font-size: clamp(16px, 3.5vw, 24px);
+  font-weight:900;
+}
+
+.day.active {
+  background:red;
+  border-radius:6px;
+}
+
+/* погода */
+.weather {
+  text-align:center;
+  line-height:1.4;
+  opacity:1;
+  transition:opacity 0.6s ease;
+}
+
+.weather.fade {
+  opacity:0;
+}
+
+.weather-city {
+  font-weight:bold;
+}
+
+.weather-temp {
+  font-size:22px;
+  font-weight:bold;
+}
+
+.weather-wind {
+  font-size:12px;
+}
+
+/* таблица */
+.table-head,
+.train,
+.details-row {
+  display:grid;
+  grid-template-columns: 20% 1fr 20%;
+  align-items:center;
+  justify-items:center;
+}
+
 .table-head {
-  display: grid;
-  grid-template-columns: 15% 1fr 20%;
-  align-items: center;
-  justify-items: center;
-  font-weight: 800; 
-  border-bottom: 2px solid #aaa;
-  padding-bottom: 8px;
-  margin-bottom: 5px;
-  font-size: 14px;
-  text-transform: uppercase;
+  font-weight:700;
+  border-bottom:2px solid #aaa;
+  padding-bottom:8px;
 }
 
 .train {
-  display: grid;
-  grid-template-columns: 15% 1fr 20%;
-  align-items: center;
-  justify-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-  cursor: pointer;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.2);
+  cursor:pointer;
 }
 
-.route-text {
-  font-weight: 600;
-  text-align: center;
-  font-size: clamp(12px, 3.5vw, 16px);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-  padding: 0 5px;
-}
-
-.time-val { font-weight: bold; font-size: clamp(14px, 3.8vw, 18px); }
-.time-val.soon { color: #ffcc00; }
-.time-val.future { color: #00ff9c; }
-.time-val.passed { color: #888; }
-
+/* ПЛАВНЫЕ ШТОРКИ */
 .details {
-  max-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: all 0.4s ease;
-  background: rgba(255,255,255,0.05);
-  border-radius: 10px;
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+  transform:translateY(-5px);
+  transition:all 0.4s ease;
+  background:rgba(255,255,255,0.05);
+  border-radius:10px;
+  margin:4px 0;
+  padding:0 10px;
 }
 
 .details.open {
-  max-height: 5000px;
-  opacity: 1;
-  padding: 10px;
-  margin: 5px 0;
+  max-height:800px;
+  opacity:1;
+  transform:translateY(0);
+  padding:10px;
+}
+
+.details-divider {
+  grid-column:2;
+  width:60%;
+  height:1px;
+  background:#fff;
+  margin:10px auto;
 }
 
 .details-note {
-  text-align: center;
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: #ff4d4d;
-  text-shadow: 0 0 5px rgba(0,0,0,0.5);
-  font-size: 13px;
+  grid-column:2;
+  text-align:center;
+  font-weight:bold;
+  margin-bottom:10px;
 }
 
-.schedule-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+/* маршрут */
+.route {
+  white-space:nowrap;
+  overflow:hidden;
+  width:100%;
+  text-align:center;
+  font-size: clamp(13px, 3.4vw, 26px);
+  font-weight:600;
 }
 
-@media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } }
-
-.schedule-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 6px;
-  border-bottom: 1px dashed rgba(255,255,255,0.2);
-  font-size: 12px;
+/* 🔥 цвета времени в шторках */
+.details-row .time-green {
+  color:#00ff9c;
+  font-weight:bold;
 }
 
-.row-highlight {
-  background: rgba(255, 204, 0, 0.15) !important;
-  border: 1px solid var(--highlight-color) !important;
-  border-radius: 4px;
-  color: var(--highlight-color) !important;
-  font-weight: bold;
+.details-row .time-passed {
+  color:#888;
 }
-.row-highlight span { color: var(--highlight-color) !important; }
 
-.station-number { color: #ffcc00; font-weight: bold; margin-right: 4px; }
-.time-green { color: #00ff9c; font-weight: bold; }
-.time-passed { color: #888; }
-.time-normal { color: #fff; font-weight: normal; }
+/* цвета времени основной */
+.future .time-cell { color:#00ff9c; font-weight:bold; }
+.soon .time-cell { color:#ffcc00; font-weight:bold; }
+.passed .time-cell { color:#888; }
 
+/* номер */
+.train-number {
+  position:relative;
+}
+
+/* 🔴 точка */
 .alert-dot {
-  position: absolute;
-  top: -4px; right: -8px;
-  width: 7px; height: 7px;
-  background: #ff3b3b;
-  border-radius: 50%;
+  position:absolute;
+  top:-4px;
+  right:-6px;
+  width:6px;
+  height:6px;
+  background:#ff3b3b;
+  border-radius:50%;
   animation: blink 1s infinite;
 }
 
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes blink {
+  0%,100% {opacity:1;}
+  50% {opacity:0;}
+}
 </style>
 </head>
 
@@ -243,24 +235,38 @@ body {
 <div class="container">
 
 <div class="top-row">
-  <div class="widget">
-    <div class="datetime">
-      <div id="date"></div>
-      <div class="weekdays">
-        <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
-        <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
-        <div class="day">нд</div>
-      </div>
-      <div id="time"></div>
-    </div>
-  </div>
 
-  <div class="widget">
-    <div class="weather-box" id="weather-container"></div>
+<div class="widget">
+  <div class="datetime">
+    <div id="date"></div>
+
+    <div class="weekdays">
+      <div class="day">пн</div>
+      <div class="day">вт</div>
+      <div class="day">ср</div>
+      <div class="day">чт</div>
+      <div class="day">пт</div>
+      <div class="day">сб</div>
+      <div class="day">нд</div>
+    </div>
+
+    <div id="time"></div>
   </div>
 </div>
 
-<div class="train-list-widget">
+<div class="widget">
+  <div class="weather" id="weather">Завантаження...</div>
+</div>
+
+</div>
+
+<div class="widget">
+  <div class="table-head">
+    <div>№</div>
+    <div>Маршрут прямування</div>
+    <div>Відпр.</div>
+  </div>
+
   <div id="list"></div>
 </div>
 
@@ -268,6 +274,14 @@ body {
 </div>
 
 <script>
+
+const cities = [
+  { name:"Вільногірськ", lat:48.48, lon:34.02 },
+  { name:"Дніпро", lat:48.45, lon:34.98 }
+];
+
+let cityIndex = 0;
+
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
@@ -278,19 +292,29 @@ const changes = {
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-// Тут ваші повні розклади
-const fullSchedules = { /* ... */ }; 
-const changesSchedule6035 = [ /* ... */ ];
+const schedules={
+  "6008":[["Пʼятихатки-Пас.","04:43"],["Вільногірськ","05:16"],["Верхівцеве","05:35"],["Верхньодніпровськ","06:15"],["Камʼянське-Пас.","06:42"],["Дніпро-Гол.","07:22"]],
+  "6010":[["Пʼятихатки-Пас.","05:30"],["Вільногірськ","06:01"],["Верхівцеве","06:19"],["Верхньодніпровськ","06:38"],["Камʼянське-Пас.","07:17"],["Дніпро-Гол.","08:09"]],
+  "6005":[["Дніпро-Гол.","04:52"],["Камʼянське-Пас.","05:48"],["Верхньодніпровськ","06:14"],["Верхівцеве","06:33"],["Вільногірськ","06:54"],["Пʼятихатки-Пас.","07:28"],["Пʼятихатки-Cтик.","07:38"]],
+  "6018":[["Пʼятихатки-Стик.","08:21"],["Пʼятихатки-Пас.","08:29"],["Вільногірськ","09:00"],["Верхівцеве","09:21"],["Верхньодніпровськ","09:40"],["Камʼянське-Пас.","10:04"],["Дніпро-Гол.","10:57"]],
+  "6015":[["Дніпро-Гол.","08:22"],["Камʼянське-Пас.","09:20"],["Верхньодніпровськ","09:46"],["Верхівцеве","10:35"],["Вільногірськ","10:56"],["Пʼятихатки-Пас.","11:30"]],
+  "6038":[["Пʼятихатки-Пас.","16:50"],["Вільногірськ","17:23"],["Верхівцеве","17:44"],["Верхньодніпровськ","18:03"],["Камʼянське-Пас.","18:27"],["Дніпро-Гол.","19:17"]],
+  "6035":[["Дніпро-Гол.","16:38"],["Камʼянське-Пас.","17:44"],["Верхньодніпровськ","18:10"],["Верхівцеве","18:29"],["Вільногірськ","18:50"],["Пʼятихатки-Пас.","19:22"],["Пʼятихатки-Cтик.","19:29"]],
+  "6037":[["Дніпро-Гол.","17:34"],["Камʼянське-Пас.","18:33"],["Верхньодніпровськ","18:59"],["Верхівцеве","19:18"],["Вільногірськ","19:39"],["Пʼятихатки-Пас.","20:14"]],
+  "6044":[["Пʼятихатки-Стик.","20:29"],["Пʼятихатки-Пас.","20:37"],["Вільногірськ","21:21"],["Верхівцеве","21:40"],["Верхньодніпровськ","21:58"],["Камʼянське-Пас.","22:22"],["Дніпро-Гол.","23:12"]],
+  "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
+};
 
-function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
-
-function isPast(time){
-  if(time === "---" || time === "—") return false;
-  const now = getKyivNow();
-  const [h, m] = time.split(":").map(Number);
-  const t = new Date(now); t.setHours(h, m, 0, 0);
-  return t < now;
-}
+const changesSchedule6035 = [
+["Дніпро-Гол.","-"],
+["ст. Горяїнове","16:44"],
+["Камʼянське-Пас.","17:48"],
+["Верхньодніпровськ","18:14"],
+["Верхівцеве","18:33"],
+["Вільногірськ","18:54"],
+["Пʼятихатки-Пас.","19:26"],
+["Пʼятихатки-Сик.","19:33"]
+];
 
 function getWeatherEmoji(code){
   if(code === 0) return "☀️";
@@ -303,103 +327,152 @@ function getWeatherEmoji(code){
   return "🌡️";
 }
 
-async function loadWeather(){
-  const coords = [{name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {name: 'Дніпро', lat: 48.45, lon: 34.98}];
-  let results = [];
-  
-  for(let c of coords){
-    try {
-      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
-      const d = await r.json();
-      results.push({name: c.name, w: d.current_weather});
-    } catch(e) {}
-  }
+function loadWeather(){
+  const city = cities[cityIndex];
+  const el = document.getElementById("weather");
 
-  const container = document.getElementById("weather-container");
-  if(results.length === 0) return;
+  el.classList.add("fade");
 
-  container.innerHTML = results.map((item, index) => `
-    <div class="weather-content ${index === 0 ? 'active' : ''}" id="weather-slide-${index}">
-      <div class="weather-city">${item.name}</div>
-      <div class="weather-temp">${getWeatherEmoji(item.w.weathercode)} ${Math.round(item.w.temperature)}°C</div>
-      <div class="weather-wind">💨 ${Math.round(item.w.windspeed)} м/с</div>
-    </div>
-  `).join("");
+  setTimeout(()=>{
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&timezone=Europe%2FKyiv`)
+    .then(r=>r.json())
+    .then(d=>{
+      const w=d.current_weather;
+      const emoji=getWeatherEmoji(w.weathercode);
 
-  let current = 0;
-  setInterval(() => {
-    document.getElementById(`weather-slide-${current}`).classList.remove('active');
-    current = (current + 1) % results.length;
-    document.getElementById(`weather-slide-${current}`).classList.add('active');
-  }, 7000);
+      el.innerHTML=`
+        <div class="weather-city">${city.name}</div>
+        <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
+        <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
+      `;
+
+      el.classList.remove("fade");
+    });
+
+    cityIndex = (cityIndex + 1) % cities.length;
+
+  },600);
+}
+
+function getKyivNow(){
+  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
+}
+
+function isPast(time){
+  if(time === "-") return false;
+  const now=getKyivNow();
+  const [h,m]=time.split(":").map(Number);
+  const t=new Date(now);
+  t.setHours(h,m,0,0);
+  return t < now;
 }
 
 function updateDateTime(){
   const now=getKyivNow();
-  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+
+  const d=String(now.getDate()).padStart(2,"0");
+  const m=String(now.getMonth()+1).padStart(2,"0");
+  const y=now.getFullYear();
+
+  const h=String(now.getHours()).padStart(2,"0");
+  const min=String(now.getMinutes()).padStart(2,"0");
+  const s=String(now.getSeconds()).padStart(2,"0");
+
+  date.textContent=`${d}.${m}.${y}`;
+  time.textContent=`${h}:${min}:${s}`;
+
   const days=document.querySelectorAll(".day");
   days.forEach(d=>d.classList.remove("active"));
-  let i=now.getDay(); i=i===0?6:i-1;
+
+  let i=now.getDay();
+  i=i===0?6:i-1;
   days[i].classList.add("active");
 }
 
-function renderGrid(data, isChanges = false){
-  let i = 1; const cols = [];
-  for(let j=0; j<data.length; j+=10){ cols.push(data.slice(j, j+10)); }
-  return `
-    <div class="schedule-grid">
-      ${cols.map(col=>`
-        <div class="schedule-column" style="background:rgba(255,255,255,0.1); border-radius:8px; padding:5px;">
-          ${col.map(r=>{
-            const passed = isPast(r[1]);
-            const isVil = r[0].includes("Вільногірськ");
-            return `<div class="schedule-row ${isVil ? 'row-highlight' : ''}">
-              <span class="station-name"><span class="station-number">${i++}.</span>${r[0]}</span>
-              <span class="${isChanges || isVil ? 'time-normal' : (passed ? 'time-passed' : 'time-green')}">${r[1]}</span>
-            </div>`;
-          }).join("")}
-        </div>
-      `).join("")}
-    </div>
-  `;
+function getDiff(time){
+  const now=getKyivNow();
+  const [h,m]=time.split(":").map(Number);
+  const t=new Date(now);
+  t.setHours(h,m,0,0);
+  return Math.floor((t-now)/60000);
 }
 
 function render(el,data){
   data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
-  el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content"></div>`;
-  const container = document.getElementById('trains-content');
+  el.innerHTML="";
+
   data.forEach(x=>{
-    const now = getKyivNow();
-    const [h, m] = x.time.split(':').map(Number);
-    const t = new Date(now); t.setHours(h, m, 0, 0);
-    const diff = Math.floor((t - now) / 60000);
-    let sClass = "future", dText = x.time;
-    if (diff < 0) sClass = "passed";
-    else if (diff <= 10) { sClass = "soon"; dText = `≈ ${diff} хв`; }
+    const diff=getDiff(x.time);
+
+    let cls="train";
+    let label=x.time;
+
+    if(diff<0) cls+=" passed";
+    else if(diff<=10){cls+=" soon";label="≈ "+diff+" хв";}
+    else cls+=" future";
 
     const id="d-"+x.number;
-    container.innerHTML+=`
-      <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-        <div style="position:relative">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
-        <div class="route-text">${x.route}</div>
-        <div class="time-val ${sClass}">${dText}</div>
+    const dot = changes[x.number] ? `<span class="alert-dot"></span>` : "";
+
+    el.innerHTML+=`
+      <div class="${cls}" onclick="toggle('${id}')">
+        <div class="train-number">${x.number}${dot}</div>
+        <div class="route">${x.route}</div>
+        <div class="time-cell">${label}</div>
       </div>
+    `;
+
+    if(schedules[x.number]){
+      const note=changes[x.number]||"змін немає...";
+
+      el.innerHTML+=`
       <div class="details" id="${id}">
-        ${fullSchedules[x.number] ? renderGrid(fullSchedules[x.number]) : "..."}
-        <div style="width:60%; height:1px; background:#fff; margin:15px auto;"></div>
-        <div class="details-note">${changes[x.number] || "змін немає..."}</div>
-        ${x.number === "6035" ? renderGrid(changesSchedule6035, true) : ""}
+        ${schedules[x.number].map(s=>{
+          const passed = isPast(s[1]);
+          return `
+          <div class="details-row">
+            <div></div>
+            <div>${s[0]}</div>
+            <div class="${passed ? 'time-passed' : 'time-green'}">${s[1]}</div>
+          </div>`;
+        }).join("")}
+
+        <div class="details-divider"></div>
+        <div class="details-note">${note}</div>
+
+        ${x.number === "6035" ? `
+          ${changesSchedule6035.map(s=>`
+            <div class="details-row">
+              <div></div>
+              <div>${s[0]}</div>
+              <div>${s[1]}</div>
+            </div>
+          `).join("")}
+        ` : ""}
+
       </div>`;
+    }
   });
 }
 
-function loadTrains(){
-  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>render(list,d.trains));
+function toggle(id){
+  document.getElementById(id).classList.toggle("open");
 }
 
-loadTrains(); updateDateTime(); loadWeather();
-setInterval(loadTrains,30000); setInterval(updateDateTime,1000);
+function loadTrains(){
+  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
+  .then(r=>r.json())
+  .then(d=>render(list,d.trains));
+}
+
+loadTrains();
+updateDateTime();
+loadWeather();
+
+setInterval(loadTrains,30000);
+setInterval(updateDateTime,1000);
+setInterval(loadWeather,7000);
+
 </script>
 
 </body>
