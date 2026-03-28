@@ -56,7 +56,6 @@ body {
 .day { opacity: 0.4; }
 .day.active { background:red; border-radius:4px; padding: 0 5px; opacity: 1; }
 
-/* ПОГОДА */
 .weather-box { position: relative; width: 100%; height: 85px; display: flex; align-items: center; justify-content: center; }
 .weather-content { position: absolute; width: 100%; transition: opacity 1s ease-in-out; opacity: 0; text-align: center; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .weather-content.active { opacity: 1; pointer-events: auto; }
@@ -86,22 +85,18 @@ body {
 .time-val.future { color: var(--time-green); }
 .time-val.passed { color: var(--time-passed); }
 
-/* ОНОВЛЕНА ЧЕРВОНА КРАПКА (ПУЛЬСАЦІЯ) */
+/* ШВИДКЕ МИГОТІННЯ КРАПКИ */
 .alert-dot { 
   position: absolute; 
   top: -4px; 
-  right: -12px; 
-  width: 8px; 
-  height: 8px; 
+  right: -8px; 
+  width: 7px; 
+  height: 7px; 
   background: #ff3b3b; 
   border-radius: 50%; 
-  box-shadow: 0 0 5px #ff3b3b;
-  animation: pulse 1.2s infinite alternate; 
+  animation: blink 0.7s infinite; /* Швидка анімація */
 }
-@keyframes pulse { 
-  0% { opacity: 1; box-shadow: 0 0 8px #ff3b3b; } 
-  100% { opacity: 0.3; box-shadow: 0 0 2px #ff3b3b; } 
-}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 /* ШТОРКИ РОЗКЛАДУ */
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.03); border-radius: 10px; }
@@ -321,7 +316,7 @@ function isPast(timeStr) {
   return t < now;
 }
 
-// ПОВНІ ДАНІ РОЗКЛАДУ БЕЗ СКОРОЧЕНЬ
+// РОЗКЛАД ТА ЗМІНИ (БЕЗ СКОРОЧЕНЬ)
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
