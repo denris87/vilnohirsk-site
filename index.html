@@ -163,7 +163,7 @@ body {
 
 .time-normal { color: #fff; font-weight: bold; font-family: monospace; font-size: 13px;}
 .details-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.2); margin: 15px auto 10px; }
-.details-note { text-align: center; font-weight: bold; color: #ff4d4d; margin-bottom: 10px; font-size: 11px; }
+.details-note { text-align: center; font-weight: bold; color: #ff4d4d; margin-bottom: 10px; font-size: 11px; white-space: pre-line; }
 
 .alert-dot { 
   position: absolute; top: -4px; right: -8px; width: 7px; height: 7px; background: #ff3b3b; border-radius: 50%; animation: blink 0.7s infinite alternate; 
@@ -305,17 +305,33 @@ function loadTrainsData(){
     .then(r => r.json()).then(d => {
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div>`;
       d.trains.forEach(x => {
+        
+        // --- ВІДНОВЛЕННЯ ІНФОРМАЦІЇ ДЛЯ 6035 ---
+        if (x.number === "6035") {
+           if (x.note === "змін немає...") {
+             x.note = ""; 
+           } else {
+             x.note += "\n\n"; 
+           }
+           x.note += "Друга зміна: [ВПИШІТЬ СЮДИ ВАШ ТЕКСТ ПРО ДРУГУ ЗМІНУ]";
+        }
+        // ----------------------------------------
+
         const now = getKyivNow(); const [sh, sm] = x.time.split(':').map(Number);
         const tTime = new Date(now); tTime.setHours(sh, sm, 0, 0);
         const diff = Math.floor((tTime - now) / 60000);
         let sClass = diff < 0 ? "passed" : (diff <= 10 ? "soon" : "future");
         let txt = sClass === "soon" ? `≈ ${diff} хв` : x.time;
+        
+        let displayNote = x.note.replace(/\n/g, '<br>');
+        let hasAlert = x.note && x.note !== "змін немає..." && x.note !== "";
+
         h += `<div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
-          <div class="train-num-box">${x.number}${x.note!=="змін немає..."?'<span class="alert-dot"></span>':''}</div>
+          <div class="train-num-box">${x.number}${hasAlert ? '<span class="alert-dot"></span>' : ''}</div>
           <div class="route-text">${x.route}</div>
           <div class="time-val ${sClass}">${txt}</div>
         </div>
-        <div class="details">${renderGrid(x.fullSchedule)}<div class="details-divider"></div><div class="details-note">${x.note}</div></div>`;
+        <div class="details">${renderGrid(x.fullSchedule)}<div class="details-divider"></div><div class="details-note">${displayNote}</div></div>`;
       });
       document.getElementById("list").innerHTML = h;
     });
