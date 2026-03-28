@@ -56,6 +56,7 @@ body {
 .day { opacity: 0.4; }
 .day.active { background:red; border-radius:4px; padding: 0 5px; opacity: 1; }
 
+/* ПОГОДА */
 .weather-box { position: relative; width: 100%; height: 85px; display: flex; align-items: center; justify-content: center; }
 .weather-content { position: absolute; width: 100%; transition: opacity 1s ease-in-out; opacity: 0; text-align: center; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .weather-content.active { opacity: 1; pointer-events: auto; }
@@ -63,16 +64,48 @@ body {
 .weather-temp { font-size: clamp(20px, 5.5vw, 26px); font-weight:bold; white-space: nowrap; }
 .weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
 
-/* ТАБИ (КОРЕШКИ ЯК НА ФОТО) */
-.tabs-nav { display: flex; background: rgba(0,0,0,0.7); border-radius: 14px; padding: 4px; gap: 4px; margin-bottom: 0; position: relative; z-index: 2; }
-.tab-btn { flex: 1; padding: 12px; border: none; background: none; color: #fff; font-weight: bold; cursor: pointer; border-radius: 10px 10px 0 0; transition: 0.3s; font-size: 13px; text-transform: uppercase; margin-bottom: -4px; }
-.tab-btn.active { background: var(--widget-bg); color: #fff; border-bottom: none; }
+/* ОНОВЛЕНІ ТАБИ (КРАСИВИЙ СУЧАСНИЙ ПЕРЕМИКАЧ) */
+.tabs-nav { 
+  display: flex; 
+  background: rgba(0,0,0,0.4); 
+  border-radius: 16px; 
+  padding: 5px; 
+  gap: 5px; 
+  margin-bottom: 5px; 
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+}
+.tab-btn { 
+  flex: 1; 
+  padding: 12px; 
+  border: none; 
+  background: transparent; 
+  color: rgba(255, 255, 255, 0.6); 
+  font-weight: bold; 
+  cursor: pointer; 
+  border-radius: 12px; 
+  transition: all 0.3s ease; 
+  font-size: 13px; 
+  text-transform: uppercase; 
+}
+.tab-btn.active { 
+  background: rgba(0, 0, 0, 0.8); 
+  color: #fff; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
 .content-section { display: none; }
 .content-section.active { display: block; animation: fadeIn 0.4s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* ОСНОВНИЙ БЛОК (СПІЛЬНИЙ ДЛЯ ОБОХ ВКЛАДОК) */
-.main-list-widget { background: var(--widget-bg); padding:15px 10px; border-radius: 0 16px 16px 16px; position: relative; z-index: 1; border: 1px solid rgba(255,255,255,0.1); }
+/* ОНОВЛЕНИЙ ОСНОВНИЙ БЛОК (Всі кути закруглені) */
+.main-list-widget { 
+  background: var(--widget-bg); 
+  padding: 15px 10px; 
+  border-radius: 16px; /* Закруглено лівий кут */
+  position: relative; 
+  z-index: 1; 
+  border: 1px solid rgba(255,255,255,0.1); 
+}
 
 /* ЕЛЕКТРИЧКИ */
 .table-head { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; font-weight: 800; border-bottom: 2px solid #aaa; padding-bottom: 8px; margin-bottom: 5px; font-size: 14px; text-transform: uppercase; }
@@ -94,9 +127,9 @@ body {
   height: 7px; 
   background: #ff3b3b; 
   border-radius: 50%; 
-  animation: blink 0.7s infinite; /* Швидка анімація */
+  animation: blink 0.7s infinite alternate; 
 }
-@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes blink { 0% { opacity: 1; box-shadow: 0 0 6px #ff3b3b; } 100% { opacity: 0.3; box-shadow: 0 0 1px #ff3b3b; } }
 
 /* ШТОРКИ РОЗКЛАДУ */
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.03); border-radius: 10px; }
@@ -109,13 +142,13 @@ body {
 
 .time-green { color: var(--time-green); font-weight: bold; }
 .time-passed { color: var(--time-passed); font-weight: normal; }
-.time-normal { color: #fff; font-weight: bold; } /* Білий колір для змін */
+.time-normal { color: #fff; font-weight: bold; }
 
 /* ПРИМІТКИ ПРО ЗМІНИ */
 .details-note { text-align: center; font-weight: bold; color: #ff4d4d; margin-bottom: 10px; text-shadow: 0 0 5px rgba(0,0,0,0.5); font-size: 13px; }
 .details-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.2); margin: 15px auto 10px; }
 
-/* АВТОБУСИ (ДИЗАЙН ЗІ СКРИНШОТА) */
+/* АВТОБУСИ */
 .bus-container { display: flex; flex-direction: column; gap: 12px; }
 .bus-card-main { background: var(--bus-bg); border-radius: 16px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); }
 .bus-header-title { text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fff; }
@@ -249,17 +282,6 @@ function openTab(tabId, btn) {
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
 
-// ДАТА ТА ЧАС
-function updateDateTime(){
-  const now = getKyivNow();
-  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-  const days=document.querySelectorAll(".day");
-  days.forEach(d=>d.classList.remove("active"));
-  let i=now.getDay(); i=i===0?6:i-1;
-  days[i].classList.add("active");
-}
-
 // ПОГОДА
 function getWeatherEmoji(code){
   if(code === 0) return "☀️";
@@ -307,6 +329,17 @@ async function loadWeather(){
   }, 7000); 
 }
 
+// ДАТА ТА ЧАС
+function updateDateTime(){
+  const now = getKyivNow();
+  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+  const days=document.querySelectorAll(".day");
+  days.forEach(d=>d.classList.remove("active"));
+  let i=now.getDay(); i=i===0?6:i-1;
+  days[i].classList.add("active");
+}
+
 function isPast(timeStr) {
   if (!timeStr || timeStr === "---" || timeStr === "—" || !timeStr.includes(":")) return false;
   const now = getKyivNow();
@@ -316,7 +349,7 @@ function isPast(timeStr) {
   return t < now;
 }
 
-// РОЗКЛАД ТА ЗМІНИ (БЕЗ СКОРОЧЕНЬ)
+// ПОВНІ ДАНІ РОЗКЛАДУ БЕЗ СКОРОЧЕНЬ
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
