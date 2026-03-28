@@ -37,7 +37,7 @@ body {
 .wrapper { width:100%; max-width:900px; padding:10px; }
 .container { display:flex; flex-direction:column; gap:10px; }
 
-/* --- ОРИГИНАЛЬНЫЕ ВИДЖЕТЫ ВЕРХА --- */
+/* ВЕРХНЯ ПАНЕЛЬ (ОРИГІНАЛ) */
 .top-row { display: flex; flex-direction: row; justify-content: space-between; gap: 8px; width: 100%; }
 .widget {
   background: rgba(0,0,0,0.6);
@@ -69,7 +69,7 @@ body {
 .weather-temp { font-size: clamp(20px, 5.5vw, 26px); font-weight:bold; white-space: nowrap; }
 .weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
 
-/* --- ТАБЫ (КОРЕШКИ) --- */
+/* ТАБИ */
 .tabs-nav { display: flex; background: rgba(0,0,0,0.7); border-radius: 14px; padding: 4px; gap: 4px; margin-top: 5px; }
 .tab-btn {
   flex: 1; padding: 10px; border: none; background: none; color: #fff; 
@@ -82,24 +82,24 @@ body {
 .content-section.active { display: block; animation: fadeIn 0.4s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* --- СТИЛИ СПИСКОВ --- */
+/* ЕЛЕКТРИЧКИ */
 .train-list-widget { background:rgba(0,0,0,0.6); padding:10px; border-radius:16px; }
 .table-head { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; font-weight: 800; border-bottom: 2px solid #aaa; padding-bottom: 8px; font-size: 14px; text-transform: uppercase; }
 .train { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.2); cursor: pointer; }
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.05); border-radius: 10px; }
-.details.open { max-height: 5000px; opacity: 1; padding: 10px; }
-.schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-@media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } }
-.schedule-row { display: flex; justify-content: space-between; padding: 4px 6px; border-bottom: 1px dashed rgba(255,255,255,0.2); font-size: 12px; }
-.row-highlight { background: rgba(255, 204, 0, 0.15) !important; color: var(--highlight-color) !important; border-radius: 4px; }
-.alert-dot { position: absolute; top: -4px; right: -8px; width: 7px; height: 7px; background: #ff3b3b; border-radius: 50%; animation: blink 1s infinite; }
+.details.open { max-height: 1000px; opacity: 1; padding: 10px; margin-top: 5px; margin-bottom: 5px; }
+.schedule-grid { display: grid; grid-template-columns: 1fr; gap: 5px; }
+.schedule-row { display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 13px; }
+.row-highlight { background: rgba(255, 204, 0, 0.2) !important; color: var(--highlight-color) !important; font-weight: bold; border-radius: 4px; }
 
-/* Специфические стили для автобусов */
+/* АВТОБУСИ */
 .bus-card { background: rgba(0,0,0,0.6); border-radius: 16px; padding: 15px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
-.bus-title { color: var(--highlight-color); text-align: center; margin-bottom: 10px; font-weight: bold; }
-.bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.bus-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 7px; border-radius: 6px; margin-bottom: 3px; font-size: 13px; }
-@media (max-width: 500px) { .bus-grid { grid-template-columns: 1fr; } }
+.bus-title { color: var(--highlight-color); text-align: center; margin-bottom: 12px; font-weight: bold; font-size: 16px; }
+.bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+.bus-col-title { font-size: 10px; color: var(--highlight-color); margin-bottom: 6px; font-weight: bold; text-align: center; text-transform: uppercase; }
+.bus-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; margin-bottom: 4px; font-size: 12px; }
+.bus-row b { color: var(--accent-green); font-family: monospace; font-size: 14px; }
+@media (max-width: 550px) { .bus-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
 
@@ -136,52 +136,57 @@ body {
   <div id="buses" class="content-section">
     <div class="bus-card">
         <div class="bus-title">Вільногірськ — Дніпро</div>
-        <div style="font-size:11px; color:#aaa; text-align:center; margin-bottom:5px">через Божедарівку / Кам'янське</div>
         <div class="bus-grid">
             <div class="bus-col">
-                <div style="font-size:10px; color:var(--highlight-color)">З ВІЛЬНОГІРСЬКА</div>
-                <div class="bus-row"><span>Божед.</span><b>06:00</b></div>
-                <div class="bus-row"><span>Божед.</span><b>10:00</b></div>
-                <div class="bus-row"><span>Божед.</span><b>13:00</b></div>
-                <div class="bus-row"><span>Кам'ян.</span><b>05:10</b></div>
-                <div class="bus-row"><span>Кам'ян.</span><b>14:10</b></div>
+                <div class="bus-col-title">З Вільногірська</div>
+                <div class="bus-row"><span>через Божедарівку</span><b>06:00</b></div>
+                <div class="bus-row"><span>через Божедарівку</span><b>10:00</b></div>
+                <div class="bus-row"><span>через Божедарівку</span><b>13:00</b></div>
+                <div style="height:8px"></div>
+                <div class="bus-row"><span>через Кам'янське</span><b>05:10</b></div>
+                <div class="bus-row"><span>через Кам'янське</span><b>14:10</b></div>
             </div>
             <div class="bus-col">
-                <div style="font-size:10px; color:var(--highlight-color)">З ДНІПРА (АС1)</div>
-                <div class="bus-row"><span>Божед.</span><b>07:00</b></div>
-                <div class="bus-row"><span>Божед.</span><b>10:00</b></div>
-                <div class="bus-row"><span>Божед.</span><b>13:00</b></div>
-                <div class="bus-row"><span>Кам'ян.</span><b>08:10</b></div>
-                <div class="bus-row"><span>Кам'ян.</span><b>17:10</b></div>
+                <div class="bus-col-title">З Дніпра (АС1)</div>
+                <div class="bus-row"><span>через Божедарівку</span><b>07:00</b></div>
+                <div class="bus-row"><span>через Божедарівку</span><b>10:00</b></div>
+                <div class="bus-row"><span>через Божедарівку</span><b>13:00</b></div>
+                <div style="height:8px"></div>
+                <div class="bus-row"><span>через Кам'янське</span><b>08:10</b></div>
+                <div class="bus-row"><span>через Кам'янське</span><b>17:10</b></div>
             </div>
         </div>
     </div>
 
     <div class="bus-card">
-        <div class="bus-title">Кривий Ріг / В-Дніпровськ</div>
+        <div class="bus-title">Кривий Ріг / Верхньодніпровськ</div>
         <div class="bus-grid">
             <div class="bus-col">
-                <div class="bus-row"><span>На Кр.Ріг</span><b>06:25</b></div>
-                <div class="bus-row"><span>З Кр.Рогу</span><b>12:45</b></div>
+                <div class="bus-col-title">На Кривий Ріг</div>
+                <div class="bus-row"><span>З Вільногірська</span><b>06:25</b></div>
+                <div class="bus-row"><span>З Кривого Рогу</span><b>12:45</b></div>
             </div>
             <div class="bus-col">
-                <div class="bus-row"><span>На В-Дніпр</span><b>16:20</b></div>
-                <div class="bus-row"><span>З В-Дніпр</span><b>05:20</b></div>
+                <div class="bus-col-title">На Верхньодніпровськ</div>
+                <div class="bus-row"><span>З Вільногірська</span><b>16:20</b></div>
+                <div class="bus-row"><span>З Верхньодніпровська</span><b>05:20</b></div>
             </div>
         </div>
-        <div style="font-size:10px; color:#ff4d4d; text-align:center; margin-top:5px">* крім сб та нд</div>
+        <div style="font-size:10px; color:#ff4d4d; text-align:center; margin-top:10px; font-weight:bold;">* крім суботи та неділі</div>
     </div>
 
     <div class="bus-card">
         <div class="bus-title">Вільногірськ — Лихівка</div>
         <div class="bus-grid">
             <div class="bus-col">
-                <div class="bus-row"><span>З Вільног.</span><b>10:30</b></div>
-                <div class="bus-row"><span>З Вільног.</span><b>14:45</b></div>
+                <div class="bus-col-title">З Вільногірська</div>
+                <div class="bus-row"><span>Перший рейс</span><b>10:30</b></div>
+                <div class="bus-row"><span>Другий рейс</span><b>14:45</b></div>
             </div>
             <div class="bus-col">
-                <div class="bus-row"><span>З Лихівки</span><b>11:35</b></div>
-                <div class="bus-row"><span>З Лихівки</span><b>15:55</b></div>
+                <div class="bus-col-title">З Лихівки</div>
+                <div class="bus-row"><span>Перший рейс</span><b>11:35</b></div>
+                <div class="bus-row"><span>Другий рейс</span><b>15:55</b></div>
             </div>
         </div>
     </div>
@@ -191,7 +196,7 @@ body {
 </div>
 
 <script>
-// Переключение табов
+// Перемикання вкладок
 function openTab(tabId, btn) {
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -199,9 +204,8 @@ function openTab(tabId, btn) {
     btn.classList.add('active');
 }
 
-// Дата и Время (Оригинал)
+// Час і Дата
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
-
 function updateDateTime(){
     const now=getKyivNow();
     document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
@@ -212,7 +216,7 @@ function updateDateTime(){
     days[i].classList.add("active");
 }
 
-// Погода (Оригинал)
+// Погода
 async function loadWeather(){
     const coords = [{name:'Вільногірськ',lat:48.48,lon:34.02}, {name:'Дніпро',lat:48.45,lon:34.98}];
     let results = [];
@@ -231,44 +235,51 @@ async function loadWeather(){
             <div class="weather-wind">💨 ${Math.round(item.w.windspeed)} м/с</div>
         </div>
     `).join("");
-
     let cur = 0;
     setInterval(() => {
-        document.getElementById(`slide-${cur}`).classList.remove('active');
+        const s = document.getElementById(`slide-${cur}`);
+        if(s) s.classList.remove('active');
         cur = (cur + 1) % results.length;
-        document.getElementById(`slide-${cur}`).classList.add('active');
+        const n = document.getElementById(`slide-${cur}`);
+        if(n) n.classList.add('active');
     }, 7000);
 }
 
-// Электрички (Данные и Рендер)
-const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
+// Повне розклад електричок (ОБОВ'ЯЗКОВО)
 const fullSchedules = {
-    "6005": [["Дніпро-Гол.","04:52"],["Вільногірськ","06:54"],["П'ятихатки","07:30"]],
-    "6008": [["П'ятихатки","04:43"],["Вільногірськ","05:16"],["Дніпро-Гол.","07:32"]],
-    "6010": [["П'ятихатки","05:30"],["Вільногірськ","06:01"],["Дніпро-Гол.","08:09"]],
-    "6015": [["Дніпро-Гол.","08:22"],["Вільногірськ","10:56"],["П'ятихатки","11:30"]],
-    "6018": [["П'ятихатки","08:29"],["Вільногірськ","09:00"],["Дніпро-Гол.","10:57"]],
-    "6038": [["П'ятихатки","16:50"],["Вільногірськ","17:23"],["Дніпро-Гол.","20:00"]],
-    "6035": [["Дніпро-Гол.","16:38"],["Вільногірськ","18:50"],["П'ятихатки","19:22"]],
-    "6037": [["Дніпро-Гол.","17:34"],["Вільногірськ","19:39"],["П'ятихатки","20:40"]],
-    "6044": [["П'ятихатки","20:37"],["Вільногірськ","21:21"],["Дніпро-Гол.","23:12"]],
-    "6043": [["Дніпро-Гол.","20:18"],["Вільногірськ","22:22"],["П'ятихатки","23:10"]]
+    "6008": [["П'ятихатки-Пасажирська","04:43"],["Ерастівка","05:01"],["Вільногірськ","05:16"],["Верхівцеве","05:44"],["Кам'янське-Пасажирське","06:33"],["Дніпро-Головний","07:32"]],
+    "6010": [["П'ятихатки-Пасажирська","05:30"],["Ерастівка","05:47"],["Вільногірськ","06:01"],["Верхівцеве","06:29"],["Кам'янське-Пасажирське","07:15"],["Дніпро-Головний","08:09"]],
+    "6018": [["П'ятихатки-Пасажирська","08:29"],["Ерастівка","08:46"],["Вільногірськ","09:00"],["Верхівцеве","09:27"],["Кам'янське-Пасажирське","10:11"],["Дніпро-Головний","10:57"]],
+    "6038": [["П'ятихатки-Пасажирська","16:50"],["Ерастівка","17:08"],["Вільногірськ","17:23"],["Верхівцеве","17:51"],["Кам'янське-Пасажирське","18:48"],["Дніпро-Головний","20:00"]],
+    "6044": [["П'ятихатки-Пасажирська","20:37"],["Ерастівка","20:55"],["Вільногірськ","21:11"],["Верхівцеве","21:44"],["Кам'янське-Пасажирське","22:30"],["Дніпро-Головний","23:12"]],
+    "6005": [["Дніпро-Головний","04:52"],["Кам'янське-Пасажирське","05:48"],["Верхівцеве","06:32"],["Вільногірськ","06:54"],["Ерастівка","07:09"],["П'ятихатки-Пасажирська","07:30"]],
+    "6015": [["Дніпро-Головний","08:22"],["Кам'янське-Пасажирське","09:27"],["Верхівцеве","10:27"],["Вільногірськ","10:56"],["Ерастівка","11:11"],["П'ятихатки-Пасажирська","11:30"]],
+    "6035": [["Дніпро-Головний","16:38"],["Кам'янське-Пасажирське","17:34"],["Верхівцеве","18:24"],["Вільногірськ","18:50"],["Ерастівка","19:05"],["П'ятихатки-Пасажирська","19:22"]],
+    "6037": [["Дніпро-Головний","17:34"],["Кам'янське-Пасажирське","18:29"],["Верхівцеве","19:15"],["Вільногірськ","19:39"],["Ерастівка","19:54"],["П'ятихатки-Пасажирська","20:40"]],
+    "6043": [["Дніпро-Головний","20:18"],["Кам'янське-Пасажирське","21:13"],["Верхівцеве","21:58"],["Вільногірськ","22:22"],["Ерастівка","22:38"],["П'ятихатки-Пасажирська","23:10"]]
 };
+
+const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
 function renderTrains(el, data){
     data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
-    el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div>`;
+    el.innerHTML=`<div class="table-head"><div>№</div><div>Напрямок</div><div>Відпр.</div></div>`;
     data.forEach(x=>{
         const id="d-"+x.number;
+        const schedule = fullSchedules[x.number] || [];
         el.innerHTML+=`
             <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-                <div style="position:relative">${x.number}</div>
-                <div style="text-align:center; font-weight:600">${x.route}</div>
+                <div>${x.number}</div>
+                <div style="text-align:center; font-weight:600">${x.route.replace('Пятихатки','П'ятихатки')}</div>
                 <div style="font-weight:bold; color:var(--accent-green)">${x.time}</div>
             </div>
             <div class="details" id="${id}">
                 <div class="schedule-grid">
-                    ${(fullSchedules[x.number]||[]).map(r => `<div class="schedule-row ${r[0].includes('Вільногірськ')?'row-highlight':''}"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('')}
+                    ${schedule.map(r => `
+                        <div class="schedule-row ${r[0].includes('Вільногірськ')?'row-highlight':''}">
+                            <span>${r[0]}</span>
+                            <span>${r[1]}</span>
+                        </div>`).join('')}
                 </div>
             </div>`;
     });
@@ -280,7 +291,6 @@ function loadTrains(){
     .catch(()=>console.log("API offline"));
 }
 
-// Запуск
 loadTrains(); updateDateTime(); loadWeather();
 setInterval(updateDateTime, 1000); setInterval(loadTrains, 30000);
 </script>
