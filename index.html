@@ -100,31 +100,64 @@ body {
 /* ВІДКЛЮЧЕННЯ СВІТЛА */
 .outage-widget {
   background: var(--widget-bg);
-  border-radius: 12px;
-  padding: 12px 15px;
-  border-left: 4px solid #ff4d4d;
+  border-radius: 16px;
+  padding: 15px;
+  border-left: 5px solid #ff4d4d;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255,255,255,0.1);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 .outage-header {
   color: #ff4d4d;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 15px;
   text-transform: uppercase;
   text-align: center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.outage-time-wrapper {
+  text-align: center;
+  margin-bottom: 12px;
 }
 .outage-time-box {
-  text-align: center;
-  font-size: 15px;
+  display: inline-block;
+  font-size: 13px;
   font-weight: bold;
   color: var(--highlight-color);
-  margin-bottom: 8px;
+  background: rgba(255, 204, 0, 0.15);
+  padding: 6px 12px;
+  border-radius: 8px;
 }
 .outage-addresses {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.9);
-  text-align: center;
+}
+.outage-list-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #04b6cb;
+  margin-bottom: 8px;
+}
+.outage-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 8px 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+.outage-list-item span.emoji {
+  font-size: 14px;
+}
+.outage-list-item b {
+  color: #fff;
 }
 
 /* ГРУПА ДЛЯ КОРЕШКІВ І РОЗКЛАДУ */
@@ -249,14 +282,31 @@ body {
 
   <div class="outage-widget">
     <div class="outage-header">💡 Планове відключення світла</div>
-    <div class="outage-time-box">02 квітня | з 08:00 до 17:30</div>
+    <div class="outage-time-wrapper">
+      <div class="outage-time-box">🗓️ 02 квітня | ⏳ з 08:00 до 17:30</div>
+    </div>
     <div class="outage-addresses">
-      <b>за адресами:</b><br>
-      вул. Центральна: 18, 20, 20А, 22, 22А, 24, 24А;<br>
-      вул. Садова: 15, 17, 17А, 19, 19А, 30, 32, 34;<br>
-      вул. Захисників України: 20, 22;<br>
-      вул. Юрія Устенка: 23-29 (непарні);<br>
-      с. КРИНИЧКИ: вул. Криничанська: 1.
+      <div class="outage-list-title">📍 Перелік адрес:</div>
+      <div class="outage-list-item">
+        <span class="emoji">🏙️</span>
+        <div><b>вул. Центральна:</b> 18, 20, 20А, 22, 22А, 24, 24А</div>
+      </div>
+      <div class="outage-list-item">
+        <span class="emoji">🌳</span>
+        <div><b>вул. Садова:</b> 15, 17, 17А, 19, 19А, 30, 32, 34</div>
+      </div>
+      <div class="outage-list-item">
+        <span class="emoji">🛡️</span>
+        <div><b>вул. Захисників України:</b> 20, 22</div>
+      </div>
+      <div class="outage-list-item">
+        <span class="emoji">🛣️</span>
+        <div><b>вул. Юрія Устенка:</b> 23-29 (непарні)</div>
+      </div>
+      <div class="outage-list-item">
+        <span class="emoji">🏘️</span>
+        <div><b>с. Кринички:</b> вул. Криничанська, 1</div>
+      </div>
     </div>
   </div>
 
@@ -478,7 +528,7 @@ function isPast(timeStr) {
   return t < now;
 }
 
-// ДАНІ РОЗКЛАДУ ЕЛЕКТРИЧОК
+// ПОВНІ ДАНІ РОЗКЛАДУ ЕЛЕКТРИЧОК
 const changes = {
     "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
     "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
@@ -515,7 +565,7 @@ const changesSchedule6035 = [
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-// ПРАВИЛЬНА ЛОГІКА РОЗБИВКИ НА 3 КОЛОНКИ БЕЗ ВТРАТИ СТАНЦІЙ
+// ПРАВИЛЬНА ЛОГІКА РОЗБИВКИ НА 3 КОЛОНКИ
 function renderGrid(data, isChanges = false) {
   if (!data || data.length === 0) return "";
   const total = data.length;
