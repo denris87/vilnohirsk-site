@@ -8,9 +8,10 @@
 <style>
 :root {
   --safe-top: env(safe-area-inset-top);
-  --safe-bottom: env(safe-area-inset-bottom);
   --highlight-color: #ffcc00; 
   --widget-bg: rgba(0, 0, 0, 0.6);
+  --time-green: #00ff9c;
+  --time-passed: #888;
 }
 
 html, body { margin:0; padding:0; height:100%; }
@@ -37,7 +38,6 @@ body {
 .wrapper { width:100%; max-width:900px; padding:10px; }
 .container { display:flex; flex-direction:column; gap:10px; }
 
-/* ВЕРХНЯ ПАНЕЛЬ */
 .top-row { display: flex; flex-direction: row; justify-content: space-between; gap: 8px; width: 100%; }
 .widget {
   background: var(--widget-bg);
@@ -49,25 +49,21 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
 }
 
-.datetime { text-align:center; font-family:"Courier New", monospace; width: 100%; }
-#date { font-size: clamp(18px, 4.8vw, 26px); font-weight: 900; }
-#time { font-size: clamp(16px, 4.2vw, 22px); font-weight: 900; color: #fff; }
+#date { font-size: 22px; font-weight: 900; }
+#time { font-size: 20px; font-weight: 900; }
+.weekdays { display:flex; gap:4px; font-size: 16px; font-weight:900; margin: 5px 0; }
+.day { opacity: 0.4; }
+.day.active { background:red; border-radius:4px; padding: 0 5px; opacity: 1; }
 
-.weekdays { display:flex; justify-content:center; gap:4px; font-size: clamp(16px, 4vw, 20px); font-weight:900; margin: 6px 0; }
-.day.active { background:red; border-radius:4px; padding: 0 5px; }
-
-/* ПОГОДА */
 .weather-box { position: relative; width: 100%; height: 85px; display: flex; align-items: center; justify-content: center; }
-.weather-content { position: absolute; width: 100%; transition: opacity 1s ease-in-out; opacity: 0; text-align: center; pointer-events: none; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.weather-content { position: absolute; width: 100%; transition: opacity 1s; opacity: 0; text-align: center; pointer-events: none; }
 .weather-content.active { opacity: 1; pointer-events: auto; }
 .weather-city { font-weight:bold; font-size: 13px; color: #04b6cb; margin-bottom: 2px; }
-.weather-temp { font-size: clamp(20px, 5.5vw, 26px); font-weight:bold; white-space: nowrap; }
-.weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
+.weather-temp { font-size: 24px; font-weight:bold; }
 
-/* ТАБИ (КОРЕШКИ) */
+/* КОРЕШКИ */
 .tabs-nav { display: flex; padding: 0 10px; gap: 5px; margin-bottom: 0; position: relative; z-index: 2; }
 .tab-btn {
   padding: 10px 20px; border: none; background: rgba(0, 0, 0, 0.4); color: rgba(255, 255, 255, 0.6);
@@ -75,7 +71,7 @@ body {
 }
 .tab-btn.active { background: var(--widget-bg); color: #fff; padding-bottom: 12px; margin-bottom: -1px; }
 
-/* КОНТЕНТНИЙ БЛОК */
+/* КОНТЕНТ */
 .main-list-widget {
   background: var(--widget-bg);
   padding: 15px 10px;
@@ -86,38 +82,18 @@ body {
 }
 
 .content-section { display: none; }
-.content-section.active { display: block; animation: fadeIn 0.4s ease; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.content-section.active { display: block; }
 
-.table-head { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; font-weight: 800; border-bottom: 2px solid #aaa; padding-bottom: 8px; margin-bottom: 5px; font-size: 14px; text-transform: uppercase; }
+.table-head { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; font-weight: 800; border-bottom: 2px solid #aaa; padding-bottom: 8px; margin-bottom: 5px; font-size: 14px; }
 .train { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.2); cursor: pointer; position: relative; }
 
 .route-text { font-weight: 600; text-align: center; font-size: clamp(12px, 3.5vw, 16px); width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .time-val { font-weight: bold; font-size: clamp(14px, 3.8vw, 18px); }
 .time-val.soon { color: #ffcc00; }
-.time-val.future { color: #00ff9c; }
-.time-val.passed { color: #888; }
+.time-val.future { color: var(--time-green); }
+.time-val.passed { color: var(--time-passed); }
 
-/* ШТОРКА (3 КОЛОНКИ) */
-.details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.05); border-radius: 10px; }
-.details.open { max-height: 5000px; opacity: 1; padding: 10px; }
-.schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-@media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } }
-.schedule-row { display: flex; justify-content: space-between; padding: 4px 6px; border-bottom: 1px dashed rgba(255,255,255,0.2); font-size: 12px; }
-.row-highlight { background: rgba(255, 204, 0, 0.15) !important; color: var(--highlight-color) !important; border-radius: 4px; font-weight: bold; }
-.station-number { color: #ffcc00; font-weight: bold; margin-right: 4px; }
-
-/* ОРИГІНАЛЬНИЙ СТИЛЬ ТЕКСТУ ЗМІН */
-.details-note {
-  text-align:center;
-  font-weight:bold;
-  color: #ff4d4d; 
-  margin: 10px 0;
-  text-shadow: 0 0 5px rgba(0,0,0,0.5);
-  font-size: 13px;
-}
-
-/* ЧЕРВОНА КРАПКА */
+/* СПОВІЩЕННЯ */
 .alert-dot {
   position: absolute;
   top: -4px; right: -8px;
@@ -128,12 +104,30 @@ body {
 }
 @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
+/* ШТОРКА (3 КОЛОНКИ) */
+.details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.05); border-radius: 10px; }
+.details.open { max-height: 5000px; opacity: 1; padding: 10px; }
+.schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+@media (max-width: 650px) { .schedule-grid { grid-template-columns: 1fr; } }
+.schedule-row { display: flex; justify-content: space-between; padding: 4px 6px; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 11px; }
+.row-highlight { background: rgba(255, 204, 0, 0.15) !important; color: var(--highlight-color) !important; border-radius: 4px; font-weight: bold; }
+.station-number { color: #ffcc00; font-weight: bold; margin-right: 4px; }
+
+/* ЧАС У ШТОРЦІ */
+.st-green { color: var(--time-green); font-weight: bold; }
+.st-passed { color: var(--time-passed); font-weight: normal; }
+
+.details-note {
+  text-align:center; font-weight:bold; color: #ff4d4d; margin: 10px 0;
+  text-shadow: 0 0 5px rgba(0,0,0,0.5); font-size: 13px;
+}
+
 /* АВТОБУСИ */
-.bus-card { background: rgba(0,0,0,0.4); border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
+.bus-card { background: rgba(0,0,0,0.4); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
 .bus-title { color: var(--highlight-color); text-align: center; margin-bottom: 10px; font-weight: bold; font-size: 15px; }
 .bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .bus-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 7px; border-radius: 6px; margin-bottom: 3px; font-size: 12px; }
-.bus-row b { color: #00ff9c; font-family: monospace; font-size: 14px; }
+.bus-row b { color: var(--time-green); font-family: monospace; font-size: 14px; }
 </style>
 </head>
 
@@ -143,7 +137,6 @@ body {
 
   <div class="top-row">
     <div class="widget">
-      <div class="datetime">
         <div id="date"></div>
         <div class="weekdays">
           <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
@@ -151,7 +144,6 @@ body {
           <div class="day">нд</div>
         </div>
         <div id="time"></div>
-      </div>
     </div>
     <div class="widget" id="weather-container"></div>
   </div>
@@ -162,42 +154,24 @@ body {
   </div>
 
   <div class="main-list-widget">
-    <div id="trains" class="content-section active">
-      <div id="list">Завантаження...</div>
-    </div>
-
+    <div id="trains" class="content-section active"><div id="list"></div></div>
     <div id="buses" class="content-section">
       <div class="bus-card">
           <div class="bus-title">Вільногірськ — Дніпро</div>
           <div class="bus-grid">
               <div class="bus-col">
-                  <div style="font-size:10px; text-align:center; color:var(--highlight-color)">З ВІЛЬНОГІРСЬКА</div>
-                  <div class="bus-row"><span>Божедарівка</span><b>06:00</b></div>
-                  <div class="bus-row"><span>Божедарівка</span><b>10:00</b></div>
-                  <div class="bus-row"><span>Божедарівка</span><b>13:00</b></div>
-                  <div class="bus-row"><span>Кам'янське</span><b>05:10</b></div>
-                  <div class="bus-row"><span>Кам'янське</span><b>14:10</b></div>
+                  <div class="bus-row"><span>через Божедарівку</span><b>06:00</b></div>
+                  <div class="bus-row"><span>через Божедарівку</span><b>10:00</b></div>
+                  <div class="bus-row"><span>через Божедарівку</span><b>13:00</b></div>
+                  <div class="bus-row"><span>через Кам'янське</span><b>05:10</b></div>
+                  <div class="bus-row"><span>через Кам'янське</span><b>14:10</b></div>
               </div>
               <div class="bus-col">
-                  <div style="font-size:10px; text-align:center; color:var(--highlight-color)">З ДНІПРА (АС1)</div>
-                  <div class="bus-row"><span>Божедарівка</span><b>07:00</b></div>
-                  <div class="bus-row"><span>Божедарівка</span><b>10:00</b></div>
-                  <div class="bus-row"><span>Божедарівка</span><b>13:00</b></div>
-                  <div class="bus-row"><span>Кам'янське</span><b>08:10</b></div>
-                  <div class="bus-row"><span>Кам'янське</span><b>17:10</b></div>
-              </div>
-          </div>
-      </div>
-      <div class="bus-card">
-          <div class="bus-title">Інші напрямки</div>
-          <div class="bus-grid">
-              <div class="bus-col">
-                  <div class="bus-row"><span>На Кривий Ріг</span><b>06:25</b></div>
-                  <div class="bus-row"><span>З Кривого Рогу</span><b>12:45</b></div>
-              </div>
-              <div class="bus-col">
-                  <div class="bus-row"><span>На Лихівку</span><b>10:30</b></div>
-                  <div class="bus-row"><span>З Лихівки</span><b>11:35</b></div>
+                  <div class="bus-row"><span>з Дніпра (АС1)</span><b>07:00</b></div>
+                  <div class="bus-row"><span>з Дніпра (АС1)</span><b>10:00</b></div>
+                  <div class="bus-row)<span>з Дніпра (АС1)</span><b>13:00</b></div>
+                  <div class="bus-row"><span>з Дніпра (АС1)</span><b>08:10</b></div>
+                  <div class="bus-row"><span>з Дніпра (АС1)</span><b>17:10</b></div>
               </div>
           </div>
       </div>
@@ -208,22 +182,52 @@ body {
 </div>
 
 <script>
-// ЛОГІКА ТАБІВ
-function openTab(tabId, btn) {
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  btn.classList.add('active');
+function openTab(t,b){
+    document.querySelectorAll('.content-section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+    document.getElementById(t).classList.add('active'); b.classList.add('active');
 }
 
-// ДАНІ ЗМІН (ЯК БУЛО)
-const changes = {
-    "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
-    "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
-    "6018": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
-    "6037": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 17:40",
-    "6035": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове і далі за цим розкладом"
-};
+function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
+
+function updateDT(){
+    const n = getKyivNow();
+    document.getElementById("date").textContent = n.toLocaleDateString('uk-UA');
+    document.getElementById("time").textContent = n.toLocaleTimeString('uk-UA');
+    const d = document.querySelectorAll(".day"); d.forEach(x=>x.classList.remove("active"));
+    let i = n.getDay(); i = (i === 0) ? 6 : i - 1; d[i].classList.add("active");
+}
+
+function isPast(tStr){
+    if(!tStr || tStr === "---" || tStr === "—") return false;
+    const now = getKyivNow();
+    const [h, m] = tStr.split(':').map(Number);
+    const tDate = new Date(now); tDate.setHours(h, m, 0, 0);
+    return tDate < now;
+}
+
+async function loadW(){
+    const c = [{n:'Вільногірськ',lat:48.48,lon:34.02}, {n:'Дніпро',lat:48.45,lon:34.98}];
+    let results = [];
+    for(let city of c){
+        try {
+            const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&timezone=Europe%2FKyiv`);
+            const d = await r.json();
+            results.push({name: city.n, w: d.current_weather});
+        } catch(e){}
+    }
+    const container = document.getElementById("weather-container");
+    container.innerHTML = results.map((item, idx) => `
+        <div class="weather-content ${idx === 0 ? 'active' : ''}" id="ws-${idx}">
+            <div class="weather-city">${item.name}</div>
+            <div class="weather-temp">${Math.round(item.w.temperature)}°C</div>
+        </div>
+    `).join("");
+    let cur = 0; setInterval(() => {
+        const slides = document.querySelectorAll('.weather-content'); if(slides.length < 2) return;
+        slides[cur].classList.remove('active'); cur = (cur + 1) % slides.length; slides[cur].classList.add('active');
+    }, 7000);
+}
 
 // ПОВНІ МАСИВИ ЗУПИНОК (БЕЗ СКОРОЧЕНЬ)
 const fullSchedules = {
@@ -232,133 +236,80 @@ const fullSchedules = {
   "6010": [["П'ятихатки-Пас.","05:30"],["з.п. Касинівка","05:39"],["з.п. 88 км","05:46"],["Ерастівка","05:51"],["Вільногірськ","06:01"],["Верхівцеве","06:19"],["з.п. 119 км","06:22"],["з.п. 125 км","06:27"],["з.п. 128 км","06:31"],["Верхньодніпровськ","06:38"],["з.п. 139 км","06:45"],["Воскобійня","06:49"],["з.п. 149 км","06:57"],["Кам'янське-Пас.","07:17"],["Запоріжжя-Кам’янське","07:23"],["з.п. 160 км","07:26"],["з.п. 164 км","07:31"],["з.п. 165 км","07:34"],["з.п. 169 км","07:39"],["Сухачівка","07:42"],["з.п. 175 км","07:46"],["з.п. 178 км","07:50"],["Діївка","07:54"],["з.п. 184 км","07:59"],["Горяїнове","08:03"],["Дніпро-Гол.","08:09"]],
   "6015": [["Дніпро-Гол.","08:22"],["Горяїнове","08:28"],["з.п. 184 км","08:33"],["Діївка","08:39"],["з.п. 178 км","08:44"],["з.п. 175 км","08:48"],["Сухачівка","08:55"],["з.п. 169 км","08:59"],["з.п. 165 км","09:04"],["з.п. 164 км","09:07"],["з.п. 160 км","09:11"],["Запоріжжя-Кам’янське","09:15"],["Кам'янське-Пас.","09:20"],["з.п. 149 км","09:25"],["Воскобійня","09:33"],["з.п. 139 км","09:38"],["Верхньодніпровськ","09:46"],["з.п. 128 км","09:51"],["з.п. 125 км","09:54"],["з.п. 119 км","10:00"],["Верхівцеве","10:35"],["з.п. 114 км","10:42"],["з.п. Гранове","10:46"],["з.п. 104 км","10:51"],["Вільногірськ","10:56"],["Ерастівка","11:06"],["з.п. 88 км","11:13"],["з.п. Касинівка","11:19"],["з.п. 77 км","11:25"],["П'ятихатки-Пас.","11:30"]],
   "6018": [["П'ятихатки-Стикова","08:21"],["П'ятихатки-Пас.","08:29"],["з.п. 77 км","08:34"],["з.п. Касинівка","08:39"],["з.п. 88 км","08:46"],["Ерастівка","08:51"],["Вільногірськ","09:00"],["з.п. 104 км","09:05"],["з.п. Гранове","09:10"],["з.п. 114 км","09:14"],["Верхівцеве","09:21"],["з.п. 119 км","09:24"],["з.п. 125 км","09:29"],["з.п. 128 км","09:33"],["Верхньодніпровськ","09:40"],["з.п. 139 км","09:47"],["Воскобійня","09:51"],["з.п. 149 км","09:59"],["Кам'янське-Пас.","10:04"],["Запоріжжя-Кам’янське","10:11"],["з.п. 160 км","10:14"],["з.п. 164 км","10:19"],["з.п. 165 км","10:22"],["з.п. 169 км","10:27"],["Сухачівка","10:30"],["з.п. 175 км","10:34"],["з.п. 178 км","10:38"],["Діївка","10:42"],["з.п. 184 км","10:47"],["Горяїнове","10:51"],["Дніпро-Гол.","10:57"]],
-  "6038": [["П'ятихатки-Пас.","16:50"],["з.п. 77 км","16:56"],["з.п. Касинівка","17:02"],["з.п. 88 км","17:09"],["Ерастівка","17:14"],["Вільногірськ","17:23"],["з.п. 104 км","17:28"],["з.п. Гранове","17:33"],["з.п. 114 км","17:37"],["Верхівцеве","17:44"],["з.п. 119 км","17:47"],["з.п. 125 км","17:52"],["з.п. 128 км","17:56"],["Верхньодніпровськ","18:03"],["з.п. 139 км","18:10"],["Воскобійня","18:14"],["з.п. 149 км","18:22"],["Кам'янське-Пас.","18:27"],["Запоріжжя-Кам’янське","18:32"],["з.п. 160 км","18:35"],["з.п. 164 км","18:40"],["з.п. 165 км","18:43"],["з.п. 169 км","18:48"],["Сухачівка","18:51"],["з.п. 175 км","18:55"],["з.п. 178 км","18:59"],["Діївка","19:03"],["з.п. 184 км","19:08"],["Горяїнове","19:12"],["Дніпро-Гол.","20:00"]],
+  "6038": [["П'ятихатки-Пас.","16:50"],["з.п. 77 км","16:56"],["з.п. Касинівка","17:02"],["з.п. 88 км","17:09"],["Ерастівка","17:14"],["Вільногірськ","17:23"],["з.п. 104 км","17:28"],["з.п. Гранове","17:33"],["з.п. 114 км","17:37"],["Верхівцеве","17:44"],["з.п. 119 км","17:47"],["з.п. 125 км","17:52"],["з.п. 128 км","17:56"],["Верхньодніпровськ","18:03"],["з.п. 139 км","18:10"],["Воскобійня","18:14"],["з.п. 149 км","18:22"],["Кам'янське-Пас.","18:27"],["Запоріжжя-Кам’янське","18:32"],["з.п. 160 км","18:35"],["з.п. 164 км","18:40"],["з.п. 165 км","18:43"],["з.п. 169 км","18:48"],["Сухачівка","18:51"],["з.п. 175 км","18:55"],["з.п. 178 км","18:59"],["Діївка","19:03"],["з.п. 184 км","19:08"],["Горяїнове","19:12"],["Дніпро-Гол.","—"]],
   "6035": [["Дніпро-Гол.","16:38"],["Горяїнове","16:44"],["з.п. 184 км","16:44"],["Діївка","16:55"],["з.п. 178 км","17:00"],["з.п. 175 км","17:04"],["Сухачівка","17:19"],["з.п. 169 км","17:23"],["з.п. 165 км","17:28"],["з.п. 164 км","17:31"],["з.п. 160 км","17:35"],["Запоріжжя-Кам’янське","17:39"],["Кам'янське-Пас.","17:44"],["з.п. 149 км","17:49"],["Воскобійня","17:57"],["з.п. 139 км","18:02"],["Верхньодніпровськ","18:10"],["з.п. 128 км","18:15"],["з.п. 125 км","18:18"],["з.п. 119 км","18:24"],["Верхівцеве","18:29"],["з.п. 114 км","18:36"],["з.п. Гранове","18:40"],["з.п. 104 км","18:45"],["Вільногірськ","18:50"],["Ерастівка","19:00"],["з.п. 88 км","19:04"],["з.п. Касинівка","19:10"],["з.п. 77 км","19:16"],["П'ятихатки-Пас.","19:22"],["П'ятихатки-Стикова","19:29"]],
-  "6037": [["Дніпро-Гол.","17:34"],["Горяїнове","17:40"],["з.п. 184 км","17:45"],["Діївка","17:51"],["з.п. 178 км","17:56"],["з.п. 175 км","18:00"],["Сухачівка","18:07"],["з.п. 169 км","18:11"],["з.п. 165 км","18:16"],["з.п. 164 км","18:19"],["з.п. 160 км","18:23"],["Запоріжжя-Кам’янське","18:27"],["Кам'янське-Пас.","18:33"],["з.п. 149 км","18:38"],["Воскобійня","18:46"],["з.п. 139 км","18:51"],["Верхньодніпровськ","18:59"],["з.п. 128 км","19:04"],["з.п. 125 км","19:07"],["з.п. 119 км (Верхівцеве)","19:13"],["Верхівцеве","19:18"],["з.п. 114 км","19:25"],["з.п. Гранове","19:29"],["з.п. 104 км","19:34"],["Вільногірськ","19:39"],["Ерастівка","19:49"],["з.п. 88 км","19:57"],["з.п. Касинівка","20:03"],["з.п. 77 км","20:09"],["П'ятихатки-Пас.","20:40"]],
-  "6044": [["П'ятихатки-Стикова","20:29"],["П'ятихатки-Пас.","20:37"],["з.п. 77 км","20:42"],["з.п. Касинівка","20:47"],["з.п. 88 км","20:54"],["Ерастівка","21:12"],["Вільногірськ","21:21"],["з.п. 104 км","21:25"],["з.п. Гранове","21:30"],["з.п. 114 км","21:34"],["Верхівцеве","21:40"],["з.п. 119 км (Верхівцеве)","21:43"],["з.п. 125 км","21:47"],["з.п. 128 км","21:51"],["Верхньодніпровськ","21:58"],["з.п. 139 км","22:05"],["Воскобійня","22:09"],["з.п. 149 км","22:17"],["Кам'янське-Пас.","22:22"],["Запоріжжя-Кам’янське","22:27"],["з.п. 160 км","22:30"],["з.п. 164 км","22:35"],["з.п. 165 км","22:38"],["з.п. 169 км","22:42"],["Сухачівка","22:45"],["з.п. 175 км","22:49"],["з.п. 178 км","22:53"],["Діївка","22:57"],["з.п. 184 км","23:02"],["Горяїнове","23:06"],["Дніпро-Гол.","23:12"]],
-  "6043": [["Дніпро-Гол.","20:18"],["Горяїнове","20:24"],["з.п. 184 км","20:29"],["Діївка","20:35"],["з.п. 178 км","20:40"],["з.п. 175 км","20:44"],["Сухачівка","20:51"],["з.п. 169 км","20:55"],["з.п. 165 км","21:00"],["з.п. 164 км","21:03"],["з.п. 160 км","21:07"],["Запоріжжя-Кам’янське","21:11"],["Кам'янське-Пас.","21:16"],["з.п. 149 км","21:21"],["Воскобійня","21:29"],["з.п. 139 км","21:34"],["Верхньодніпровськ","21:42"],["з.п. 128 км","21:47"],["з.п. 125 км","21:50"],["з.п. 119 км (Верхівцеве)","21:56"],["Верхівцеве","22:01"],["з.п. 114 км","22:08"],["з.п. Гранове","22:12"],["з.п. 104 км","22:17"],["Вільногірськ","22:22"],["Ерастівка","22:48"],["з.п. 88 км","22:53"],["з.п. Касинівка","22:59"],["з.п. 77 км","23:05"],["П'ятихатки-Пас.","23:10"]]
+  "6037": [["Дніпро-Гол.","17:34"],["Горяїнове","17:40"],["з.п. 184 км","17:45"],["Діївка","17:51"],["з.п. 178 км","17:56"],["з.п. 175 км","18:00"],["Сухачівка","18:07"],["з.п. 169 км","18:11"],["з.п. 165 км","18:16"],["з.п. 164 км","18:19"],["з.п. 160 км","18:23"],["Запоріжжя-Кам’янське","18:27"],["Кам'янське-Пас.","18:33"],["з.п. 149 км","18:38"],["Воскобійня","18:46"],["з.п. 139 км","18:51"],["Верхньодніпровськ","18:59"],["з.п. 128 км","19:04"],["з.п. 125 км","19:07"],["з.п. 119 км","19:13"],["Верхівцеве","19:18"],["з.п. 114 км","19:25"],["з.п. Гранове","19:29"],["з.п. 104 км","19:34"],["Вільногірськ","19:39"],["Ерастівка","19:49"],["з.п. 88 км","19:57"],["з.п. Касинівка","20:03"],["з.п. 77 км","20:09"],["П'ятихатки-Пас.","20:40"]],
+  "6044": [["П'ятихатки-Стикова","20:29"],["П'ятихатки-Пас.","20:37"],["з.п. 77 км","20:42"],["з.п. Касинівка","20:47"],["з.п. 88 км","20:54"],["Ерастівка","21:12"],["Вільногірськ","21:21"],["з.п. 104 км","21:25"],["з.п. Гранове","21:30"],["з.п. 114 км","21:34"],["Верхівцеве","21:40"],["з.п. 119 км","21:43"],["з.п. 125 км","21:47"],["з.п. 128 км","21:51"],["Верхньодніпровськ","21:58"],["з.п. 139 км","22:05"],["Воскобійня","22:09"],["з.п. 149 км","22:17"],["Кам'янське-Пас.","22:22"],["Запоріжжя-Кам’янське","22:27"],["з.п. 160 км","22:30"],["з.п. 164 км","22:35"],["з.п. 165 км","22:38"],["з.п. 169 км","22:42"],["Сухачівка","22:45"],["з.п. 175 км","22:49"],["з.п. 178 км","22:53"],["Діївка","22:57"],["з.п. 184 км","23:02"],["Горяїнове","23:06"],["Дніпро-Гол.","23:12"]],
+  "6043": [["Дніпро-Гол.","20:18"],["Горяїнове","20:24"],["з.п. 184 км","20:29"],["Діївка","20:35"],["з.п. 178 км","20:40"],["з.п. 175 км","20:44"],["Сухачівка","20:51"],["з.п. 169 км","20:55"],["з.п. 165 км","21:00"],["з.п. 164 км","21:03"],["з.п. 160 км","21:07"],["Запоріжжя-Кам’янське","21:11"],["Кам'янське-Пас.","21:16"],["з.п. 149 км","21:21"],["Воскобійня","21:29"],["з.п. 139 км","21:34"],["Верхньодніпровськ","21:42"],["з.п. 128 км","21:47"],["з.п. 125 км","21:50"],["з.п. 119 км","21:56"],["Верхівцеве","22:01"],["з.п. 114 км","22:08"],["з.п. Гранове","22:12"],["з.п. 104 км","22:17"],["Вільногірськ","22:22"],["Ерастівка","22:48"],["з.п. 88 км","22:53"],["з.п. Касинівка","22:59"],["з.п. 77 км","23:05"],["П'ятихатки-Пас.","23:10"]]
 };
 
-const changesSchedule6035 = [
-  ["Дніпро-Гол.","---"],["Горяїнове","16:44"],["з.п. 184 км","16:49"],["Діївка","16:55"],
-  ["з.п. 178 км","17:00"],["з.п. 175 км","17:04"],["Сухачівка","17:23"],
-  ["з.п. 169 км","17:27"],["з.п. 165 км","17:32"],["з.п. 164 км","17:35"],
-  ["з.п. 160 км","17:39"],["Запоріжжя-Кам’янське","17:43"],["Кам'янське-Пас.","17:48"],
-  ["з.п. 149 км","17:53"],["Воскобійня","18:01"],["з.п. 139 км","18:06"],
-  ["Верхньодніпровськ","18:14"],["з.п. 128 км","18:19"],["з.п. 125 км","18:22"],
-  ["з.п. 119 км","18:28"],["Верхівцеве","18:33"],["з.п. 114 км","18:40"],
-  ["з.п. Гранове","18:44"],["з.п. 104 км","18:49"],["Вільногірськ","18:54"],
-  ["Ерастівка","19:04"],["з.п. 88 км","19:08"],["з.п. Касинівка","19:14"],
-  ["з.п. 77 км","19:20"],["П'ятихатки-Пас.","19:26"],["П'ятихатки-Стикова","19:33"]
-];
+const changes = {
+    "6010": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
+    "6015": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 08:28",
+    "6018": "06-09.04.26 електропоїзд курсує до ст. Горяїнове",
+    "6037": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове о 17:40",
+    "6035": "06-09.04.26 електропоїзд відправляється зі ст. Горяїнове і далі за цим розкладом"
+};
 
 const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
 
-function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
-
-function isPast(time){
-  if(time === "---" || time === "—" || !time.includes(":")) return false;
-  const now = getKyivNow();
-  const [h, m] = time.split(":").map(Number);
-  const t = new Date(now); t.setHours(h, m, 0, 0);
-  return t < now;
-}
-
-function updateDateTime(){
-  const now=getKyivNow();
-  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-  const days=document.querySelectorAll(".day");
-  days.forEach(d=>d.classList.remove("active"));
-  let i=now.getDay(); i=i===0?6:i-1;
-  days[i].classList.add("active");
-}
-
-async function loadWeather(){
-  const coords = [{n:'Вільногірськ',lat:48.48,lon:34.02}, {n:'Дніпро',lat:48.45,lon:34.98}];
-  let html = '';
-  for(let i=0; i<coords.length; i++){
-    try {
-      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords[i].lat}&longitude=${coords[i].lon}&current_weather=true&timezone=Europe%2FKyiv`);
-      const d = await r.json();
-      html += `<div class="weather-content ${i===0?'active':''}" id="slide-${i}">
-        <div class="weather-city">${coords[i].n}</div>
-        <div class="weather-temp">${Math.round(d.current_weather.temperature)}°C</div>
-        <div style="font-size:11px; color:#aaa">💨 ${Math.round(d.current_weather.windspeed)} м/с</div>
-      </div>`;
-    } catch(e){}
-  }
-  document.getElementById("weather-container").innerHTML = html;
-  let cur = 0;
-  setInterval(() => {
-    const slides = document.querySelectorAll('.weather-content');
-    if(slides.length < 2) return;
-    slides[cur].classList.remove('active');
-    cur = (cur + 1) % slides.length;
-    slides[cur].classList.add('active');
-  }, 7000);
-}
-
-function renderGrid(data, isChanges = false){
-  let i = 1; const cols = [];
-  for(let j=0; j<data.length; j+=10){ cols.push(data.slice(j, j+10)); }
-  return `<div class="schedule-grid">
-    ${cols.map(col=>`
-      <div class="schedule-column" style="background:rgba(255,255,255,0.1); border-radius:8px; padding:5px;">
-        ${col.map(r=>{
-          const isVil = r[0].includes("Вільногірськ");
-          return `<div class="schedule-row ${isVil?'row-highlight':''}">
-            <span><span class="station-number">${i++}.</span>${r[0]}</span>
-            <span class="${isPast(r[1]) && !isChanges ? 'time-passed' : 'time-green'}">${r[1]}</span>
-          </div>`;
-        }).join("")}
-      </div>`).join("")}
-  </div>`;
+// ЛОГІКА ТАБЛИЦІ (3 КОЛОНКИ + КОЛЬОРИ ЧАСУ)
+function renderGrid(data){
+    let i = 1;
+    const size = Math.ceil(data.length / 3);
+    let html = '<div class="schedule-grid">';
+    for(let colIdx=0; colIdx<3; colIdx++){
+        html += '<div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">';
+        const chunk = data.slice(colIdx * size, (colIdx + 1) * size);
+        chunk.forEach(r => {
+            const passed = isPast(r[1]);
+            const isVil = r[0].includes("Вільногірськ");
+            const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
+            const timeClass = passed ? 'st-passed' : 'st-green';
+            html += `<div class="${rowClass}">
+              <span><span class="station-number">${i++}.</span>${r[0]}</span>
+              <span class="${timeClass}">${r[1]}</span>
+            </div>`;
+        });
+        html += '</div>';
+    }
+    html += '</div>';
+    return html;
 }
 
 function renderTrains(el, data){
-  data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
-  el.innerHTML=`<div class="table-head"><div>№</div><div>Напрямок</div><div>Відпр.</div></div><div id="trains-content"></div>`;
-  const container = document.getElementById('trains-content');
-  data.forEach(x=>{
-    const id="d-"+x.number;
-    const now = getKyivNow();
-    const [h, m] = x.time.split(':').map(Number);
-    const tTime = new Date(now); tTime.setHours(h, m, 0, 0);
-    const diff = Math.floor((tTime - now) / 60000);
-    let cls = diff < 0 ? "passed" : (diff <= 10 ? "soon" : "future");
+    data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
+    el.innerHTML=`<div class="table-head"><div>№</div><div>Напрямок</div><div>Відпр.</div></div><div id="trains-content"></div>`;
+    const container = document.getElementById('trains-content');
+    data.forEach(x=>{
+        const id="d-"+x.number;
+        const now = getKyivNow();
+        const [h,m] = x.time.split(':').map(Number);
+        const tTime = new Date(now); tTime.setHours(h,m,0,0);
+        const diff = Math.floor((tTime - now) / 60000);
+        let cls = diff < 0 ? "passed" : (diff <= 10 ? "soon" : "future");
 
-    container.innerHTML+=`
-      <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-        <div style="position:relative">${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
-        <div class="route-text">${x.route}</div>
-        <div class="time-val ${cls}">${diff>=0 && diff<=10 ? '≈ '+diff+' хв' : x.time}</div>
-      </div>
-      <div class="details" id="${id}">
-        ${renderGrid(fullSchedules[x.number] || [])}
-        <div style="width:60%; height:1px; background:rgba(255,255,255,0.3); margin:15px auto;"></div>
-        <div class="details-note">${changes[x.number] || "змін немає..."}</div>
-        ${x.number === "6035" ? renderGrid(changesSchedule6035, true) : ""}
-      </div>`;
-  });
+        container.innerHTML+=`
+            <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
+                <div>${x.number}${changes[x.number]?'<span class="alert-dot"></span>':''}</div>
+                <div class="route-text">${x.route}</div>
+                <div class="time-val ${cls}">${diff>=0 && diff<=10 ? '≈ '+diff+' хв' : x.time}</div>
+            </div>
+            <div class="details" id="${id}">
+                ${renderGrid(fullSchedules[x.number] || [])}
+                <div class="details-note">${changes[x.number] || "змін немає..."}</div>
+            </div>`;
+    });
 }
 
 function loadTrains(){
-  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
+    fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
     .then(r=>r.json()).then(d=>renderTrains(document.getElementById("list"), d.trains))
-    .catch(e => console.log("API error"));
+    .catch(()=>console.log("API offline"));
 }
 
-function openTab(tabId, btn) {
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  btn.classList.add('active');
-}
-
-loadTrains(); updateDateTime(); loadWeather();
-setInterval(loadTrains,30000); setInterval(updateDateTime,1000);
+updateDT(); loadW(); loadTrains();
+setInterval(updateDT, 1000); setInterval(loadTrains, 30000);
 </script>
-
 </body>
 </html>
