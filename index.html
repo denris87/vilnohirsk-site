@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Вільногірськ Онлайн</title>
+<title>Вільногірськ Онлайн - Dark Glass 2026</title>
 
 <style>
 :root {
@@ -104,7 +104,7 @@ body {
 #date { font-size: clamp(18px, 4.8vw, 24px); font-weight: 800; white-space: nowrap; letter-spacing: 0.5px; }
 #time { font-size: clamp(16px, 4.2vw, 20px); font-weight: 700; white-space: nowrap; color: #fff; font-variant-numeric: tabular-nums; }
 
-/* ДНІ ТИЖНЯ - Зменшено для мобільних + червоний фон */
+/* ДНІ ТИЖНЯ */
 .weekdays { display: flex; justify-content: center; gap: 3px; font-size: clamp(9px, 2.3vw, 12px); font-weight: 700; margin: 6px 0; text-transform: uppercase; width: 100%; padding: 0 5px;}
 .day { color: rgba(255,255,255,0.4); transition: 0.3s ease; }
 .day.active { background-color: #ff4d4d !important; color: #fff !important; border-radius: 6px; padding: 2px 5px; box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); }
@@ -166,7 +166,7 @@ body {
   z-index: 1; 
 }
 
-/* ЗАГОЛОВКИ ТАБЛИЦІ - Менший розмір, кольорові, з відступом */
+/* ЗАГОЛОВКИ ТАБЛИЦІ */
 .table-head { 
   display: grid; 
   grid-template-columns: 18% 1fr 20%; 
@@ -174,11 +174,11 @@ body {
   justify-items: center; 
   font-weight: 700; 
   border-bottom: 1px solid rgba(255,255,255,0.15); 
-  padding-bottom: 10px; /* Відступ знизу */
+  padding-bottom: 10px; 
   margin-bottom: 8px; 
-  font-size: 10px; /* Зменшений розмір */
+  font-size: 10px; 
   text-transform: uppercase; 
-  color: #74b9ff; /* Приємний пастельно-блакитний колір */
+  color: #74b9ff; 
   letter-spacing: 0.5px;
 }
 
@@ -199,7 +199,7 @@ body {
 
 .train-num-box { position: relative; font-weight: 800; display: inline-block; font-size: 14px; background: rgba(255,255,255,0.1); padding: 5px 8px; border-radius: 8px; }
 
-/* ТЕКСТ МАРШРУТІВ - Білий і з переносом */
+/* ТЕКСТ МАРШРУТІВ */
 .route-text { 
   font-weight: 700; 
   color: #ffffff; 
@@ -235,6 +235,7 @@ body {
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } 
 }
 
+/* ШТОРКИ РОЗКЛАДУ */
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.25); border-radius: 16px; }
 .details.open { max-height: 5000px; opacity: 1; padding: 15px; margin-top: 5px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
 
@@ -248,6 +249,7 @@ body {
 
 .schedule-column { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px 8px; }
 
+/* ВИРІВНЮВАННЯ РЯДКІВ В ТАБЛИЦІ ШТОРКИ */
 .schedule-row { 
   display: flex; 
   justify-content: space-between; 
@@ -256,16 +258,39 @@ body {
   font-size: 13px; 
   align-items: center;
   gap: 10px; 
+  text-align: left; /* Жорстко по лівому краю */
 }
 .schedule-row:last-child { border-bottom: none; }
-.schedule-row > span:first-child { flex: 1; white-space: normal; line-height: 1.2; font-weight: 500;}
 
-.row-highlight { background: rgba(255, 255, 255, 0.1) !important; color: var(--highlight-color) !important; font-weight: 800; }
-.station-number { color: rgba(255,255,255,0.3); font-weight: 600; margin-right: 6px; font-size: 10px;}
+.schedule-left {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  text-align: left;
+  line-height: 1.2;
+  font-weight: 500;
+}
 
-.time-green { color: var(--time-green); font-weight: 700; font-family: monospace; font-size: 14px;}
-.time-passed { color: var(--time-passed); font-weight: 500; font-family: monospace; font-size: 14px;}
-.time-normal { color: #fff; font-weight: 700; font-family: monospace; font-size: 14px;}
+.station-number { 
+  color: rgba(255,255,255,0.3); 
+  font-weight: 600; 
+  margin-right: 6px; 
+  font-size: 10px;
+  min-width: 18px; /* Фіксована ширина для чисел, щоб крапки були на одному рівні */
+  text-align: right;
+  padding-top: 2px;
+}
+
+.station-name-text {
+  flex: 1;
+  word-wrap: break-word;
+}
+
+.row-highlight { background: rgba(255, 255, 255, 0.1) !important; color: var(--highlight-color) !important; font-weight: 800; border-radius: 6px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.1); }
+
+.time-green { color: var(--time-green); font-weight: 700; font-family: monospace; font-size: 14px; text-align: right; white-space: nowrap;}
+.time-passed { color: var(--time-passed); font-weight: 500; font-family: monospace; font-size: 14px; text-align: right; white-space: nowrap;}
+.time-normal { color: #fff; font-weight: 700; font-family: monospace; font-size: 14px; text-align: right; white-space: nowrap;}
 
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; }
 .details-divider { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 20px auto 15px; }
@@ -406,9 +431,13 @@ function renderGrid(data, isChanges = false, alwaysWhite = false) {
         const isVil = r[0].toLowerCase().includes('вільногірськ');
         const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
         let timeClass = (alwaysWhite || isChanges) ? 'time-normal' : (past ? 'time-passed' : 'time-green');
+        
         html += `<div class="${rowClass}">
-          <span><span class="station-number">${idx + 1}.</span>${r[0]}</span>
-          <span class="${timeClass}">${r[1]}</span>
+          <div class="schedule-left">
+            <span class="station-number">${idx + 1}.</span>
+            <span class="station-name-text">${r[0]}</span>
+          </div>
+          <div class="${timeClass}">${r[1]}</div>
         </div>`;
       }
     }
@@ -434,7 +463,6 @@ function renderTrains(el, data){
     } else statusClass = "passed";
     const hasChanges = x.note && x.note !== "змін немає...";
     
-    /* Відновлено змінну altScheduleHtml */
     const altScheduleHtml = x.altSchedule ? renderGrid(x.altSchedule, true) : "";
 
     container.innerHTML+=`
@@ -459,7 +487,6 @@ function renderLongTrains(el, data) {
     const id = "lt-" + x.number + "-" + index;
     const stopsMapped = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
     
-    /* Відновлено логіку періодичності та змін для потягів */
     const hasChanges = x.changes && x.changes.length > 0;
     let infoHtml = "";
     if (x.periodicityText) {
@@ -498,7 +525,12 @@ function renderBuses(el, data) {
   data.forEach(b => {
     let colsHtml = '';
     b.directions.forEach(dir => {
-      let rowsHtml = dir.rows.map(row => `<div class="schedule-row"><span>${row[0]}</span><span class="time-normal">${row[1]}</span></div>`).join('');
+      let rowsHtml = dir.rows.map(row => `
+        <div class="schedule-row">
+          <div class="schedule-left"><span class="station-name-text">${row[0]}</span></div>
+          <div class="time-normal">${row[1]}</div>
+        </div>
+      `).join('');
       colsHtml += `<div class="schedule-column"><div style="text-align:center; color:var(--highlight-color); font-size:11px; margin-bottom:10px; font-weight:800; text-transform:uppercase;">${dir.title}</div>${rowsHtml}</div>`;
     });
     container.innerHTML += `
