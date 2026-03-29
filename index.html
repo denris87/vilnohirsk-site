@@ -433,6 +433,10 @@ function renderTrains(el, data){
       else if (diff <= 10) { statusClass = "soon"; displayText = `≈ ${diff} хв`; }
     } else statusClass = "passed";
     const hasChanges = x.note && x.note !== "змін немає...";
+    
+    /* Відновлено змінну altScheduleHtml */
+    const altScheduleHtml = x.altSchedule ? renderGrid(x.altSchedule, true) : "";
+
     container.innerHTML+=`
       <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div class="train-num-box">${x.number}${hasChanges ? '<span class="alert-dot"></span>' : ''}</div>
@@ -442,6 +446,7 @@ function renderTrains(el, data){
       <div class="details" id="${id}">
         ${x.fullSchedule?.length > 0 ? renderGrid(x.fullSchedule) : "<div style='text-align:center; padding:10px; color:rgba(255,255,255,0.4);'>Дані відсутні</div>"}
         ${x.note && x.note !== "змін немає..." ? `<div class="details-divider"></div><div class="details-note">${x.note}</div>` : ''}
+        ${altScheduleHtml}
       </div>`;
   });
 }
@@ -453,6 +458,26 @@ function renderLongTrains(el, data) {
   data.forEach((x, index) => {
     const id = "lt-" + x.number + "-" + index;
     const stopsMapped = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
+    
+    /* Відновлено логіку періодичності та змін для потягів */
+    const hasChanges = x.changes && x.changes.length > 0;
+    let infoHtml = "";
+    if (x.periodicityText) {
+      infoHtml += `<div class="details-divider"></div>
+                   <div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);">
+                     <b>Періодичність:</b><br><span style="color:rgba(255,255,255,0.7); font-weight:500;">${x.periodicityText}</span>
+                   </div>`;
+    }
+    if (hasChanges) {
+      infoHtml += `<div class="details-divider"></div>
+                   <div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);">
+                     <b>Зміни розкладу:</b>
+                     <ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500; color: rgba(255,255,255,0.8);">
+                       ${x.changes.map(c => `<li>${c}</li>`).join('')}
+                     </ul>
+                   </div>`;
+    }
+
     container.innerHTML += `
       <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div class="train-num-box">${x.number}</div>
@@ -461,7 +486,7 @@ function renderLongTrains(el, data) {
       </div>
       <div class="details" id="${id}">
         ${stopsMapped.length > 0 ? renderGrid(stopsMapped, false, true) : "<div style='text-align:center; padding:10px; color:rgba(255,255,255,0.4);'>Дані відсутні</div>"}
-        ${x.periodicityText ? `<div class="details-divider"></div><div class="details-note" style="color:#009ffd;">${x.periodicityText}</div>` : ''}
+        ${infoHtml}
       </div>`;
   });
 }
