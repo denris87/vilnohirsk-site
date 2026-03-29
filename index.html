@@ -129,7 +129,8 @@ body {
 .alert-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; padding-bottom: 5px; }
 .alert-carousel::-webkit-scrollbar { display: none; } 
 .alert-card { scroll-snap-align: start; flex: 0 0 100%; background: rgba(41, 128, 185, 0.3); border: 1px solid rgba(116, 185, 255, 0.3); border-radius: 16px; padding: 15px; box-sizing: border-box; }
-.alert-card-text { font-size: 14px; font-weight: 500; line-height: 1.4; text-align: left; color: rgba(255,255,255,0.9); }
+.alert-card-title { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+.alert-card-text { font-size: 14px; font-weight: 500; line-height: 1.5; text-align: left; color: rgba(255,255,255,0.9); }
 
 /* Точки повідомлень */
 .banner-alert-dot { 
@@ -563,9 +564,13 @@ async function loadAlerts() {
     if (activeAlerts.length > 0) {
       dot.classList.add("active");
       carousel.innerHTML = activeAlerts.map(alert => {
+        // 🔥 Ось тут відбувається примусова заміна \n на перенесення рядка
+        const textWithBreaks = alert.text ? alert.text.replace(/\n/g, '<br>') : '';
+        
         return `
           <div class="alert-card">
-            <div class="alert-card-text">${alert.text}</div>
+            ${alert.title ? `<div class="alert-card-title">${alert.title}</div>` : ''}
+            <div class="alert-card-text">${textWithBreaks}</div>
           </div>
         `;
       }).join("");
