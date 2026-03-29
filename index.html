@@ -8,7 +8,7 @@
 <style>
 :root {
   --highlight-color: #ffcc00; 
-  /* Кольори блоків тепер темні, як і у вкладок */
+  /* Темні кольори блоків для максимального контрасту */
   --glass-bg: rgba(0, 0, 0, 0.45);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-border-light: rgba(255, 255, 255, 0.15);
@@ -38,7 +38,6 @@ body {
   justify-content: center;
   align-items: flex-start;
   min-height: 100vh;
-  /* Залишив твій яскравий фон */
   background: linear-gradient(-45deg, #1e3c72, #2a5298, #009ffd, #2af598, #009ffd);
   background-size: 300% 300%;
   animation: gradientMove 30s ease-in-out infinite alternate;
@@ -61,7 +60,7 @@ body {
   gap: 15px; 
 }
 
-/* ОСНОВНИЙ КЛАС ТЕМНОГО СКЛА ДЛЯ ВСІХ БЛОКІВ */
+/* ОСНОВНИЙ КЛАС ТЕМНОГО СКЛА */
 .liquid-glass {
   background: var(--glass-bg);
   backdrop-filter: blur(24px) saturate(180%);
@@ -108,9 +107,10 @@ body {
 #date { font-size: clamp(18px, 4.8vw, 24px); font-weight: 800; white-space: nowrap; letter-spacing: 0.5px; }
 #time { font-size: clamp(16px, 4.2vw, 20px); font-weight: 700; white-space: nowrap; color: #fff; font-variant-numeric: tabular-nums; }
 
-.weekdays { display: flex; justify-content: center; gap: 6px; font-size: clamp(14px, 3.5vw, 16px); font-weight: 700; margin: 8px 0; text-transform: uppercase; }
+/* Виправлено відступи між днями тижня для дрібних екранів */
+.weekdays { display: flex; justify-content: center; gap: clamp(2px, 1.2vw, 6px); font-size: clamp(12px, 3.2vw, 15px); font-weight: 700; margin: 8px 0; text-transform: uppercase; }
 .day { color: rgba(255,255,255,0.4); transition: 0.3s ease; }
-.day.active { background: rgba(255,255,255,0.9); color: #1e3c72; border-radius: 8px; padding: 2px 8px; box-shadow: 0 2px 10px rgba(255,255,255,0.3); }
+.day.active { background: rgba(255,255,255,0.9); color: #1e3c72; border-radius: 8px; padding: 2px 7px; box-shadow: 0 2px 10px rgba(255,255,255,0.3); }
 
 /* ПОГОДА */
 .weather-box { position: relative; width: 100%; height: 95px; display: flex; align-items: center; justify-content: center; }
@@ -151,7 +151,7 @@ body {
   white-space: nowrap;
 }
 .tab-btn.active { 
-  background: rgba(40, 40, 40, 0.85); /* Трохи виділяється на фоні контейнера */
+  background: rgba(40, 40, 40, 0.85); 
   color: #ffffff; 
   text-shadow: 0 1px 2px rgba(0,0,0,0.8);
   box-shadow: 0 4px 10px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.15);
@@ -184,22 +184,22 @@ body {
   cursor: pointer; 
   transition: background 0.3s; 
   border-radius: 12px; 
-  min-height: 60px; /* Щоб багаторядковий текст гарно вміщувався */
+  min-height: 60px;
 }
 .train:hover { background: rgba(255,255,255,0.05); }
 .train:last-child { border-bottom: none; }
 
 .train-num-box { position: relative; font-weight: 800; display: inline-block; font-size: 15px; background: rgba(255,255,255,0.1); padding: 5px 8px; border-radius: 8px; box-shadow: inset 0 1px 1px rgba(255,255,255,0.1); }
 
-/* ВИПРАВЛЕННЯ ТЕКСТУ МАРШРУТУ (Показувати повністю) */
+/* ЯСКРАВО БІЛИЙ КОЛІР ДЛЯ МАРШРУТІВ ТА АВТОБУСІВ */
 .route-text { 
-  font-weight: 600; 
+  font-weight: 700; 
+  color: #ffffff; /* Примусово білий колір */
   text-align: center; 
-  font-size: clamp(12px, 3.5vw, 14px); 
+  font-size: clamp(13px, 3.8vw, 15px); 
   width: 100%; 
   padding: 0 8px; 
-  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  /* Наступні рядки дозволяють тексту переноситися */
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
   white-space: normal; 
   word-wrap: break-word;
   line-height: 1.3;
@@ -232,24 +232,51 @@ body {
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.25); border-radius: 16px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.3); }
 .details.open { max-height: 5000px; opacity: 1; padding: 15px; margin-top: 5px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
 
+/* СІТКИ (ВИПРАВЛЕНО ДЛЯ МОБІЛЬНИХ) */
 .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-@media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } }
+.bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+@media (max-width: 600px) { 
+  .schedule-grid { grid-template-columns: 1fr; } 
+  /* Автобуси тепер стають в 1 стовпчик на мобільних, щоб текст не вилазив */
+  .bus-grid { grid-template-columns: 1fr; } 
+}
 
 .schedule-column {
   background: rgba(255,255,255,0.03); 
   border-radius: 12px; 
-  padding: 8px;
+  padding: 10px 8px;
   border: 1px solid rgba(255,255,255,0.03);
 }
 
-.schedule-row { display: flex; justify-content: space-between; padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 12px; align-items: center;}
+/* ВИПРАВЛЕНО ПЕРЕНОС ТЕКСТУ В РЯДКАХ */
+.schedule-row { 
+  display: flex; 
+  justify-content: space-between; 
+  padding: 8px 6px; 
+  border-bottom: 1px solid rgba(255,255,255,0.05); 
+  font-size: 13px; 
+  align-items: center;
+  gap: 10px; /* Відстань між назвою та часом */
+}
 .schedule-row:last-child { border-bottom: none; }
+.schedule-row > span:first-child {
+  flex: 1 1 auto;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.3;
+  text-align: left;
+}
+.schedule-row > span:last-child {
+  flex: 0 0 auto; /* Час не буде стискатися */
+}
+
 .row-highlight { background: rgba(255, 255, 255, 0.1) !important; border-radius: 6px; color: var(--highlight-color) !important; font-weight: 800; box-shadow: inset 0 1px 2px rgba(255,255,255,0.1); }
 .station-number { color: rgba(255,255,255,0.3); font-weight: 600; margin-right: 6px; font-size: 10px;}
 
-.time-green { color: var(--time-green); font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px;}
-.time-passed { color: var(--time-passed); font-weight: 500; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px;}
-.time-normal { color: #fff; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 13px;}
+.time-green { color: var(--time-green); font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 14px;}
+.time-passed { color: var(--time-passed); font-weight: 500; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 14px;}
+.time-normal { color: #fff; font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 14px;}
 
 /* ПРИМІТКИ ПРО ЗМІНИ */
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; border: 1px solid rgba(255, 107, 107, 0.15);}
@@ -516,7 +543,7 @@ function renderLongTrains(el, data) {
   });
 }
 
-// РЕНДЕР СПИСКУ АВТОБУСІВ
+// РЕНДЕР СПИСКУ АВТОБУСІВ (Оновлений для мобільних)
 function renderBuses(el, data) {
   el.innerHTML = `<div class="table-head"><div>Тип</div><div>Маршрут прямування</div><div>Статус</div></div><div id="buses-content"></div>`;
   const container = document.getElementById('buses-content');
@@ -531,7 +558,7 @@ function renderBuses(el, data) {
       });
       colsHtml += `
         <div class="schedule-column">
-          <div style="text-align:center; color:var(--highlight-color); font-size:11px; margin-bottom:10px; font-weight:800; text-transform:uppercase; letter-spacing: 0.5px;">${dir.title}</div>
+          <div style="text-align:center; color:var(--highlight-color); font-size:12px; margin-bottom:12px; font-weight:800; text-transform:uppercase; letter-spacing: 0.5px; line-height:1.3; word-wrap: break-word;">${dir.title}</div>
           ${rowsHtml}
         </div>
       `;
@@ -546,7 +573,7 @@ function renderBuses(el, data) {
         <div class="time-val future" style="font-size:12px; text-transform:uppercase; letter-spacing: 1px;">Розклад ▾</div>
       </div>
       <div class="details">
-        <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="bus-grid">
           ${colsHtml}
         </div>
         ${noteHtml}
