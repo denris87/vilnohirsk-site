@@ -117,36 +117,107 @@ body {
 .weather-temp { font-size: clamp(24px, 6.5vw, 32px); font-weight: 800; white-space: nowrap; text-shadow: 0 2px 10px rgba(0,0,0,0.4); line-height: 1.1; }
 .weather-wind { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 6px; font-weight: 500; }
 
-/* 🔥 ИНФОРМАЦИОННЫЙ БЛОК (АЛЕРТ) */
-#alert-container:empty { display: none; } 
-.alert-widget {
-  padding: 14px 20px;
-  font-weight: 600;
-  font-size: clamp(13px, 3.8vw, 15px);
+/* 🔥 ІНФОРМАЦІЙНЕ ТАБЛО (НОВИЙ БЛОК) */
+.alert-main-widget {
+  padding: 0; 
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.alert-header {
+  padding: 16px;
   text-align: center;
-  line-height: 1.4;
-  animation: slideDownAlert 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  transition: background 0.3s;
 }
-.alert-danger {
-  background: rgba(255, 59, 59, 0.15);
-  border: 1px solid rgba(255, 59, 59, 0.3);
+.alert-header:active { background: rgba(255, 255, 255, 0.1); }
+
+.alert-title-box {
+  position: relative;
+  display: inline-block; /* Чтобы точка была ровно над словом */
+  font-weight: 800;
+  font-size: clamp(14px, 4vw, 18px);
+  color: var(--highlight-color);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.alert-drawer {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  background: rgba(0,0,0,0.2);
+}
+.alert-drawer.open {
+  max-height: 1000px;
+  opacity: 1;
+  padding: 15px;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+/* Карусель (Свайп) для алертів */
+.alert-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory; /* Плавный свайп по карточкам */
+  gap: 15px;
+  padding-bottom: 5px;
+}
+.alert-carousel::-webkit-scrollbar { display: none; } /* Прячем ползунок */
+
+.alert-card {
+  scroll-snap-align: start;
+  flex: 0 0 100%; /* Карточка занимает 100% ширины */
+  background: rgba(41, 128, 185, 0.3); /* Синеватый фон как на твоем скрине */
+  border: 1px solid rgba(116, 185, 255, 0.3);
+  border-radius: 16px;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+.alert-card-title {
+  font-size: 15px;
+  font-weight: 800;
   color: #fff;
-  box-shadow: 0 4px 20px rgba(255, 59, 59, 0.2);
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 8px;
 }
-.alert-warning {
-  background: rgba(255, 204, 0, 0.15);
-  border: 1px solid rgba(255, 204, 0, 0.3);
-  color: #fff;
-  box-shadow: 0 4px 20px rgba(255, 204, 0, 0.15);
+
+.alert-card-text {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4; /* Убрали пустые абзацы, текст плотнее */
+  text-align: left;
+  color: rgba(255,255,255,0.9);
 }
-@keyframes slideDownAlert { 
-  from { opacity: 0; transform: translateY(-10px) scale(0.98); } 
-  to { opacity: 1; transform: translateY(0) scale(1); } 
+
+.alert-dot { 
+  position: absolute; 
+  top: -2px; 
+  right: -12px; 
+  width: 8px; 
+  height: 8px; 
+  background: #ff3b3b; 
+  border-radius: 50%; 
+  border: 1px solid rgba(0,0,0,0.5);
+  animation: pulseAlert 1.5s infinite; 
+  display: none; /* Скрыта по умолчанию */
 }
+.alert-dot.active { display: block; }
+
+@keyframes pulseAlert { 
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } 
+}
+
+/* --- ОСТАЛЬНОЙ КОД --- */
 
 .schedule-group { display: flex; flex-direction: column; gap: 8px;}
 
-/* ТАБИ */
 .tabs-nav { 
   display: flex; 
   width: 100%; 
@@ -193,7 +264,6 @@ body {
   z-index: 1; 
 }
 
-/* ЗАГОЛОВКИ ТАБЛИЦІ */
 .table-head { 
   display: grid; 
   grid-template-columns: 18% 1fr 20%; 
@@ -226,7 +296,6 @@ body {
 
 .train-num-box { position: relative; font-weight: 800; display: inline-block; font-size: 14px; background: rgba(255,255,255,0.1); padding: 5px 8px; border-radius: 8px; }
 
-/* ТЕКСТ МАРШРУТІВ */
 .route-text { 
   font-weight: 700; 
   color: #ffffff; 
@@ -245,24 +314,6 @@ body {
 .time-val.future { color: var(--time-green); }
 .time-val.passed { color: var(--time-passed); }
 
-.alert-dot { 
-  position: absolute; 
-  top: -4px; 
-  right: -4px; 
-  width: 8px; 
-  height: 8px; 
-  background: #ff3b3b; 
-  border-radius: 50%; 
-  border: 1px solid rgba(0,0,0,0.5);
-  animation: pulseAlert 1.5s infinite; 
-}
-@keyframes pulseAlert { 
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } 
-}
-
-/* ШТОРКИ РОЗКЛАДУ */
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.25); border-radius: 16px; }
 .details.open { max-height: 5000px; opacity: 1; padding: 15px; margin-top: 5px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
 
@@ -276,7 +327,6 @@ body {
 
 .schedule-column { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px 8px; }
 
-/* ВИРІВНЮВАННЯ РЯДКІВ В ТАБЛИЦІ ШТОРКИ */
 .schedule-row { 
   display: flex; 
   justify-content: space-between; 
@@ -308,10 +358,7 @@ body {
   padding-top: 2px;
 }
 
-.station-name-text {
-  flex: 1;
-  word-wrap: break-word;
-}
+.station-name-text { flex: 1; word-wrap: break-word; }
 
 .row-highlight { background: rgba(255, 255, 255, 0.1) !important; color: var(--highlight-color) !important; font-weight: 800; border-radius: 6px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.1); }
 
@@ -348,7 +395,19 @@ body {
     </div>
   </div>
 
-  <div id="alert-container"></div>
+  <div class="alert-main-widget liquid-glass">
+    <div class="alert-header" onclick="document.getElementById('alert-drawer').classList.toggle('open')">
+      <div class="alert-title-box">
+        ІНФОРМАЦІЙНЕ ТАБЛО
+        <span class="alert-dot" id="main-alert-dot"></span>
+      </div>
+    </div>
+    <div class="alert-drawer" id="alert-drawer">
+      <div class="alert-carousel" id="alert-carousel">
+        <div style="text-align: center; width: 100%; color: rgba(255,255,255,0.5); font-size: 14px;">Перевірка даних...</div>
+      </div>
+    </div>
+  </div>
 
   <div class="schedule-group">
     <div class="tabs-nav">
@@ -572,23 +631,44 @@ function renderBuses(el, data) {
   });
 }
 
-// 🔥 ПОДКЛЮЧАЕМ СЕРВЕР АЛЕРТОВ
+// 🔥 ЛОГИКА ИНФОРМАЦИОННОГО ТАБЛО (МАССИВ АЛЕРТОВ)
 async function loadAlerts() {
   try {
     const r = await fetch('https://vilnohirsk-alerts-production.up.railway.app/api/alert');
     const d = await r.json();
-
-    const container = document.getElementById("alert-container");
     
-    if (d.show && d.text) {
-      const alertClass = d.type === 'warning' ? 'alert-warning' : 'alert-danger';
-      container.innerHTML = `<div class="alert-widget liquid-glass ${alertClass}">${d.text}</div>`;
+    // Защита: проверяем, что пришел массив
+    const alerts = Array.isArray(d) ? d : [];
+    
+    // Фильтруем только те, где "show": true
+    const activeAlerts = alerts.filter(item => item.show === true);
+    
+    const carousel = document.getElementById("alert-carousel");
+    const dot = document.getElementById("main-alert-dot");
+
+    if (activeAlerts.length > 0) {
+      // Включаем мигающую точку
+      dot.classList.add("active");
+      
+      // Генерируем карточки для свайпа. Заменяем \n на <br> для правильного отображения в столбик
+      carousel.innerHTML = activeAlerts.map(alert => {
+        const textWithBreaks = alert.text.replace(/\n/g, '<br>');
+        return `
+          <div class="alert-card">
+            ${alert.title ? `<div class="alert-card-title">${alert.title}</div>` : ''}
+            <div class="alert-card-text">${textWithBreaks}</div>
+          </div>
+        `;
+      }).join("");
     } else {
-      container.innerHTML = ""; // Очищаем блок
+      // Если новостей нет
+      dot.classList.remove("active");
+      carousel.innerHTML = `<div style="text-align: center; width: 100%; color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 600;">Актуальних повідомлень немає</div>`;
     }
   } catch(e) {
     console.error("Alert error", e);
-    document.getElementById("alert-container").innerHTML = "";
+    document.getElementById("main-alert-dot").classList.remove("active");
+    document.getElementById("alert-carousel").innerHTML = `<div style="text-align: center; width: 100%; color: rgba(255,255,255,0.3); font-size: 13px;">Помилка завантаження даних</div>`;
   }
 }
 
@@ -613,7 +693,7 @@ setInterval(updateDateTime, 1000);
 setInterval(() => { 
   loadTrainsData(); 
   loadLongTrainsData(); 
-  loadAlerts(); // Проверка алертов
+  loadAlerts(); 
 }, 30000);
 </script>
 
