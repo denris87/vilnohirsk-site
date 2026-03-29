@@ -3,189 +3,226 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Вільногірськ Онлайн</title>
+<title>Vilnohirsk.online</title>
 
 <style>
 :root {
-  --highlight-color: #ffcc00; 
-  --widget-bg: rgba(0, 0, 0, 0.6);
-  --time-green: #00ff9c;
-  --time-passed: #888;
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
 }
 
-html, body { 
-  margin: 0; 
-  padding: 0; 
-  height: 100%; 
+html, body {
+  margin:0;
+  padding:0;
+  height:100%;
 }
-* { 
-  -webkit-user-select: none; 
-  user-select: none; 
-  box-sizing: border-box; 
+
+* {
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 body {
-  color: #fff;
-  font-family: Arial, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  background: linear-gradient(-45deg, #f1df30, #04b6cb, #1cbca4, #c5d444, #26bc93, #a5ca49, #8cc454, #41bc81, #74bf54, #53bc67);
-  background-size: 400% 400%;
+  color:#fff;
+  font-family:Arial;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  min-height:100vh;
+
+  background: linear-gradient(-45deg,
+    #f1df30,#04b6cb,#1cbca4,#c5d444,#26bc93,
+    #a5ca49,#8cc454,#41bc81,#74bf54,#53bc67
+  );
+  background-size:400% 400%;
   animation: gradientMove 60s ease infinite;
 }
 
 @keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {background-position:0% 50%;}
+  50% {background-position:100% 50%;}
+  100% {background-position:0% 50%;}
 }
 
-.wrapper { 
-  width: 100%; 
-  max-width: 900px; 
-  padding: 10px; 
+.wrapper {
+  width:100%;
+  max-width:900px;
+  padding:10px;
 }
 
-.container { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 10px; 
+.container {
+  display:flex;
+  flex-direction:column;
+  gap:14px;
 }
 
-/* ШАПКА */
-.top-row { 
-  display: flex; 
-  flex-direction: row; 
-  justify-content: space-between; 
-  gap: 8px; 
-  width: 100%; 
+.top-row {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
 }
 
 .widget {
-  background: var(--widget-bg); 
-  padding: 10px 6px; 
-  border-radius: 12px;
-  flex: 1; 
-  min-height: 110px; 
-  display: flex; 
-  flex-direction: column; 
-  justify-content: center; 
-  align-items: center; 
-  overflow: hidden;
+  background:rgba(0,0,0,0.6);
+  padding:14px;
+  border-radius:16px;
 }
 
-.datetime { text-align: center; font-family: "Courier New", monospace; width: 100%; }
-#date { font-size: clamp(18px, 4.8vw, 26px); font-weight: 900; white-space: nowrap; }
-#time { font-size: clamp(16px, 4.2vw, 22px); font-weight: 900; white-space: nowrap; color: #fff; }
-
-.weekdays { display: flex; justify-content: center; gap: 4px; font-size: clamp(16px, 4vw, 20px); font-weight: 900; margin: 6px 0; }
-.day { opacity: 0.4; }
-.day.active { background: red; border-radius: 4px; padding: 0 5px; opacity: 1; }
-
-/* ПОГОДА */
-.weather-box { position: relative; width: 100%; height: 85px; display: flex; align-items: center; justify-content: center; }
-.weather-content { position: absolute; width: 100%; transition: opacity 1s ease-in-out; opacity: 0; text-align: center; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-.weather-content.active { opacity: 1; pointer-events: auto; }
-.weather-city { font-weight: bold; font-size: 13px; color: #04b6cb; margin-bottom: 2px; }
-.weather-temp { font-size: clamp(20px, 5.5vw, 26px); font-weight: bold; white-space: nowrap; }
-.weather-wind { font-size: 11px; color: #aaa; margin-top: 2px; }
-
-/* ГРУПА ДЛЯ КОРЕШКІВ І РОЗКЛАДУ */
-.schedule-group { display: flex; flex-direction: column; }
-
-/* ТАБИ (КОРЕШКИ ЯК ПАПКА) */
-.tabs-nav { 
-  display: flex; 
-  width: 100%; 
-  min-width: 240px; 
-  gap: 4px; 
-  margin-bottom: -1px; 
-  position: relative; 
-  z-index: 2; 
-}
-.tab-btn { 
-  flex: 1; 
-  padding: 12px 5px; 
-  border: 1px solid transparent;
-  border-bottom: none; 
-  background: rgba(0, 0, 0, 0.4); 
-  color: rgba(255, 255, 255, 0.6); 
-  font-weight: bold; 
-  cursor: pointer; 
-  border-radius: 16px 16px 0 0; 
-  transition: 0.3s; 
-  font-size: clamp(10px, 3.5vw, 13px); 
-  text-transform: uppercase; 
-  white-space: nowrap;
-}
-.tab-btn.active { 
-  background: var(--widget-bg); 
-  color: #fff; 
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-bottom: 1px solid var(--widget-bg);
-  padding-bottom: 13px; 
+/* 📅 дата + время */
+.datetime {
+  text-align:center;
+  font-family:"Courier New";
 }
 
-.content-section { display: none; }
-.content-section.active { display: block; animation: fadeIn 0.4s ease; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-/* ОСНОВНИЙ БЛОК РОЗКЛАДУ */
-.main-list-widget { 
-  background: var(--widget-bg); 
-  padding: 15px 10px; 
-  border-radius: 0 16px 16px 16px; 
-  position: relative; 
-  z-index: 1; 
-  border: 1px solid rgba(255,255,255,0.1); 
+#date {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight:900;
 }
 
-/* ЗАГАЛЬНІ СТИЛІ СПИСКУ */
-.table-head { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; font-weight: 800; border-bottom: 2px solid #aaa; padding-bottom: 8px; margin-bottom: 5px; font-size: 14px; text-transform: uppercase; }
-.train { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.15); cursor: pointer; }
-.train-num-box { position: relative; font-weight: bold; display: inline-block; font-size: 16px; }
-.route-text { font-weight: 600; text-align: center; font-size: clamp(12px, 3.5vw, 15px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; padding: 0 5px; }
-
-.time-val { font-weight: bold; font-size: clamp(14px, 3.8vw, 18px); }
-.time-val.soon { color: #ffcc00; }
-.time-val.future { color: var(--time-green); }
-.time-val.passed { color: var(--time-passed); }
-
-/* ЧЕРВОНА КРАПКА */
-.alert-dot { 
-  position: absolute; 
-  top: -4px; 
-  right: -8px; 
-  width: 7px; 
-  height: 7px; 
-  background: #ff3b3b; 
-  border-radius: 50%; 
-  animation: blink 0.7s infinite alternate; 
-}
-@keyframes blink { 
-  0% { opacity: 1; box-shadow: 0 0 6px #ff3b3b; } 
-  100% { opacity: 0.3; box-shadow: 0 0 1px #ff3b3b; } 
+#time {
+  font-size: clamp(20px, 4vw, 30px);
+  font-weight:900;
 }
 
-/* ШТОРКИ РОЗКЛАДУ */
-.details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease; background: rgba(255,255,255,0.03); border-radius: 10px; }
-.details.open { max-height: 5000px; opacity: 1; padding: 10px; margin-top: 5px; border: 1px solid rgba(255,255,255,0.05); }
-.schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-@media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } }
-.schedule-row { display: flex; justify-content: space-between; padding: 4px 6px; border-bottom: 1px dashed rgba(255,255,255,0.1); font-size: 11px; align-items: center;}
-.row-highlight { background: rgba(255, 204, 0, 0.15) !important; border-radius: 4px; color: var(--highlight-color) !important; font-weight: bold; }
-.station-number { color: #ffcc00; font-weight: bold; margin-right: 4px; }
+/* дни недели */
+.weekdays {
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  font-size: clamp(16px, 3.5vw, 24px);
+  font-weight:900;
+}
 
-.time-green { color: var(--time-green); font-weight: bold; font-family: monospace; font-size: 13px;}
-.time-passed { color: var(--time-passed); font-weight: normal; font-family: monospace; font-size: 13px;}
-.time-normal { color: #fff; font-weight: bold; font-family: monospace; font-size: 13px;}
+.day.active {
+  background:red;
+  border-radius:6px;
+}
 
-/* ПРИМІТКИ ПРО ЗМІНИ */
-.details-note { text-align: center; font-weight: bold; color: #ff4d4d; margin-bottom: 10px; text-shadow: 0 0 5px rgba(0,0,0,0.5); font-size: 11px; line-height: 1.4; }
-.details-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.2); margin: 15px auto 10px; }
+/* погода */
+.weather {
+  text-align:center;
+  line-height:1.4;
+  opacity:1;
+  transition:opacity 0.6s ease;
+}
 
+.weather.fade {
+  opacity:0;
+}
+
+.weather-city {
+  font-weight:bold;
+}
+
+.weather-temp {
+  font-size:22px;
+  font-weight:bold;
+}
+
+.weather-wind {
+  font-size:12px;
+}
+
+/* таблица */
+.table-head,
+.train,
+.details-row {
+  display:grid;
+  grid-template-columns: 20% 1fr 20%;
+  align-items:center;
+  justify-items:center;
+}
+
+.table-head {
+  font-weight:700;
+  border-bottom:2px solid #aaa;
+  padding-bottom:8px;
+}
+
+.train {
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.2);
+  cursor:pointer;
+}
+
+/* ПЛАВНЫЕ ШТОРКИ */
+.details {
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+  transform:translateY(-5px);
+  transition:all 0.4s ease;
+  background:rgba(255,255,255,0.05);
+  border-radius:10px;
+  margin:4px 0;
+  padding:0 10px;
+}
+
+.details.open {
+  max-height:500px;
+  opacity:1;
+  transform:translateY(0);
+  padding:10px;
+}
+
+.details-divider {
+  grid-column:2;
+  width:60%;
+  height:1px;
+  background:#fff;
+  margin:10px auto;
+}
+
+.details-note {
+  grid-column:2;
+}
+
+/* маршрут */
+.route {
+  white-space:nowrap;
+  overflow:hidden;
+  width:100%;
+  text-align:center;
+  font-size: clamp(13px, 3.4vw, 26px);
+  font-weight:600;
+}
+
+/* 🔥 цвета времени в шторках */
+.details-row .time-green {
+  color:#00ff9c;
+  font-weight:bold;
+}
+
+.details-row .time-passed {
+  color:#888;
+}
+
+/* цвета времени основной */
+.future .time-cell { color:#00ff9c; font-weight:bold; }
+.soon .time-cell { color:#ffcc00; font-weight:bold; }
+.passed .time-cell { color:#888; }
+
+/* номер */
+.train-number {
+  position:relative;
+}
+
+/* 🔴 точка */
+.alert-dot {
+  position:absolute;
+  top:-4px;
+  right:-6px;
+  width:6px;
+  height:6px;
+  background:#ff3b3b;
+  border-radius:50%;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%,100% {opacity:1;}
+  50% {opacity:0;}
+}
 </style>
 </head>
 
@@ -194,64 +231,73 @@ body {
 <div class="wrapper">
 <div class="container">
 
-  <div class="top-row">
-    <div class="widget">
-      <div class="datetime">
-        <div id="date"></div>
-        <div class="weekdays">
-          <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
-          <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
-          <div class="day">нд</div>
-        </div>
-        <div id="time"></div>
-      </div>
+<div class="top-row">
+
+<div class="widget">
+  <div class="datetime">
+    <div id="date"></div>
+
+    <div class="weekdays">
+      <div class="day">пн</div>
+      <div class="day">вт</div>
+      <div class="day">ср</div>
+      <div class="day">чт</div>
+      <div class="day">пт</div>
+      <div class="day">сб</div>
+      <div class="day">нд</div>
     </div>
 
-    <div class="widget">
-      <div class="weather-box" id="weather-container"></div>
-    </div>
+    <div id="time"></div>
+  </div>
+</div>
+
+<div class="widget">
+  <div class="weather" id="weather">Завантаження...</div>
+</div>
+
+</div>
+
+<div class="widget">
+  <div class="table-head">
+    <div>№</div>
+    <div>Маршрут прямування</div>
+    <div>Відпр.</div>
   </div>
 
-  <div class="schedule-group">
-    
-    <div class="tabs-nav">
-      <button class="tab-btn active" onclick="openTab('trains', this)">Електрички</button>
-      <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
-      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
-    </div>
-
-    <div class="main-list-widget">
-      
-      <div id="trains" class="content-section active">
-        <div id="list" style="text-align: center; padding: 20px;">Завантаження розкладу електричок...</div>
-      </div>
-
-      <div id="long-trains" class="content-section">
-        <div id="long-trains-list" style="text-align: center; padding: 20px;">Завантаження розкладу потягів...</div>
-      </div>
-
-      <div id="buses" class="content-section">
-        <div id="buses-list" style="text-align: center; padding: 20px;">Завантаження розкладу автобусів...</div>
-      </div>
-
-    </div>
-  </div>
+  <div id="list"></div>
+</div>
 
 </div>
 </div>
 
 <script>
-// ЛОГІКА ТАБІВ
-function openTab(tabId, btn) {
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  btn.classList.add('active');
-}
 
-function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
+const cities = [
+  { name:"Вільногірськ", lat:48.48, lon:34.02 },
+  { name:"Дніпро", lat:48.45, lon:34.98 }
+];
 
-// ПОГОДА
+let cityIndex = 0;
+
+const changes = {
+    // "6008": "Запізнення +10 хв"
+};
+
+const order=["6008","6010","6005","6018","6015","6038","6035","6037","6044","6043"];
+
+const schedules={
+  "6008":[["Пʼятихатки-Пас.","04:43"],["Вільногірськ","05:16"],["Верхівцеве","05:35"],["Верхньодніпровськ","06:15"],["Камʼянське-Пас.","06:42"],["Дніпро-Гол.","07:22"]],
+  "6010":[["Пʼятихатки-Пас.","05:30"],["Вільногірськ","06:01"],["Верхівцеве","06:19"],["Верхньодніпровськ","06:38"],["Камʼянське-Пас.","07:17"],["Дніпро-Гол.","08:09"]],
+  "6005":[["Дніпро-Гол.","04:52"],["Камʼянське-Пас.","05:48"],["Верхньодніпровськ","06:14"],["Верхівцеве","06:33"],["Вільногірськ","06:54"],["Пʼятихатки-Пас.","07:28"],["Пʼятихатки-Cтик.","07:38"]],
+  "6018":[["Пʼятихатки-Стик.","08:21"],["Пʼятихатки-Пас.","08:29"],["Вільногірськ","09:00"],["Верхівцеве","09:21"],["Верхньодніпровськ","09:40"],["Камʼянське-Пас.","10:04"],["Дніпро-Гол.","10:57"]],
+  "6015":[["Дніпро-Гол.","08:22"],["Камʼянське-Пас.","09:20"],["Верхньодніпровськ","09:46"],["Верхівцеве","10:35"],["Вільногірськ","10:56"],["Пʼятихатки-Пас.","11:30"]],
+  "6038":[["Пʼятихатки-Пас.","16:50"],["Вільногірськ","17:23"],["Верхівцеве","17:44"],["Верхньодніпровськ","18:03"],["Камʼянське-Пас.","18:27"],["Дніпро-Гол.","19:17"]],
+  "6035":[["Дніпро-Гол.","16:38"],["Камʼянське-Пас.","17:44"],["Верхньодніпровськ","18:10"],["Верхівцеве","18:29"],["Вільногірськ","18:50"],["Пʼятихатки-Пас.","19:22"],["Пʼятихатки-Cтик.","19:29"]],
+  "6037":[["Дніпро-Гол.","17:34"],["Камʼянське-Пас.","18:33"],["Верхньодніпровськ","18:59"],["Верхівцеве","19:18"],["Вільногірськ","19:39"],["Пʼятихатки-Пас.","20:14"]],
+  "6044":[["Пʼятихатки-Стик.","20:29"],["Пʼятихатки-Пас.","20:37"],["Вільногірськ","21:21"],["Верхівцеве","21:40"],["Верхньодніпровськ","21:58"],["Камʼянське-Пас.","22:22"],["Дніпро-Гол.","23:12"]],
+  "6043":[["Дніпро-Гол.","20:18"],["Камʼянське-Пас.","21:16"],["Верхньодніпровськ","21:42"],["Верхівцеве","22:01"],["Вільногірськ","22:22"],["Пʼятихатки-Пас.","23:10"]]
+};
+
 function getWeatherEmoji(code){
   if(code === 0) return "☀️";
   if(code <= 2) return "⛅";
@@ -263,272 +309,140 @@ function getWeatherEmoji(code){
   return "🌡️";
 }
 
-async function loadWeather(){
-  const coords = [
-    {id: 'vil', name: 'Вільногірськ', lat: 48.48, lon: 34.02}, 
-    {id: 'dni', name: 'Дніпро', lat: 48.45, lon: 34.98}
-  ];
-  let results = [];
-  for(let c of coords){
-    try {
-      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
-      const d = await r.json();
-      results.push({name: c.name, w: d.current_weather});
-    } catch(e) { console.error("Помилка погоди:", e); }
-  }
+function loadWeather(){
+  const city = cities[cityIndex];
+  const el = document.getElementById("weather");
 
-  const container = document.getElementById("weather-container");
-  if(results.length === 0) return;
+  el.classList.add("fade");
 
-  container.innerHTML = results.map((item, index) => `
-    <div class="weather-content ${index === 0 ? 'active' : ''}" id="slide-${index}">
-      <div class="weather-city">${item.name}</div>
-      <div class="weather-temp">${getWeatherEmoji(item.w.weathercode)} ${Math.round(item.w.temperature)}°C</div>
-      <div class="weather-wind">💨 ${Math.round(item.w.windspeed)} м/с</div>
-    </div>
-  `).join("");
+  setTimeout(()=>{
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${city.lat}&longitude=${city.lon}&current_weather=true&timezone=Europe%2FKyiv`)
+    .then(r=>r.json())
+    .then(d=>{
+      const w=d.current_weather;
+      const emoji=getWeatherEmoji(w.weathercode);
 
-  let currentIndex = 0;
-  setInterval(() => {
-    const slides = document.querySelectorAll('.weather-content');
-    if(slides.length < 2) return;
-    slides[currentIndex].classList.remove('active');
-    currentIndex = (currentIndex + 1) % slides.length;
-    slides[currentIndex].classList.add('active');
-  }, 7000); 
+      el.innerHTML=`
+        <div class="weather-city">${city.name}</div>
+        <div class="weather-temp">${emoji} ${Math.round(w.temperature)}°C</div>
+        <div class="weather-wind">💨 ${Math.round(w.windspeed)} м/с</div>
+      `;
+
+      el.classList.remove("fade");
+    });
+
+    cityIndex = (cityIndex + 1) % cities.length;
+
+  },600);
 }
 
-// ДАТА ТА ЧАС
-function updateDateTime(){
-  const now = getKyivNow();
-  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-  const days=document.querySelectorAll(".day");
-  days.forEach(d=>d.classList.remove("active"));
-  let i=now.getDay(); i=i===0?6:i-1;
-  days[i].classList.add("active");
+function getKyivNow(){
+  return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"}));
 }
 
-function isPast(timeStr) {
-  if (!timeStr || timeStr === "---" || timeStr === "—" || !timeStr.includes(":")) return false;
-  const now = getKyivNow();
-  const [h, m] = timeStr.split(":").map(Number);
-  const t = new Date(now);
-  t.setHours(h, m, 0, 0);
+function isPast(time){
+  const now=getKyivNow();
+  const [h,m]=time.split(":").map(Number);
+  const t=new Date(now);
+  t.setHours(h,m,0,0);
   return t < now;
 }
 
-// РЕНДЕР СІТКИ ЗУПИНОК
-function renderGrid(data, isChanges = false, alwaysWhite = false) {
-  if (!data || data.length === 0) return "";
-  const total = data.length;
-  const perCol = Math.ceil(total / 3);
-  let html = '<div class="schedule-grid">';
-  
-  for(let c = 0; c < 3; c++) {
-    html += '<div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">';
-    for(let j = 0; j < perCol; j++) {
-      const idx = c * perCol + j;
-      if (idx < total) {
-        const r = data[idx];
-        const past = isPast(r[1]);
-        const isVil = r[0].toLowerCase().includes('вільногірськ');
-        const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
-        
-        let timeClass = '';
-        if (alwaysWhite) {
-           timeClass = 'time-normal'; 
-        } else if (isChanges) {
-           timeClass = 'time-normal'; 
-        } else {
-           timeClass = past ? 'time-passed' : 'time-green';
-        }
-        
-        if (!alwaysWhite && (r[1] === "---" || r[1] === "—")) timeClass = 'time-passed';
+function updateDateTime(){
+  const now=getKyivNow();
 
-        html += `<div class="${rowClass}">
-          <span class="station-name"><span class="station-number">${idx + 1}.</span>${r[0]}</span>
-          <span class="${timeClass}">${r[1]}</span>
-        </div>`;
-      }
-    }
-    html += '</div>';
-  }
-  return html + '</div>';
+  const d=String(now.getDate()).padStart(2,"0");
+  const m=String(now.getMonth()+1).padStart(2,"0");
+  const y=now.getFullYear();
+
+  const h=String(now.getHours()).padStart(2,"0");
+  const min=String(now.getMinutes()).padStart(2,"0");
+  const s=String(now.getSeconds()).padStart(2,"0");
+
+  date.textContent=`${d}.${m}.${y}`;
+  time.textContent=`${h}:${min}:${s}`;
+
+  const days=document.querySelectorAll(".day");
+  days.forEach(d=>d.classList.remove("active"));
+
+  let i=now.getDay();
+  i=i===0?6:i-1;
+  days[i].classList.add("active");
 }
 
-// РЕНДЕР СПИСКУ ЕЛЕКТРИЧОК
-function renderTrains(el, data){
-  el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content"></div>`;
-  const container = document.getElementById('trains-content');
-  
-  data.forEach(x => {
-    const id="d-" + x.number;
-    const now = getKyivNow();
-    
-    let statusClass = "future";
-    let displayText = x.time;
-
-    if (x.time && x.time !== "—" && x.time !== "---") {
-      const [h, m] = x.time.split(':').map(Number);
-      const trainTime = new Date(now);
-      trainTime.setHours(h, m, 0, 0);
-      const diff = Math.floor((trainTime - now) / 60000);
-
-      if (diff < 0) {
-        statusClass = "passed";
-      } else if (diff <= 10) {
-        statusClass = "soon";
-        displayText = `≈ ${diff} хв`;
-      }
-    } else {
-        statusClass = "passed";
-    }
-
-    const hasChanges = x.note && x.note !== "змін немає...";
-    const altScheduleHtml = x.altSchedule ? renderGrid(x.altSchedule, true) : "";
-
-    container.innerHTML+=`
-      <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-        <div class="train-num-box">${x.number}${hasChanges ? '<span class="alert-dot"></span>' : ''}</div>
-        <div class="route-text">${x.route}</div>
-        <div class="time-val ${statusClass}">${displayText}</div>
-      </div>
-      <div class="details" id="${id}">
-        ${x.fullSchedule?.length > 0 ? renderGrid(x.fullSchedule) : "<div style='text-align:center; padding: 10px; color: #888;'>Дані розкладу відсутні</div>"}
-        <div class="details-divider"></div>
-        <div class="details-note">${x.note}</div>
-        ${altScheduleHtml}
-      </div>`;
-  });
+function getDiff(time){
+  const now=getKyivNow();
+  const [h,m]=time.split(":").map(Number);
+  const t=new Date(now);
+  t.setHours(h,m,0,0);
+  return Math.floor((t-now)/60000);
 }
 
-// РЕНДЕР СПИСКУ ПОТЯГІВ
-function renderLongTrains(el, data) {
-  el.innerHTML = `<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="long-trains-content"></div>`;
-  const container = document.getElementById('long-trains-content');
+function render(el,data){
+  data.sort((a,b)=>order.indexOf(a.number)-order.indexOf(b.number));
+  el.innerHTML="";
 
-  data.forEach((x, index) => {
-    const id = "lt-" + x.number + "-" + index;
+  data.forEach(x=>{
+    const diff=getDiff(x.time);
 
-    let displayText = x.time;
-    // Завжди білий колір, без жодних додаткових стилів закреслення
-    let extraStyle = 'style="color: #fff;"';
+    let cls="train";
+    let label=x.time;
 
-    const hasChanges = x.changes && x.changes.length > 0;
-    
-    // Перетворюємо об'єкти зупинок на масив масивів для функції renderGrid
-    const stopsMapped = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
+    if(diff<0) cls+=" passed";
+    else if(diff<=10){cls+=" soon";label="≈ "+diff+" хв";}
+    else cls+=" future";
 
-    // Формуємо тексти періодичності та змін
-    let infoHtml = "";
-    if (x.periodicityText) {
-      infoHtml += `<div class="details-divider"></div>
-                   <div class="details-note" style="color: #04b6cb;"><b>Періодичність з початкової станції маршруту:</b><br><span style="color:#fff; font-weight:normal;">${x.periodicityText}</span></div>`;
-    }
-    if (hasChanges) {
-      infoHtml += `<div class="details-divider"></div>
-                   <div class="details-note" style="color: #ffcc00;"><b>Зміни розкладу:</b>
-                   <ul style="margin: 5px 0 0 0; padding-left: 20px; text-align: left; font-weight: normal; color: #fff;">
-                     ${x.changes.map(c => `<li>${c}</li>`).join('')}
-                   </ul></div>`;
-    }
+    const id="d-"+x.number;
+    const dot = changes[x.number] ? `<span class="alert-dot"></span>` : "";
 
-    // Прибрано <span class="alert-dot"></span> біля номеру поїзда
-    container.innerHTML += `
-      <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-        <div class="train-num-box">${x.number}</div>
-        <div class="route-text">${x.route}</div>
-        <div class="time-val" ${extraStyle}>${displayText}</div>
-      </div>
-      <div class="details" id="${id}">
-        ${stopsMapped.length > 0 ? renderGrid(stopsMapped, false, true) : "<div style='text-align:center; padding: 10px; color: #888;'>Дані розкладу відсутні</div>"}
-        ${infoHtml}
-      </div>`;
-  });
-}
-
-// РЕНДЕР СПИСКУ АВТОБУСІВ
-function renderBuses(el, data) {
-  el.innerHTML = `<div class="table-head"><div>Тип</div><div>Маршрут прямування</div><div>Статус</div></div><div id="buses-content"></div>`;
-  const container = document.getElementById('buses-content');
-
-  data.forEach(b => {
-    let colsHtml = '';
-    
-    b.directions.forEach(dir => {
-      let rowsHtml = '';
-      dir.rows.forEach(row => {
-        rowsHtml += `<div class="schedule-row"><span>${row[0]}</span><span class="time-normal">${row[1]}</span></div>`;
-      });
-      colsHtml += `
-        <div class="schedule-column" style="background:rgba(255,255,255,0.05); border-radius:8px; padding:5px;">
-          <div style="text-align:center; color:var(--highlight-color); font-size:10px; margin-bottom:8px; font-weight:bold; text-transform:uppercase;">${dir.title}</div>
-          ${rowsHtml}
-        </div>
-      `;
-    });
-
-    const noteHtml = b.note ? `<div class="details-divider"></div><div class="details-note" style="color: #88a8a4;">${b.note}</div>` : '';
-
-    container.innerHTML += `
-      <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
-        <div class="train-num-box">🚌</div>
-        <div class="route-text">${b.route}</div>
-        <div class="time-val future" style="font-size:12px; text-transform:uppercase;">Розклад ▾</div>
-      </div>
-      <div class="details">
-        <div class="schedule-grid" style="grid-template-columns: 1fr 1fr;">
-          ${colsHtml}
-        </div>
-        ${noteHtml}
+    el.innerHTML+=`
+      <div class="${cls}" onclick="toggle('${id}')">
+        <div class="train-number">${x.number}${dot}</div>
+        <div class="route">${x.route}</div>
+        <div class="time-cell">${label}</div>
       </div>
     `;
+
+    if(schedules[x.number]){
+      const note=changes[x.number]||"змін немає...";
+
+      el.innerHTML+=`
+      <div class="details" id="${id}">
+        ${schedules[x.number].map(s=>{
+          const passed = isPast(s[1]);
+          return `
+          <div class="details-row">
+            <div></div>
+            <div>${s[0]}</div>
+            <div class="${passed ? 'time-passed' : 'time-green'}">${s[1]}</div>
+          </div>`;
+        }).join("")}
+
+        <div class="details-divider"></div>
+        <div class="details-note">${note}</div>
+      </div>`;
+    }
   });
 }
 
-// ЗАВАНТАЖЕННЯ ДАНИХ З СЕРВЕРІВ
-function loadTrainsData(){
+function toggle(id){
+  document.getElementById(id).classList.toggle("open");
+}
+
+function loadTrains(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
-    .then(r => r.json())
-    .then(d => renderTrains(document.getElementById("list"), d.trains))
-    .catch(e => {
-       console.error("API error Trains", e);
-       document.getElementById("list").innerHTML = "<div style='text-align:center; padding: 20px;'>Помилка завантаження електричок 😢</div>";
-    });
+  .then(r=>r.json())
+  .then(d=>render(list,d.trains));
 }
 
-function loadLongTrainsData() {
-  fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule")
-    .then(r => r.json())
-    .then(d => renderLongTrains(document.getElementById("long-trains-list"), d.trains))
-    .catch(e => {
-       console.error("API error Long Trains", e);
-       document.getElementById("long-trains-list").innerHTML = "<div style='text-align:center; padding: 20px;'>Помилка завантаження потягів 😢</div>";
-    });
-}
+loadTrains();
+updateDateTime();
+loadWeather();
 
-function loadBusesData(){
-  fetch("https://vilnohirskbuses-production.up.railway.app/api/buses")
-    .then(r => r.json())
-    .then(d => renderBuses(document.getElementById("buses-list"), d.buses))
-    .catch(e => {
-       console.error("API error Buses", e);
-       document.getElementById("buses-list").innerHTML = "<div style='text-align:center; padding: 20px;'>Помилка завантаження автобусів 😢</div>";
-    });
-}
+setInterval(loadTrains,30000);
+setInterval(updateDateTime,1000);
+setInterval(loadWeather,7000);
 
-// ІНІЦІАЛІЗАЦІЯ
-updateDateTime(); 
-loadWeather(); 
-loadTrainsData();
-loadLongTrainsData();
-loadBusesData(); 
-setInterval(updateDateTime, 1000); 
-setInterval(() => {
-  loadTrainsData();
-  loadLongTrainsData();
-}, 30000);
 </script>
 
 </body>
