@@ -412,12 +412,8 @@ function renderLongTrains(el, data) {
     const id = "lt-" + x.number + "-" + index;
 
     let displayText = x.time;
-    let extraStyle = 'style="color: #fff;"'; // Примусово білий колір
-
-    // Якщо не курсує сьогодні — закреслюємо, але залишаємо білим
-    if (!x.runsToday) {
-      extraStyle = 'style="color: #fff; text-decoration: line-through; opacity: 0.5;" title="Сьогодні не курсує"';
-    }
+    // Завжди білий колір, без жодних додаткових стилів закреслення
+    let extraStyle = 'style="color: #fff;"';
 
     const hasChanges = x.changes && x.changes.length > 0;
     
@@ -438,9 +434,10 @@ function renderLongTrains(el, data) {
                    </ul></div>`;
     }
 
+    // Прибрано <span class="alert-dot"></span> біля номеру поїзда
     container.innerHTML += `
       <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-        <div class="train-num-box">${x.number}${hasChanges ? '<span class="alert-dot"></span>' : ''}</div>
+        <div class="train-num-box">${x.number}</div>
         <div class="route-text">${x.route}</div>
         <div class="time-val" ${extraStyle}>${displayText}</div>
       </div>
