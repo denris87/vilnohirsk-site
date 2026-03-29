@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Smart Вільногірськ </title>
+<title>Smart Вільногірськ</title>
 
 <style>
 :root {
@@ -116,6 +116,33 @@ body {
 .weather-city { font-weight: 700; font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;}
 .weather-temp { font-size: clamp(24px, 6.5vw, 32px); font-weight: 800; white-space: nowrap; text-shadow: 0 2px 10px rgba(0,0,0,0.4); line-height: 1.1; }
 .weather-wind { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 6px; font-weight: 500; }
+
+/* 🔥 ИНФОРМАЦИОННЫЙ БЛОК (АЛЕРТ) */
+#alert-container:empty { display: none; } 
+.alert-widget {
+  padding: 14px 20px;
+  font-weight: 600;
+  font-size: clamp(13px, 3.8vw, 15px);
+  text-align: center;
+  line-height: 1.4;
+  animation: slideDownAlert 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.alert-danger {
+  background: rgba(255, 59, 59, 0.15);
+  border: 1px solid rgba(255, 59, 59, 0.3);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(255, 59, 59, 0.2);
+}
+.alert-warning {
+  background: rgba(255, 204, 0, 0.15);
+  border: 1px solid rgba(255, 204, 0, 0.3);
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(255, 204, 0, 0.15);
+}
+@keyframes slideDownAlert { 
+  from { opacity: 0; transform: translateY(-10px) scale(0.98); } 
+  to { opacity: 1; transform: translateY(0) scale(1); } 
+}
 
 .schedule-group { display: flex; flex-direction: column; gap: 8px;}
 
@@ -258,7 +285,7 @@ body {
   font-size: 13px; 
   align-items: center;
   gap: 10px; 
-  text-align: left; /* Жорстко по лівому краю */
+  text-align: left; 
 }
 .schedule-row:last-child { border-bottom: none; }
 
@@ -276,7 +303,7 @@ body {
   font-weight: 600; 
   margin-right: 6px; 
   font-size: 10px;
-  min-width: 18px; /* Фіксована ширина для чисел, щоб крапки були на одному рівні */
+  min-width: 18px; 
   text-align: right;
   padding-top: 2px;
 }
@@ -320,6 +347,8 @@ body {
       <div class="weather-box" id="weather-container"></div>
     </div>
   </div>
+
+  <div id="alert-container"></div>
 
   <div class="schedule-group">
     <div class="tabs-nav">
@@ -492,7 +521,7 @@ function renderLongTrains(el, data) {
     if (x.periodicityText) {
       infoHtml += `<div class="details-divider"></div>
                    <div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);">
-                     <b>Періодичність:</b><br><span style="color:rgba(255,255,255,0.7); font-weight:500;">${x.periodicityText}</span>
+                     <b>Періодичність з початкової станції маршруту:</b><br><span style="color:rgba(255,255,255,0.7); font-weight:500;">${x.periodicityText}</span>
                    </div>`;
     }
     if (hasChanges) {
@@ -543,6 +572,26 @@ function renderBuses(el, data) {
   });
 }
 
+// 🔥 ПОДКЛЮЧАЕМ СЕРВЕР АЛЕРТОВ
+async function loadAlerts() {
+  try {
+    const r = await fetch('https://vilnohirsk-alerts-production.up.railway.app/api/alert');
+    const d = await r.json();
+
+    const container = document.getElementById("alert-container");
+    
+    if (d.show && d.text) {
+      const alertClass = d.type === 'warning' ? 'alert-warning' : 'alert-danger';
+      container.innerHTML = `<div class="alert-widget liquid-glass ${alertClass}">${d.text}</div>`;
+    } else {
+      container.innerHTML = ""; // Очищаем блок
+    }
+  } catch(e) {
+    console.error("Alert error", e);
+    document.getElementById("alert-container").innerHTML = "";
+  }
+}
+
 function loadTrainsData(){
   fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>renderTrains(document.getElementById("list"),d.trains)).catch(e=>console.error("Trains error",e));
 }
@@ -553,9 +602,19 @@ function loadBusesData(){
   fetch("https://vilnohirskbuses-production.up.railway.app/api/buses").then(r=>r.json()).then(d=>renderBuses(document.getElementById("buses-list"),d.buses)).catch(e=>console.error("Buses error",e));
 }
 
-updateDateTime(); loadWeather(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); 
+updateDateTime(); 
+loadWeather(); 
+loadAlerts(); 
+loadTrainsData(); 
+loadLongTrainsData(); 
+loadBusesData(); 
+
 setInterval(updateDateTime, 1000); 
-setInterval(() => { loadTrainsData(); loadLongTrainsData(); }, 30000);
+setInterval(() => { 
+  loadTrainsData(); 
+  loadLongTrainsData(); 
+  loadAlerts(); // Проверка алертов
+}, 30000);
 </script>
 
 </body>
