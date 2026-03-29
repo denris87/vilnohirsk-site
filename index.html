@@ -128,20 +128,22 @@ body {
   display: flex; 
   width: 100%; 
   padding: 5px;
-  background: rgba(0, 0, 0, 0.2);
+  /* Делаем фон контейнера темнее для хорошего контраста */
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 20px;
   position: relative; 
   z-index: 2; 
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
 }
 .tab-btn { 
   flex: 1; 
   padding: 12px 5px; 
   border: none;
   background: transparent; 
-  color: rgba(255, 255, 255, 0.6); 
+  /* Делаем неактивный текст ярче (было 0.6) */
+  color: rgba(255, 255, 255, 0.85); 
   font-weight: 700; 
   cursor: pointer; 
   border-radius: 16px; 
@@ -150,9 +152,11 @@ body {
   white-space: nowrap;
 }
 .tab-btn.active { 
-  background: rgba(255, 255, 255, 0.2); 
-  color: #fff; 
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1), inset 0 1px 1px rgba(255,255,255,0.3);
+  /* Делаем активную вкладку плотнее и заметнее */
+  background: rgba(255, 255, 255, 0.35); 
+  color: #ffffff; 
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2), inset 0 1px 2px rgba(255,255,255,0.6);
 }
 
 .content-section { display: none; }
