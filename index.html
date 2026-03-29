@@ -142,7 +142,7 @@ body {
   border: 1px solid rgba(255,255,255,0.1); 
 }
 
-/* ЗАГАЛЬНІ СТИЛІ СПИСКУ (ДЛЯ ЕЛЕКТРИЧОК, ПОТЯГІВ ТА АВТОБУСІВ) */
+/* ЗАГАЛЬНІ СТИЛІ СПИСКУ */
 .table-head { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; font-weight: 800; border-bottom: 2px solid #aaa; padding-bottom: 8px; margin-bottom: 5px; font-size: 14px; text-transform: uppercase; }
 .train { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.15); cursor: pointer; }
 .train-num-box { position: relative; font-weight: bold; display: inline-block; font-size: 16px; }
@@ -319,7 +319,7 @@ function isPast(timeStr) {
 }
 
 // РЕНДЕР СІТКИ ЗУПИНОК
-function renderGrid(data, isChanges = false) {
+function renderGrid(data, isChanges = false, alwaysWhite = false) {
   if (!data || data.length === 0) return "";
   const total = data.length;
   const perCol = Math.ceil(total / 3);
@@ -336,12 +336,15 @@ function renderGrid(data, isChanges = false) {
         const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
         
         let timeClass = '';
-        if (isChanges) {
+        if (alwaysWhite) {
+           timeClass = 'time-normal'; 
+        } else if (isChanges) {
            timeClass = 'time-normal'; 
         } else {
            timeClass = past ? 'time-passed' : 'time-green';
         }
-        if (r[1] === "---" || r[1] === "—") timeClass = 'time-passed';
+        
+        if (!alwaysWhite && (r[1] === "---" || r[1] === "—")) timeClass = 'time-passed';
 
         html += `<div class="${rowClass}">
           <span class="station-name"><span class="station-number">${idx + 1}.</span>${r[0]}</span>
@@ -400,36 +403,20 @@ function renderTrains(el, data){
   });
 }
 
-// РЕНДЕР СПИСКУ ПОТЯГІВ (НОВА ФУНКЦІЯ)
+// РЕНДЕР СПИСКУ ПОТЯГІВ
 function renderLongTrains(el, data) {
   el.innerHTML = `<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="long-trains-content"></div>`;
   const container = document.getElementById('long-trains-content');
 
   data.forEach((x, index) => {
     const id = "lt-" + x.number + "-" + index;
-    const now = getKyivNow();
 
-    let statusClass = "future";
     let displayText = x.time;
-    let extraStyle = "";
+    let extraStyle = 'style="color: #fff;"'; // Примусово білий колір
 
-    // Логіка часу та статусу курсування
+    // Якщо не курсує сьогодні — закреслюємо, але залишаємо білим
     if (!x.runsToday) {
-      statusClass = "passed";
-      // Робимо час закресленим, якщо потяг сьогодні не йде
-      extraStyle = 'style="text-decoration: line-through; opacity: 0.5;" title="Сьогодні не курсує"';
-    } else if (x.time && x.time.includes(":")) {
-      const [h, m] = x.time.split(':').map(Number);
-      const trainTime = new Date(now);
-      trainTime.setHours(h, m, 0, 0);
-      const diff = Math.floor((trainTime - now) / 60000);
-
-      if (diff < 0) {
-        statusClass = "passed";
-      } else if (diff <= 10) {
-        statusClass = "soon";
-        displayText = `≈ ${diff} хв`;
-      }
+      extraStyle = 'style="color: #fff; text-decoration: line-through; opacity: 0.5;" title="Сьогодні не курсує"';
     }
 
     const hasChanges = x.changes && x.changes.length > 0;
@@ -455,10 +442,10 @@ function renderLongTrains(el, data) {
       <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div class="train-num-box">${x.number}${hasChanges ? '<span class="alert-dot"></span>' : ''}</div>
         <div class="route-text">${x.route}</div>
-        <div class="time-val ${statusClass}" ${extraStyle}>${displayText}</div>
+        <div class="time-val" ${extraStyle}>${displayText}</div>
       </div>
       <div class="details" id="${id}">
-        ${stopsMapped.length > 0 ? renderGrid(stopsMapped) : "<div style='text-align:center; padding: 10px; color: #888;'>Дані розкладу відсутні</div>"}
+        ${stopsMapped.length > 0 ? renderGrid(stopsMapped, false, true) : "<div style='text-align:center; padding: 10px; color: #888;'>Дані розкладу відсутні</div>"}
         ${infoHtml}
       </div>`;
   });
@@ -538,13 +525,13 @@ function loadBusesData(){
 updateDateTime(); 
 loadWeather(); 
 loadTrainsData();
-loadLongTrainsData(); // Завантажуємо потяги
+loadLongTrainsData();
 loadBusesData(); 
 setInterval(updateDateTime, 1000); 
 setInterval(() => {
   loadTrainsData();
   loadLongTrainsData();
-}, 30000); // Оновлюємо статуси електричок і потягів кожні 30 сек
+}, 30000);
 </script>
 
 </body>
