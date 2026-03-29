@@ -98,7 +98,7 @@ body {
 /* ТАБИ (КОРЕШКИ ЯК ПАПКА) */
 .tabs-nav { 
   display: flex; 
-  width: 50%; 
+  width: 100%; 
   min-width: 240px; 
   gap: 4px; 
   margin-bottom: -1px; 
@@ -116,7 +116,7 @@ body {
   cursor: pointer; 
   border-radius: 16px 16px 0 0; 
   transition: 0.3s; 
-  font-size: clamp(11px, 3.5vw, 13px); 
+  font-size: clamp(10px, 3.5vw, 13px); 
   text-transform: uppercase; 
   white-space: nowrap;
 }
@@ -142,7 +142,7 @@ body {
   border: 1px solid rgba(255,255,255,0.1); 
 }
 
-/* ЗАГАЛЬНІ СТИЛІ СПИСКУ (ДЛЯ ЕЛЕКТРИЧОК ТА АВТОБУСІВ) */
+/* ЗАГАЛЬНІ СТИЛІ СПИСКУ (ДЛЯ ЕЛЕКТРИЧОК, ПОТЯГІВ ТА АВТОБУСІВ) */
 .table-head { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; font-weight: 800; border-bottom: 2px solid #aaa; padding-bottom: 8px; margin-bottom: 5px; font-size: 14px; text-transform: uppercase; }
 .train { display: grid; grid-template-columns: 15% 1fr 20%; align-items: center; justify-items: center; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.15); cursor: pointer; }
 .train-num-box { position: relative; font-weight: bold; display: inline-block; font-size: 16px; }
@@ -183,7 +183,7 @@ body {
 .time-normal { color: #fff; font-weight: bold; font-family: monospace; font-size: 13px;}
 
 /* ПРИМІТКИ ПРО ЗМІНИ */
-.details-note { text-align: center; font-weight: bold; color: #ff4d4d; margin-bottom: 10px; text-shadow: 0 0 5px rgba(0,0,0,0.5); font-size: 11px; }
+.details-note { text-align: center; font-weight: bold; color: #ff4d4d; margin-bottom: 10px; text-shadow: 0 0 5px rgba(0,0,0,0.5); font-size: 11px; line-height: 1.4; }
 .details-divider { width: 70%; height: 1px; background: rgba(255,255,255,0.2); margin: 15px auto 10px; }
 
 </style>
@@ -216,6 +216,7 @@ body {
     
     <div class="tabs-nav">
       <button class="tab-btn active" onclick="openTab('trains', this)">Електрички</button>
+      <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
       <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
     </div>
 
@@ -223,6 +224,10 @@ body {
       
       <div id="trains" class="content-section active">
         <div id="list" style="text-align: center; padding: 20px;">Завантаження розкладу електричок...</div>
+      </div>
+
+      <div id="long-trains" class="content-section">
+        <div id="long-trains-list" style="text-align: center; padding: 20px;">Завантаження розкладу потягів...</div>
       </div>
 
       <div id="buses" class="content-section">
@@ -313,7 +318,7 @@ function isPast(timeStr) {
   return t < now;
 }
 
-// РЕНДЕР СІТКИ ЗУПИНОК (ДЛЯ ЕЛЕКТРИЧОК)
+// РЕНДЕР СІТКИ ЗУПИНОК
 function renderGrid(data, isChanges = false) {
   if (!data || data.length === 0) return "";
   const total = data.length;
@@ -395,6 +400,70 @@ function renderTrains(el, data){
   });
 }
 
+// РЕНДЕР СПИСКУ ПОТЯГІВ (НОВА ФУНКЦІЯ)
+function renderLongTrains(el, data) {
+  el.innerHTML = `<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="long-trains-content"></div>`;
+  const container = document.getElementById('long-trains-content');
+
+  data.forEach((x, index) => {
+    const id = "lt-" + x.number + "-" + index;
+    const now = getKyivNow();
+
+    let statusClass = "future";
+    let displayText = x.time;
+    let extraStyle = "";
+
+    // Логіка часу та статусу курсування
+    if (!x.runsToday) {
+      statusClass = "passed";
+      // Робимо час закресленим, якщо потяг сьогодні не йде
+      extraStyle = 'style="text-decoration: line-through; opacity: 0.5;" title="Сьогодні не курсує"';
+    } else if (x.time && x.time.includes(":")) {
+      const [h, m] = x.time.split(':').map(Number);
+      const trainTime = new Date(now);
+      trainTime.setHours(h, m, 0, 0);
+      const diff = Math.floor((trainTime - now) / 60000);
+
+      if (diff < 0) {
+        statusClass = "passed";
+      } else if (diff <= 10) {
+        statusClass = "soon";
+        displayText = `≈ ${diff} хв`;
+      }
+    }
+
+    const hasChanges = x.changes && x.changes.length > 0;
+    
+    // Перетворюємо об'єкти зупинок на масив масивів для функції renderGrid
+    const stopsMapped = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
+
+    // Формуємо тексти періодичності та змін
+    let infoHtml = "";
+    if (x.periodicityText) {
+      infoHtml += `<div class="details-divider"></div>
+                   <div class="details-note" style="color: #04b6cb;"><b>Періодичність:</b><br><span style="color:#fff; font-weight:normal;">${x.periodicityText}</span></div>`;
+    }
+    if (hasChanges) {
+      infoHtml += `<div class="details-divider"></div>
+                   <div class="details-note" style="color: #ffcc00;"><b>Зміни розкладу:</b>
+                   <ul style="margin: 5px 0 0 0; padding-left: 20px; text-align: left; font-weight: normal; color: #fff;">
+                     ${x.changes.map(c => `<li>${c}</li>`).join('')}
+                   </ul></div>`;
+    }
+
+    container.innerHTML += `
+      <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
+        <div class="train-num-box">${x.number}${hasChanges ? '<span class="alert-dot"></span>' : ''}</div>
+        <div class="route-text">${x.route}</div>
+        <div class="time-val ${statusClass}" ${extraStyle}>${displayText}</div>
+      </div>
+      <div class="details" id="${id}">
+        ${stopsMapped.length > 0 ? renderGrid(stopsMapped) : "<div style='text-align:center; padding: 10px; color: #888;'>Дані розкладу відсутні</div>"}
+        ${infoHtml}
+      </div>`;
+  });
+}
+
 // РЕНДЕР СПИСКУ АВТОБУСІВ
 function renderBuses(el, data) {
   el.innerHTML = `<div class="table-head"><div>Тип</div><div>Маршрут прямування</div><div>Статус</div></div><div id="buses-content"></div>`;
@@ -445,8 +514,17 @@ function loadTrainsData(){
     });
 }
 
+function loadLongTrainsData() {
+  fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule")
+    .then(r => r.json())
+    .then(d => renderLongTrains(document.getElementById("long-trains-list"), d.trains))
+    .catch(e => {
+       console.error("API error Long Trains", e);
+       document.getElementById("long-trains-list").innerHTML = "<div style='text-align:center; padding: 20px;'>Помилка завантаження потягів 😢</div>";
+    });
+}
+
 function loadBusesData(){
-  // ТУТ МЫ ДОБАВИЛИ ТВОЮ НОВУЮ ССЫЛКУ ДЛЯ АВТОБУСОВ
   fetch("https://vilnohirskbuses-production.up.railway.app/api/buses")
     .then(r => r.json())
     .then(d => renderBuses(document.getElementById("buses-list"), d.buses))
@@ -460,9 +538,13 @@ function loadBusesData(){
 updateDateTime(); 
 loadWeather(); 
 loadTrainsData();
-loadBusesData(); // Загружаем автобусы при открытии сайта
+loadLongTrainsData(); // Завантажуємо потяги
+loadBusesData(); 
 setInterval(updateDateTime, 1000); 
-setInterval(loadTrainsData, 30000); // Обновляем статусы электричек каждые 30 сек
+setInterval(() => {
+  loadTrainsData();
+  loadLongTrainsData();
+}, 30000); // Оновлюємо статуси електричок і потягів кожні 30 сек
 </script>
 
 </body>
