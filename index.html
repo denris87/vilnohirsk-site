@@ -7,97 +7,97 @@
 
 <style>
 :root {
-  --highlight-color: #ffcc00; 
-  --glass-bg: rgba(0, 0, 0, 0.45);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-light: rgba(255, 255, 255, 0.15);
-  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
-  
-  --time-green: #00ff9c;
-  --time-passed: rgba(255, 255, 255, 0.4);
+  --highlight-color: #ffcc00; 
+  --glass-bg: rgba(0, 0, 0, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-light: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  
+  --time-green: #00ff9c;
+  --time-passed: rgba(255, 255, 255, 0.4);
 }
 
-html, body { 
-  margin: 0; 
-  padding: 0; 
-  height: 100%; 
+html, body { 
+  margin: 0; 
+  padding: 0; 
+  height: 100%; 
 }
 
-* { 
-  -webkit-user-select: none; 
-  user-select: none; 
-  box-sizing: border-box; 
-  -webkit-tap-highlight-color: transparent; 
+* { 
+  -webkit-user-select: none; 
+  user-select: none; 
+  box-sizing: border-box; 
+  -webkit-tap-highlight-color: transparent; 
 }
 
 body {
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  background: linear-gradient(-45deg, #1e3c72, #2a5298, #009ffd, #2af598, #009ffd);
-  background-size: 300% 300%;
-  animation: gradientMove 30s ease-in-out infinite alternate;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: linear-gradient(-45deg, #1e3c72, #2a5298, #009ffd, #2af598, #009ffd);
+  background-size: 300% 300%;
+  animation: gradientMove 30s ease-in-out infinite alternate;
 }
 
 @keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
 }
 
-.wrapper { 
-  width: 100%; 
-  max-width: 900px; 
-  padding: 15px; 
+.wrapper { 
+  width: 100%; 
+  max-width: 900px; 
+  padding: 15px; 
 }
 
-.container { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 15px; 
+.container { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 15px; 
 }
 
 .liquid-glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid var(--glass-border);
-  border-top: 1px solid var(--glass-border-light);
-  border-left: 1px solid var(--glass-border-light);
-  box-shadow: var(--glass-shadow);
-  border-radius: 28px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  border-top: 1px solid var(--glass-border-light);
+  border-left: 1px solid var(--glass-border-light);
+  box-shadow: var(--glass-shadow);
+  border-radius: 28px;
 }
 
 /* ШАПКА */
-.top-row { 
-  display: flex; 
-  flex-direction: row; 
-  justify-content: space-between; 
-  gap: 12px; 
-  width: 100%; 
+.top-row { 
+  display: flex; 
+  flex-direction: row; 
+  justify-content: space-between; 
+  gap: 12px; 
+  width: 100%; 
 }
 
 .widget {
-  padding: 15px 10px; 
-  flex: 1; 
-  min-height: 125px; 
-  display: flex; 
-  flex-direction: column; 
-  justify-content: center; 
-  align-items: center; 
-  overflow: hidden;
-  position: relative;
+  padding: 15px 10px; 
+  flex: 1; 
+  min-height: 125px; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center; 
+  align-items: center; 
+  overflow: hidden;
+  position: relative;
 }
 
 .widget::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 35%;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent);
-  border-radius: 28px 28px 0 0;
-  pointer-events: none;
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 35%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent);
+  border-radius: 28px 28px 0 0;
+  pointer-events: none;
 }
 
 .datetime { text-align: center; width: 100%; }
@@ -120,79 +120,79 @@ body {
 .schedule-group { display: flex; flex-direction: column; gap: 8px;}
 
 /* ТАБИ */
-.tabs-nav { 
-  display: flex; 
-  width: 100%; 
-  padding: 6px;
-  background: var(--glass-bg);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-radius: 20px;
-  position: relative; 
-  z-index: 2; 
-  box-shadow: inset 0 2px 10px rgba(0,0,0,0.4), 0 4px 15px rgba(0,0,0,0.2);
-  border: 1px solid var(--glass-border);
+.tabs-nav { 
+  display: flex; 
+  width: 100%; 
+  padding: 6px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 20px;
+  position: relative; 
+  z-index: 2; 
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.4), 0 4px 15px rgba(0,0,0,0.2);
+  border: 1px solid var(--glass-border);
 }
-.tab-btn { 
-  flex: 1; 
-  padding: 12px 5px; 
-  border: none;
-  background: transparent; 
-  color: rgba(255, 255, 255, 0.55); 
-  font-weight: 700; 
-  cursor: pointer; 
-  border-radius: 14px; 
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
-  font-size: clamp(12px, 3.5vw, 14px); 
-  white-space: nowrap;
+.tab-btn { 
+  flex: 1; 
+  padding: 12px 5px; 
+  border: none;
+  background: transparent; 
+  color: rgba(255, 255, 255, 0.55); 
+  font-weight: 700; 
+  cursor: pointer; 
+  border-radius: 14px; 
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
+  font-size: clamp(12px, 3.5vw, 14px); 
+  white-space: nowrap;
 }
-.tab-btn.active { 
-  background: rgba(255, 255, 255, 0.15); 
-  color: #ffffff; 
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.2);
+.tab-btn.active { 
+  background: rgba(255, 255, 255, 0.15); 
+  color: #ffffff; 
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.2);
 }
 
 .content-section { display: none; }
 .content-section.active { display: block; animation: slideUpFade 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
-@keyframes slideUpFade { 
-  from { opacity: 0; transform: translateY(15px); } 
-  to { opacity: 1; transform: translateY(0); } 
+@keyframes slideUpFade { 
+  from { opacity: 0; transform: translateY(15px); } 
+  to { opacity: 1; transform: translateY(0); } 
 }
 
-.main-list-widget { 
-  padding: 20px 10px; 
-  position: relative; 
-  z-index: 1; 
+.main-list-widget { 
+  padding: 20px 10px; 
+  position: relative; 
+  z-index: 1; 
 }
 
 /* ЗАГОЛОВКИ ТАБЛИЦІ */
-.table-head { 
-  display: grid; 
-  grid-template-columns: 18% 1fr 20%; 
-  align-items: center; 
-  justify-items: center; 
-  font-weight: 700; 
-  border-bottom: 1px solid rgba(255,255,255,0.15); 
-  padding-bottom: 10px; 
-  margin-bottom: 8px; 
-  font-size: 10px; 
-  text-transform: uppercase; 
-  color: #74b9ff; 
-  letter-spacing: 0.5px;
+.table-head { 
+  display: grid; 
+  grid-template-columns: 18% 1fr 20%; 
+  align-items: center; 
+  justify-items: center; 
+  font-weight: 700; 
+  border-bottom: 1px solid rgba(255,255,255,0.15); 
+  padding-bottom: 10px; 
+  margin-bottom: 8px; 
+  font-size: 10px; 
+  text-transform: uppercase; 
+  color: #74b9ff; 
+  letter-spacing: 0.5px;
 }
 
-.train { 
-  display: grid; 
-  grid-template-columns: 18% 1fr 20%; 
-  align-items: center; 
-  justify-items: center; 
-  padding: 14px 0; 
-  border-bottom: 1px solid rgba(255,255,255,0.06); 
-  cursor: pointer; 
-  transition: background 0.3s; 
-  border-radius: 12px; 
-  min-height: 60px;
+.train { 
+  display: grid; 
+  grid-template-columns: 18% 1fr 20%; 
+  align-items: center; 
+  justify-items: center; 
+  padding: 14px 0; 
+  border-bottom: 1px solid rgba(255,255,255,0.06); 
+  cursor: pointer; 
+  transition: background 0.3s; 
+  border-radius: 12px; 
+  min-height: 60px;
 }
 .train:hover { background: rgba(255,255,255,0.05); }
 .train:last-child { border-bottom: none; }
@@ -200,17 +200,17 @@ body {
 .train-num-box { position: relative; font-weight: 800; display: inline-block; font-size: 14px; background: rgba(255,255,255,0.1); padding: 5px 8px; border-radius: 8px; }
 
 /* ТЕКСТ МАРШРУТІВ */
-.route-text { 
-  font-weight: 700; 
-  color: #ffffff; 
-  text-align: center; 
-  font-size: clamp(13px, 3.8vw, 15px); 
-  width: 100%; 
-  padding: 0 10px; 
-  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
-  white-space: normal; 
-  word-wrap: break-word;
-  line-height: 1.3;
+.route-text { 
+  font-weight: 700; 
+  color: #ffffff; 
+  text-align: center; 
+  font-size: clamp(13px, 3.8vw, 15px); 
+  width: 100%; 
+  padding: 0 10px; 
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  white-space: normal; 
+  word-wrap: break-word;
+  line-height: 1.3;
 }
 
 .time-val { font-weight: 800; font-size: clamp(15px, 4vw, 18px); font-variant-numeric: tabular-nums; }
@@ -218,21 +218,21 @@ body {
 .time-val.future { color: var(--time-green); }
 .time-val.passed { color: var(--time-passed); }
 
-.alert-dot { 
-  position: absolute; 
-  top: -4px; 
-  right: -4px; 
-  width: 8px; 
-  height: 8px; 
-  background: #ff3b3b; 
-  border-radius: 50%; 
-  border: 1px solid rgba(0,0,0,0.5);
-  animation: pulseAlert 1.5s infinite; 
+.alert-dot { 
+  position: absolute; 
+  top: -4px; 
+  right: -4px; 
+  width: 8px; 
+  height: 8px; 
+  background: #ff3b3b; 
+  border-radius: 50%; 
+  border: 1px solid rgba(0,0,0,0.5);
+  animation: pulseAlert 1.5s infinite; 
 }
-@keyframes pulseAlert { 
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } 
+@keyframes pulseAlert { 
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } 
 }
 
 /* ШТОРКИ РОЗКЛАДУ */
@@ -242,48 +242,48 @@ body {
 .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
-@media (max-width: 600px) { 
-  .schedule-grid { grid-template-columns: 1fr; } 
-  .bus-grid { grid-template-columns: 1fr; } 
+@media (max-width: 600px) { 
+  .schedule-grid { grid-template-columns: 1fr; } 
+  .bus-grid { grid-template-columns: 1fr; } 
 }
 
 .schedule-column { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px 8px; }
 
 /* ВИРІВНЮВАННЯ РЯДКІВ В ТАБЛИЦІ ШТОРКИ */
-.schedule-row { 
-  display: flex; 
-  justify-content: space-between; 
-  padding: 8px 6px; 
-  border-bottom: 1px solid rgba(255,255,255,0.05); 
-  font-size: 13px; 
-  align-items: center;
-  gap: 10px; 
-  text-align: left; /* Жорстко по лівому краю */
+.schedule-row { 
+  display: flex; 
+  justify-content: space-between; 
+  padding: 8px 6px; 
+  border-bottom: 1px solid rgba(255,255,255,0.05); 
+  font-size: 13px; 
+  align-items: center;
+  gap: 10px; 
+  text-align: left; /* Жорстко по лівому краю */
 }
 .schedule-row:last-child { border-bottom: none; }
 
 .schedule-left {
-  flex: 1;
-  display: flex;
-  align-items: flex-start;
-  text-align: left;
-  line-height: 1.2;
-  font-weight: 500;
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  text-align: left;
+  line-height: 1.2;
+  font-weight: 500;
 }
 
-.station-number { 
-  color: rgba(255,255,255,0.3); 
-  font-weight: 600; 
-  margin-right: 6px; 
-  font-size: 10px;
-  min-width: 18px; /* Фіксована ширина для чисел, щоб крапки були на одному рівні */
-  text-align: right;
-  padding-top: 2px;
+.station-number { 
+  color: rgba(255,255,255,0.3); 
+  font-weight: 600; 
+  margin-right: 6px; 
+  font-size: 10px;
+  min-width: 18px; /* Фіксована ширина для чисел, щоб крапки були на одному рівні */
+  text-align: right;
+  padding-top: 2px;
 }
 
 .station-name-text {
-  flex: 1;
-  word-wrap: break-word;
+  flex: 1;
+  word-wrap: break-word;
 }
 
 .row-highlight { background: rgba(255, 255, 255, 0.1) !important; color: var(--highlight-color) !important; font-weight: 800; border-radius: 6px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.1); }
@@ -303,258 +303,258 @@ body {
 <div class="wrapper">
 <div class="container">
 
-  <div class="top-row">
-    <div class="widget liquid-glass">
-      <div class="datetime">
-        <div id="date"></div>
-        <div class="weekdays">
-          <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
-          <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
-          <div class="day">нд</div>
-        </div>
-        <div id="time"></div>
-      </div>
-    </div>
+  <div class="top-row">
+    <div class="widget liquid-glass">
+      <div class="datetime">
+        <div id="date"></div>
+        <div class="weekdays">
+          <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
+          <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
+          <div class="day">нд</div>
+        </div>
+        <div id="time"></div>
+      </div>
+    </div>
 
-    <div class="widget liquid-glass">
-      <div class="weather-box" id="weather-container"></div>
-    </div>
-  </div>
+    <div class="widget liquid-glass">
+      <div class="weather-box" id="weather-container"></div>
+    </div>
+  </div>
 
-  <div class="schedule-group">
-    <div class="tabs-nav">
-      <button class="tab-btn active" onclick="openTab('trains', this)">Електрички</button>
-      <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
-      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
-    </div>
+  <div class="schedule-group">
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="openTab('trains', this)">Електрички</button>
+      <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
+      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
+    </div>
 
-    <div class="main-list-widget liquid-glass">
-      <div id="trains" class="content-section active">
-        <div id="list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
-      </div>
-      <div id="long-trains" class="content-section">
-        <div id="long-trains-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
-      </div>
-      <div id="buses" class="content-section">
-        <div id="buses-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
-      </div>
-    </div>
-  </div>
+    <div class="main-list-widget liquid-glass">
+      <div id="trains" class="content-section active">
+        <div id="list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
+      </div>
+      <div id="long-trains" class="content-section">
+        <div id="long-trains-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
+      </div>
+      <div id="buses" class="content-section">
+        <div id="buses-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
+      </div>
+    </div>
+  </div>
 
 </div>
 </div>
 
 <script>
 function openTab(tabId, btn) {
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  btn.classList.add('active');
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  btn.classList.add('active');
 }
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
 
 function getWeatherEmoji(code){
-  if(code === 0) return "☀️";
-  if(code <= 2) return "⛅";
-  if(code <= 3) return "☁️";
-  if(code <= 48) return "🌫️";
-  if(code <= 67) return "🌧️";
-  if(code <= 77) return "🌨️";
-  if(code <= 99) return "⛈️";
-  return "🌡️";
+  if(code === 0) return "☀️";
+  if(code <= 2) return "⛅";
+  if(code <= 3) return "☁️";
+  if(code <= 48) return "🌫️";
+  if(code <= 67) return "🌧️";
+  if(code <= 77) return "🌨️";
+  if(code <= 99) return "⛈️";
+  return "🌡️";
 }
 
 async function loadWeather(){
-  const coords = [
-    {id: 'vil', name: 'Вільногірськ', lat: 48.48, lon: 34.02}, 
-    {id: 'dni', name: 'Дніпро', lat: 48.45, lon: 34.98}
-  ];
-  let results = [];
-  for(let c of coords){
-    try {
-      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
-      const d = await r.json();
-      results.push({name: c.name, w: d.current_weather});
-    } catch(e) { console.error("Weather error:", e); }
-  }
-  const container = document.getElementById("weather-container");
-  if(results.length === 0) return;
-  container.innerHTML = results.map((item, index) => `
-    <div class="weather-content ${index === 0 ? 'active' : ''}" id="slide-${index}">
-      <div class="weather-city">${item.name}</div>
-      <div class="weather-temp">${getWeatherEmoji(item.w.weathercode)} ${Math.round(item.w.temperature)}°C</div>
-      <div class="weather-wind">💨 ${Math.round(item.w.windspeed)} м/с</div>
-    </div>
-  `).join("");
-  let currentIndex = 0;
-  setInterval(() => {
-    const slides = document.querySelectorAll('.weather-content');
-    if(slides.length < 2) return;
-    slides[currentIndex].classList.remove('active');
-    currentIndex = (currentIndex + 1) % slides.length;
-    slides[currentIndex].classList.add('active');
-  }, 7000); 
+  const coords = [
+    {id: 'vil', name: 'Вільногірськ', lat: 48.48, lon: 34.02}, 
+    {id: 'dni', name: 'Дніпро', lat: 48.45, lon: 34.98}
+  ];
+  let results = [];
+  for(let c of coords){
+    try {
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
+      const d = await r.json();
+      results.push({name: c.name, w: d.current_weather});
+    } catch(e) { console.error("Weather error:", e); }
+  }
+  const container = document.getElementById("weather-container");
+  if(results.length === 0) return;
+  container.innerHTML = results.map((item, index) => `
+    <div class="weather-content ${index === 0 ? 'active' : ''}" id="slide-${index}">
+      <div class="weather-city">${item.name}</div>
+      <div class="weather-temp">${getWeatherEmoji(item.w.weathercode)} ${Math.round(item.w.temperature)}°C</div>
+      <div class="weather-wind">💨 ${Math.round(item.w.windspeed)} м/с</div>
+    </div>
+  `).join("");
+  let currentIndex = 0;
+  setInterval(() => {
+    const slides = document.querySelectorAll('.weather-content');
+    if(slides.length < 2) return;
+    slides[currentIndex].classList.remove('active');
+    currentIndex = (currentIndex + 1) % slides.length;
+    slides[currentIndex].classList.add('active');
+  }, 7000); 
 }
 
 function updateDateTime(){
-  const now = getKyivNow();
-  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-  const days=document.querySelectorAll(".day");
-  days.forEach(d=>d.classList.remove("active"));
-  let i=now.getDay(); i=i===0?6:i-1;
-  days[i].classList.add("active");
+  const now = getKyivNow();
+  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+  const days=document.querySelectorAll(".day");
+  days.forEach(d=>d.classList.remove("active"));
+  let i=now.getDay(); i=i===0?6:i-1;
+  days[i].classList.add("active");
 }
 
 function isPast(timeStr) {
-  if (!timeStr || !timeStr.includes(":")) return false;
-  const now = getKyivNow();
-  const [h, m] = timeStr.split(":").map(Number);
-  const t = new Date(now);
-  t.setHours(h, m, 0, 0);
-  return t < now;
+  if (!timeStr || !timeStr.includes(":")) return false;
+  const now = getKyivNow();
+  const [h, m] = timeStr.split(":").map(Number);
+  const t = new Date(now);
+  t.setHours(h, m, 0, 0);
+  return t < now;
 }
 
 function renderGrid(data, isChanges = false, alwaysWhite = false) {
-  if (!data || data.length === 0) return "";
-  const total = data.length;
-  const perCol = Math.ceil(total / 3);
-  let html = '<div class="schedule-grid">';
-  for(let c = 0; c < 3; c++) {
-    html += '<div class="schedule-column">';
-    for(let j = 0; j < perCol; j++) {
-      const idx = c * perCol + j;
-      if (idx < total) {
-        const r = data[idx];
-        const past = isPast(r[1]);
-        const isVil = r[0].toLowerCase().includes('вільногірськ');
-        const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
-        let timeClass = (alwaysWhite || isChanges) ? 'time-normal' : (past ? 'time-passed' : 'time-green');
-        
-        html += `<div class="${rowClass}">
-          <div class="schedule-left">
-            <span class="station-number">${idx + 1}.</span>
-            <span class="station-name-text">${r[0]}</span>
-          </div>
-          <div class="${timeClass}">${r[1]}</div>
-        </div>`;
-      }
-    }
-    html += '</div>';
-  }
-  return html + '</div>';
+  if (!data || data.length === 0) return "";
+  const total = data.length;
+  const perCol = Math.ceil(total / 3);
+  let html = '<div class="schedule-grid">';
+  for(let c = 0; c < 3; c++) {
+    html += '<div class="schedule-column">';
+    for(let j = 0; j < perCol; j++) {
+      const idx = c * perCol + j;
+      if (idx < total) {
+        const r = data[idx];
+        const past = isPast(r[1]);
+        const isVil = r[0].toLowerCase().includes('вільногірськ');
+        const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
+        let timeClass = (alwaysWhite || isChanges) ? 'time-normal' : (past ? 'time-passed' : 'time-green');
+        
+        html += `<div class="${rowClass}">
+          <div class="schedule-left">
+            <span class="station-number">${idx + 1}.</span>
+            <span class="station-name-text">${r[0]}</span>
+          </div>
+          <div class="${timeClass}">${r[1]}</div>
+        </div>`;
+      }
+    }
+    html += '</div>';
+  }
+  return html + '</div>';
 }
 
 function renderTrains(el, data){
-  if (!data || !Array.isArray(data)) { el.innerHTML = "<div style='text-align:center; padding: 20px;'>Дані відсутні</div>"; return; }
-  el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content"></div>`;
-  const container = document.getElementById('trains-content');
-  data.forEach(x => {
-    const id="d-" + x.number;
-    const now = getKyivNow();
-    let statusClass = "future", displayText = x.time;
-    if (x.time && x.time.includes(':')) {
-      const [h, m] = x.time.split(':').map(Number);
-      const trainTime = new Date(now); trainTime.setHours(h, m, 0, 0);
-      const diff = Math.floor((trainTime - now) / 60000);
-      if (diff < 0) statusClass = "passed";
-      else if (diff <= 10) { statusClass = "soon"; displayText = `≈ ${diff} хв`; }
-    } else statusClass = "passed";
-    const hasChanges = x.note && x.note !== "змін немає...";
-    
-    const altScheduleHtml = x.altSchedule ? renderGrid(x.altSchedule, true) : "";
+  if (!data || !Array.isArray(data)) { el.innerHTML = "<div style='text-align:center; padding: 20px;'>Дані відсутні</div>"; return; }
+  el.innerHTML=`<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content"></div>`;
+  const container = document.getElementById('trains-content');
+  data.forEach(x => {
+    const id="d-" + x.number;
+    const now = getKyivNow();
+    let statusClass = "future", displayText = x.time;
+    if (x.time && x.time.includes(':')) {
+      const [h, m] = x.time.split(':').map(Number);
+      const trainTime = new Date(now); trainTime.setHours(h, m, 0, 0);
+      const diff = Math.floor((trainTime - now) / 60000);
+      if (diff < 0) statusClass = "passed";
+      else if (diff <= 10) { statusClass = "soon"; displayText = `≈ ${diff} хв`; }
+    } else statusClass = "passed";
+    const hasChanges = x.note && x.note !== "змін немає...";
+    
+    const altScheduleHtml = x.altSchedule ? renderGrid(x.altSchedule, true) : "";
 
-    container.innerHTML+=`
-      <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-        <div class="train-num-box">${x.number}${hasChanges ? '<span class="alert-dot"></span>' : ''}</div>
-        <div class="route-text">${x.route}</div>
-        <div class="time-val ${statusClass}">${displayText}</div>
-      </div>
-      <div class="details" id="${id}">
-        ${x.fullSchedule?.length > 0 ? renderGrid(x.fullSchedule) : "<div style='text-align:center; padding:10px; color:rgba(255,255,255,0.4);'>Дані відсутні</div>"}
-        ${x.note && x.note !== "змін немає..." ? `<div class="details-divider"></div><div class="details-note">${x.note}</div>` : ''}
-        ${altScheduleHtml}
-      </div>`;
-  });
+    container.innerHTML+=`
+      <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
+        <div class="train-num-box">${x.number}${hasChanges ? '<span class="alert-dot"></span>' : ''}</div>
+        <div class="route-text">${x.route}</div>
+        <div class="time-val ${statusClass}">${displayText}</div>
+      </div>
+      <div class="details" id="${id}">
+        ${x.fullSchedule?.length > 0 ? renderGrid(x.fullSchedule) : "<div style='text-align:center; padding:10px; color:rgba(255,255,255,0.4);'>Дані відсутні</div>"}
+        ${x.note && x.note !== "змін немає..." ? `<div class="details-divider"></div><div class="details-note">${x.note}</div>` : ''}
+        ${altScheduleHtml}
+      </div>`;
+  });
 }
 
 function renderLongTrains(el, data) {
-  if (!data || !Array.isArray(data)) { el.innerHTML = "<div style='text-align:center; padding: 20px;'>Дані відсутні</div>"; return; }
-  el.innerHTML = `<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="long-trains-content"></div>`;
-  const container = document.getElementById('long-trains-content');
-  data.forEach((x, index) => {
-    const id = "lt-" + x.number + "-" + index;
-    const stopsMapped = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
-    
-    const hasChanges = x.changes && x.changes.length > 0;
-    let infoHtml = "";
-    if (x.periodicityText) {
-      infoHtml += `<div class="details-divider"></div>
-                   <div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);">
-                     <b>Періодичність з початкової станції маршруту:</b><br><span style="color:rgba(255,255,255,0.7); font-weight:500;">${x.periodicityText}</span>
-                   </div>`;
-    }
-    if (hasChanges) {
-      infoHtml += `<div class="details-divider"></div>
-                   <div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);">
-                     <b>Зміни розкладу:</b>
-                     <ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500; color: rgba(255,255,255,0.8);">
-                       ${x.changes.map(c => `<li>${c}</li>`).join('')}
-                     </ul>
-                   </div>`;
-    }
+  if (!data || !Array.isArray(data)) { el.innerHTML = "<div style='text-align:center; padding: 20px;'>Дані відсутні</div>"; return; }
+  el.innerHTML = `<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="long-trains-content"></div>`;
+  const container = document.getElementById('long-trains-content');
+  data.forEach((x, index) => {
+    const id = "lt-" + x.number + "-" + index;
+    const stopsMapped = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
+    
+    const hasChanges = x.changes && x.changes.length > 0;
+    let infoHtml = "";
+    if (x.periodicityText) {
+      infoHtml += `<div class="details-divider"></div>
+                   <div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);">
+                     <b>Періодичність з початкової станції маршруту:</b><br><span style="color:rgba(255,255,255,0.7); font-weight:500;">${x.periodicityText}</span>
+                   </div>`;
+    }
+    if (hasChanges) {
+      infoHtml += `<div class="details-divider"></div>
+                   <div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);">
+                     <b>Зміни розкладу:</b>
+                     <ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500; color: rgba(255,255,255,0.8);">
+                       ${x.changes.map(c => `<li>${c}</li>`).join('')}
+                     </ul>
+                   </div>`;
+    }
 
-    container.innerHTML += `
-      <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-        <div class="train-num-box">${x.number}</div>
-        <div class="route-text">${x.route}</div>
-        <div class="time-val" style="color:#fff;">${x.time}</div>
-      </div>
-      <div class="details" id="${id}">
-        ${stopsMapped.length > 0 ? renderGrid(stopsMapped, false, true) : "<div style='text-align:center; padding:10px; color:rgba(255,255,255,0.4);'>Дані відсутні</div>"}
-        ${infoHtml}
-      </div>`;
-  });
+    container.innerHTML += `
+      <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
+        <div class="train-num-box">${x.number}</div>
+        <div class="route-text">${x.route}</div>
+        <div class="time-val" style="color:#fff;">${x.time}</div>
+      </div>
+      <div class="details" id="${id}">
+        ${stopsMapped.length > 0 ? renderGrid(stopsMapped, false, true) : "<div style='text-align:center; padding:10px; color:rgba(255,255,255,0.4);'>Дані відсутні</div>"}
+        ${infoHtml}
+      </div>`;
+  });
 }
 
 function renderBuses(el, data) {
-  if (!data || !Array.isArray(data)) { el.innerHTML = "<div style='text-align:center; padding: 20px;'>Дані відсутні</div>"; return; }
-  el.innerHTML = `<div class="table-head"><div>Тип</div><div>Маршрут прямування</div><div>Статус</div></div><div id="buses-content"></div>`;
-  const container = document.getElementById('buses-content');
-  data.forEach(b => {
-    let colsHtml = '';
-    b.directions.forEach(dir => {
-      let rowsHtml = dir.rows.map(row => `
-        <div class="schedule-row">
-          <div class="schedule-left"><span class="station-name-text">${row[0]}</span></div>
-          <div class="time-normal">${row[1]}</div>
-        </div>
-      `).join('');
-      colsHtml += `<div class="schedule-column"><div style="text-align:center; color:var(--highlight-color); font-size:11px; margin-bottom:10px; font-weight:800; text-transform:uppercase;">${dir.title}</div>${rowsHtml}</div>`;
-    });
-    container.innerHTML += `
-      <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
-        <div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div>
-        <div class="route-text">${b.route}</div>
-        <div class="time-val future" style="font-size:11px;">Розклад ▾</div>
-      </div>
-      <div class="details"><div class="bus-grid">${colsHtml}</div>${b.note ? `<div class="details-divider"></div><div class="details-note" style="color:#2af598;">${b.note}</div>` : ''}</div>`;
-  });
+  if (!data || !Array.isArray(data)) { el.innerHTML = "<div style='text-align:center; padding: 20px;'>Дані відсутні</div>"; return; }
+  el.innerHTML = `<div class="table-head"><div>Тип</div><div>Маршрут прямування</div><div>Статус</div></div><div id="buses-content"></div>`;
+  const container = document.getElementById('buses-content');
+  data.forEach(b => {
+    let colsHtml = '';
+    b.directions.forEach(dir => {
+      let rowsHtml = dir.rows.map(row => `
+        <div class="schedule-row">
+          <div class="schedule-left"><span class="station-name-text">${row[0]}</span></div>
+          <div class="time-normal">${row[1]}</div>
+        </div>
+      `).join('');
+      colsHtml += `<div class="schedule-column"><div style="text-align:center; color:var(--highlight-color); font-size:11px; margin-bottom:10px; font-weight:800; text-transform:uppercase;">${dir.title}</div>${rowsHtml}</div>`;
+    });
+    container.innerHTML += `
+      <div class="train" onclick="this.nextElementSibling.classList.toggle('open')">
+        <div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div>
+        <div class="route-text">${b.route}</div>
+        <div class="time-val future" style="font-size:11px;">Розклад ▾</div>
+      </div>
+      <div class="details"><div class="bus-grid">${colsHtml}</div>${b.note ? `<div class="details-divider"></div><div class="details-note" style="color:#2af598;">${b.note}</div>` : ''}</div>`;
+  });
 }
 
 function loadTrainsData(){
-  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>renderTrains(document.getElementById("list"),d.trains)).catch(e=>console.error("Trains error",e));
+  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>renderTrains(document.getElementById("list"),d.trains)).catch(e=>console.error("Trains error",e));
 }
 function loadLongTrainsData() {
-  fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule").then(r=>r.json()).then(d=>renderLongTrains(document.getElementById("long-trains-list"),d.trains)).catch(e=>console.error("Long trains error",e));
+  fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule").then(r=>r.json()).then(d=>renderLongTrains(document.getElementById("long-trains-list"),d.trains)).catch(e=>console.error("Long trains error",e));
 }
 function loadBusesData(){
-  fetch("https://vilnohirskbuses-production.up.railway.app/api/buses").then(r=>r.json()).then(d=>renderBuses(document.getElementById("buses-list"),d.buses)).catch(e=>console.error("Buses error",e));
+  fetch("https://vilnohirskbuses-production.up.railway.app/api/buses").then(r=>r.json()).then(d=>renderBuses(document.getElementById("buses-list"),d.buses)).catch(e=>console.error("Buses error",e));
 }
 
-updateDateTime(); loadWeather(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); 
-setInterval(updateDateTime, 1000); 
+updateDateTime(); loadWeather(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); 
+setInterval(updateDateTime, 1000); 
 setInterval(() => { loadTrainsData(); loadLongTrainsData(); }, 30000);
 </script>
 
