@@ -182,37 +182,49 @@ body {
 
 .main-list-widget { padding: 20px 10px; position: relative; z-index: 1; }
 
+/* ЗАГОЛОВКИ ТАБЛИЦІ (Змінено пропорції: бокові колонки менші, центральна більша) */
 .table-head { 
-  display: grid; grid-template-columns: 18% 1fr 20%; align-items: center; justify-items: center; 
+  display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; 
   font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.15); 
   padding-bottom: 10px; margin-bottom: 8px; font-size: 10px; 
   text-transform: uppercase; color: #74b9ff; letter-spacing: 0.5px;
 }
 
 .train { 
-  display: grid; grid-template-columns: 18% 1fr 20%; align-items: center; justify-items: center; 
+  display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; 
   padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); 
   cursor: pointer; transition: background 0.3s; border-radius: 12px; min-height: 60px;
 }
 .train:hover { background: rgba(255,255,255,0.05); }
 .train:last-child { border-bottom: none; }
-.train-num-box { position: relative; font-weight: 800; display: inline-block; font-size: 14px; background: rgba(255,255,255,0.1); padding: 5px 8px; border-radius: 8px; }
 
-/* 🔥 ТЕКСТ МАРШРУТІВ В ОДИН РЯДОК БЕЗ ВИДАЛЕННЯ СЛІВ */
+/* Зменшено розмір шрифту і відступів для номера поїзда/автобуса */
+.train-num-box { 
+  position: relative; font-weight: 800; display: inline-block; 
+  font-size: clamp(10px, 2.8vw, 12px); 
+  background: rgba(255,255,255,0.1); padding: 4px 6px; border-radius: 8px; 
+}
+
+/* ТЕКСТ МАРШРУТІВ В ОДИН РЯДОК БЕЗ ВИДАЛЕННЯ СЛІВ */
 .route-text { 
   font-weight: 700; 
   color: #ffffff; 
   text-align: center; 
-  font-size: clamp(9px, 2.7vw, 14px); /* Зменшено розмір, щоб довгі назви з "Пас." влізли */
+  font-size: clamp(9px, 2.7vw, 14px); 
   width: 100%; 
   padding: 0 5px; 
   text-shadow: 0 1px 4px rgba(0,0,0,0.6); 
-  white-space: nowrap; /* Жорстко забороняємо перенесення на інший рядок */
+  white-space: nowrap; 
   overflow: hidden; 
   text-overflow: ellipsis; 
 }
 
-.time-val { font-weight: 800; font-size: clamp(15px, 4vw, 18px); font-variant-numeric: tabular-nums; }
+/* Зменшено розмір шрифту для часу відправлення */
+.time-val { 
+  font-weight: 800; 
+  font-size: clamp(12px, 3.2vw, 15px); 
+  font-variant-numeric: tabular-nums; 
+}
 .time-val.soon { color: var(--highlight-color); }
 .time-val.future { color: var(--time-green); }
 .time-val.passed { color: var(--time-passed); }
@@ -475,7 +487,6 @@ function renderTrains(el, data){
     const hasChanges = changes[x.number] ? true : false;
     const isOpen = openIds.includes(id) ? 'open' : '';
 
-    // 🔥 Тут більше НІЧОГО не видаляється. Назва йде як є.
     html += `
       <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div class="train-num-box">${x.number}${hasChanges ? '<span class="train-alert-dot"></span>' : ''}</div>
@@ -549,7 +560,7 @@ function renderBuses(el, data) {
     });
     html += `
       <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-        <div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div>
+        <div class="train-num-box" style="background:transparent; font-size:16px;">🚌</div>
         <div class="route-text">${b.route}</div>
         <div class="time-val future" style="font-size:11px;">Розклад ▾</div>
       </div>
