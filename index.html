@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Smart Вільногірськ</title>
 
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <style>
 :root {
   --highlight-color: #ffcc00; 
@@ -47,7 +49,7 @@ body {
   100% { background-position: 100% 50%; }
 }
 
-.wrapper { width: 100%; max-width: 900px; padding: 15px; }
+.wrapper { width: 100%; max-width: 900px; padding: 15px; padding-bottom: 40px; }
 .container { display: flex; flex-direction: column; gap: 15px; }
 .liquid-glass { background: var(--glass-bg); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-border-light); border-left: 1px solid var(--glass-border-light); box-shadow: var(--glass-shadow); border-radius: 28px; }
 
@@ -91,7 +93,6 @@ body {
 .alert-card-title { font-size: 14px; font-weight: 800; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
 .alert-card-text { font-size: 13px; font-weight: 500; line-height: 1.5; text-align: left; color: rgba(255,255,255,0.9); }
 .alert-empty { text-align: center; font-size: 12px; color: rgba(255,255,255,0.4); padding: 10px; font-weight: 600; }
-
 .carousel-dots { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 10px; }
 .carousel-dot { width: 6px; height: 6px; background: rgba(255, 255, 255, 0.3); border-radius: 50%; transition: background 0.3s, transform 0.3s; }
 .carousel-dot.active { background: #ffffff; transform: scale(1.3); }
@@ -115,35 +116,11 @@ body {
 
 .table-head { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.15); padding: 0 10px 10px 10px; margin-bottom: 12px; font-size: 10px; text-transform: uppercase; color: #74b9ff; letter-spacing: 0.5px; }
 
-/* 🔥 ОНОВЛЕНІ КАРТКИ РОЗКЛАДУ (ВИПУКЛІ) */
-.train { 
-  display: grid; 
-  grid-template-columns: 15% 1fr 18%; 
-  align-items: center; 
-  justify-items: center; 
-  padding: 14px 10px; 
-  margin-bottom: 10px;
-  cursor: pointer; 
-  transition: all 0.3s ease; 
-  border-radius: 16px; 
-  min-height: 60px;
-  
-  /* Ефект опуклості (світлий верх, темний низ) */
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2));
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-.train:hover { 
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.3));
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15);
-}
-.train:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.3);
-}
+/* КАРТКИ РОЗКЛАДУ (ВИПУКЛІ) */
+.train { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; padding: 14px 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s ease; border-radius: 16px; min-height: 60px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); }
+.train:hover { background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.3)); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15); }
+.train:active { transform: translateY(1px); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.3); }
 .train:last-child { margin-bottom: 0; }
-
 .train-num-box { position: relative; font-weight: 800; display: inline-block; font-size: clamp(10px, 2.8vw, 12px); background: rgba(255,255,255,0.1); padding: 4px 6px; border-radius: 8px; }
 .route-text { font-weight: 700; color: #ffffff; text-align: center; font-size: clamp(9px, 2.7vw, 14px); width: 100%; padding: 0 5px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .time-val { font-weight: 800; font-size: clamp(12px, 3.2vw, 15px); font-variant-numeric: tabular-nums; }
@@ -152,7 +129,6 @@ body {
 .time-val.passed { color: var(--time-passed); }
 
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.25); border-radius: 16px; }
-/* Деталі випадають з невеликим відступом від карточки */
 .details.open { max-height: 10000px; opacity: 1; padding: 15px; margin-top: 2px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
 
 .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -160,13 +136,7 @@ body {
 @media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } .bus-grid { grid-template-columns: 1fr; } }
 @media (max-width: 550px) { .top-row { flex-wrap: wrap; } .widget { min-width: 45%; } }
 
-/* ВНУТРІШНІ КОЛОНКИ РОЗКЛАДУ ЯК КАРТКИ НОВИН (СИНІ З РАМКОЮ) */
-.schedule-column { 
-  background: rgba(41, 128, 185, 0.3); 
-  border: 1px solid rgba(116, 185, 255, 0.2);
-  border-radius: 12px; 
-  padding: 10px 8px; 
-}
+.schedule-column { background: rgba(41, 128, 185, 0.3); border: 1px solid rgba(116, 185, 255, 0.2); border-radius: 12px; padding: 10px 8px; }
 .schedule-row { display: flex; justify-content: space-between; padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; align-items: center; gap: 10px; text-align: left; }
 .schedule-row:last-child { border-bottom: none; }
 .schedule-left { flex: 1; display: flex; align-items: flex-start; text-align: left; line-height: 1.2; font-weight: 500; }
@@ -178,6 +148,27 @@ body {
 .time-normal { color: #fff; font-weight: 700; font-family: monospace; font-size: 14px; text-align: right; white-space: nowrap;}
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; }
 .details-divider { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 20px auto 15px; }
+
+/* ШОПІНГ ВІЛЬНОГІРСЬКА */
+.shopping-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 80; }
+.shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
+.shopping-drawer.open { max-height: 10000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
+
+.shop-card { display: flex; justify-content: space-between; align-items: center; padding: 14px 15px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s ease; border-radius: 16px; min-height: 60px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); }
+.shop-card:hover { background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.3)); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15); }
+.shop-card:active { transform: translateY(1px); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.3); }
+.shop-card:last-child { margin-bottom: 0; }
+
+.shop-name-col { display: flex; flex-direction: column; gap: 6px; flex: 1; padding-right: 10px; text-align: left;}
+.shop-title { font-weight: 800; font-size: 15px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
+.shop-cat { font-size: 10px; color: var(--highlight-color); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
+.shop-status { font-weight: 800; font-size: 11px; white-space: nowrap; color: #fff; }
+
+.shop-details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.25); border-radius: 16px; }
+.shop-details.open { max-height: 2000px; opacity: 1; padding: 15px; margin-top: 2px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
+.shop-photo-box { width: 100%; height: 180px; border-radius: 12px; margin-bottom: 15px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.4)); display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; position: relative; }
+.shop-photo-box img { width: 100%; height: 100%; object-fit: cover; }
+.shop-desc { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.9); margin-bottom: 15px; text-align: left; }
 </style>
 </head>
 
@@ -238,11 +229,26 @@ body {
     </div>
   </div>
 
+  <div class="shopping-main-widget liquid-glass">
+    <div class="alert-header" onclick="document.getElementById('shopping-drawer').classList.toggle('open')">
+      <div class="alert-title-box">🛍 Шопінг Вільногірська</div>
+    </div>
+    <div class="shopping-drawer" id="shopping-drawer">
+      <div id="shopping-list-content">
+        <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження...</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 </div>
 
 <script>
-// ОСНОВНИЙ КОД САЙТУ
+// TELEGRAM МІНІ-АПП (Розтягуємо екран)
+if (window.Telegram && window.Telegram.WebApp) {
+  window.Telegram.WebApp.expand();
+}
+
 function openTab(tabId, btn) {
   const widget = document.getElementById('main-list-widget');
   if (btn.classList.contains('active')) {
@@ -413,13 +419,72 @@ async function loadAlerts() {
   }
 }
 
+// 🔥 РЕНДЕР МАГАЗИНІВ З НОВОГО СЕРВЕРА
+function renderShops(shopsData) {
+  const container = document.getElementById('shopping-list-content');
+  if (!shopsData || shopsData.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Магазинів поки немає</div>';
+    return;
+  }
+
+  let html = '';
+  shopsData.forEach(shop => {
+    const photoHtml = shop.photo 
+      ? `<img src="${shop.photo}" alt="${shop.name}">` 
+      : `<span style="font-weight:800; opacity:0.3; font-size: 18px; letter-spacing: 1px;">ФОТО МАГАЗИНУ</span>`;
+
+    html += `
+      <div class="shop-card" onclick="document.getElementById('${shop.id}').classList.toggle('open')">
+        <div class="shop-name-col">
+          <div class="shop-cat">${shop.category}</div>
+          <div class="shop-title">${shop.name}</div>
+        </div>
+        <div class="shop-status time-normal">Деталі ▾</div>
+      </div>
+      <div class="shop-details" id="${shop.id}">
+        <div style="padding: 5px;">
+          <div class="shop-photo-box">${photoHtml}</div>
+          <div class="shop-desc">${shop.desc}</div>
+          <div class="schedule-row" style="background: rgba(0,0,0,0.2); border-radius: 8px;">
+            <div class="schedule-left">📍 Адреса:</div><div class="time-normal">${shop.address}</div>
+          </div>
+          <div class="schedule-row" style="background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 5px;">
+            <div class="schedule-left">🕒 Графік:</div><div class="time-green">${shop.time}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
+// ЗАВАНТАЖЕННЯ ДАНИХ МАГАЗИНІВ З ТВОГО RAILWAY
+async function loadShopsData() {
+  try {
+    const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
+    const d = await r.json();
+    renderShops(d.shops);
+  } catch(e) {
+    document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Помилка завантаження даних...</div>';
+  }
+}
+
 function loadTrainsData(){ fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>renderTrains(document.getElementById("list"),d.trains)); }
 function loadLongTrainsData() { fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule").then(r=>r.json()).then(d=>renderLongTrains(document.getElementById("long-trains-list"),d.trains)); }
 function loadBusesData(){ fetch("https://vilnohirskbuses-production.up.railway.app/api/buses").then(r=>r.json()).then(d=>renderBuses(document.getElementById("buses-list"),d.buses)); }
 
-updateDateTime(); loadWeather(); loadAlerts(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); 
+// ЗАПУСК УСІХ БЛОКІВ
+updateDateTime(); 
+loadWeather(); 
+loadAlerts(); 
+loadTrainsData(); 
+loadLongTrainsData(); 
+loadBusesData(); 
+loadShopsData(); // Тепер тягне дані з твого нового сервера
+
 setInterval(updateDateTime, 1000); 
-setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); }, 30000);
+setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadShopsData(); }, 30000);
 </script>
 
 </body>
