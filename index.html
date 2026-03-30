@@ -198,11 +198,18 @@ body {
 .train:last-child { border-bottom: none; }
 .train-num-box { position: relative; font-weight: 800; display: inline-block; font-size: 14px; background: rgba(255,255,255,0.1); padding: 5px 8px; border-radius: 8px; }
 
+/* 🔥 ТЕКСТ МАРШРУТІВ В ОДИН РЯДОК БЕЗ ВИДАЛЕННЯ СЛІВ */
 .route-text { 
-  font-weight: 700; color: #ffffff; text-align: center; 
-  font-size: clamp(13px, 3.8vw, 15px); width: 100%; padding: 0 10px; 
-  text-shadow: 0 1px 4px rgba(0,0,0,0.6); white-space: normal; 
-  word-wrap: break-word; line-height: 1.3;
+  font-weight: 700; 
+  color: #ffffff; 
+  text-align: center; 
+  font-size: clamp(9px, 2.7vw, 14px); /* Зменшено розмір, щоб довгі назви з "Пас." влізли */
+  width: 100%; 
+  padding: 0 5px; 
+  text-shadow: 0 1px 4px rgba(0,0,0,0.6); 
+  white-space: nowrap; /* Жорстко забороняємо перенесення на інший рядок */
+  overflow: hidden; 
+  text-overflow: ellipsis; 
 }
 
 .time-val { font-weight: 800; font-size: clamp(15px, 4vw, 18px); font-variant-numeric: tabular-nums; }
@@ -468,6 +475,7 @@ function renderTrains(el, data){
     const hasChanges = changes[x.number] ? true : false;
     const isOpen = openIds.includes(id) ? 'open' : '';
 
+    // 🔥 Тут більше НІЧОГО не видаляється. Назва йде як є.
     html += `
       <div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
         <div class="train-num-box">${x.number}${hasChanges ? '<span class="train-alert-dot"></span>' : ''}</div>
@@ -564,9 +572,7 @@ async function loadAlerts() {
     if (activeAlerts.length > 0) {
       dot.classList.add("active");
       carousel.innerHTML = activeAlerts.map(alert => {
-        // 🔥 Ось тут відбувається примусова заміна \n на перенесення рядка
         const textWithBreaks = alert.text ? alert.text.replace(/\n/g, '<br>') : '';
-        
         return `
           <div class="alert-card">
             ${alert.title ? `<div class="alert-card-title">${alert.title}</div>` : ''}
