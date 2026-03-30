@@ -291,7 +291,6 @@ body {
   max-height: 0; 
   overflow: hidden; 
   opacity: 0; 
-  visibility: hidden; /* Запобігає багам відображення, коли закрито */
   padding: 0 10px; 
   margin-top: -8px; 
   transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
@@ -299,7 +298,6 @@ body {
 .main-list-widget.open {
   max-height: 5000px;
   opacity: 1;
-  visibility: visible;
   padding: 20px 10px;
   margin-top: 0;
 }
@@ -417,12 +415,12 @@ body {
 
   <div class="schedule-group">
     <div class="tabs-nav">
-      <button class="tab-btn active" onclick="openTab('trains', this)">Електрички</button>
+      <button class="tab-btn" onclick="openTab('trains', this)">Електрички</button>
       <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
       <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
     </div>
 
-    <div id="main-list-widget" class="main-list-widget liquid-glass open">
+    <div id="main-list-widget" class="main-list-widget liquid-glass">
       <div id="trains" class="content-section active">
         <div id="list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
       </div>
@@ -439,20 +437,26 @@ body {
 </div>
 
 <script>
+// 🔥 ОНОВЛЕНА ЛОГІКА ПЕРЕМИКАННЯ ВКЛАДОК ТА ЗГОРТАННЯ ШТОРКИ
 function openTab(tabId, btn) {
   const widget = document.getElementById('main-list-widget');
   
+  // Якщо клікнули на ту саму активну вкладку — просто закриваємо шторку
   if (btn.classList.contains('active')) {
     btn.classList.remove('active');
     widget.classList.remove('open');
     return;
   }
   
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  // Якщо клікнули на іншу вкладку — скидаємо активність з усіх кнопок та секцій
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
   
-  document.getElementById(tabId).classList.add('active');
+  // Робимо нову кнопку та контент активними
   btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+  
+  // Відкриваємо шторку (якщо вона була закрита)
   widget.classList.add('open');
 }
 
