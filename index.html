@@ -117,76 +117,7 @@ body {
 .weather-temp { font-size: clamp(24px, 6.5vw, 32px); font-weight: 800; white-space: nowrap; text-shadow: 0 2px 10px rgba(0,0,0,0.4); line-height: 1.1; }
 .weather-wind { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 6px; font-weight: 500; }
 
-/* 🔥 РАДІО WIDGET (ВИПРАВЛЕНО ВИРІВНЮВАННЯ ТА КОЛІР) */
-.radio-main-widget {
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.radio-header-title {
-  text-align: center;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--highlight-color); /* Золотистий колір, ідеально підходить до табло */
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  line-height: 1.2;
-}
-.radio-player-row {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 6px 15px 6px 6px;
-  height: 56px; /* Фіксована висота для ідеального центрування */
-  box-sizing: border-box;
-}
-.radio-btn {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--highlight-color);
-  border: none;
-  font-size: 18px;
-  color: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
-  padding: 0; /* Прибрали кривий паддінг */
-  margin: 0;
-  line-height: 0;
-}
-.radio-btn:active { transform: scale(0.9); }
-.radio-btn.playing { background: #ff4d4d; color: #fff; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4); }
-
-.radio-track-box {
-  flex: 1;
-  overflow: hidden;
-  text-align: left;
-  display: flex;
-  align-items: center;
-}
-.radio-track {
-  display: block;
-  font-size: clamp(13px, 3.5vw, 15px);
-  font-weight: 600;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  line-height: 1.2;
-  margin: 0;
-  padding: 0;
-}
-
-/* 🔥 ІНФОРМАЦІЙНЕ ТАБЛО */
+/* 🔥 ШТОРКИ / ІНФОРМАЦІЙНЕ ТАБЛО / РАДІО */
 .alert-main-widget { padding: 0; border-radius: 24px; overflow: hidden; }
 .alert-header { padding: 16px; text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.05); transition: background 0.3s; }
 .alert-header:active { background: rgba(255, 255, 255, 0.1); }
@@ -218,6 +149,60 @@ body {
   0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 
   70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } 
+}
+
+/* 🔥 РАДІО ПЛЕЄР (Всередині шторки) */
+.radio-player-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 6px 15px 6px 6px;
+  height: 56px; 
+  box-sizing: border-box;
+}
+.radio-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--highlight-color);
+  border: none;
+  font-size: 18px;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+  padding: 0;
+  margin: 0;
+  line-height: 0;
+}
+.radio-btn:active { transform: scale(0.9); }
+.radio-btn.playing { background: #ff4d4d; color: #fff; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4); }
+
+.radio-track-box {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  display: flex;
+  align-items: center;
+}
+.radio-track {
+  display: block;
+  font-size: clamp(13px, 3.5vw, 15px);
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
 }
 
 .schedule-group { display: flex; flex-direction: column; gap: 8px;}
@@ -279,7 +264,7 @@ body {
 .time-val.future { color: var(--time-green); }
 .time-val.passed { color: var(--time-passed); }
 
-/* ШТОРКИ */
+/* ШТОРКИ розкладів */
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.25); border-radius: 16px; }
 .details.open { max-height: 5000px; opacity: 1; padding: 15px; margin-top: 5px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
 
@@ -343,15 +328,21 @@ body {
     </div>
   </div>
 
-  <div class="radio-main-widget liquid-glass">
-    <div class="radio-header-title">Вільногірське радіо - МузДенс muzdance.com.ua</div>
-    <div class="radio-player-row">
-      <button class="radio-btn" id="radio-play-btn"><span style="margin-left: 3px;">▶</span></button>
-      <div class="radio-track-box">
-        <span class="radio-track" id="radio-track-name">Завантаження...</span>
+  <div class="alert-main-widget liquid-glass">
+    <div class="alert-header" onclick="document.getElementById('radio-drawer').classList.toggle('open')">
+      <div class="alert-title-box" style="text-transform: none; font-size: clamp(13px, 3.5vw, 16px);">
+        Вільногірське радіо - МузДенс muzdance.com.ua
       </div>
     </div>
-    <audio id="radio-audio" src="https://myradio24.org/muzdance" preload="none"></audio>
+    <div class="alert-drawer" id="radio-drawer">
+      <div class="radio-player-row">
+        <button class="radio-btn" id="radio-play-btn"><span style="margin-left: 3px;">▶</span></button>
+        <div class="radio-track-box">
+          <span class="radio-track" id="radio-track-name">Завантаження...</span>
+        </div>
+      </div>
+      <audio id="radio-audio" src="https://myradio24.org/muzdance" preload="none"></audio>
+    </div>
   </div>
 
   <div class="alert-main-widget liquid-glass">
