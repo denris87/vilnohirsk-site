@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Smart Вільногірськ</title>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <style>
 :root {
   --highlight-color: #ffcc00; 
@@ -49,34 +47,11 @@ body {
   100% { background-position: 100% 50%; }
 }
 
-/* ЕКРАН АВТОРИЗАЦІЇ / БЛОКУВАННЯ */
-.auth-screen {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  display: flex; justify-content: center; align-items: center;
-  z-index: 9999; padding: 20px;
-  background: linear-gradient(-45deg, #1e3c72, #2a5298, #009ffd, #2af598, #009ffd);
-  background-size: 300% 300%; animation: gradientMove 30s ease-in-out infinite alternate;
-}
-.auth-box {
-  padding: 40px 20px; text-align: center; width: 100%; max-width: 400px;
-  display: flex; flex-direction: column; gap: 15px; align-items: center;
-}
-.auth-title { font-size: 22px; font-weight: 800; color: #ffcc00; text-transform: uppercase; }
-.auth-desc { font-size: 15px; font-weight: 500; line-height: 1.5; color: rgba(255,255,255,0.9); }
-.auth-btn {
-  background: rgba(255, 255, 255, 0.15); color: #ffffff; 
-  border: 1px solid rgba(255,255,255,0.3); padding: 14px 20px;
-  font-weight: 800; border-radius: 14px; cursor: pointer; width: 100%;
-  font-size: 15px; transition: all 0.3s;
-}
-.auth-btn:active { background: rgba(255, 255, 255, 0.3); transform: scale(0.95); }
-
-/* ОСНОВНИЙ КОНТЕНТ САЙТУ */
 .wrapper { width: 100%; max-width: 900px; padding: 15px; }
 .container { display: flex; flex-direction: column; gap: 15px; }
 .liquid-glass { background: var(--glass-bg); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-border-light); border-left: 1px solid var(--glass-border-light); box-shadow: var(--glass-shadow); border-radius: 28px; }
 
-/* ІНФОРМАЦІЙНЕ ТАБЛО ВЕРХНЄ */
+/* 🔥 ІНФОРМАЦІЙНЕ ТАБЛО ВЕРХНЄ */
 .alert-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 100; }
 .alert-header { padding: 16px; text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.05); transition: background 0.3s; border-radius: 28px; }
 .alert-header:active { background: rgba(255, 255, 255, 0.1); }
@@ -116,7 +91,6 @@ body {
 .alert-card-title { font-size: 14px; font-weight: 800; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
 .alert-card-text { font-size: 13px; font-weight: 500; line-height: 1.5; text-align: left; color: rgba(255,255,255,0.9); }
 .alert-empty { text-align: center; font-size: 12px; color: rgba(255,255,255,0.4); padding: 10px; font-weight: 600; }
-
 .carousel-dots { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 10px; }
 .carousel-dot { width: 6px; height: 6px; background: rgba(255, 255, 255, 0.3); border-radius: 50%; transition: background 0.3s, transform 0.3s; }
 .carousel-dot.active { background: #ffffff; transform: scale(1.3); }
@@ -126,7 +100,7 @@ body {
 .train-alert-dot { position: absolute; top: -4px; right: -4px; width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5); animation: pulseAlert 1.5s infinite; }
 @keyframes pulseAlert { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
-/* РОЗКЛАДИ */
+/* 🔥 РОЗКЛАДИ (Під табло, над погодою) */
 .schedule-group { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 90; width: 100%;}
 .tabs-nav { display: flex; width: 100%; padding: 6px; background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; position: relative; z-index: 2; box-shadow: inset 0 2px 10px rgba(0,0,0,0.4), 0 4px 15px rgba(0,0,0,0.2); border: 1px solid var(--glass-border); }
 .tab-btn { flex: 1; padding: 12px 5px; border: none; background: transparent; color: rgba(255, 255, 255, 0.55); font-weight: 700; cursor: pointer; border-radius: 14px; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); font-size: clamp(12px, 3.5vw, 14px); white-space: nowrap; }
@@ -156,7 +130,7 @@ body {
 @media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } .bus-grid { grid-template-columns: 1fr; } }
 @media (max-width: 550px) { .top-row { flex-wrap: wrap; } .widget { min-width: 45%; } }
 
-/* 🔥 ОНОВЛЕНО: КОЛОНКИ РОЗКЛАДУ ТЕПЕР ЯК КАРТКИ НОВИН */
+/* 🔥 ОНОВЛЕНО: КОЛОНКИ РОЗКЛАДУ ТЕПЕР ЯК КАРТКИ НОВИН (СИНІ З РАМКОЮ) */
 .schedule-column { 
   background: rgba(41, 128, 185, 0.3); 
   border: 1px solid rgba(116, 185, 255, 0.2);
@@ -179,123 +153,66 @@ body {
 
 <body>
 
-<div id="auth-screen" class="auth-screen">
-  <div class="liquid-glass auth-box">
-    <div id="auth-title" class="auth-title">Перевірка доступу...</div>
-    <div id="auth-desc" class="auth-desc">Зачекайте, з'єднуємося з сервером.</div>
-    <button id="close-app-btn" class="auth-btn" style="display:none;" onclick="window.Telegram.WebApp.close()">Повернутися до бота</button>
-  </div>
-</div>
+<div class="wrapper">
+<div class="container">
 
-<div id="main-app-content" style="display: none;">
-  <div class="wrapper">
-    <div class="container">
-
-      <div class="alert-main-widget liquid-glass">
-        <div class="alert-header" onclick="document.getElementById('alert-drawer').classList.toggle('open')">
-          <div class="alert-title-box">
-            ІНФОРМАЦІЙНЕ ТАБЛО
-            <span class="banner-alert-dot" id="main-alert-dot"></span>
-          </div>
-        </div>
-        <div class="alert-drawer" id="alert-drawer">
-          <div id="alert-drawer-content">
-            <div style="text-align: center; width: 100%; color: rgba(255,255,255,0.5); font-size: 14px;">Перевірка даних...</div>
-          </div>
-        </div>
+  <div class="alert-main-widget liquid-glass">
+    <div class="alert-header" onclick="document.getElementById('alert-drawer').classList.toggle('open')">
+      <div class="alert-title-box">
+        ІНФОРМАЦІЙНЕ ТАБЛО
+        <span class="banner-alert-dot" id="main-alert-dot"></span>
       </div>
-
-      <div class="schedule-group">
-        <div class="tabs-nav">
-          <button class="tab-btn" onclick="openTab('trains', this)">Електрички</button>
-          <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
-          <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
-        </div>
-
-        <div id="main-list-widget" class="main-list-widget">
-          <div id="trains" class="content-section active">
-            <div id="list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
-          </div>
-          <div id="long-trains" class="content-section">
-            <div id="long-trains-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
-          </div>
-          <div id="buses" class="content-section">
-            <div id="buses-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
-          </div>
-        </div>
+    </div>
+    <div class="alert-drawer" id="alert-drawer">
+      <div id="alert-drawer-content">
+        <div style="text-align: center; width: 100%; color: rgba(255,255,255,0.5); font-size: 14px;">Перевірка даних...</div>
       </div>
-
-      <div class="top-row">
-        <div class="widget liquid-glass">
-          <div class="datetime">
-            <div id="date"></div>
-            <div class="weekdays">
-              <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
-              <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
-              <div class="day">нд</div>
-            </div>
-            <div id="time"></div>
-          </div>
-        </div>
-
-        <div class="widget liquid-glass">
-          <div class="weather-box" id="weather-container"></div>
-        </div>
-      </div>
-
     </div>
   </div>
+
+  <div class="schedule-group">
+    <div class="tabs-nav">
+      <button class="tab-btn" onclick="openTab('trains', this)">Електрички</button>
+      <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
+      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
+    </div>
+
+    <div id="main-list-widget" class="main-list-widget">
+      <div id="trains" class="content-section active">
+        <div id="list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
+      </div>
+      <div id="long-trains" class="content-section">
+        <div id="long-trains-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
+      </div>
+      <div id="buses" class="content-section">
+        <div id="buses-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="top-row">
+    <div class="widget liquid-glass">
+      <div class="datetime">
+        <div id="date"></div>
+        <div class="weekdays">
+          <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
+          <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
+          <div class="day">нд</div>
+        </div>
+        <div id="time"></div>
+      </div>
+    </div>
+
+    <div class="widget liquid-glass">
+      <div class="weather-box" id="weather-container"></div>
+    </div>
+  </div>
+
+</div>
 </div>
 
 <script>
-// ЛОГІКА ПЕРЕВІРКИ TELEGRAM-КОРИСТУВАЧА ТА ПІДПИСКИ
-const tg = window.Telegram.WebApp;
-tg.expand();
-
-async function verifyAccess() {
-  const authScreen = document.getElementById('auth-screen');
-  const mainContent = document.getElementById('main-app-content');
-  const authTitle = document.getElementById('auth-title');
-  const authDesc = document.getElementById('auth-desc');
-  const closeBtn = document.getElementById('close-app-btn');
-
-  const user = tg.initDataUnsafe?.user;
-
-  if (!user) {
-    authTitle.textContent = "Помилка доступу";
-    authDesc.textContent = "Цей додаток працює лише всередині Telegram-бота.";
-    return;
-  }
-
-  const userId = user.id;
-
-  // 🔥 ТИМЧАСОВО ЗАВЖДИ ВІДКРИТО (щоб ти міг вільно тестувати дизайн)
-  // Коли будеш готовий до платних підписок, ми повернемо справжню перевірку сервера.
-  const hasSubscription = true; 
-
-  if (hasSubscription) {
-    authScreen.style.display = 'none';
-    mainContent.style.display = 'block';
-    initApp(); 
-  } else {
-    authTitle.textContent = "Доступ закрито 🔒";
-    authDesc.innerHTML = `Твій Telegram ID: <b style="color:#00ff9c;">${userId}</b><br><br>Для перегляду розкладу потрібна активна підписка.<br><b>Вартість: 50 грн/міс.</b><br><br>Будь ласка, оформіть підписку в нашому боті.`;
-    closeBtn.style.display = 'block';
-  }
-}
-
-verifyAccess();
-
-function initApp() {
-  updateDateTime(); loadWeather(); loadAlerts(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); 
-  setInterval(updateDateTime, 1000); 
-  setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); }, 30000);
-}
-
-// -------------------------------------------------------------
 // ОСНОВНИЙ КОД САЙТУ
-// -------------------------------------------------------------
-
 function openTab(tabId, btn) {
   const widget = document.getElementById('main-list-widget');
   if (btn.classList.contains('active')) {
@@ -469,6 +386,11 @@ async function loadAlerts() {
 function loadTrainsData(){ fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>renderTrains(document.getElementById("list"),d.trains)); }
 function loadLongTrainsData() { fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule").then(r=>r.json()).then(d=>renderLongTrains(document.getElementById("long-trains-list"),d.trains)); }
 function loadBusesData(){ fetch("https://vilnohirskbuses-production.up.railway.app/api/buses").then(r=>r.json()).then(d=>renderBuses(document.getElementById("buses-list"),d.buses)); }
+
+updateDateTime(); loadWeather(); loadAlerts(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); 
+setInterval(updateDateTime, 1000); 
+setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); }, 30000);
 </script>
+
 </body>
 </html>
