@@ -158,21 +158,21 @@ body {
   display: flex; 
   overflow-x: auto; 
   scroll-snap-type: x mandatory; 
-  gap: 15px; /* Відстань між картками */
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  gap: 15px; 
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
   scroll-behavior: smooth;
-  padding-bottom: 5px; /* Місце для тіні/крапок */
+  padding-bottom: 5px; 
 }
-.carousel-container::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+.carousel-container::-webkit-scrollbar { display: none; } 
 
 .alert-item {
   background: rgba(41, 128, 185, 0.3);
   border: 1px solid rgba(116, 185, 255, 0.2);
   border-radius: 12px;
   padding: 12px;
-  flex: 0 0 100%; /* Жорстко задаємо ширину 100% для однієї картки */
-  scroll-snap-align: center; /* Центруємо картку при свайпі */
+  flex: 0 0 100%; 
+  scroll-snap-align: center; 
   box-sizing: border-box;
 }
 
@@ -200,7 +200,7 @@ body {
   transform: scale(1.3);
 }
 
-/* Точки повідомлень (головні) */
+/* Точки повідомлень */
 .banner-alert-dot { 
   position: absolute; top: -2px; right: -12px; width: 8px; height: 8px; 
   background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5);
@@ -609,7 +609,6 @@ window.updateCarouselDots = function(containerId, dotsId) {
 function buildCarouselHtml(items, typeColor, typeId) {
   if (items.length === 0) return `<div class="alert-empty">Немає актуальної інформації</div>`;
   
-  // Якщо новина тільки одна — виводимо просто картку (без свайпу і крапок)
   if (items.length === 1) {
     const item = items[0];
     const textHtml = item.text ? item.text.replace(/\n/g, '<br>') : '';
@@ -621,7 +620,6 @@ function buildCarouselHtml(items, typeColor, typeId) {
     `;
   }
   
-  // Якщо новин більше однієї — робимо карусель
   const slidesHtml = items.map(item => {
     const textHtml = item.text ? item.text.replace(/\n/g, '<br>') : '';
     return `
