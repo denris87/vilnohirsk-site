@@ -158,9 +158,11 @@ body {
   display: flex; 
   overflow-x: auto; 
   scroll-snap-type: x mandatory; 
-  gap: 10px; 
+  gap: 15px; /* Відстань між картками */
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
+  scroll-behavior: smooth;
+  padding-bottom: 5px; /* Місце для тіні/крапок */
 }
 .carousel-container::-webkit-scrollbar { display: none; } /* Chrome/Safari */
 
@@ -169,8 +171,8 @@ body {
   border: 1px solid rgba(116, 185, 255, 0.2);
   border-radius: 12px;
   padding: 12px;
-  flex: 0 0 100%; /* Карточка займає 100% ширини контейнера */
-  scroll-snap-align: start;
+  flex: 0 0 100%; /* Жорстко задаємо ширину 100% для однієї картки */
+  scroll-snap-align: center; /* Центруємо картку при свайпі */
   box-sizing: border-box;
 }
 
@@ -596,7 +598,6 @@ window.updateCarouselDots = function(containerId, dotsId) {
   const dots = document.getElementById(dotsId)?.children;
   if (!container || !dots) return;
   
-  // Розраховуємо, який слайд зараз по центру (ділимо прокрутку на ширину контейнера)
   const index = Math.round(container.scrollLeft / container.clientWidth);
   
   for (let i = 0; i < dots.length; i++) {
