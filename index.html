@@ -88,7 +88,6 @@ body {
 .alert-header:active { background: rgba(255, 255, 255, 0.1); }
 .alert-title-box { position: relative; display: inline-block; font-weight: 800; font-size: clamp(14px, 4vw, 18px); color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
 
-/* 🔥 Повністю темна і непрозора шторка табло */
 .alert-drawer { 
   position: absolute; 
   top: calc(100% + 10px); 
@@ -100,7 +99,6 @@ body {
   pointer-events: none; 
   transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
   
-  /* Глибокий темно-синій фон, що на 100% перекриває текст під ним */
   background: linear-gradient(135deg, #0b1d3a, #061124);
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); 
@@ -147,12 +145,10 @@ body {
 #date { font-size: clamp(18px, 4.8vw, 24px); font-weight: 800; white-space: nowrap; letter-spacing: 0.5px; }
 #time { font-size: clamp(16px, 4.2vw, 20px); font-weight: 700; white-space: nowrap; color: #fff; font-variant-numeric: tabular-nums; }
 
-/* ДНІ ТИЖНЯ */
 .weekdays { display: flex; justify-content: center; gap: 3px; font-size: clamp(9px, 2.3vw, 12px); font-weight: 700; margin: 6px 0; text-transform: uppercase; width: 100%; padding: 0 5px;}
 .day { color: rgba(255,255,255,0.4); transition: 0.3s ease; }
 .day.active { background-color: #ff4d4d !important; color: #fff !important; border-radius: 6px; padding: 2px 5px; box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); }
 
-/* ПОГОДА */
 .weather-box { position: relative; width: 100%; height: 95px; display: flex; align-items: center; justify-content: center; }
 .weather-content { position: absolute; width: 100%; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0; transform: translateY(10px) scale(0.95); text-align: center; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
 .weather-content.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
@@ -160,99 +156,40 @@ body {
 .weather-temp { font-size: clamp(24px, 6.5vw, 32px); font-weight: 800; white-space: nowrap; text-shadow: 0 2px 10px rgba(0,0,0,0.4); line-height: 1.1; }
 .weather-wind { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 6px; font-weight: 500; }
 
-/* Сітка для двох колонок табло */
-.alert-grid-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 15px;
-}
-
-@media (max-width: 650px) {
-  .alert-grid-container { grid-template-columns: 1fr; }
-}
-
+.alert-grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+@media (max-width: 650px) { .alert-grid-container { grid-template-columns: 1fr; } }
 .alert-col { display: flex; flex-direction: column; gap: 10px; width: 100%; overflow: hidden; }
 
-.alert-col-header {
-  font-size: 13px;
-  font-weight: 800;
-  text-transform: uppercase;
-  text-align: center;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  letter-spacing: 1px;
-}
+.alert-col-header { font-size: 13px; font-weight: 800; text-transform: uppercase; text-align: center; padding: 8px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.08); letter-spacing: 1px; }
 .alert-col-header.communal { color: #ffcc00; border-bottom: 2px solid #ffcc00; }
 .alert-col-header.news { color: #00ff9c; border-bottom: 2px solid #00ff9c; }
 
-/* КАУРСЕЛЬ І КРАПКИ */
 .carousel-wrapper { width: 100%; position: relative; }
-.carousel-container { 
-  display: flex; 
-  overflow-x: auto; 
-  scroll-snap-type: x mandatory; 
-  gap: 15px; 
-  scrollbar-width: none; 
-  -ms-overflow-style: none; 
-  scroll-behavior: smooth;
-  padding-bottom: 5px; 
-}
+.carousel-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; padding-bottom: 5px; }
 .carousel-container::-webkit-scrollbar { display: none; } 
-
-.alert-item {
-  background: rgba(41, 128, 185, 0.3);
-  border: 1px solid rgba(116, 185, 255, 0.2);
-  border-radius: 12px;
-  padding: 12px;
-  flex: 0 0 100%; 
-  scroll-snap-align: center; 
-  box-sizing: border-box;
-}
-
+.alert-item { background: rgba(41, 128, 185, 0.3); border: 1px solid rgba(116, 185, 255, 0.2); border-radius: 12px; padding: 12px; flex: 0 0 100%; scroll-snap-align: center; box-sizing: border-box; }
 .alert-card-title { font-size: 14px; font-weight: 800; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
 .alert-card-text { font-size: 13px; font-weight: 500; line-height: 1.5; text-align: left; color: rgba(255,255,255,0.9); }
 .alert-empty { text-align: center; font-size: 12px; color: rgba(255,255,255,0.4); padding: 10px; font-weight: 600; }
 
-.carousel-dots {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  margin-top: 10px;
-}
-.carousel-dot {
-  width: 6px;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  transition: background 0.3s, transform 0.3s;
-}
-.carousel-dot.active { 
-  background: #ffffff; 
-  transform: scale(1.3);
-}
+.carousel-dots { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 10px; }
+.carousel-dot { width: 6px; height: 6px; background: rgba(255, 255, 255, 0.3); border-radius: 50%; transition: background 0.3s, transform 0.3s; }
+.carousel-dot.active { background: #ffffff; transform: scale(1.3); }
 
-/* Точки повідомлень */
-.banner-alert-dot { 
-  position: absolute; top: -2px; right: -12px; width: 8px; height: 8px; 
-  background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5);
-  animation: pulseAlert 1.5s infinite; display: none; 
-}
+.banner-alert-dot { position: absolute; top: -2px; right: -12px; width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5); animation: pulseAlert 1.5s infinite; display: none; }
 .banner-alert-dot.active { display: block; }
-.train-alert-dot { 
-  position: absolute; top: -4px; right: -4px; width: 8px; height: 8px; 
-  background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5);
-  animation: pulseAlert 1.5s infinite; 
-}
+.train-alert-dot { position: absolute; top: -4px; right: -4px; width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5); animation: pulseAlert 1.5s infinite; }
+@keyframes pulseAlert { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
-@keyframes pulseAlert { 
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } 
+/* 🔥 ГРУПА РОЗКЛАДУ - тепер relative і має z-index */
+.schedule-group { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 8px; 
+  position: relative; 
+  z-index: 90; 
+  width: 100%;
 }
-
-.schedule-group { display: flex; flex-direction: column; gap: 8px;}
 
 /* ТАБИ */
 .tabs-nav { 
@@ -276,102 +213,64 @@ body {
 
 .content-section { display: none; }
 .content-section.active { display: block; animation: slideUpFade 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
-@keyframes slideUpFade { 
-  from { opacity: 0; transform: translateY(15px); } 
-  to { opacity: 1; transform: translateY(0); } 
-}
+@keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
-/* РОЗКЛАД ЯК ШТОРКА */
+/* 🔥 ОНОВЛЕНИЙ БЛОК РОЗКЛАДУ ЯК ШТОРКА (Темна і поверх усього) */
 .main-list-widget { 
-  position: relative; 
-  z-index: 1; 
+  position: absolute; 
+  top: calc(100% + 10px); /* Випадає під кнопками вкладок */
+  left: 0;
+  width: 100%;
   max-height: 0; 
   overflow: hidden; 
   opacity: 0; 
   visibility: hidden; 
-  padding: 0 10px; 
-  margin-top: -8px; 
+  pointer-events: none; /* Щоб не перекривала кліки погоди, коли закрита */
   transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
+  
+  /* Темний фон, як у Табло */
+  background: linear-gradient(135deg, #0b1d3a, #061124);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); 
+  border-radius: 24px;
 }
 .main-list-widget.open {
   max-height: 25000px; 
   opacity: 1;
   visibility: visible;
+  pointer-events: auto; /* Вмикаємо кліки всередині відкритого розкладу */
   padding: 20px 10px;
-  margin-top: 0;
 }
 
-.table-head { 
-  display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; 
-  font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.15); 
-  padding-bottom: 10px; margin-bottom: 8px; font-size: 10px; 
-  text-transform: uppercase; color: #74b9ff; letter-spacing: 0.5px;
-}
-
-.train { 
-  display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; 
-  padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); 
-  cursor: pointer; transition: background 0.3s; border-radius: 12px; min-height: 60px;
-}
+.table-head { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 10px; margin-bottom: 8px; font-size: 10px; text-transform: uppercase; color: #74b9ff; letter-spacing: 0.5px; }
+.train { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: background 0.3s; border-radius: 12px; min-height: 60px; }
 .train:hover { background: rgba(255,255,255,0.05); }
 .train:last-child { border-bottom: none; }
-
-.train-num-box { 
-  position: relative; font-weight: 800; display: inline-block; 
-  font-size: clamp(10px, 2.8vw, 12px); 
-  background: rgba(255,255,255,0.1); padding: 4px 6px; border-radius: 8px; 
-}
-
-.route-text { 
-  font-weight: 700; color: #ffffff; text-align: center; 
-  font-size: clamp(9px, 2.7vw, 14px); width: 100%; padding: 0 5px; 
-  text-shadow: 0 1px 4px rgba(0,0,0,0.6); white-space: nowrap; 
-  overflow: hidden; text-overflow: ellipsis; 
-}
-
+.train-num-box { position: relative; font-weight: 800; display: inline-block; font-size: clamp(10px, 2.8vw, 12px); background: rgba(255,255,255,0.1); padding: 4px 6px; border-radius: 8px; }
+.route-text { font-weight: 700; color: #ffffff; text-align: center; font-size: clamp(9px, 2.7vw, 14px); width: 100%; padding: 0 5px; text-shadow: 0 1px 4px rgba(0,0,0,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .time-val { font-weight: 800; font-size: clamp(12px, 3.2vw, 15px); font-variant-numeric: tabular-nums; }
 .time-val.soon { color: var(--highlight-color); }
 .time-val.future { color: var(--time-green); }
 .time-val.passed { color: var(--time-passed); }
 
-/* ШТОРКИ ДЕТАЛЕЙ РОЗКЛАДУ */
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.25); border-radius: 16px; }
 .details.open { max-height: 10000px; opacity: 1; padding: 15px; margin-top: 5px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
-
 .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-@media (max-width: 600px) { 
-  .schedule-grid { grid-template-columns: 1fr; } 
-  .bus-grid { grid-template-columns: 1fr; } 
-}
-
-@media (max-width: 550px) {
-  .top-row { flex-wrap: wrap; }
-  .widget { min-width: 45%; }
-}
-
+@media (max-width: 600px) { .schedule-grid { grid-template-columns: 1fr; } .bus-grid { grid-template-columns: 1fr; } }
+@media (max-width: 550px) { .top-row { flex-wrap: wrap; } .widget { min-width: 45%; } }
 .schedule-column { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px 8px; }
-.schedule-row { 
-  display: flex; justify-content: space-between; padding: 8px 6px; 
-  border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; 
-  align-items: center; gap: 10px; text-align: left; 
-}
+.schedule-row { display: flex; justify-content: space-between; padding: 8px 6px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; align-items: center; gap: 10px; text-align: left; }
 .schedule-row:last-child { border-bottom: none; }
-
 .schedule-left { flex: 1; display: flex; align-items: flex-start; text-align: left; line-height: 1.2; font-weight: 500; }
 .station-number { color: rgba(255,255,255,0.3); font-weight: 600; margin-right: 6px; font-size: 10px; min-width: 18px; text-align: right; padding-top: 2px; }
 .station-name-text { flex: 1; word-wrap: break-word; }
-
 .row-highlight { background: rgba(255, 255, 255, 0.1) !important; color: var(--highlight-color) !important; font-weight: 800; border-radius: 6px; box-shadow: inset 0 1px 2px rgba(255,255,255,0.1); }
-
 .time-green { color: var(--time-green); font-weight: 700; font-family: monospace; font-size: 14px; text-align: right; white-space: nowrap;}
 .time-passed { color: var(--time-passed); font-weight: 500; font-family: monospace; font-size: 14px; text-align: right; white-space: nowrap;}
 .time-normal { color: #fff; font-weight: 700; font-family: monospace; font-size: 14px; text-align: right; white-space: nowrap;}
-
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; }
 .details-divider { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 20px auto 15px; }
-
 </style>
 </head>
 
@@ -394,6 +293,26 @@ body {
     </div>
   </div>
 
+  <div class="schedule-group">
+    <div class="tabs-nav">
+      <button class="tab-btn" onclick="openTab('trains', this)">Електрички</button>
+      <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
+      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
+    </div>
+
+    <div id="main-list-widget" class="main-list-widget">
+      <div id="trains" class="content-section active">
+        <div id="list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
+      </div>
+      <div id="long-trains" class="content-section">
+        <div id="long-trains-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
+      </div>
+      <div id="buses" class="content-section">
+        <div id="buses-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
+      </div>
+    </div>
+  </div>
+
   <div class="top-row">
     <div class="widget liquid-glass">
       <div class="datetime">
@@ -412,31 +331,10 @@ body {
     </div>
   </div>
 
-  <div class="schedule-group">
-    <div class="tabs-nav">
-      <button class="tab-btn" onclick="openTab('trains', this)">Електрички</button>
-      <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
-      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
-    </div>
-
-    <div id="main-list-widget" class="main-list-widget liquid-glass">
-      <div id="trains" class="content-section active">
-        <div id="list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
-      </div>
-      <div id="long-trains" class="content-section">
-        <div id="long-trains-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
-      </div>
-      <div id="buses" class="content-section">
-        <div id="buses-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
-      </div>
-    </div>
-  </div>
-
 </div>
 </div>
 
 <script>
-// 🔥 ЛОГІКА ПЕРЕМИКАННЯ ВКЛАДОК ТА ЗГОРТАННЯ ШТОРКИ
 function openTab(tabId, btn) {
   const widget = document.getElementById('main-list-widget');
   
