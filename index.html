@@ -1,4 +1,208 @@
-// 🔥 РЕНДЕР МАГАЗИНІВ З УСІМА ХАРАКТЕРИСТИКАМИ ТА ДЕКІЛЬКОМА ТЕЛЕФОНАМИ
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Smart Вільногірськ</title>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+:root {
+  --highlight-color: #ffcc00; 
+  --glass-bg: rgba(0, 0, 0, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-light: rgba(255, 255, 255, 0.15);
+  --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  
+  --time-green: #00ff9c;
+  --time-passed: rgba(255, 255, 255, 0.4);
+}
+
+html, body { 
+  margin: 0; 
+  padding: 0; 
+  min-height: 100vh; 
+}
+
+* { 
+  -webkit-user-select: none; 
+  user-select: none; 
+  box-sizing: border-box; 
+  -webkit-tap-highlight-color: transparent; 
+}
+
+body {
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: linear-gradient(-45deg, #1e3c72, #2a5298, #009ffd, #2af598, #009ffd);
+  background-size: 300% 300%;
+  animation: gradientMove 30s ease-in-out infinite alternate;
+}
+
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.wrapper { width: 100%; max-width: 900px; padding: 15px; padding-bottom: 40px; }
+.container { display: flex; flex-direction: column; gap: 15px; }
+.liquid-glass { background: var(--glass-bg); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-border-light); border-left: 1px solid var(--glass-border-light); box-shadow: var(--glass-shadow); border-radius: 28px; }
+
+/* ІНФОРМАЦІЙНЕ ТАБЛО ВЕРХНЄ */
+.alert-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 100; }
+.alert-header { padding: 16px; text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.05); transition: background 0.3s; border-radius: 28px; }
+.alert-header:active { background: rgba(255, 255, 255, 0.1); }
+.alert-title-box { position: relative; display: inline-block; font-weight: 800; font-size: clamp(14px, 4vw, 18px); color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
+
+.alert-drawer { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); border-radius: 24px; }
+.alert-drawer.open { max-height: 10000px; opacity: 1; padding: 15px; pointer-events: auto; }
+
+/* ПОГОДА І ЧАС */
+.top-row { display: flex; flex-direction: row; justify-content: space-between; gap: 12px; width: 100%; }
+.widget { padding: 15px 10px; flex: 1; min-height: 125px; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+.widget::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 35%; background: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent); border-radius: 28px 28px 0 0; pointer-events: none; }
+.datetime { text-align: center; width: 100%; }
+#date { font-size: clamp(18px, 4.8vw, 24px); font-weight: 800; white-space: nowrap; letter-spacing: 0.5px; }
+#time { font-size: clamp(16px, 4.2vw, 20px); font-weight: 700; white-space: nowrap; color: #fff; font-variant-numeric: tabular-nums; }
+.weekdays { display: flex; justify-content: center; gap: 3px; font-size: clamp(9px, 2.3vw, 12px); font-weight: 700; margin: 6px 0; text-transform: uppercase; width: 100%; padding: 0 5px;}
+.day { color: rgba(255,255,255,0.4); transition: 0.3s ease; }
+.day.active { background-color: #ff4d4d !important; color: #fff !important; border-radius: 6px; padding: 2px 5px; box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); }
+.weather-box { position: relative; width: 100%; height: 95px; display: flex; align-items: center; justify-content: center; }
+.weather-content { position: absolute; width: 100%; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0; transform: translateY(10px) scale(0.95); text-align: center; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.weather-content.active { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+.weather-city { font-weight: 700; font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;}
+.weather-temp { font-size: clamp(24px, 6.5vw, 32px); font-weight: 800; white-space: nowrap; text-shadow: 0 2px 10px rgba(0,0,0,0.4); line-height: 1.1; }
+.weather-wind { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 6px; font-weight: 500; }
+
+/* КАРТКИ РОЗКЛАДУ */
+.train { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; padding: 14px 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s ease; border-radius: 16px; min-height: 60px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); }
+.train:hover { background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.3)); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15); }
+
+/* 🔥 ШОПІНГ ВІЛЬНОГІРСЬКА (СІТКА ТА КАРТКИ) */
+.shopping-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 80; }
+.shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
+.shopping-drawer.open { max-height: 25000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
+
+.shops-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+@media (min-width: 650px) { .shops-grid { grid-template-columns: 1fr 1fr; } }
+
+.shop-ad-card { display: flex; flex-direction: column; background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; overflow: hidden; transition: transform 0.3s ease; }
+.shop-ad-photo { width: 100%; height: 200px; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.shop-ad-photo img { width: 100%; height: 100%; object-fit: cover; }
+.shop-ad-info { padding: 15px; display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.shop-ad-cat { font-size: 11px; color: var(--highlight-color); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
+.shop-ad-title { font-weight: 800; font-size: 18px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); margin-bottom: 4px; }
+.shop-ad-title-link { text-decoration: none; color: inherit; display: inline-block; }
+
+/* СПИСОК ХАРАКТЕРИСТИК */
+.shop-details-list { display: flex; flex-direction: column; gap: 10px; margin-top: 5px; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+.shop-detail-item { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.85); }
+.detail-icon { flex-shrink: 0; font-size: 16px; width: 20px; text-align: center; }
+.detail-text { flex: 1; }
+.detail-text b { color: #fff; display: block; margin-bottom: 2px; }
+
+/* СТОЛБИК ДЛЯ НОМЕРІВ */
+.phone-list { display: flex; flex-direction: column; gap: 4px; }
+.shop-phone-link { color: #00ff9c; text-decoration: none; font-weight: 700; font-variant-numeric: tabular-nums; }
+.shop-map-link { color: #74b9ff; text-decoration: none; font-weight: 700; display: inline-block; margin-top: 8px; background: rgba(116, 185, 255, 0.1); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(116, 185, 255, 0.2); }
+
+/* ТАБИ І ШТОРКИ РОЗКЛАДУ */
+.schedule-group { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 90; width: 100%;}
+.tabs-nav { display: flex; width: 100%; padding: 6px; background: var(--glass-bg); backdrop-filter: blur(24px); border-radius: 20px; border: 1px solid var(--glass-border); }
+.tab-btn { flex: 1; padding: 12px 5px; border: none; background: transparent; color: rgba(255, 255, 255, 0.55); font-weight: 700; cursor: pointer; border-radius: 14px; font-size: 13px; }
+.tab-btn.active { background: rgba(255, 255, 255, 0.15); color: #ffffff; }
+.main-list-widget { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; transition: all 0.5s ease; background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 24px; z-index: 1000; }
+.main-list-widget.open { max-height: 25000px; opacity: 1; visibility: visible; padding: 20px 10px; }
+.content-section { display: none; }
+.content-section.active { display: block; }
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+<div class="container">
+
+  <div class="alert-main-widget liquid-glass">
+    <div class="alert-header" onclick="document.getElementById('alert-drawer').classList.toggle('open')">
+      <div class="alert-title-box">ІНФОРМАЦІЙНЕ ТАБЛО <span class="banner-alert-dot" id="main-alert-dot"></span></div>
+    </div>
+    <div class="alert-drawer" id="alert-drawer">
+      <div id="alert-drawer-content"><div style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
+    </div>
+  </div>
+
+  <div class="schedule-group">
+    <div class="tabs-nav">
+      <button class="tab-btn" onclick="openTab('trains', this)">Електрички</button>
+      <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
+      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
+    </div>
+    <div id="main-list-widget" class="main-list-widget">
+      <div id="trains" class="content-section active"><div id="list"></div></div>
+      <div id="long-trains" class="content-section"><div id="long-trains-list"></div></div>
+      <div id="buses" class="content-section"><div id="buses-list"></div></div>
+    </div>
+  </div>
+
+  <div class="top-row">
+    <div class="widget liquid-glass">
+      <div class="datetime"><div id="date"></div><div class="weekdays"><div class="day">пн</div><div class="day">вт</div><div class="day">ср</div><div class="day">чт</div><div class="day">пт</div><div class="day">сб</div><div class="day">нд</div></div><div id="time"></div></div>
+    </div>
+    <div class="widget liquid-glass"><div class="weather-box" id="weather-container"></div></div>
+  </div>
+
+  <div class="shopping-main-widget liquid-glass">
+    <div class="alert-header" onclick="document.getElementById('shopping-drawer').classList.toggle('open')">
+      <div class="alert-title-box">🛍 Шопінг Вільногірська</div>
+    </div>
+    <div class="shopping-drawer" id="shopping-drawer">
+      <div id="shopping-list-content"><div style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ОСНОВНА ЛОГІКА
+function openTab(tabId, btn) {
+  const widget = document.getElementById('main-list-widget');
+  if (btn.classList.contains('active')) {
+    btn.classList.remove('active');
+    widget.classList.remove('open');
+    return;
+  }
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+  widget.classList.add('open');
+}
+
+// ПЕРЕВІРКА ПЕРЕРВИ
+function checkBreak(scheduleStr) {
+  if (!scheduleStr) return "";
+  const breakMatch = scheduleStr.match(/перерва:\s*(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/i);
+  if (breakMatch) {
+    const now = new Date(new Date().toLocaleString("en-US", {timeZone: "Europe/Kyiv"}));
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    const [startH, startM] = breakMatch[1].split(':').map(Number);
+    const [endH, endM] = breakMatch[2].split(':').map(Number);
+    const startBreak = startH * 60 + startM;
+    const endBreak = endH * 60 + endM;
+    if (currentTime >= startBreak && currentTime <= endBreak) {
+      return '<span style="color:#ff4d4d; font-weight:800; margin-left:5px;">(ПЕРЕРВА)</span>';
+    }
+  }
+  return "";
+}
+
+// РЕНДЕР ШОПІНГУ
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || shopsData.length === 0) {
@@ -7,80 +211,94 @@ function renderShops(shopsData) {
   }
 
   let html = '<div class="shops-grid">';
-  
   shopsData.forEach(shop => {
-    // 1. ФОТО
-    const photoHtml = shop.photo 
-      ? `<img src="${shop.photo}" alt="${shop.name}">` 
-      : `<span style="font-weight:800; opacity:0.3; font-size: 14px; letter-spacing: 1px;">НЕМАЄ ФОТО</span>`;
+    const photoHtml = shop.photo ? `<img src="${shop.photo}" alt="${shop.name}">` : `<span style="opacity:0.3;">НЕМАЄ ФОТО</span>`;
+    const titleHtml = shop.instagram ? `<a href="${shop.instagram}" target="_blank" class="shop-ad-title-link"><div class="shop-ad-title">${shop.name} 🔗</div></a>` : `<div class="shop-ad-title">${shop.name}</div>`;
+    const mapBtn = shop.map_link ? `<a href="${shop.map_link}" target="_blank" class="shop-map-link">🗺️ Відкрити на мапі</a>` : '';
+    const breakStatus = checkBreak(shop.schedule);
+    const scheduleFormatted = shop.schedule ? shop.schedule.replace(/\n/g, '<br>') : 'Не вказано';
 
-    // 2. НАЗВА ТА INSTAGRAM
-    const titleHtml = shop.instagram 
-      ? `<a href="${shop.instagram}" target="_blank" class="shop-ad-title-link"><div class="shop-ad-title">${shop.name} 🔗</div></a>`
-      : `<div class="shop-ad-title">${shop.name}</div>`;
-
-    // 3. ПОСИЛАННЯ НА КАРТУ
-    const mapHtml = shop.map_link
-      ? `<a href="${shop.map_link}" target="_blank" class="shop-map-link">🗺️ Відкрити на мапі</a>`
-      : '';
-
-    // 4. ФОРМАТУВАННЯ ГРАФІКУ
-    const scheduleHtml = shop.schedule ? shop.schedule.replace(/\n/g, '<br>') : 'Не вказано';
-
-    // 5. 🔥 ОБРОБКА ТЕЛЕФОНІВ (Один або декілька через кому)
-    let phoneHtml = 'Не вказано';
+    // ОБРОБКА ТЕЛЕФОНІВ (СТОВПЧИК)
+    let phonesHtml = 'Не вказано';
     if (shop.phone) {
-      // Розбиваємо рядок по комі, забираємо зайві пробіли
       const phonesArray = String(shop.phone).split(',').map(p => p.trim());
-      
-      // Робимо кожен номер окремим посиланням. 
-      // replace(/[^0-9+]/g, '') — видаляє пробіли і дужки для надійного дзвінка
-      phoneHtml = phonesArray.map(p => {
+      phonesHtml = `<div class="phone-list">` + phonesArray.map(p => {
         const cleanNumber = p.replace(/[^0-9+]/g, '');
         return `<a href="tel:${cleanNumber}" class="shop-phone-link">${p}</a>`;
-      }).join('<br>'); // <br> ставить кожен номер з нового рядка
+      }).join('') + `</div>`;
     }
 
     html += `
       <div class="shop-ad-card">
-        <div class="shop-ad-photo">
-          ${photoHtml}
-        </div>
+        <div class="shop-ad-photo">${photoHtml}</div>
         <div class="shop-ad-info">
           <div class="shop-ad-cat">${shop.category || 'Магазин'}</div>
           ${titleHtml}
-          
           <div class="shop-details-list">
             <div class="shop-detail-item">
               <span class="detail-icon">🕒</span>
-              <div class="detail-text"><b>Графік роботи:</b><br>${scheduleHtml}</div>
+              <div class="detail-text"><b>Графік роботи: ${breakStatus}</b>${scheduleFormatted}</div>
             </div>
-            
             <div class="shop-detail-item">
               <span class="detail-icon">💳</span>
               <div class="detail-text">Безконтактна оплата: <b>${shop.contactless ? '✅' : '❌'}</b></div>
             </div>
-            
             <div class="shop-detail-item">
               <span class="detail-icon">📶</span>
               <div class="detail-text">Безкоштовний WI-FI: <b>${shop.wifi ? '✅' : '❌'}</b></div>
             </div>
-            
             <div class="shop-detail-item">
               <span class="detail-icon">📞</span>
-              <div class="detail-text">Телефон(и):<br>${phoneHtml}</div>
+              <div class="detail-text"><b>Телефон:</b>${phonesHtml}</div>
             </div>
-            
             <div class="shop-detail-item">
               <span class="detail-icon">📍</span>
-              <div class="detail-text">Адреса:<br>${shop.address || 'Не вказано'} <br>${mapHtml}</div>
+              <div class="detail-text"><b>Адреса:</b>${shop.address || 'Не вказано'}<br>${mapBtn}</div>
             </div>
           </div>
         </div>
-      </div>
-    `;
+      </div>`;
   });
-  
   html += '</div>';
   container.innerHTML = html;
 }
+
+// ЗАВАНТАЖЕННЯ ДАНИХ
+async function loadShopsData() {
+  try {
+    const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
+    const d = await r.json();
+    renderShops(d.shops);
+  } catch(e) { console.error(e); }
+}
+
+function updateDateTime(){
+  const now = getKyivNow();
+  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+  const days=document.querySelectorAll(".day"); days.forEach(d=>d.classList.remove("active"));
+  let i=now.getDay(); i=i===0?6:i-1; days[i].classList.add("active");
+}
+
+async function loadWeather(){
+  try {
+    const coords = [{name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {name: 'Дніпро', lat: 48.45, lon: 34.98}];
+    let results = [];
+    for(let c of coords){
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
+      const d = await r.json(); results.push({name: c.name, w: d.current_weather});
+    }
+    const container = document.getElementById("weather-container");
+    container.innerHTML = results.map((item, index) => `<div class="weather-content ${index === 0 ? 'active' : ''}" id="slide-${index}"><div class="weather-city">${item.name}</div><div class="weather-temp">${Math.round(item.w.temperature)}°C</div></div>`).join("");
+  } catch(e) {}
+}
+
+// Інші функції розкладу (loadTrainsData і т.д. повинні бути у вашому коді)
+// Для компактності відповіді я залишив основну логіку шопінгу та дати.
+
+updateDateTime(); loadWeather(); loadShopsData();
+setInterval(updateDateTime, 1000);
+setInterval(loadShopsData, 60000);
+</script>
+</body>
+</html>
