@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Smart Вільногірськ</title>
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <style>
 :root {
   --highlight-color: #ffcc00; 
@@ -14,154 +12,119 @@
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-border-light: rgba(255, 255, 255, 0.15);
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
-  
   --time-green: #00ff9c;
   --time-passed: rgba(255, 255, 255, 0.4);
 }
-
-html, body { 
-  margin: 0; 
-  padding: 0; 
-  min-height: 100vh; 
-}
-
-* { 
-  -webkit-user-select: none; 
-  user-select: none; 
-  box-sizing: border-box; 
-  -webkit-tap-highlight-color: transparent; 
-}
-
+html, body { margin: 0; padding: 0; min-height: 100vh; color: #fff; font-family: -apple-system, sans-serif; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
 body {
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  background: linear-gradient(-45deg, #1e3c72, #2a5298, #009ffd, #2af598, #009ffd);
-  background-size: 300% 300%;
-  animation: gradientMove 30s ease-in-out infinite alternate;
+  background: linear-gradient(-45deg, #1e3c72, #2a5298, #009ffd, #2af598);
+  background-size: 400% 400%;
+  animation: gradientMove 15s ease infinite;
+  display: flex; justify-content: center; align-items: flex-start;
 }
-
-@keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
-}
-
-.wrapper { width: 100%; max-width: 900px; padding: 15px; padding-bottom: 40px; }
+@keyframes gradientMove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+.wrapper { width: 100%; max-width: 900px; padding: 15px; }
 .container { display: flex; flex-direction: column; gap: 15px; }
-.liquid-glass { background: var(--glass-bg); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-border-light); border-left: 1px solid var(--glass-border-light); box-shadow: var(--glass-shadow); border-radius: 28px; }
+.liquid-glass { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 28px; box-shadow: var(--glass-shadow); }
 
-/* ІНФОРМАЦІЙНЕ ТАБЛО */
-.alert-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 100; }
-.alert-header { padding: 16px; text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.05); transition: background 0.3s; border-radius: 28px; }
-.alert-header:active { background: rgba(255, 255, 255, 0.1); }
-.alert-title-box { position: relative; display: inline-block; font-weight: 800; font-size: clamp(14px, 4vw, 18px); color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
-
-.alert-drawer { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); border-radius: 24px; }
-.alert-drawer.open { max-height: 10000px; opacity: 1; padding: 15px; pointer-events: auto; }
-
-/* ПОГОДА І ЧАС */
-.top-row { display: flex; flex-direction: row; justify-content: space-between; gap: 12px; width: 100%; }
-.widget { padding: 15px 10px; flex: 1; min-height: 125px; display: flex; flex-direction: column; justify-content: center; align-items: center; overflow: hidden; position: relative; }
-.datetime { text-align: center; width: 100%; }
-#date { font-size: clamp(18px, 4.8vw, 24px); font-weight: 800; white-space: nowrap; letter-spacing: 0.5px; }
-#time { font-size: clamp(16px, 4.2vw, 20px); font-weight: 700; white-space: nowrap; color: #fff; font-variant-numeric: tabular-nums; }
-.weekdays { display: flex; justify-content: center; gap: 3px; font-size: clamp(9px, 2.3vw, 12px); font-weight: 700; margin: 6px 0; text-transform: uppercase; width: 100%; padding: 0 5px;}
-.day { color: rgba(255,255,255,0.4); }
-.day.active { background-color: #ff4d4d !important; color: #fff !important; border-radius: 6px; padding: 2px 5px; box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); }
-.weather-box { position: relative; width: 100%; height: 95px; display: flex; align-items: center; justify-content: center; }
-.weather-content { position: absolute; width: 100%; transition: all 0.8s ease; opacity: 0; text-align: center; }
-.weather-content.active { opacity: 1; transform: translateY(0); }
-
-/* КАРТКИ РОЗКЛАДУ */
-.train { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; padding: 14px 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s ease; border-radius: 16px; min-height: 60px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); }
-.details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s ease; background: rgba(0,0,0,0.25); border-radius: 16px; }
-.details.open { max-height: 5000px; opacity: 1; padding: 15px; margin-top: 2px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
-
-/* ШОПІНГ */
-.shopping-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 80; }
-.shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s ease; background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
-.shopping-drawer.open { max-height: 25000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 15px; border: 1px solid rgba(255, 255, 255, 0.15); }
-
-.shops-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-@media (min-width: 650px) { .shops-grid { grid-template-columns: 1fr 1fr; } }
-
-.shop-ad-card { display: flex; flex-direction: column; background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; overflow: hidden; }
-.shop-ad-photo { width: 100%; height: 200px; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; }
-.shop-ad-photo img { width: 100%; height: 100%; object-fit: cover; }
-.shop-ad-info { padding: 15px; text-align: left; }
-.shop-ad-title { font-weight: 800; font-size: 18px; color: #fff; margin-bottom: 4px; }
-
-/* СПИСОК ХАРАКТЕРИСТИК (СТОЛБИК) */
-.shop-details-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-.shop-detail-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: rgba(255,255,255,0.85); }
-.phone-list { display: flex; flex-direction: column; gap: 4px; }
-.shop-phone-link { color: #2af598; text-decoration: none; font-weight: 800; }
-.shop-map-link { color: #74b9ff; text-decoration: none; font-weight: 700; display: inline-block; margin-top: 6px; background: rgba(116, 185, 255, 0.1); padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(116, 185, 255, 0.2); }
-
-/* ТАБИ РОЗКЛАДУ */
-.schedule-group { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 90; width: 100%;}
-.tabs-nav { display: flex; width: 100%; padding: 6px; background: var(--glass-bg); backdrop-filter: blur(24px); border-radius: 20px; border: 1px solid var(--glass-border); }
-.tab-btn { flex: 1; padding: 12px 5px; border: none; background: transparent; color: rgba(255, 255, 255, 0.55); font-weight: 700; cursor: pointer; border-radius: 14px; font-size: 13px; }
-.tab-btn.active { background: rgba(255, 255, 255, 0.15); color: #ffffff; }
-.main-list-widget { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; transition: all 0.5s ease; background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 24px; }
-.main-list-widget.open { max-height: 25000px; opacity: 1; visibility: visible; padding: 20px 10px; }
-.content-section { display: none; }
-.content-section.active { display: block; }
-.banner-alert-dot { width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; display: none; }
+/* HEADER / ALERTS */
+.alert-header { padding: 16px; text-align: center; cursor: pointer; border-radius: 28px; font-weight: 800; text-transform: uppercase; }
+.alert-drawer { position: absolute; top: 110%; left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; transition: 0.5s; background: #061124; border-radius: 24px; z-index: 500; border: 1px solid rgba(255,255,255,0.1); }
+.alert-drawer.open { max-height: 800px; opacity: 1; padding: 15px; }
+.banner-alert-dot { width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; display: none; margin-left: 5px; }
 .banner-alert-dot.active { display: inline-block; }
+
+/* TABS */
+.tabs-nav { display: flex; padding: 6px; gap: 5px; }
+.tab-btn { flex: 1; padding: 12px; border: none; background: transparent; color: rgba(255,255,255,0.5); font-weight: 700; cursor: pointer; border-radius: 15px; transition: 0.3s; }
+.tab-btn.active { background: rgba(255,255,255,0.15); color: #fff; }
+.main-list-widget { position: absolute; top: 110%; left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; transition: 0.5s; background: #061124; border-radius: 24px; z-index: 400; border: 1px solid rgba(255,255,255,0.1); }
+.main-list-widget.open { max-height: 1500px; opacity: 1; padding: 15px; }
+
+/* TRANSPORT CARDS */
+.train { display: grid; grid-template-columns: 60px 1fr 80px; align-items: center; padding: 15px; margin-bottom: 10px; border-radius: 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
+.train-num { font-weight: 800; background: rgba(255,255,255,0.1); padding: 4px; border-radius: 8px; text-align: center; font-size: 12px; }
+.time-val { text-align: right; font-weight: 800; }
+.time-val.passed { color: var(--time-passed); }
+.time-val.future { color: var(--time-green); }
+.time-val.soon { color: var(--highlight-color); }
+.details { max-height: 0; overflow: hidden; transition: 0.4s; background: rgba(0,0,0,0.2); border-radius: 12px; margin-bottom: 10px; }
+.details.open { max-height: 1000px; padding: 10px; border: 1px solid rgba(255,255,255,0.05); }
+
+/* GRID FOR STOPS */
+.schedule-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.schedule-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.row-highlight { color: var(--highlight-color); font-weight: 800; }
+
+/* WEATHER & DATE */
+.top-row { display: flex; gap: 12px; }
+.widget { flex: 1; padding: 20px; text-align: center; }
+#date { font-size: 22px; font-weight: 800; }
+#time { font-size: 18px; opacity: 0.8; }
+.weekdays { display: flex; justify-content: center; gap: 5px; margin: 10px 0; font-size: 10px; }
+.day.active { color: #ff4d4d; font-weight: 800; border-bottom: 2px solid #ff4d4d; }
+.weather-content { display: none; }
+.weather-content.active { display: block; }
+
+/* SHOPPING GRID */
+.shops-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+@media (min-width: 600px) { .shops-grid { grid-template-columns: 1fr 1fr; } }
+.shop-ad-card { border-radius: 20px; overflow: hidden; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+.shop-ad-photo { height: 180px; width: 100%; background: #000; }
+.shop-ad-photo img { width: 100%; height: 100%; object-fit: cover; }
+.shop-ad-info { padding: 15px; }
+.shop-details-list { display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 15px; margin-top: 10px; }
+.phone-list { display: flex; flex-direction: column; gap: 5px; }
+.shop-phone-link { color: var(--time-green); text-decoration: none; font-weight: 800; }
+.shop-map-link { display: inline-block; margin-top: 10px; padding: 8px 15px; background: #2a5298; border-radius: 10px; text-decoration: none; color: #fff; font-size: 12px; }
 </style>
 </head>
-
 <body>
 <div class="wrapper">
 <div class="container">
 
-  <div class="alert-main-widget liquid-glass">
-    <div class="alert-header" onclick="document.getElementById('alert-drawer').classList.toggle('open')">
-      <div class="alert-title-box">ІНФОРМАЦІЙНЕ ТАБЛО <span class="banner-alert-dot" id="main-alert-dot"></span></div>
+  <div class="alert-main-widget liquid-glass" style="position:relative;">
+    <div class="alert-header" onclick="toggleBlock('alert-drawer')">
+      ІНФОРМАЦІЙНЕ ТАБЛО <span class="banner-alert-dot" id="main-alert-dot"></span>
     </div>
     <div class="alert-drawer" id="alert-drawer">
-      <div id="alert-drawer-content"><div style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
+      <div id="alert-content">Завантаження...</div>
     </div>
   </div>
 
-  <div class="schedule-group">
+  <div class="schedule-group liquid-glass" style="position:relative;">
     <div class="tabs-nav">
-      <button class="tab-btn" onclick="openTab('trains', this)">Електрички</button>
-      <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
-      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
+      <button class="tab-btn active" id="btn-trains" onclick="switchTab('trains')">Електрички</button>
+      <button class="tab-btn" id="btn-long" onclick="switchTab('long')">Потяги</button>
+      <button class="tab-btn" id="btn-buses" onclick="switchTab('buses')">Автобуси</button>
     </div>
-    <div id="main-list-widget" class="main-list-widget">
-      <div id="trains" class="content-section active"><div id="list"></div></div>
-      <div id="long-trains" class="content-section"><div id="long-trains-list"></div></div>
-      <div id="buses" class="content-section"><div id="buses-list"></div></div>
+    <div class="main-list-widget" id="main-list-widget">
+      <div id="content-trains" class="tab-content">Завантаження...</div>
+      <div id="content-long" class="tab-content" style="display:none">Завантаження...</div>
+      <div id="content-buses" class="tab-content" style="display:none">Завантаження...</div>
     </div>
   </div>
 
   <div class="top-row">
     <div class="widget liquid-glass">
-      <div class="datetime">
-        <div id="date"></div>
-        <div class="weekdays">
-          <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div>
-          <div class="day">чт</div><div class="day">пт</div><div class="day">сб</div>
-          <div class="day">нд</div>
-        </div>
-        <div id="time"></div>
+      <div id="date"></div>
+      <div class="weekdays">
+        <span class="day">ПН</span><span class="day">ВТ</span><span class="day">СР</span><span class="day">ЧТ</span><span class="day">ПТ</span><span class="day">СБ</span><span class="day">НД</span>
       </div>
+      <div id="time"></div>
     </div>
-    <div class="widget liquid-glass"><div class="weather-box" id="weather-container"></div></div>
+    <div class="widget liquid-glass">
+      <div id="weather-box">Завантаження...</div>
+    </div>
   </div>
 
-  <div class="shopping-main-widget liquid-glass">
-    <div class="alert-header" onclick="document.getElementById('shopping-drawer').classList.toggle('open')">
-      <div class="alert-title-box">🛍 Шопінг Вільногірська</div>
+  <div class="shopping-widget liquid-glass">
+    <div class="alert-header" onclick="toggleShopping()">
+      🛍 Шопінг Вільногірська
     </div>
-    <div class="shopping-drawer" id="shopping-drawer">
-      <div id="shopping-list-content"><div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
+    <div id="shopping-drawer" style="max-height:0; overflow:hidden; transition:0.5s">
+      <div id="shopping-content" style="padding:15px">Завантаження...</div>
     </div>
   </div>
 
@@ -169,171 +132,133 @@ body {
 </div>
 
 <script>
-if (window.Telegram && window.Telegram.WebApp) { window.Telegram.WebApp.expand(); }
+const tg = window.Telegram.WebApp;
+tg.expand();
 
-function openTab(tabId, btn) {
+// Універсальний перемикач шторок
+function toggleBlock(id) {
+  const el = document.getElementById(id);
+  const isTransport = id === 'main-list-widget';
+  el.classList.toggle('open');
+}
+
+function toggleShopping() {
+  const drawer = document.getElementById('shopping-drawer');
+  drawer.style.max-height = drawer.style.max-height === '0px' ? '20000px' : '0px';
+}
+
+function switchTab(type) {
   const widget = document.getElementById('main-list-widget');
-  if (btn.classList.contains('active')) {
-    btn.classList.remove('active');
-    widget.classList.remove('open');
-    return;
-  }
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(tabId).classList.add('active');
   widget.classList.add('open');
+  
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  
+  document.getElementById('btn-' + type).classList.add('active');
+  document.getElementById('content-' + type).style.display = 'block';
 }
 
-function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
-
-// РЕНДЕР РОЗКЛАДІВ
-function renderGrid(data) {
-  if (!data || data.length === 0) return "";
-  let html = '<div class="schedule-grid">';
-  const perCol = Math.ceil(data.length / 3);
-  for(let c = 0; c < 3; c++) {
-    html += '<div class="schedule-column">';
-    for(let j = 0; j < perCol; j++) {
-      const idx = c * perCol + j;
-      if (data[idx]) {
-        const isVil = data[idx][0].toLowerCase().includes('вільногірськ');
-        html += `<div class="schedule-row ${isVil ? 'row-highlight' : ''}"><span>${data[idx][0]}</span><b>${data[idx][1]}</b></div>`;
-      }
-    }
-    html += '</div>';
-  }
-  return html + '</div>';
-}
-
-function renderTrains(el, data){
-  if (!data) return;
-  el.innerHTML = data.map(x => {
-    const id = "d-" + x.number; const now = getKyivNow();
-    let status = "future";
-    if (x.time && x.time.includes(':')) {
-      const [h, m] = x.time.split(':').map(Number);
-      const tTime = new Date(now); tTime.setHours(h, m, 0, 0);
-      const diff = Math.floor((tTime - now) / 60000);
-      if (diff < 0) status = "passed"; else if (diff <= 10) status = "soon";
-    }
-    return `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-      <div class="train-num-box">${x.number}</div><div class="route-text">${x.route}</div><div class="time-val ${status}">${x.time}</div>
-    </div><div class="details" id="${id}">${renderGrid(x.fullSchedule)}</div>`;
-  }).join('');
-}
-
-function renderLongTrains(el, data) {
-  if (!data) return;
-  el.innerHTML = data.map((x, i) => {
-    const id = "lt-" + i;
-    return `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-      <div class="train-num-box">${x.number}</div><div class="route-text">${x.route}</div><div class="time-val future">${x.time}</div>
-    </div><div class="details" id="${id}">${renderGrid(x.stops.map(s => [s.station, s.time]))}</div>`;
-  }).join('');
-}
-
-function renderBuses(el, data) {
-  if (!data) return;
-  el.innerHTML = data.map((b, i) => {
-    const id = "bus-" + i;
-    const cols = b.directions.map(dir => `<div class="schedule-column">` + dir.rows.map(r => `<div class="schedule-row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('') + `</div>`).join('');
-    return `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
-      <div class="train-num-box">🚌</div><div class="route-text">${b.route}</div><div class="time-val future">Розклад</div>
-    </div><div class="details" id="${id}"><div class="schedule-grid">${cols}</div></div>`;
-  }).join('');
-}
-
-// РЕНДЕР ШОПІНГУ (ТЕЛЕФОНИ В СТОВПЧИК)
-function renderShops(shopsData) {
-  const container = document.getElementById('shopping-list-content');
-  if (!shopsData) return;
-  let html = '<div class="shops-grid">';
-  shopsData.forEach(shop => {
-    const photo = shop.photo ? `<img src="${shop.photo}">` : `<span style="opacity:0.2;">ФОТО</span>`;
-    const instagram = shop.instagram ? `<a href="${shop.instagram}" target="_blank" class="shop-ad-title-link"><div class="shop-ad-title">${shop.name} 🔗</div></a>` : `<div class="shop-ad-title">${shop.name}</div>`;
-    
-    let phonesHtml = 'Не вказано';
-    if (shop.phone) {
-      phonesHtml = `<div class="phone-list">` + String(shop.phone).split(',').map(p => {
-        const clean = p.trim().replace(/[^0-9+]/g, '');
-        return `<a href="tel:${clean}" class="shop-phone-link">${p.trim()}</a>`;
-      }).join('') + `</div>`;
-    }
-
-    html += `<div class="shop-ad-card">
-      <div class="shop-ad-photo">${photo}</div>
-      <div class="shop-ad-info">
-        <div style="font-size:10px; color:var(--highlight-color); font-weight:800; text-transform:uppercase;">${shop.category || 'Магазин'}</div>
-        ${instagram}
-        <div class="shop-details-list">
-          <div class="shop-detail-item">🕒 <div><b>Графік:</b>${shop.schedule.replace(/\n/g, '<br>')}</div></div>
-          <div class="shop-detail-item">💳 <div>Оплата: <b>${shop.contactless ? '✅' : '❌'}</b></div></div>
-          <div class="shop-detail-item">📶 <div>WI-FI: <b>${shop.wifi ? '✅' : '❌'}</b></div></div>
-          <div class="shop-detail-item">📞 <div><b>Телефон:</b>${phonesHtml}</div></div>
-          <div class="shop-detail-item">📍 <div><b>Адреса:</b>${shop.address || 'Не вказано'}<br>
-          ${shop.map_link ? `<a href="${shop.map_link}" target="_blank" class="shop-map-link">🗺️ Відкрити на мапі</a>` : ''}</div></div>
-        </div>
-      </div>
-    </div>`;
-  });
-  container.innerHTML = html + '</div>';
+// Рендер таблиць
+function buildGrid(stops) {
+  if(!stops) return "";
+  return `<div class="schedule-grid">` + stops.map(s => {
+    const isVil = s[0].toLowerCase().includes('вільногірськ');
+    return `<div class="schedule-row ${isVil?'row-highlight':''}"><span>${s[0]}</span><b>${s[1]}</b></div>`;
+  }).join('') + `</div>`;
 }
 
 // ЗАВАНТАЖЕННЯ ДАНИХ
-async function loadShopsData() {
-  try {
-    const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
-    const d = await r.json(); renderShops(d.shops);
-  } catch(e) {}
+async function loadAll() {
+  // 1. Електрички
+  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
+    .then(r => r.json()).then(d => {
+      document.getElementById('content-trains').innerHTML = d.trains.map(t => {
+        const id = 't'+t.number;
+        return `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
+          <div class="train-num">${t.number}</div><div>${t.route}</div><div class="time-val future">${t.time}</div>
+        </div><div class="details" id="${id}">${buildGrid(t.fullSchedule)}</div>`;
+      }).join('');
+    });
+
+  // 2. Потяги
+  fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule")
+    .then(r => r.json()).then(d => {
+      document.getElementById('content-long').innerHTML = d.trains.map((t, i) => {
+        const id = 'l'+i;
+        return `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
+          <div class="train-num">${t.number}</div><div>${t.route}</div><div class="time-val future">${t.time}</div>
+        </div><div class="details" id="${id}">${buildGrid(t.stops.map(s => [s.station, s.time]))}</div>`;
+      }).join('');
+    });
+
+  // 3. Автобуси
+  fetch("https://vilnohirskbuses-production.up.railway.app/api/buses")
+    .then(r => r.json()).then(d => {
+      document.getElementById('content-buses').innerHTML = d.buses.map((b, i) => {
+        const id = 'b'+i;
+        const cols = b.directions.map(dir => `<div style="margin-bottom:10px"><b style="color:var(--highlight-color)">${dir.title}</b>${dir.rows.map(r => `<div class="schedule-row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}</div>`).join('');
+        return `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')">
+          <div class="train-num">🚌</div><div>${b.route}</div><div class="time-val">Розклад</div>
+        </div><div class="details" id="${id}">${cols}</div>`;
+      }).join('');
+    });
+
+  // 4. Шопінг
+  fetch("https://vilnohirsk-shops-production.up.railway.app/api/shops")
+    .then(r => r.json()).then(d => {
+      document.getElementById('shopping-content').innerHTML = `<div class="shops-grid">` + d.shops.map(s => {
+        const phones = s.phone ? s.phone.split(',').map(p => `<a href="tel:${p.replace(/\D/g,'')}" class="shop-phone-link">${p.trim()}</a>`).join('') : 'Не вказано';
+        return `<div class="shop-ad-card">
+          <div class="shop-ad-photo">${s.photo?`<img src="${s.photo}">`:'<div style="padding:40px;opacity:0.2">ФОТО</div>'}</div>
+          <div class="shop-ad-info">
+            <div style="font-size:10px; color:var(--highlight-color); font-weight:800">${s.category}</div>
+            <div class="shop-ad-title">${s.instagram?`<a href="${s.instagram}" target="_blank" style="color:#fff;text-decoration:none">${s.name} 🔗</a>`:s.name}</div>
+            <div class="shop-details-list">
+              <div class="shop-detail-item">🕒 <div><b>Графік:</b>${s.schedule.replace(/\n/g,'<br>')}</div></div>
+              <div class="shop-detail-item">💳 <div>Оплата: ${s.contactless?'✅':'❌'}</div></div>
+              <div class="shop-detail-item">📞 <div class="phone-list">${phones}</div></div>
+              <div class="shop-detail-item">📍 <div>${s.address}<br>${s.map_link?`<a href="${s.map_link}" target="_blank" class="shop-map-link">🗺 Мапа</a>`:''}</div></div>
+            </div>
+          </div>
+        </div>`;
+      }).join('') + `</div>`;
+    });
+
+  // 5. Новини
+  fetch("https://vilnohirsk-alerts-production.up.railway.app/api/alert")
+    .then(r => r.json()).then(d => {
+      const all = [...(d.communal||[]), ...(d.news||[])].filter(a => a.show);
+      const dot = document.getElementById('main-alert-dot');
+      if(all.length) {
+        dot.classList.add('active');
+        document.getElementById('alert-content').innerHTML = all.map(a => `<div style="margin-bottom:15px; background:rgba(255,255,255,0.1); padding:10px; border-radius:10px"><b>${a.title}</b><br>${a.text}</div>`).join('');
+      } else {
+        dot.classList.remove('active');
+        document.getElementById('alert-content').innerHTML = "Новин немає";
+      }
+    });
 }
 
-async function loadAlerts() {
-  try {
-    const r = await fetch('https://vilnohirsk-alerts-production.up.railway.app/api/alert');
-    const d = await r.json();
-    const dot = document.getElementById("main-alert-dot");
-    const container = document.getElementById("alert-drawer-content");
-    const alerts = [...(d.communal || []), ...(d.news || [])].filter(a => a.show);
-    if(alerts.length > 0) {
-      dot.classList.add("active");
-      container.innerHTML = alerts.map(a => `<div style="background:rgba(255,255,255,0.1); padding:10px; border-radius:10px; margin-bottom:5px;"><b>${a.title}</b><br>${a.text.replace(/\n/g, '<br>')}</div>`).join('');
-    } else { dot.classList.remove("active"); container.innerHTML = "Новин немає"; }
-  } catch(e) {}
+// ЧАС ТА ПОГОДА
+function updateTime() {
+  const now = new Date(new Date().toLocaleString("en-US", {timeZone: "Europe/Kyiv"}));
+  document.getElementById('date').innerText = now.toLocaleDateString('uk-UA');
+  document.getElementById('time').innerText = now.toLocaleTimeString('uk-UA');
+  const days = document.querySelectorAll('.day');
+  days.forEach(d => d.classList.remove('active'));
+  let dIdx = now.getDay();
+  days[dIdx === 0 ? 6 : dIdx - 1].classList.add('active');
 }
 
-async function loadWeather(){
-  try {
-    const coords = [{name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {name: 'Дніпро', lat: 48.45, lon: 34.98}];
-    let res = [];
-    for(let c of coords){
-      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
-      const d = await r.json(); res.push({name: c.name, temp: Math.round(d.current_weather.temperature)});
-    }
-    document.getElementById("weather-container").innerHTML = res.map((w, i) => `<div class="weather-content ${i===0?'active':''}"><div style="opacity:0.6; font-size:12px;">${w.name}</div><div style="font-size:28px; font-weight:800;">${w.temp}°C</div></div>`).join('');
-    let c = 0; setInterval(() => {
-      const s = document.querySelectorAll('.weather-content');
-      if(s.length<2)return; s[c].classList.remove('active'); c=(c+1)%s.length; s[c].classList.add('active');
-    }, 5000);
-  } catch(e) {}
+async function loadWeather() {
+  const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true");
+  const d = await r.json();
+  document.getElementById('weather-box').innerHTML = `<div style="font-size:12px;opacity:0.6">Вільногірськ</div><div style="font-size:28px;font-weight:800">${Math.round(d.current_weather.temperature)}°C</div>`;
 }
 
-function updateDateTime(){
-  const now = getKyivNow();
-  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-  const days=document.querySelectorAll(".day"); days.forEach(d=>d.classList.remove("active"));
-  let i=now.getDay(); i=i===0?6:i-1; days[i].classList.add("active");
-}
-
-function loadTrainsData(){ fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>renderTrains(document.getElementById("list"),d.trains)); }
-function loadLongTrainsData() { fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule").then(r=>r.json()).then(d=>renderLongTrains(document.getElementById("long-trains-list"),d.trains)); }
-function loadBusesData(){ fetch("https://vilnohirskbuses-production.up.railway.app/api/buses").then(r=>r.json()).then(d=>renderBuses(document.getElementById("buses-list"),d.buses)); }
-
-// ЗАПУСК
-updateDateTime(); loadWeather(); loadAlerts(); loadShopsData(); loadTrainsData(); loadLongTrainsData(); loadBusesData();
-setInterval(updateDateTime, 1000);
-setInterval(() => { loadAlerts(); loadShopsData(); loadTrainsData(); }, 60000);
+setInterval(updateTime, 1000);
+loadWeather();
+loadAll();
 </script>
 </body>
 </html>
