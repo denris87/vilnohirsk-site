@@ -20,7 +20,7 @@
 html, body { 
   margin: 0; 
   padding: 0; 
-  min-height: 100vh; /* 🔥 Виправлено проблему зі скролом на мобільних */
+  min-height: 100vh; 
 }
 
 * { 
@@ -88,7 +88,7 @@ body {
 .alert-header:active { background: rgba(255, 255, 255, 0.1); }
 .alert-title-box { position: relative; display: inline-block; font-weight: 800; font-size: clamp(14px, 4vw, 18px); color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
 
-/* Шторка табло */
+/* 🔥 Повністю темна і непрозора шторка табло */
 .alert-drawer { 
   position: absolute; 
   top: calc(100% + 10px); 
@@ -100,13 +100,10 @@ body {
   pointer-events: none; 
   transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
   
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 1px solid var(--glass-border);
-  border-top: 1px solid var(--glass-border-light);
-  border-left: 1px solid var(--glass-border-light);
-  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7); 
+  /* Глибокий темно-синій фон, що на 100% перекриває текст під ним */
+  background: linear-gradient(135deg, #0b1d3a, #061124);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); 
   border-radius: 24px;
 }
 .alert-drawer.open { 
@@ -284,7 +281,7 @@ body {
   to { opacity: 1; transform: translateY(0); } 
 }
 
-/* 🔥 ОНОВЛЕНИЙ БЛОК РОЗКЛАДУ ЯК ШТОРКА */
+/* РОЗКЛАД ЯК ШТОРКА */
 .main-list-widget { 
   position: relative; 
   z-index: 1; 
@@ -297,7 +294,7 @@ body {
   transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
 }
 .main-list-widget.open {
-  max-height: 25000px; /* 🔥 ЗБІЛЬШЕНО У 5 РАЗІВ, ЩОБ НІКОЛИ НЕ ОБРІЗАЛО */
+  max-height: 25000px; 
   opacity: 1;
   visibility: visible;
   padding: 20px 10px;
@@ -339,7 +336,7 @@ body {
 
 /* ШТОРКИ ДЕТАЛЕЙ РОЗКЛАДУ */
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.25); border-radius: 16px; }
-.details.open { max-height: 10000px; /* 🔥 ЗБІЛЬШЕНО У 2 РАЗИ, ЩОБ ВЛІЗЛИ ВСІ СТАНЦІЇ */ opacity: 1; padding: 15px; margin-top: 5px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
+.details.open { max-height: 10000px; opacity: 1; padding: 15px; margin-top: 5px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
 
 .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
