@@ -148,7 +148,7 @@ body {
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; }
 .details-divider { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 20px auto 15px; }
 
-/* 🔥 ШОПІНГ ВІЛЬНОГІРСЬКА (ОНОВЛЕНИЙ ПЛИТКОВИЙ ДИЗАЙН) */
+/* ШОПІНГ ВІЛЬНОГІРСЬКА (КВАДРАТНІ КАРТКИ) */
 .shopping-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 80; }
 .shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
 .shopping-drawer.open { max-height: 25000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
@@ -265,7 +265,6 @@ body {
 .shop-map-link:hover {
   background: rgba(116, 185, 255, 0.2);
 }
-
 </style>
 </head>
 
@@ -428,7 +427,7 @@ function renderTrains(el, data){
     const id = "d-" + x.number; const now = getKyivNow();
     let statusClass = "future", displayText = x.time;
     if (x.time && x.time.includes(':')) {
-      const [h, m] = x.split(':').map(Number);
+      const [h, m] = x.time.split(':').map(Number);
       const trainTime = new Date(now); trainTime.setHours(h, m, 0, 0);
       const diff = Math.floor((trainTime - now) / 60000);
       if (diff < 0) statusClass = "passed"; else if (diff <= 10) { statusClass = "soon"; displayText = `≈ ${diff} хв`; }
@@ -513,7 +512,7 @@ async function loadAlerts() {
   }
 }
 
-// 🔥 РЕНДЕР МАГАЗИНІВ З УСІМА ХАРАКТЕРИСТИКАМИ
+// 🔥 РЕНДЕР МАГАЗИНІВ З УСІМА ХАРАКТЕРИСТИКАМИ ТА ДЕКІЛЬКОМА ТЕЛЕФОНАМИ
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || shopsData.length === 0) {
@@ -542,6 +541,20 @@ function renderShops(shopsData) {
     // 4. ФОРМАТУВАННЯ ГРАФІКУ (підтримка перенесення рядків)
     const scheduleHtml = shop.schedule ? shop.schedule.replace(/\n/g, '<br>') : 'Не вказано';
 
+    // 5. ОБРОБКА ТЕЛЕФОНІВ (Один або декілька через кому)
+    let phoneHtml = 'Не вказано';
+    if (shop.phone) {
+      // Розбиваємо рядок по комі, забираємо зайві пробіли
+      const phonesArray = String(shop.phone).split(',').map(p => p.trim());
+      
+      // Робимо кожен номер окремим посиланням. 
+      // replace(/[^0-9+]/g, '') — видаляє пробіли і дужки для надійного дзвінка
+      phoneHtml = phonesArray.map(p => {
+        const cleanNumber = p.replace(/[^0-9+]/g, '');
+        return `<a href="tel:${cleanNumber}" class="shop-phone-link">${p}</a>`;
+      }).join('<br>'); // <br> ставить кожен номер з нового рядка
+    }
+
     html += `
       <div class="shop-ad-card">
         <div class="shop-ad-photo">
@@ -569,7 +582,7 @@ function renderShops(shopsData) {
             
             <div class="shop-detail-item">
               <span class="detail-icon">📞</span>
-              <div class="detail-text">Телефон: <a href="tel:${shop.phone || ''}" class="shop-phone-link">${shop.phone || 'Не вказано'}</a></div>
+              <div class="detail-text">Телефон(и):<br>${phoneHtml}</div>
             </div>
             
             <div class="shop-detail-item">
