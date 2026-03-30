@@ -116,7 +116,6 @@ body {
 
 .table-head { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.15); padding: 0 10px 10px 10px; margin-bottom: 12px; font-size: 10px; text-transform: uppercase; color: #74b9ff; letter-spacing: 0.5px; }
 
-/* КАРТКИ РОЗКЛАДУ (ВИПУКЛІ) */
 .train { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; padding: 14px 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s ease; border-radius: 16px; min-height: 60px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); }
 .train:hover { background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.3)); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15); }
 .train:active { transform: translateY(1px); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.3); }
@@ -149,26 +148,67 @@ body {
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; }
 .details-divider { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 20px auto 15px; }
 
-/* ШОПІНГ ВІЛЬНОГІРСЬКА */
+/* 🔥 ШОПІНГ ВІЛЬНОГІРСЬКА (НОВИЙ ПЛИТКОВИЙ ДИЗАЙН) */
 .shopping-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 80; }
 .shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
-.shopping-drawer.open { max-height: 10000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
+.shopping-drawer.open { max-height: 25000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
 
-.shop-card { display: flex; justify-content: space-between; align-items: center; padding: 14px 15px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s ease; border-radius: 16px; min-height: 60px; background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); }
-.shop-card:hover { background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.3)); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15); }
-.shop-card:active { transform: translateY(1px); box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.3); }
-.shop-card:last-child { margin-bottom: 0; }
+/* СІТКА ОГОЛОШЕНЬ */
+.shops-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* 1 колонка на мобільних */
+  gap: 15px;
+}
+@media (min-width: 600px) {
+  .shops-grid {
+    grid-template-columns: 1fr 1fr; /* 2 колонки на ПК/Планшетах */
+  }
+}
 
-.shop-name-col { display: flex; flex-direction: column; gap: 6px; flex: 1; padding-right: 10px; text-align: left;}
-.shop-title { font-weight: 800; font-size: 15px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.6); }
-.shop-cat { font-size: 10px; color: var(--highlight-color); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
-.shop-status { font-weight: 800; font-size: 11px; white-space: nowrap; color: #fff; }
+/* КАРТКА ОГОЛОШЕННЯ (КВАДРАТНА) */
+.shop-ad-card { 
+  display: flex; 
+  flex-direction: column;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); 
+  border: 1px solid rgba(255, 255, 255, 0.05); 
+  border-radius: 16px; 
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.shop-ad-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2); 
+}
 
-.shop-details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.25); border-radius: 16px; }
-.shop-details.open { max-height: 2000px; opacity: 1; padding: 15px; margin-top: 2px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
-.shop-photo-box { width: 100%; height: 180px; border-radius: 12px; margin-bottom: 15px; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(0,0,0,0.4)); display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; position: relative; }
-.shop-photo-box img { width: 100%; height: 100%; object-fit: cover; }
-.shop-desc { font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.9); margin-bottom: 15px; text-align: left; }
+/* ФОТО */
+.shop-ad-photo {
+  width: 100%;
+  height: 180px;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.shop-ad-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Фото красиво заповнює квадрат без спотворень */
+}
+
+/* ІНФОРМАЦІЯ ПІД ФОТО */
+.shop-ad-info {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.shop-ad-cat { font-size: 10px; color: var(--highlight-color); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
+.shop-ad-title { font-weight: 800; font-size: 16px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); margin-bottom: 4px; }
+.shop-ad-desc { font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.8); margin-bottom: 10px; }
+
 </style>
 </head>
 
@@ -244,10 +284,7 @@ body {
 </div>
 
 <script>
-// TELEGRAM МІНІ-АПП (Розтягуємо екран)
-if (window.Telegram && window.Telegram.WebApp) {
-  window.Telegram.WebApp.expand();
-}
+if (window.Telegram && window.Telegram.WebApp) { window.Telegram.WebApp.expand(); }
 
 function openTab(tabId, btn) {
   const widget = document.getElementById('main-list-widget');
@@ -419,43 +456,44 @@ async function loadAlerts() {
   }
 }
 
-// 🔥 РЕНДЕР МАГАЗИНІВ З НОВОГО СЕРВЕРА
+// 🔥 ОНОВЛЕНИЙ РЕНДЕР ДЛЯ КВАДРАТНИХ КАРТОК (ПЛИТОК)
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || shopsData.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Магазинів поки немає</div>';
+    container.innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
     return;
   }
 
-  let html = '';
+  let html = '<div class="shops-grid">';
+  
   shopsData.forEach(shop => {
     const photoHtml = shop.photo 
       ? `<img src="${shop.photo}" alt="${shop.name}">` 
-      : `<span style="font-weight:800; opacity:0.3; font-size: 18px; letter-spacing: 1px;">ФОТО МАГАЗИНУ</span>`;
+      : `<span style="font-weight:800; opacity:0.3; font-size: 14px; letter-spacing: 1px;">НЕМАЄ ФОТО</span>`;
 
     html += `
-      <div class="shop-card" onclick="document.getElementById('${shop.id}').classList.toggle('open')">
-        <div class="shop-name-col">
-          <div class="shop-cat">${shop.category}</div>
-          <div class="shop-title">${shop.name}</div>
+      <div class="shop-ad-card">
+        <div class="shop-ad-photo">
+          ${photoHtml}
         </div>
-        <div class="shop-status time-normal">Деталі ▾</div>
-      </div>
-      <div class="shop-details" id="${shop.id}">
-        <div style="padding: 5px;">
-          <div class="shop-photo-box">${photoHtml}</div>
-          <div class="shop-desc">${shop.desc}</div>
-          <div class="schedule-row" style="background: rgba(0,0,0,0.2); border-radius: 8px;">
-            <div class="schedule-left">📍 Адреса:</div><div class="time-normal">${shop.address}</div>
-          </div>
-          <div class="schedule-row" style="background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 5px;">
-            <div class="schedule-left">🕒 Графік:</div><div class="time-green">${shop.time}</div>
-          </div>
+        <div class="shop-ad-info">
+          <div class="shop-ad-cat">${shop.category || 'Магазин'}</div>
+          <div class="shop-ad-title">${shop.name}</div>
+          ${shop.desc ? `<div class="shop-ad-desc">${shop.desc}</div>` : ''}
+          ${shop.address ? `
+            <div class="schedule-row" style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 6px;">
+              <div class="schedule-left">📍</div><div class="time-normal" style="font-size: 12px;">${shop.address}</div>
+            </div>` : ''}
+          ${shop.time ? `
+            <div class="schedule-row" style="background: rgba(0,0,0,0.2); border-radius: 6px; padding: 6px; margin-top: 5px;">
+              <div class="schedule-left">🕒</div><div class="time-green" style="font-size: 12px;">${shop.time}</div>
+            </div>` : ''}
         </div>
       </div>
     `;
   });
   
+  html += '</div>';
   container.innerHTML = html;
 }
 
@@ -481,7 +519,7 @@ loadAlerts();
 loadTrainsData(); 
 loadLongTrainsData(); 
 loadBusesData(); 
-loadShopsData(); // Тепер тягне дані з твого нового сервера
+loadShopsData();
 
 setInterval(updateDateTime, 1000); 
 setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadShopsData(); }, 30000);
