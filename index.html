@@ -109,15 +109,6 @@ body {
 .day { color: rgba(255,255,255,0.4); transition: 0.3s ease; }
 .day.active { background-color: #ff4d4d !important; color: #fff !important; border-radius: 6px; padding: 2px 5px; box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); }
 
-/* РАДІО WIDGET */
-.radio-widget { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; }
-.radio-label { font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: -2px; }
-.radio-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--highlight-color); border: none; font-size: 18px; color: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3); padding-left: 3px; }
-.radio-btn:active { transform: scale(0.9); }
-.radio-btn.playing { padding-left: 0; background: #ff4d4d; color: #fff; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4); }
-.radio-track-box { width: 100%; padding: 0 5px; text-align: center; }
-.radio-track { display: block; font-size: clamp(11px, 2.5vw, 13px); font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-
 /* ПОГОДА */
 .weather-box { position: relative; width: 100%; height: 95px; display: flex; align-items: center; justify-content: center; }
 .weather-content { position: absolute; width: 100%; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0; transform: translateY(10px) scale(0.95); text-align: center; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -125,6 +116,64 @@ body {
 .weather-city { font-weight: 700; font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;}
 .weather-temp { font-size: clamp(24px, 6.5vw, 32px); font-weight: 800; white-space: nowrap; text-shadow: 0 2px 10px rgba(0,0,0,0.4); line-height: 1.1; }
 .weather-wind { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 6px; font-weight: 500; }
+
+/* 🔥 РАДІО WIDGET (НОВИЙ ДИЗАЙН) */
+.radio-main-widget {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.radio-header-title {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: #74b9ff; /* Приємний небесно-блакитний колір */
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.radio-player-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  padding: 8px 15px 8px 8px;
+}
+.radio-btn {
+  flex-shrink: 0; /* ЗАПОБІГАЄ СПЛЮЩЕННЮ КНОПКИ В ОВАЛ */
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--highlight-color);
+  border: none;
+  font-size: 18px;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
+  padding-left: 3px;
+}
+.radio-btn:active { transform: scale(0.9); }
+.radio-btn.playing { padding-left: 0; background: #ff4d4d; color: #fff; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4); }
+.radio-track-box {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+}
+.radio-track {
+  display: block;
+  font-size: clamp(13px, 3.5vw, 15px);
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
 
 /* 🔥 ІНФОРМАЦІЙНЕ ТАБЛО */
 .alert-main-widget { padding: 0; border-radius: 24px; overflow: hidden; }
@@ -231,14 +280,10 @@ body {
   .bus-grid { grid-template-columns: 1fr; } 
 }
 
-/* МОБІЛЬНА АДАПТАЦІЯ ДЛЯ ШАПКИ З РАДІО */
+/* МОБІЛЬНА АДАПТАЦІЯ ДЛЯ ШАПКИ (без старого радіо) */
 @media (max-width: 550px) {
   .top-row { flex-wrap: wrap; }
   .widget { min-width: 45%; }
-  .radio-widget { order: 3; min-width: 100%; min-height: 70px; flex-direction: row; justify-content: space-between; padding: 10px 20px;}
-  .radio-widget::before { display: none; }
-  .radio-track-box { flex: 1; text-align: left; padding-left: 15px; }
-  .radio-label { display: none; }
 }
 
 .schedule-column { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px 8px; }
@@ -283,18 +328,20 @@ body {
       </div>
     </div>
 
-    <div class="widget liquid-glass radio-widget">
-      <div class="radio-label">MuzDance</div>
+    <div class="widget liquid-glass">
+      <div class="weather-box" id="weather-container"></div>
+    </div>
+  </div>
+
+  <div class="radio-main-widget liquid-glass">
+    <div class="radio-header-title">muzdance.com.ua - Вільногірське радіо - МузДенс</div>
+    <div class="radio-player-row">
       <button class="radio-btn" id="radio-play-btn">▶</button>
       <div class="radio-track-box">
         <span class="radio-track" id="radio-track-name">Завантаження...</span>
       </div>
-      <audio id="radio-audio" src="https://myradio24.org/muzdance" preload="none"></audio>
     </div>
-
-    <div class="widget liquid-glass">
-      <div class="weather-box" id="weather-container"></div>
-    </div>
+    <audio id="radio-audio" src="https://myradio24.org/muzdance" preload="none"></audio>
   </div>
 
   <div class="alert-main-widget liquid-glass">
@@ -640,13 +687,13 @@ async function loadRadioTrack() {
     const r = await fetch('https://myradio24.com/users/muzdance/status.json');
     const d = await r.json();
     if(d && d.song) radioTrackName.textContent = d.song;
-  } catch(e) { /* Ігноруємо помилки, щоб не забивати консоль */ }
+  } catch(e) { }
 }
 
 updateDateTime(); loadWeather(); loadAlerts(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadRadioTrack();
 setInterval(updateDateTime, 1000); 
 setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); }, 30000);
-setInterval(loadRadioTrack, 15000); // Оновлення назви пісні кожні 15 секунд
+setInterval(loadRadioTrack, 15000);
 </script>
 
 </body>
