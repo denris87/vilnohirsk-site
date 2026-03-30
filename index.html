@@ -184,97 +184,6 @@ body {
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } 
 }
 
-/* 🔥 РАДІО WIDGET (НОВЕ ВИРІВНЮВАННЯ) */
-.radio-main-widget { padding: 0; border-radius: 24px; overflow: hidden; }
-.radio-header { 
-  padding: 14px 16px; 
-  cursor: pointer; 
-  background: rgba(255, 255, 255, 0.05); 
-  transition: background 0.3s; 
-  display: flex; 
-  justify-content: space-between; /* Розносить текст вліво, а кнопку вправо */
-  align-items: center; 
-  gap: 12px; 
-}
-.radio-header:active { background: rgba(255, 255, 255, 0.1); }
-.radio-title-text { 
-  font-size: 12px; 
-  font-weight: 800; 
-  color: var(--highlight-color); 
-  text-transform: uppercase; 
-  letter-spacing: 1px; 
-  line-height: 1.3; 
-  text-align: left; /* Вирівнювання по лівому краю */
-}
-.expand-hint { 
-  flex-shrink: 0; /* Щоб кнопка не сплющувалась */
-  font-size: 10px; 
-  font-weight: 700; 
-  color: rgba(255, 255, 255, 0.9); 
-  text-transform: lowercase; 
-  background: rgba(255, 255, 255, 0.15); 
-  padding: 5px 10px; 
-  border-radius: 12px; 
-  white-space: nowrap; 
-  transition: all 0.3s; 
-}
-
-.radio-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.2); }
-.radio-drawer.open { max-height: 200px; opacity: 1; padding: 15px; border-top: 1px solid rgba(255,255,255,0.05); }
-
-.radio-player-row {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 6px 15px 6px 6px;
-  height: 56px;
-  box-sizing: border-box;
-}
-.radio-btn {
-  flex-shrink: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--highlight-color);
-  border: none;
-  font-size: 18px;
-  color: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3);
-  padding: 0;
-  margin: 0;
-  line-height: 0;
-}
-.radio-btn:active { transform: scale(0.9); }
-.radio-btn.playing { background: #ff4d4d; color: #fff; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4); }
-
-.radio-track-box {
-  flex: 1;
-  overflow: hidden;
-  text-align: left;
-  display: flex;
-  align-items: center;
-}
-.radio-track {
-  display: block;
-  font-size: clamp(13px, 3.5vw, 15px);
-  font-weight: 600;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-  line-height: 1.2;
-  margin: 0;
-  padding: 0;
-}
-
 .schedule-group { display: flex; flex-direction: column; gap: 8px;}
 
 /* ТАБИ */
@@ -409,23 +318,6 @@ body {
       <div id="alert-drawer-content">
         <div style="text-align: center; width: 100%; color: rgba(255,255,255,0.5); font-size: 14px;">Перевірка даних...</div>
       </div>
-    </div>
-  </div>
-
-  <div class="radio-main-widget liquid-glass">
-    <div class="radio-header" onclick="document.getElementById('radio-drawer').classList.toggle('open')">
-      <span class="radio-title-text">Вільногірське радіо - МузДенс muzdance.com.ua</span>
-      <span class="expand-hint">розкрити ▾</span>
-    </div>
-    
-    <div class="radio-drawer" id="radio-drawer">
-      <div class="radio-player-row">
-        <button class="radio-btn" id="radio-play-btn"><span style="margin-left: 3px;">▶</span></button>
-        <div class="radio-track-box">
-          <span class="radio-track" id="radio-track-name">Завантаження...</span>
-        </div>
-      </div>
-      <audio id="radio-audio" src="https://myradio24.org/muzdance" preload="none"></audio>
     </div>
   </div>
 
@@ -754,38 +646,9 @@ function loadTrainsData(){ fetch("https://vilnohirsk-trains-production.up.railwa
 function loadLongTrainsData() { fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule").then(r=>r.json()).then(d=>renderLongTrains(document.getElementById("long-trains-list"),d.trains)); }
 function loadBusesData(){ fetch("https://vilnohirskbuses-production.up.railway.app/api/buses").then(r=>r.json()).then(d=>renderBuses(document.getElementById("buses-list"),d.buses)); }
 
-// ЛОГІКА РАДІО
-const radioAudio = document.getElementById('radio-audio');
-const radioBtn = document.getElementById('radio-play-btn');
-const radioTrackName = document.getElementById('radio-track-name');
-let isRadioPlaying = false;
-
-radioBtn.addEventListener('click', () => {
-  if(isRadioPlaying) {
-    radioAudio.pause();
-    radioBtn.innerHTML = '<span style="margin-left: 3px;">▶</span>';
-    radioBtn.classList.remove('playing');
-    isRadioPlaying = false;
-  } else {
-    radioAudio.play().catch(e => console.error("Помилка відтворення:", e));
-    radioBtn.innerHTML = '⏸';
-    radioBtn.classList.add('playing');
-    isRadioPlaying = true;
-  }
-});
-
-async function loadRadioTrack() {
-  try {
-    const r = await fetch('https://myradio24.com/users/muzdance/status.json');
-    const d = await r.json();
-    if(d && d.song) radioTrackName.textContent = d.song;
-  } catch(e) { }
-}
-
-updateDateTime(); loadWeather(); loadAlerts(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadRadioTrack();
+updateDateTime(); loadWeather(); loadAlerts(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); 
 setInterval(updateDateTime, 1000); 
 setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); }, 30000);
-setInterval(loadRadioTrack, 15000);
 </script>
 
 </body>
