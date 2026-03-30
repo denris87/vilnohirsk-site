@@ -20,7 +20,7 @@
 html, body { 
   margin: 0; 
   padding: 0; 
-  height: 100%; 
+  min-height: 100vh; /* 🔥 Виправлено проблему зі скролом на мобільних */
 }
 
 * { 
@@ -110,7 +110,7 @@ body {
   border-radius: 24px;
 }
 .alert-drawer.open { 
-  max-height: 5000px; 
+  max-height: 10000px; 
   opacity: 1; 
   padding: 15px; 
   pointer-events: auto; 
@@ -291,13 +291,15 @@ body {
   max-height: 0; 
   overflow: hidden; 
   opacity: 0; 
+  visibility: hidden; 
   padding: 0 10px; 
   margin-top: -8px; 
   transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
 }
 .main-list-widget.open {
-  max-height: 5000px;
+  max-height: 25000px; /* 🔥 ЗБІЛЬШЕНО У 5 РАЗІВ, ЩОБ НІКОЛИ НЕ ОБРІЗАЛО */
   opacity: 1;
+  visibility: visible;
   padding: 20px 10px;
   margin-top: 0;
 }
@@ -337,7 +339,7 @@ body {
 
 /* ШТОРКИ ДЕТАЛЕЙ РОЗКЛАДУ */
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: rgba(0,0,0,0.25); border-radius: 16px; }
-.details.open { max-height: 5000px; opacity: 1; padding: 15px; margin-top: 5px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
+.details.open { max-height: 10000px; /* 🔥 ЗБІЛЬШЕНО У 2 РАЗИ, ЩОБ ВЛІЗЛИ ВСІ СТАНЦІЇ */ opacity: 1; padding: 15px; margin-top: 5px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
 
 .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -437,26 +439,22 @@ body {
 </div>
 
 <script>
-// 🔥 ОНОВЛЕНА ЛОГІКА ПЕРЕМИКАННЯ ВКЛАДОК ТА ЗГОРТАННЯ ШТОРКИ
+// 🔥 ЛОГІКА ПЕРЕМИКАННЯ ВКЛАДОК ТА ЗГОРТАННЯ ШТОРКИ
 function openTab(tabId, btn) {
   const widget = document.getElementById('main-list-widget');
   
-  // Якщо клікнули на ту саму активну вкладку — просто закриваємо шторку
   if (btn.classList.contains('active')) {
     btn.classList.remove('active');
     widget.classList.remove('open');
     return;
   }
   
-  // Якщо клікнули на іншу вкладку — скидаємо активність з усіх кнопок та секцій
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
   
-  // Робимо нову кнопку та контент активними
   btn.classList.add('active');
   document.getElementById(tabId).classList.add('active');
   
-  // Відкриваємо шторку (якщо вона була закрита)
   widget.classList.add('open');
 }
 
