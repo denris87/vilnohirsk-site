@@ -109,6 +109,15 @@ body {
 .day { color: rgba(255,255,255,0.4); transition: 0.3s ease; }
 .day.active { background-color: #ff4d4d !important; color: #fff !important; border-radius: 6px; padding: 2px 5px; box-shadow: 0 0 10px rgba(255, 77, 77, 0.4); }
 
+/* РАДІО WIDGET */
+.radio-widget { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; }
+.radio-label { font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: -2px; }
+.radio-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--highlight-color); border: none; font-size: 18px; color: #000; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3); padding-left: 3px; }
+.radio-btn:active { transform: scale(0.9); }
+.radio-btn.playing { padding-left: 0; background: #ff4d4d; color: #fff; box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4); }
+.radio-track-box { width: 100%; padding: 0 5px; text-align: center; }
+.radio-track { display: block; font-size: clamp(11px, 2.5vw, 13px); font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+
 /* ПОГОДА */
 .weather-box { position: relative; width: 100%; height: 95px; display: flex; align-items: center; justify-content: center; }
 .weather-content { position: absolute; width: 100%; transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); opacity: 0; transform: translateY(10px) scale(0.95); text-align: center; pointer-events: none; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -222,6 +231,16 @@ body {
   .bus-grid { grid-template-columns: 1fr; } 
 }
 
+/* МОБІЛЬНА АДАПТАЦІЯ ДЛЯ ШАПКИ З РАДІО */
+@media (max-width: 550px) {
+  .top-row { flex-wrap: wrap; }
+  .widget { min-width: 45%; }
+  .radio-widget { order: 3; min-width: 100%; min-height: 70px; flex-direction: row; justify-content: space-between; padding: 10px 20px;}
+  .radio-widget::before { display: none; }
+  .radio-track-box { flex: 1; text-align: left; padding-left: 15px; }
+  .radio-label { display: none; }
+}
+
 .schedule-column { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px 8px; }
 .schedule-row { 
   display: flex; justify-content: space-between; padding: 8px 6px; 
@@ -262,6 +281,15 @@ body {
         </div>
         <div id="time"></div>
       </div>
+    </div>
+
+    <div class="widget liquid-glass radio-widget">
+      <div class="radio-label">MuzDance</div>
+      <button class="radio-btn" id="radio-play-btn">▶</button>
+      <div class="radio-track-box">
+        <span class="radio-track" id="radio-track-name">Завантаження...</span>
+      </div>
+      <audio id="radio-audio" src="https://myradio24.org/muzdance" preload="none"></audio>
     </div>
 
     <div class="widget liquid-glass">
@@ -564,7 +592,6 @@ async function loadAlerts() {
     if (activeAlerts.length > 0) {
       dot.classList.add("active");
       carousel.innerHTML = activeAlerts.map(alert => {
-        // 🔥 Ось тут відбувається примусова заміна \n на перенесення рядка
         const textWithBreaks = alert.text ? alert.text.replace(/\n/g, '<br>') : '';
         
         return `
@@ -588,9 +615,38 @@ function loadTrainsData(){ fetch("https://vilnohirsk-trains-production.up.railwa
 function loadLongTrainsData() { fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule").then(r=>r.json()).then(d=>renderLongTrains(document.getElementById("long-trains-list"),d.trains)); }
 function loadBusesData(){ fetch("https://vilnohirskbuses-production.up.railway.app/api/buses").then(r=>r.json()).then(d=>renderBuses(document.getElementById("buses-list"),d.buses)); }
 
-updateDateTime(); loadWeather(); loadAlerts(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); 
+// ЛОГІКА РАДІО
+const radioAudio = document.getElementById('radio-audio');
+const radioBtn = document.getElementById('radio-play-btn');
+const radioTrackName = document.getElementById('radio-track-name');
+let isRadioPlaying = false;
+
+radioBtn.addEventListener('click', () => {
+  if(isRadioPlaying) {
+    radioAudio.pause();
+    radioBtn.innerHTML = '▶';
+    radioBtn.classList.remove('playing');
+    isRadioPlaying = false;
+  } else {
+    radioAudio.play().catch(e => console.error("Помилка відтворення:", e));
+    radioBtn.innerHTML = '⏸';
+    radioBtn.classList.add('playing');
+    isRadioPlaying = true;
+  }
+});
+
+async function loadRadioTrack() {
+  try {
+    const r = await fetch('https://myradio24.com/users/muzdance/status.json');
+    const d = await r.json();
+    if(d && d.song) radioTrackName.textContent = d.song;
+  } catch(e) { /* Ігноруємо помилки, щоб не забивати консоль */ }
+}
+
+updateDateTime(); loadWeather(); loadAlerts(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadRadioTrack();
 setInterval(updateDateTime, 1000); 
 setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); }, 30000);
+setInterval(loadRadioTrack, 15000); // Оновлення назви пісні кожні 15 секунд
 </script>
 
 </body>
