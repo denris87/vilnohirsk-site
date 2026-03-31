@@ -201,54 +201,64 @@ body {
 .shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
 .shopping-drawer.open { max-height: 25000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
 
-/* КАРУСЕЛЬ ДЛЯ ШОПІНГУ */
-.shops-carousel-container { 
+/* НОВИЙ СПИСОК МАГАЗИНІВ (ЯК ЕЛЕКТРИЧКИ) */
+.shop-list-item { 
   display: flex; 
-  overflow-x: auto; 
-  scroll-snap-type: x mandatory; 
-  gap: 15px; 
-  scrollbar-width: none; 
-  -ms-overflow-style: none; 
-  scroll-behavior: smooth; 
-  padding-bottom: 5px; 
-}
-.shops-carousel-container::-webkit-scrollbar { display: none; }
-
-/* КАРТКА МАГАЗИНУ В КАРУСЕЛІ */
-.shop-ad-card { 
-  display: flex; 
-  flex-direction: column; 
-  flex: 0 0 100%;
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
+  align-items: center; 
+  justify-content: space-between;
+  padding: 10px; 
+  margin-bottom: 10px; 
+  cursor: pointer; 
+  transition: all 0.3s ease; 
+  border-radius: 16px; 
+  min-height: 60px; 
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); 
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); 
   border: 1px solid rgba(255, 255, 255, 0.05); 
-  border-radius: 16px; 
+}
+.shop-list-item:hover { 
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.3)); 
+  transform: translateY(-2px); 
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.15); 
+}
+.shop-list-item:active { 
+  transform: translateY(1px); 
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), inset 0 2px 4px rgba(0, 0, 0, 0.3); 
+}
+.shop-thumb { 
+  width: 48px; 
+  height: 48px; 
+  border-radius: 12px; 
   overflow: hidden; 
-  transition: transform 0.3s ease, box-shadow 0.3s ease; 
-  box-sizing: border-box;
+  flex-shrink: 0; 
+  background: rgba(255,255,255,0.05); 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  border: 1px solid rgba(255,255,255,0.08);
 }
+.shop-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.shop-title-row { flex: 1; display: flex; flex-direction: column; overflow: hidden; padding-left: 12px; text-align: left; }
+.shop-list-cat { font-size: 10px; color: var(--highlight-color); font-weight: 800; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.5px; }
+.shop-list-name { font-weight: 800; font-size: 15px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px rgba(0,0,0,0.6); }
 
-@media (min-width: 650px) { 
-  .shop-ad-card { flex: 0 0 calc(50% - 7.5px); } 
+/* ВЕЛИКЕ ФОТО В ДЕТАЛЯХ */
+.shop-full-photo {
+  width: 100%;
+  height: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,0.05);
 }
+.shop-full-photo img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ФОТО В КАРТЦІ */
-.shop-ad-photo { width: 100%; height: 200px; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-.shop-ad-photo img { width: 100%; height: 100%; object-fit: cover; }
-
-/* ІНФОРМАЦІЯ ПІД ФОТО */
-.shop-ad-info { padding: 15px; display: flex; flex-direction: column; gap: 8px; text-align: left; }
-.shop-ad-cat { font-size: 11px; color: var(--highlight-color); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
-
-/* КЛІКАБЕЛЬНА НАЗВА (INSTAGRAM) */
-.shop-ad-title-link { text-decoration: none; color: inherit; display: inline-block; transition: opacity 0.3s; }
-.shop-ad-title-link:hover { opacity: 0.8; }
-.shop-ad-title { font-weight: 800; font-size: 18px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); margin-bottom: 4px; }
-
-/* СПИСОК ХАРАКТЕРИСТИК */
-.shop-details-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+/* СПИСОК ХАРАКТЕРИСТИК (ТІЛЬКИ В ДЕТАЛЯХ) */
+.shop-details-list { display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); text-align: left; }
 .shop-detail-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.85); }
 .detail-icon { flex-shrink: 0; font-size: 14px; }
 .detail-text b { color: #fff; }
@@ -567,7 +577,7 @@ async function loadAlerts() {
   }
 }
 
-// ОНОВЛЕНИЙ РЕНДЕР МАГАЗИНІВ ІЗ ЗАХИСТОМ
+// НОВИЙ РЕНДЕР МАГАЗИНІВ СТИЛІЗОВАНИЙ ПІД СПИСОК (АКОРДЕОН)
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
@@ -575,21 +585,29 @@ function renderShops(shopsData) {
     return;
   }
 
-  let cardsHtml = '';
+  // Зберігаємо стан відкритих шторок
+  const openIds = Array.from(container.querySelectorAll('.details.open')).map(d => d.id);
+  let html = '<div id="shops-accordion">';
   
-  shopsData.forEach(shop => {
+  shopsData.forEach((shop, index) => {
     if(!shop) return;
     
-    const photoHtml = shop.photo 
-      ? `<img src="${shop.photo}" alt="${shop.name}">` 
-      : `<span style="font-weight:800; opacity:0.3; font-size: 14px; letter-spacing: 1px;">НЕМАЄ ФОТО</span>`;
+    // Якщо немає назви, ставимо загальне слово
+    const displayName = shop.name && shop.name.trim() !== "" ? shop.name : "Оголошення " + (index + 1);
+    
+    const detailsId = 'shop-detail-' + index;
+    const isOpen = openIds.includes(detailsId) ? 'open' : '';
+
+    const thumbHtml = shop.photo 
+      ? `<img src="${shop.photo}" alt="${displayName}">` 
+      : `<span style="font-size:22px;">🛍️</span>`;
 
     const titleHtml = shop.instagram 
-      ? `<a href="${shop.instagram}" target="_blank" class="shop-ad-title-link"><div class="shop-ad-title">${shop.name} 🔗</div></a>`
-      : `<div class="shop-ad-title">${shop.name}</div>`;
+      ? `<a href="${shop.instagram}" target="_blank" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${displayName} 🔗</a>`
+      : displayName;
 
     const mapHtml = shop.map_link
-      ? `<a href="${shop.map_link}" target="_blank" class="shop-map-link">🗺️ Відкрити на мапі</a>`
+      ? `<a href="${shop.map_link}" target="_blank" class="shop-map-link" onclick="event.stopPropagation();">🗺️ Відкрити на мапі</a>`
       : '';
 
     const scheduleHtml = shop.schedule ? String(shop.schedule).replace(/\n/g, '<br>') : 'Не вказано';
@@ -599,91 +617,73 @@ function renderShops(shopsData) {
       const phonesArray = String(shop.phone).split(',').map(p => p.trim());
       phoneHtml = phonesArray.map(p => {
         const cleanNumber = p.replace(/[^0-9+]/g, '');
-        return `<a href="tel:${cleanNumber}" class="shop-phone-link">${p}</a>`;
+        return `<a href="tel:${cleanNumber}" class="shop-phone-link" onclick="event.stopPropagation();">${p}</a>`;
       }).join('<br>'); 
     }
 
-    cardsHtml += `
-      <div class="shop-ad-card">
-        <div class="shop-ad-photo">
-          ${photoHtml}
+    const fullPhotoHtml = shop.photo 
+      ? `<div class="shop-full-photo"><img src="${shop.photo}" alt="${displayName}"></div>` 
+      : '';
+
+    html += `
+      <div class="shop-list-item" onclick="document.getElementById('${detailsId}').classList.toggle('open')">
+        <div style="display: flex; align-items: center; gap: 0; width: 100%;">
+          <div class="shop-thumb">${thumbHtml}</div>
+          <div class="shop-title-row">
+            <div class="shop-list-cat">${shop.category || 'Магазин'}</div>
+            <div class="shop-list-name">${titleHtml}</div>
+          </div>
         </div>
-        <div class="shop-ad-info">
-          <div class="shop-ad-cat">${shop.category || 'Магазин'}</div>
-          ${titleHtml}
-          
-          <div class="shop-details-list">
-            <div class="shop-detail-item">
-              <span class="detail-icon">🕒</span>
-              <div class="detail-text"><b>Графік роботи:</b><br>${scheduleHtml}</div>
-            </div>
-            
-            <div class="shop-detail-item">
-              <span class="detail-icon">💳</span>
-              <div class="detail-text">Безконтактна оплата: <b>${shop.contactless ? '✅' : '❌'}</b></div>
-            </div>
-            
-            <div class="shop-detail-item">
-              <span class="detail-icon">📶</span>
-              <div class="detail-text">Безкоштовний WI-FI: <b>${shop.wifi ? '✅' : '❌'}</b></div>
-            </div>
-            
-            <div class="shop-detail-item">
-              <span class="detail-icon">📞</span>
-              <div class="detail-text">Телефон(и):<br>${phoneHtml}</div>
-            </div>
-            
-            <div class="shop-detail-item">
-              <span class="detail-icon">📍</span>
-              <div class="detail-text">Адреса:<br>${shop.address || 'Не вказано'} <br>${mapHtml}</div>
-            </div>
+        <div class="time-val future" style="font-size:11px; white-space:nowrap; padding-left:10px;">Деталі ▾</div>
+      </div>
+      
+      <div class="details ${isOpen}" id="${detailsId}">
+        ${fullPhotoHtml}
+        <div class="shop-details-list">
+          <div class="shop-detail-item">
+            <span class="detail-icon">🕒</span>
+            <div class="detail-text"><b>Графік роботи:</b><br>${scheduleHtml}</div>
+          </div>
+          <div class="shop-detail-item">
+            <span class="detail-icon">💳</span>
+            <div class="detail-text">Безконтактна оплата: <b>${shop.contactless ? '✅' : '❌'}</b></div>
+          </div>
+          <div class="shop-detail-item">
+            <span class="detail-icon">📶</span>
+            <div class="detail-text">Безкоштовний WI-FI: <b>${shop.wifi ? '✅' : '❌'}</b></div>
+          </div>
+          <div class="shop-detail-item">
+            <span class="detail-icon">📞</span>
+            <div class="detail-text">Телефон(и):<br>${phoneHtml}</div>
+          </div>
+          <div class="shop-detail-item">
+            <span class="detail-icon">📍</span>
+            <div class="detail-text">Адреса:<br>${shop.address || 'Не вказано'} <br>${mapHtml}</div>
           </div>
         </div>
       </div>
     `;
   });
   
-  if(cardsHtml === '') {
-     container.innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
-     return;
-  }
-
-  const dotsHtml = shopsData.map((_, i) => `<div class="carousel-dot ${i === 0 ? 'active' : ''}"></div>`).join('');
-  const dotsSection = shopsData.length > 1 ? `<div class="carousel-dots" id="dots-shops">${dotsHtml}</div>` : '';
-
-  container.innerHTML = `
-    <div class="carousel-wrapper">
-      <div class="shops-carousel-container" id="carousel-shops" onscroll="updateCarouselDots('carousel-shops', 'dots-shops')">
-        ${cardsHtml}
-      </div>
-      ${dotsSection}
-    </div>
-  `;
+  html += '</div>';
+  container.innerHTML = html;
 }
 
-// ЗАВАНТАЖЕННЯ ДАНИХ МАГАЗИНІВ ІЗ СИЛЬНОЮ ПЕРЕВІРКОЮ ПОМИЛОК
+// ЗАВАНТАЖЕННЯ ДАНИХ МАГАЗИНІВ
 async function loadShopsData() {
   try {
     const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
-    
-    // Якщо сервер повернув не 200 OK
     if (!r.ok) throw new Error('Bad response');
-    
     const d = await r.json();
     
-    // Якщо дані взагалі не містять масиву shops
     if (!d || !d.shops || !Array.isArray(d.shops)) {
       document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
       return;
     }
     
-    // Відфільтруємо порожні оголошення
-    const activeShops = d.shops.filter(shop => shop && shop.name && String(shop.name).trim() !== "");
-    
-    renderShops(activeShops);
+    renderShops(d.shops);
   } catch(e) {
     document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600;">Дані тимчасово недоступні (помилка сервера)</div>';
-    console.error("Шопінг дата еррор:", e);
   }
 }
 
