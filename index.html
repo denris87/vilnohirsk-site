@@ -197,7 +197,7 @@ body {
 .shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
 .shopping-drawer.open { max-height: 99999px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
 
-/* ==== СІТКА МАГАЗИНІВ ==== */
+/* ==== СІТКА МАГАЗИНІВ / БАРАХОЛКИ ==== */
 .shops-tile-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -279,7 +279,7 @@ body {
   border-radius: 8px;
 }
 
-/* АБСОЛЮТНА ШТОРКА МАГАЗИНУ */
+/* АБСОЛЮТНА ШТОРКА (ДЛЯ ШОПІНГУ І БАРАХОЛКИ) */
 .shop-details-dropdown {
   position: absolute;
   top: calc(100% + 5px); 
@@ -407,7 +407,9 @@ body {
         </div>
       </div>
       <div id="flea-market-tab" class="content-section">
-        <div style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Оголошень поки немає...</div>
+        <div id="flea-market-list-content">
+          <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження...</div>
+        </div>
       </div>
       <div id="lost-found-tab" class="content-section">
         <div style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Оголошень поки немає...</div>
@@ -424,7 +426,7 @@ body {
 <script>
 if (window.Telegram && window.Telegram.WebApp) { window.Telegram.WebApp.expand(); }
 
-// ==== ФУНКЦІЯ ЗБРОСУ (ЗАКРИВАЄ ВСІ ВІДКРИТІ ШТОРКИ МАГАЗИНІВ) ====
+// ==== ФУНКЦІЯ ЗБРОСУ (ЗАКРИВАЄ ВСІ ВІДКРИТІ ШТОРКИ ПЛИТОК) ====
 function closeAllShopDropdowns() {
   document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
     el.classList.remove('open');
@@ -432,18 +434,17 @@ function closeAllShopDropdowns() {
       el.parentElement.classList.remove('tile-active');
     }
   });
-  const grid = document.querySelector('.shops-tile-grid');
-  if (grid) {
+  document.querySelectorAll('.shops-tile-grid').forEach(grid => {
     grid.style.paddingBottom = '0px';
-  }
+  });
 }
 
 // ==== ВІДКРИТТЯ ВЕРХНІХ ВКЛАДОК (РОЗКЛАД) ====
 function openScheduleTab(tabId, btn) {
   try {
-    closeAllShopDropdowns(); // Закриваємо шторки магазинів
+    closeAllShopDropdowns(); // Закриваємо шторки плиток
 
-    // Миттєво закриваємо нижню панель (Маркет), якщо вона відкрита
+    // Миттєво закриваємо нижню панель (Маркет)
     const marketWidget = document.getElementById('market-drawer');
     if (marketWidget) marketWidget.classList.remove('open');
     document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -466,9 +467,9 @@ function openScheduleTab(tabId, btn) {
 // ==== ВІДКРИТТЯ НИЖНІХ ВКЛАДОК (МАРКЕТ) ====
 function openMarketTab(tabId, btn) {
   try {
-    closeAllShopDropdowns(); // Закриваємо шторки магазинів
+    closeAllShopDropdowns(); // Закриваємо шторки плиток (якщо клікнув на іншу вкладку маркета)
 
-    // Миттєво закриваємо верхню панель (Розклад), якщо вона відкрита
+    // Миттєво закриваємо верхню панель (Розклад)
     const scheduleWidget = document.getElementById('main-list-widget');
     if (scheduleWidget) scheduleWidget.classList.remove('open');
     document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -643,10 +644,13 @@ async function loadAlerts() {
   }
 }
 
+// ==== УНІВЕРСАЛЬНА ФУНКЦІЯ ВІДКРИТТЯ ШТОРКИ ПЛИТКИ (ШОПІНГ/БАРАХОЛКА) ====
 window.toggleShop = function(id, tileElement) {
   try {
-    const grid = document.querySelector('.shops-tile-grid');
+    // Знаходимо саме ту сітку, в якій знаходиться ця плитка
+    const grid = tileElement ? tileElement.closest('.shops-tile-grid') : null;
     
+    // Закриваємо інші відкриті шторки
     document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
       if (el.id !== id) {
         el.classList.remove('open');
@@ -663,12 +667,12 @@ window.toggleShop = function(id, tileElement) {
       if (tileElement) {
         tileElement.classList.toggle('tile-active', isOpen);
         
-        if (isOpen) {
+        if (isOpen && grid) {
           setTimeout(() => {
             const dropdownHeight = el.scrollHeight || 250;
             grid.style.paddingBottom = (dropdownHeight + 15) + 'px';
           }, 50);
-        } else {
+        } else if (grid) {
           grid.style.paddingBottom = '0px';
         }
       }
@@ -684,6 +688,7 @@ function shuffleArray(array) {
   return array;
 }
 
+// ==== РЕНДЕР ШОПІНГУ ====
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
@@ -771,23 +776,107 @@ function renderShops(shopsData) {
   container.innerHTML = html;
 }
 
+// ==== РЕНДЕР БАРАХОЛКИ ====
+function renderFleaMarket(fleaData) {
+  const container = document.getElementById('flea-market-list-content');
+  if (!fleaData || !Array.isArray(fleaData) || fleaData.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
+    return;
+  }
+
+  let html = '<div class="shops-tile-grid">';
+  
+  fleaData.forEach((item, index) => {
+    if(!item) return;
+    
+    const safeTitle = item.title != null ? String(item.title).trim() : "Оголошення " + (index + 1);
+    const detailsId = 'flea-detail-' + index;
+
+    const safePhoto = item.photo != null ? String(item.photo).trim() : "";
+    const photoHtml = safePhoto !== "" 
+      ? `<img src="${safePhoto}" alt="${safeTitle}">` 
+      : `<span style="font-size:28px;">📦</span>`;
+
+    const safePrice = item.price != null && String(item.price).trim() !== "" ? String(item.price).trim() : "Ціна договірна";
+    const safeDesc = item.description != null ? String(item.description).replace(/\n/g, '<br>') : 'Без опису';
+
+    let phoneHtml = 'Не вказано';
+    if (item.phone != null && String(item.phone).trim() !== "") {
+      const phonesArray = String(item.phone).split(',').map(p => p.trim());
+      phoneHtml = phonesArray.map(p => {
+        const cleanNumber = p.replace(/[^0-9+]/g, '');
+        return `<a href="tel:${cleanNumber}" class="shop-phone-link" onclick="event.stopPropagation();">${p}</a>`;
+      }).join('<br>'); 
+    }
+
+    html += `
+      <div class="shop-tile" onclick="toggleShop('${detailsId}', this)">
+        <div class="shop-tile-photo">${photoHtml}</div>
+        <div class="shop-tile-cat" style="color: #00ff9c;">${safePrice}</div>
+        <div class="shop-tile-name">${safeTitle}</div>
+        <div class="shop-tile-chevron">Опис ▾</div>
+        
+        <div class="shop-details-dropdown" id="${detailsId}" onclick="event.stopPropagation()">
+          <div class="shop-inner-list">
+            <div class="shop-inner-item">
+              <span class="detail-icon">📝</span>
+              <div><b>Опис товару:</b><br>${safeDesc}</div>
+            </div>
+            <div class="shop-inner-item">
+              <span class="detail-icon">📞</span>
+              <div><b>Контакти:</b><br>${phoneHtml}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  container.innerHTML = html;
+}
+
 async function loadShopsData() {
   try {
     const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
     if (!r.ok) throw new Error('Помилка HTTP: ' + r.status);
     const d = await r.json();
     
-    if (!d || !d.shops || !Array.isArray(d.shops)) {
+    let itemsArray = d.shops || d.items || (Array.isArray(d) ? d : []);
+
+    if (!itemsArray || itemsArray.length === 0) {
       document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
       return;
     }
     
-    const activeShops = d.shops.filter(shop => shop && shop.name && String(shop.name).trim() !== "");
+    const activeShops = itemsArray.filter(shop => shop && shop.name && String(shop.name).trim() !== "");
     const shuffledShops = shuffleArray([...activeShops]);
     
     renderShops(shuffledShops);
   } catch(e) {
     document.getElementById('shopping-list-content').innerHTML = `<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600; font-size: 13px;">Помилка завантаження: ${e.message}</div>`;
+  }
+}
+
+async function loadFleaMarketData() {
+  try {
+    const r = await fetch('https://vilnohirsk-flea-market-production.up.railway.app/api/flea');
+    if (!r.ok) throw new Error('Помилка HTTP: ' + r.status);
+    const d = await r.json();
+
+    let itemsArray = d.items || d.shops || (Array.isArray(d) ? d : []);
+
+    if (!itemsArray || itemsArray.length === 0) {
+      document.getElementById('flea-market-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
+      return;
+    }
+
+    const activeItems = itemsArray.filter(item => item && item.title && String(item.title).trim() !== "");
+    const shuffledItems = shuffleArray([...activeItems]);
+
+    renderFleaMarket(shuffledItems);
+  } catch(e) {
+    document.getElementById('flea-market-list-content').innerHTML = `<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600; font-size: 13px;">Помилка завантаження барахолки: ${e.message}</div>`;
   }
 }
 
@@ -815,9 +904,16 @@ loadTrainsData();
 loadLongTrainsData(); 
 loadBusesData(); 
 loadShopsData(); 
+loadFleaMarketData(); // Запуск барахолки
 
 setInterval(updateDateTime, 1000); 
-setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadShopsData(); }, 30000);
+setInterval(() => { 
+  loadTrainsData(); 
+  loadLongTrainsData(); 
+  loadAlerts(); 
+  loadShopsData(); 
+  loadFleaMarketData(); 
+}, 30000);
 </script>
 
 </body>
