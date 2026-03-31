@@ -148,10 +148,10 @@ body {
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; }
 .details-divider { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 20px auto 15px; }
 
-/* ШОПІНГ ВІЛЬНОГІРСЬКА (КВАДРАТНІ КАРТКИ) */
-.shopping-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 80; }
+/* БАРАХОЛКА ТА ШОПІНГ */
+.market-group { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 80; width: 100%; }
 .shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
-.shopping-drawer.open { max-height: 25000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 15px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
+.shopping-drawer.open { max-height: 25000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
 
 /* СІТКА ОГОЛОШЕНЬ */
 .shops-grid {
@@ -288,14 +288,14 @@ body {
   </div>
 
   <div class="schedule-group">
-    <div class="tabs-nav">
-      <button class="tab-btn" onclick="openTab('trains', this)">Електрички</button>
-      <button class="tab-btn" onclick="openTab('long-trains', this)">Потяги</button>
-      <button class="tab-btn" onclick="openTab('buses', this)">Автобуси</button>
+    <div class="tabs-nav" id="schedule-tabs">
+      <button class="tab-btn" onclick="openScheduleTab('trains', this)">Електрички</button>
+      <button class="tab-btn" onclick="openScheduleTab('long-trains', this)">Потяги</button>
+      <button class="tab-btn" onclick="openScheduleTab('buses', this)">Автобуси</button>
     </div>
 
     <div id="main-list-widget" class="main-list-widget">
-      <div id="trains" class="content-section active">
+      <div id="trains" class="content-section">
         <div id="list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
       </div>
       <div id="long-trains" class="content-section">
@@ -325,13 +325,24 @@ body {
     </div>
   </div>
 
-  <div class="shopping-main-widget liquid-glass">
-    <div class="alert-header" onclick="document.getElementById('shopping-drawer').classList.toggle('open')">
-      <div class="alert-title-box">🛍 Шопінг Вільногірська</div>
+  <div class="market-group">
+    <div class="tabs-nav" id="market-tabs">
+      <button class="tab-btn" onclick="openMarketTab('shopping-tab', this)">🛍 Шопінг</button>
+      <button class="tab-btn" onclick="openMarketTab('flea-market-tab', this)">📦 Барахолка</button>
+      <button class="tab-btn" onclick="openMarketTab('lost-found-tab', this)">🔍 Знахідки</button>
     </div>
-    <div class="shopping-drawer" id="shopping-drawer">
-      <div id="shopping-list-content">
-        <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження...</div>
+
+    <div class="shopping-drawer" id="market-drawer">
+      <div id="shopping-tab" class="content-section">
+        <div id="shopping-list-content">
+          <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження...</div>
+        </div>
+      </div>
+      <div id="flea-market-tab" class="content-section">
+        <div style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Оголошень поки немає...</div>
+      </div>
+      <div id="lost-found-tab" class="content-section">
+        <div style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Оголошень поки немає...</div>
       </div>
     </div>
   </div>
@@ -342,15 +353,31 @@ body {
 <script>
 if (window.Telegram && window.Telegram.WebApp) { window.Telegram.WebApp.expand(); }
 
-function openTab(tabId, btn) {
+// ФУНКЦІЯ ДЛЯ ВКЛАДОК РОЗКЛАДУ
+function openScheduleTab(tabId, btn) {
   const widget = document.getElementById('main-list-widget');
   if (btn.classList.contains('active')) {
     btn.classList.remove('active');
     widget.classList.remove('open');
     return;
   }
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#main-list-widget .content-section').forEach(s => s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+  widget.classList.add('open');
+}
+
+// ФУНКЦІЯ ДЛЯ ВКЛАДОК МАРКЕТУ (ШОПІНГ, БАРАХОЛКА)
+function openMarketTab(tabId, btn) {
+  const widget = document.getElementById('market-drawer');
+  if (btn.classList.contains('active')) {
+    btn.classList.remove('active');
+    widget.classList.remove('open');
+    return;
+  }
+  document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#market-drawer .content-section').forEach(s => s.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(tabId).classList.add('active');
   widget.classList.add('open');
@@ -512,7 +539,7 @@ async function loadAlerts() {
   }
 }
 
-// 🔥 РЕНДЕР МАГАЗИНІВ З УСІМА ХАРАКТЕРИСТИКАМИ ТА ДЕКІЛЬКОМА ТЕЛЕФОНАМИ
+// РЕНДЕР МАГАЗИНІВ З УСІМА ХАРАКТЕРИСТИКАМИ
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || shopsData.length === 0) {
@@ -523,36 +550,27 @@ function renderShops(shopsData) {
   let html = '<div class="shops-grid">';
   
   shopsData.forEach(shop => {
-    // 1. ФОТО
     const photoHtml = shop.photo 
       ? `<img src="${shop.photo}" alt="${shop.name}">` 
       : `<span style="font-weight:800; opacity:0.3; font-size: 14px; letter-spacing: 1px;">НЕМАЄ ФОТО</span>`;
 
-    // 2. НАЗВА ТА INSTAGRAM
     const titleHtml = shop.instagram 
       ? `<a href="${shop.instagram}" target="_blank" class="shop-ad-title-link"><div class="shop-ad-title">${shop.name} 🔗</div></a>`
       : `<div class="shop-ad-title">${shop.name}</div>`;
 
-    // 3. ПОСИЛАННЯ НА КАРТУ
     const mapHtml = shop.map_link
       ? `<a href="${shop.map_link}" target="_blank" class="shop-map-link">🗺️ Відкрити на мапі</a>`
       : '';
 
-    // 4. ФОРМАТУВАННЯ ГРАФІКУ (підтримка перенесення рядків)
     const scheduleHtml = shop.schedule ? shop.schedule.replace(/\n/g, '<br>') : 'Не вказано';
 
-    // 5. ОБРОБКА ТЕЛЕФОНІВ (Один або декілька через кому)
     let phoneHtml = 'Не вказано';
     if (shop.phone) {
-      // Розбиваємо рядок по комі, забираємо зайві пробіли
       const phonesArray = String(shop.phone).split(',').map(p => p.trim());
-      
-      // Робимо кожен номер окремим посиланням. 
-      // replace(/[^0-9+]/g, '') — видаляє пробіли і дужки для надійного дзвінка
       phoneHtml = phonesArray.map(p => {
         const cleanNumber = p.replace(/[^0-9+]/g, '');
         return `<a href="tel:${cleanNumber}" class="shop-phone-link">${p}</a>`;
-      }).join('<br>'); // <br> ставить кожен номер з нового рядка
+      }).join('<br>'); 
     }
 
     html += `
@@ -599,7 +617,7 @@ function renderShops(shopsData) {
   container.innerHTML = html;
 }
 
-// ЗАВАНТАЖЕННЯ ДАНИХ МАГАЗИНІВ З ТВОГО RAILWAY
+// ЗАВАНТАЖЕННЯ ДАНИХ МАГАЗИНІВ
 async function loadShopsData() {
   try {
     const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
