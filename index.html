@@ -280,7 +280,7 @@ body {
   border-radius: 8px;
 }
 
-/* АБСОЛЮТНА ШТОРКА (ДЛЯ ШОПІНГУ І БАРАХОЛКИ) */
+/* АБСОЛЮТНА ШТОРКА */
 .shop-details-dropdown {
   position: absolute;
   top: calc(100% + 5px); 
@@ -791,7 +791,6 @@ function renderFleaMarket(fleaData) {
       ? `<img src="${String(item.photo).trim()}" alt="${safeTitle}">` 
       : `<span style="font-size:28px;">📦</span>`;
 
-    // Додаємо слово "грн" автоматично
     let safePrice = item.price != null && String(item.price).trim() !== "" ? String(item.price).trim() : "Ціна договірна";
     if (safePrice !== "Ціна договірна" && !safePrice.toLowerCase().includes("грн")) {
       safePrice += " грн";
@@ -900,8 +899,9 @@ async function loadFleaMarketData() {
                  if (match && match[1]) fileId = match[1];
              }
 
+             // ВИКОРИСТОВУЄМО БЕЗВІДМОВНИЙ ФОРМАТ THUMBNAIL
              if (fileId) {
-                 photoUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+                 photoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
              }
 
              return {
