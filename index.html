@@ -193,7 +193,7 @@ body {
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; }
 .details-divider { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 20px auto 15px; }
 
-/* ШТОРКА МАРКЕТУ - БЕЗЛІМІТНА ВИСОТА */
+/* ШТОРКА МАРКЕТУ */
 .shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
 .shopping-drawer.open { max-height: 99999px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
 
@@ -203,7 +203,7 @@ body {
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   align-items: start; 
-  transition: padding-bottom 0.3s ease; /* Плавний відступ для абсолютних шторок */
+  transition: padding-bottom 0.3s ease; 
 }
 @media (min-width: 650px) {
   .shops-tile-grid { grid-template-columns: repeat(3, 1fr); }
@@ -219,8 +219,8 @@ body {
   padding: 10px;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  position: relative; /* Необхідно для позиціонування шторки "поверх" */
-  z-index: 1; /* Базовий рівень */
+  position: relative; 
+  z-index: 1; 
 }
 .shop-tile:hover {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.3));
@@ -230,7 +230,6 @@ body {
   transform: translateY(1px);
 }
 
-/* Коли магазин відкритий, він стає вище за інші */
 .shop-tile.tile-active {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.3));
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
@@ -280,20 +279,20 @@ body {
   border-radius: 8px;
 }
 
-/* АБСОЛЮТНА ШТОРКА (Відкривається поверх усього іншого) */
+/* АБСОЛЮТНА ШТОРКА */
 .shop-details-dropdown {
   position: absolute;
-  top: calc(100% + 5px); /* Рівно під плиткою магазину */
+  top: calc(100% + 5px); 
   left: 0;
-  width: 100%; /* Така ж ширина, як і сама картка */
+  width: 100%; 
   max-height: 0;
   opacity: 0;
   overflow: hidden;
   margin-top: 0;
   transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-  pointer-events: none; /* Щоб не блокувати кліки, коли закрита */
+  pointer-events: none; 
   box-sizing: border-box;
-  z-index: 50; /* Високий пріоритет */
+  z-index: 50; 
 }
 
 .shop-details-dropdown.open {
@@ -302,7 +301,6 @@ body {
   pointer-events: auto;
 }
 
-/* Внутрішній дизайн шторки з щільним фоном, щоб текст під нею не просвічувався */
 .shop-inner-list {
   display: flex;
   flex-direction: column;
@@ -310,13 +308,13 @@ body {
   font-size: 11px;
   text-align: left;
   color: rgba(255,255,255,0.85);
-  background: rgba(11, 29, 58, 0.98); /* Майже суцільний темний фон */
+  background: rgba(11, 29, 58, 0.98); 
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 12px;
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.2);
-  box-shadow: 0 15px 35px rgba(0,0,0,0.8); /* Сильна тінь для ефекту паріння */
+  box-shadow: 0 15px 35px rgba(0,0,0,0.8); 
 }
 
 .shop-inner-item {
@@ -613,12 +611,11 @@ async function loadAlerts() {
   }
 }
 
-// ==== НОВА ЛОГІКА ДЛЯ ШТОРОК МАГАЗИНІВ ====
 window.toggleShop = function(id, tileElement) {
   try {
     const grid = document.querySelector('.shops-tile-grid');
     
-    // Закриваємо всі інші відкриті шторки
+    // Закриваємо інші шторки
     document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
       if (el.id !== id) {
         el.classList.remove('open');
@@ -633,10 +630,8 @@ window.toggleShop = function(id, tileElement) {
       const isOpen = el.classList.toggle('open');
       
       if (tileElement) {
-        // Додаємо/забираємо клас tile-active для підняття картки нагору
         tileElement.classList.toggle('tile-active', isOpen);
         
-        // Динамічний відступ знизу, щоб шторка останнього ряду не обрізалась контейнером
         if (isOpen) {
           setTimeout(() => {
             const dropdownHeight = el.scrollHeight || 250;
@@ -647,10 +642,18 @@ window.toggleShop = function(id, tileElement) {
         }
       }
     }
-  } catch(e) { console.error(e); }
+  } catch(e) {}
 };
 
-// ==== НОВИЙ РЕНДЕР МАГАЗИНІВ (АБСОЛЮТНЕ ПОЗИЦІОНУВАННЯ) ====
+// === ФУНКЦІЯ ДЛЯ ПЕРЕМІШУВАННЯ МАСИВУ (Fisher-Yates) ===
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
@@ -699,7 +702,6 @@ function renderShops(shopsData) {
     const isContactless = shop.contactless === true || shop.contactless === 'true' || shop.contactless === '✅';
     const isWifi = shop.wifi === true || shop.wifi === 'true' || shop.wifi === '✅';
 
-    // ВАЖЛИВО: Виклик функції `toggleShop` з передачею поточного елемента `this`
     html += `
       <div class="shop-tile" onclick="toggleShop('${detailsId}', this)">
         <div class="shop-tile-photo">${photoHtml}</div>
@@ -750,7 +752,12 @@ async function loadShopsData() {
       return;
     }
     
-    renderShops(d.shops);
+    const activeShops = d.shops.filter(shop => shop && shop.name && String(shop.name).trim() !== "");
+    
+    // ПЕРЕМІШУВАННЯ МАСИВУ ТУТ
+    const shuffledShops = shuffleArray([...activeShops]);
+    
+    renderShops(shuffledShops);
   } catch(e) {
     document.getElementById('shopping-list-content').innerHTML = `<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600; font-size: 13px;">Помилка завантаження: ${e.message}</div>`;
   }
