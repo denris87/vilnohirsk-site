@@ -424,7 +424,7 @@ body {
 <script>
 if (window.Telegram && window.Telegram.WebApp) { window.Telegram.WebApp.expand(); }
 
-// ФУНКЦІЯ ЗБРОСУ (ЗАКРИВАЄ ВСІ ВІДКРИТІ ШТОРКИ МАГАЗИНІВ)
+// ==== ФУНКЦІЯ ЗБРОСУ (ЗАКРИВАЄ ВСІ ВІДКРИТІ ШТОРКИ МАГАЗИНІВ) ====
 function closeAllShopDropdowns() {
   document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
     el.classList.remove('open');
@@ -438,9 +438,16 @@ function closeAllShopDropdowns() {
   }
 }
 
+// ==== ВІДКРИТТЯ ВЕРХНІХ ВКЛАДОК (РОЗКЛАД) ====
 function openScheduleTab(tabId, btn) {
   try {
-    closeAllShopDropdowns(); // <-- Закриваємо шторки магазинів при кліку на розклад
+    closeAllShopDropdowns(); // Закриваємо шторки магазинів
+
+    // Миттєво закриваємо нижню панель (Маркет), якщо вона відкрита
+    const marketWidget = document.getElementById('market-drawer');
+    if (marketWidget) marketWidget.classList.remove('open');
+    document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#market-drawer .content-section').forEach(s => s.classList.remove('active'));
 
     const widget = document.getElementById('main-list-widget');
     if (btn.classList.contains('active')) {
@@ -456,9 +463,16 @@ function openScheduleTab(tabId, btn) {
   } catch (e) { console.error(e); }
 }
 
+// ==== ВІДКРИТТЯ НИЖНІХ ВКЛАДОК (МАРКЕТ) ====
 function openMarketTab(tabId, btn) {
   try {
-    closeAllShopDropdowns(); // <-- Закриваємо шторки магазинів при кліку на інші вкладки маркета
+    closeAllShopDropdowns(); // Закриваємо шторки магазинів
+
+    // Миттєво закриваємо верхню панель (Розклад), якщо вона відкрита
+    const scheduleWidget = document.getElementById('main-list-widget');
+    if (scheduleWidget) scheduleWidget.classList.remove('open');
+    document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#main-list-widget .content-section').forEach(s => s.classList.remove('active'));
 
     const widget = document.getElementById('market-drawer');
     if (btn.classList.contains('active')) {
