@@ -355,32 +355,36 @@ if (window.Telegram && window.Telegram.WebApp) { window.Telegram.WebApp.expand()
 
 // ФУНКЦІЯ ДЛЯ ВКЛАДОК РОЗКЛАДУ
 function openScheduleTab(tabId, btn) {
-  const widget = document.getElementById('main-list-widget');
-  if (btn.classList.contains('active')) {
-    btn.classList.remove('active');
-    widget.classList.remove('open');
-    return;
-  }
-  document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('#main-list-widget .content-section').forEach(s => s.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(tabId).classList.add('active');
-  widget.classList.add('open');
+  try {
+    const widget = document.getElementById('main-list-widget');
+    if (btn.classList.contains('active')) {
+      btn.classList.remove('active');
+      widget.classList.remove('open');
+      return;
+    }
+    document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#main-list-widget .content-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    widget.classList.add('open');
+  } catch (e) { console.error(e); }
 }
 
 // ФУНКЦІЯ ДЛЯ ВКЛАДОК МАРКЕТУ
 function openMarketTab(tabId, btn) {
-  const widget = document.getElementById('market-drawer');
-  if (btn.classList.contains('active')) {
-    btn.classList.remove('active');
-    widget.classList.remove('open');
-    return;
-  }
-  document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('#market-drawer .content-section').forEach(s => s.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(tabId).classList.add('active');
-  widget.classList.add('open');
+  try {
+    const widget = document.getElementById('market-drawer');
+    if (btn.classList.contains('active')) {
+      btn.classList.remove('active');
+      widget.classList.remove('open');
+      return;
+    }
+    document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#market-drawer .content-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+    widget.classList.add('open');
+  } catch(e) { console.error(e); }
 }
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
@@ -412,11 +416,13 @@ async function loadWeather(){
 }
 
 function updateDateTime(){
-  const now = getKyivNow();
-  document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-  document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-  const days=document.querySelectorAll(".day"); days.forEach(d=>d.classList.remove("active"));
-  let i=now.getDay(); i=i===0?6:i-1; days[i].classList.add("active");
+  try {
+    const now = getKyivNow();
+    document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+    document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+    const days=document.querySelectorAll(".day"); days.forEach(d=>d.classList.remove("active"));
+    let i=now.getDay(); i=i===0?6:i-1; days[i].classList.add("active");
+  } catch(e) {}
 }
 
 function isPast(timeStr) {
@@ -435,7 +441,7 @@ function renderGrid(data, isChanges = false, alwaysWhite = false) {
       const idx = c * perCol + j;
       if (idx < total) {
         const r = data[idx]; const past = isPast(r[1]);
-        const isVil = r[0].toLowerCase().includes('вільногірськ');
+        const isVil = (r[0] || "").toLowerCase().includes('вільногірськ');
         const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
         let timeClass = (alwaysWhite || isChanges) ? 'time-normal' : (past ? 'time-passed' : 'time-green');
         html += `<div class="${rowClass}"><div class="schedule-left"><span class="station-number">${idx + 1}.</span><span class="station-name-text">${r[0]}</span></div><div class="${timeClass}">${r[1]}</div></div>`;
@@ -451,6 +457,7 @@ function renderTrains(el, data){
   const openIds = Array.from(el.querySelectorAll('.details.open')).map(d => d.id);
   let html = `<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="trains-content">`;
   data.forEach(x => {
+    if (!x) return;
     const id = "d-" + x.number; const now = getKyivNow();
     let statusClass = "future", displayText = x.time;
     if (x.time && x.time.includes(':')) {
@@ -470,9 +477,10 @@ function renderLongTrains(el, data) {
   const openIds = Array.from(el.querySelectorAll('.details.open')).map(d => d.id);
   let html = `<div class="table-head"><div>№</div><div>Маршрут прямування</div><div>Відпр.</div></div><div id="long-trains-content">`;
   data.forEach((x, index) => {
+    if(!x) return;
     const id = "lt-" + x.number + "-" + index; const isOpen = openIds.includes(id) ? 'open' : '';
     const stopsMapped = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
-    const hasChanges = x.changes && x.changes.length > 0;
+    const hasChanges = x.changes && Array.isArray(x.changes) && x.changes.length > 0;
     let infoHtml = "";
     if (x.periodicityText) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність з початкової станції маршруту:</b><br><span style="color:rgba(255,255,255,0.7); font-weight:500;">${x.periodicityText}</span></div>`;
     if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500; color: rgba(255,255,255,0.8);">${x.changes.map(c => `<li>${c}</li>`).join('')}</ul></div>`;
@@ -486,10 +494,227 @@ function renderBuses(el, data) {
   const openIds = Array.from(el.querySelectorAll('.details.open')).map(d => d.id);
   let html = `<div class="table-head"><div>Тип</div><div>Маршрут прямування</div><div>Статус</div></div><div id="buses-content">`;
   data.forEach((b, index) => {
+    if(!b) return;
     const id = "bus-" + index; const isOpen = openIds.includes(id) ? 'open' : '';
     let colsHtml = '';
-    b.directions.forEach(dir => {
-      let rowsHtml = dir.rows.map(row => `<div class="schedule-row"><div class="schedule-left"><span class="station-name-text">${row[0]}</span></div><div class="time-normal">${row[1]}</div></div>`).join('');
-      colsHtml += `<div class="schedule-column"><div style="text-align:center; color:var(--highlight-color); font-size:11px; margin-bottom:10px; font-weight:800; text-transform:uppercase;">${dir.title}</div>${rowsHtml}</div>`;
-    });
-    html += `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')"><div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div><div class="route-text">${b.route}</div><div class="time-val future" style="font-size:11px
+    if(b.directions && Array.isArray(b.directions)) {
+      b.directions.forEach(dir => {
+        let rowsHtml = dir.rows.map(row => `<div class="schedule-row"><div class="schedule-left"><span class="station-name-text">${row[0]}</span></div><div class="time-normal">${row[1]}</div></div>`).join('');
+        colsHtml += `<div class="schedule-column"><div style="text-align:center; color:var(--highlight-color); font-size:11px; margin-bottom:10px; font-weight:800; text-transform:uppercase;">${dir.title}</div>${rowsHtml}</div>`;
+      });
+    }
+    html += `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')"><div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div><div class="route-text">${b.route}</div><div class="time-val future" style="font-size:11px;">Розклад ▾</div></div><div class="details ${isOpen}" id="${id}"><div class="bus-grid">${colsHtml}</div>${b.note ? `<div class="details-divider"></div><div class="details-note" style="color:#2af598;">${b.note}</div>` : ''}</div>`;
+  });
+  html += `</div>`; el.innerHTML = html;
+}
+
+window.updateCarouselDots = function(containerId, dotsId) {
+  try {
+    const container = document.getElementById(containerId); 
+    const dotsContainer = document.getElementById(dotsId);
+    if (!container || !dotsContainer) return;
+    
+    const dots = dotsContainer.children;
+    if (!dots || dots.length === 0) return;
+
+    const firstChild = container.firstElementChild;
+    if (!firstChild) return;
+
+    const style = window.getComputedStyle(container);
+    const gap = parseFloat(style.gap) || 0;
+    const itemWidth = firstChild.offsetWidth + gap;
+
+    let index = Math.round(container.scrollLeft / itemWidth);
+    if (index >= dots.length) index = dots.length - 1;
+
+    for (let i = 0; i < dots.length; i++) {
+      dots[i].classList.toggle('active', i === index);
+    }
+  } catch(e) {}
+};
+
+function buildCarouselHtml(items, typeColor, typeId) {
+  if (!items || items.length === 0) return `<div class="alert-empty">Немає актуальної інформації</div>`;
+  const slidesHtml = items.map(item => {
+    if(!item) return '';
+    const textHtml = item.text ? String(item.text).replace(/\n/g, '<br>') : '';
+    return `<div class="alert-item">${item.title ? `<div class="alert-card-title" style="color: ${typeColor};">${item.title}</div>` : ''}<div class="alert-card-text">${textHtml}</div></div>`;
+  }).join("");
+  if (items.length === 1) return `<div class="carousel-wrapper"><div class="carousel-container">${slidesHtml}</div></div>`;
+  const dotsHtml = items.map((_, i) => `<div class="carousel-dot ${i === 0 ? 'active' : ''}"></div>`).join("");
+  return `<div class="carousel-wrapper"><div class="carousel-container" id="carousel-${typeId}" onscroll="updateCarouselDots('carousel-${typeId}', 'dots-${typeId}')">${slidesHtml}</div><div class="carousel-dots" id="dots-${typeId}">${dotsHtml}</div></div>`;
+}
+
+async function loadAlerts() {
+  try {
+    const r = await fetch('https://vilnohirsk-alerts-production.up.railway.app/api/alert'); 
+    const d = await r.json();
+    const communalAlerts = (d && Array.isArray(d.communal)) ? d.communal.filter(i => i && i.show) : [];
+    const newsAlerts = (d && Array.isArray(d.news)) ? d.news.filter(i => i && i.show) : [];
+    const container = document.getElementById("alert-drawer-content"); const dot = document.getElementById("main-alert-dot");
+    
+    if (communalAlerts.length > 0 || newsAlerts.length > 0) {
+      dot.classList.add("active");
+      const communalHtml = buildCarouselHtml(communalAlerts, '#ffcc00', 'communal');
+      const newsHtml = buildCarouselHtml(newsAlerts, '#00ff9c', 'news');
+      container.innerHTML = `<div class="alert-grid-container"><div class="alert-col"><div class="alert-col-header communal">Комунальний інформер</div>${communalHtml}</div><div class="alert-col"><div class="alert-col-header news">Міські новини</div>${newsHtml}</div></div>`;
+    } else {
+      dot.classList.remove("active"); container.innerHTML = `<div style="text-align: center; width: 100%; color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 600;">Актуальних повідомлень немає</div>`;
+    }
+  } catch(e) {
+    document.getElementById("main-alert-dot").classList.remove("active");
+    document.getElementById("alert-drawer-content").innerHTML = `<div style="text-align: center; width: 100%; color: rgba(255,255,255,0.3); font-size: 13px;">Дані завантажуються...</div>`;
+  }
+}
+
+// ОНОВЛЕНИЙ РЕНДЕР МАГАЗИНІВ ІЗ ЗАХИСТОМ
+function renderShops(shopsData) {
+  const container = document.getElementById('shopping-list-content');
+  if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
+    container.innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
+    return;
+  }
+
+  let cardsHtml = '';
+  
+  shopsData.forEach(shop => {
+    if(!shop) return;
+    
+    const photoHtml = shop.photo 
+      ? `<img src="${shop.photo}" alt="${shop.name}">` 
+      : `<span style="font-weight:800; opacity:0.3; font-size: 14px; letter-spacing: 1px;">НЕМАЄ ФОТО</span>`;
+
+    const titleHtml = shop.instagram 
+      ? `<a href="${shop.instagram}" target="_blank" class="shop-ad-title-link"><div class="shop-ad-title">${shop.name} 🔗</div></a>`
+      : `<div class="shop-ad-title">${shop.name}</div>`;
+
+    const mapHtml = shop.map_link
+      ? `<a href="${shop.map_link}" target="_blank" class="shop-map-link">🗺️ Відкрити на мапі</a>`
+      : '';
+
+    const scheduleHtml = shop.schedule ? String(shop.schedule).replace(/\n/g, '<br>') : 'Не вказано';
+
+    let phoneHtml = 'Не вказано';
+    if (shop.phone) {
+      const phonesArray = String(shop.phone).split(',').map(p => p.trim());
+      phoneHtml = phonesArray.map(p => {
+        const cleanNumber = p.replace(/[^0-9+]/g, '');
+        return `<a href="tel:${cleanNumber}" class="shop-phone-link">${p}</a>`;
+      }).join('<br>'); 
+    }
+
+    cardsHtml += `
+      <div class="shop-ad-card">
+        <div class="shop-ad-photo">
+          ${photoHtml}
+        </div>
+        <div class="shop-ad-info">
+          <div class="shop-ad-cat">${shop.category || 'Магазин'}</div>
+          ${titleHtml}
+          
+          <div class="shop-details-list">
+            <div class="shop-detail-item">
+              <span class="detail-icon">🕒</span>
+              <div class="detail-text"><b>Графік роботи:</b><br>${scheduleHtml}</div>
+            </div>
+            
+            <div class="shop-detail-item">
+              <span class="detail-icon">💳</span>
+              <div class="detail-text">Безконтактна оплата: <b>${shop.contactless ? '✅' : '❌'}</b></div>
+            </div>
+            
+            <div class="shop-detail-item">
+              <span class="detail-icon">📶</span>
+              <div class="detail-text">Безкоштовний WI-FI: <b>${shop.wifi ? '✅' : '❌'}</b></div>
+            </div>
+            
+            <div class="shop-detail-item">
+              <span class="detail-icon">📞</span>
+              <div class="detail-text">Телефон(и):<br>${phoneHtml}</div>
+            </div>
+            
+            <div class="shop-detail-item">
+              <span class="detail-icon">📍</span>
+              <div class="detail-text">Адреса:<br>${shop.address || 'Не вказано'} <br>${mapHtml}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  if(cardsHtml === '') {
+     container.innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
+     return;
+  }
+
+  const dotsHtml = shopsData.map((_, i) => `<div class="carousel-dot ${i === 0 ? 'active' : ''}"></div>`).join('');
+  const dotsSection = shopsData.length > 1 ? `<div class="carousel-dots" id="dots-shops">${dotsHtml}</div>` : '';
+
+  container.innerHTML = `
+    <div class="carousel-wrapper">
+      <div class="shops-carousel-container" id="carousel-shops" onscroll="updateCarouselDots('carousel-shops', 'dots-shops')">
+        ${cardsHtml}
+      </div>
+      ${dotsSection}
+    </div>
+  `;
+}
+
+// ЗАВАНТАЖЕННЯ ДАНИХ МАГАЗИНІВ ІЗ СИЛЬНОЮ ПЕРЕВІРКОЮ ПОМИЛОК
+async function loadShopsData() {
+  try {
+    const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
+    
+    // Якщо сервер повернув не 200 OK
+    if (!r.ok) throw new Error('Bad response');
+    
+    const d = await r.json();
+    
+    // Якщо дані взагалі не містять масиву shops
+    if (!d || !d.shops || !Array.isArray(d.shops)) {
+      document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
+      return;
+    }
+    
+    // Відфільтруємо порожні оголошення
+    const activeShops = d.shops.filter(shop => shop && shop.name && String(shop.name).trim() !== "");
+    
+    renderShops(activeShops);
+  } catch(e) {
+    document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600;">Дані тимчасово недоступні (помилка сервера)</div>';
+    console.error("Шопінг дата еррор:", e);
+  }
+}
+
+function loadTrainsData(){ 
+  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
+    .then(r=>r.json()).then(d=>{if(d&&d.trains) renderTrains(document.getElementById("list"),d.trains);})
+    .catch(e=>document.getElementById("list").innerHTML="<div style='text-align:center; padding: 20px;'>Помилка завантаження</div>"); 
+}
+function loadLongTrainsData() { 
+  fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule")
+    .then(r=>r.json()).then(d=>{if(d&&d.trains) renderLongTrains(document.getElementById("long-trains-list"),d.trains);})
+    .catch(e=>document.getElementById("long-trains-list").innerHTML="<div style='text-align:center; padding: 20px;'>Помилка завантаження</div>"); 
+}
+function loadBusesData(){ 
+  fetch("https://vilnohirskbuses-production.up.railway.app/api/buses")
+    .then(r=>r.json()).then(d=>{if(d&&d.buses) renderBuses(document.getElementById("buses-list"),d.buses);})
+    .catch(e=>document.getElementById("buses-list").innerHTML="<div style='text-align:center; padding: 20px;'>Помилка завантаження</div>"); 
+}
+
+// ЗАПУСК УСІХ БЛОКІВ
+updateDateTime(); 
+loadWeather(); 
+loadAlerts(); 
+loadTrainsData(); 
+loadLongTrainsData(); 
+loadBusesData(); 
+loadShopsData(); 
+
+setInterval(updateDateTime, 1000); 
+setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadShopsData(); }, 30000);
+</script>
+
+</body>
+</html>
