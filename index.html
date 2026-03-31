@@ -280,7 +280,7 @@ body {
   border-radius: 8px;
 }
 
-/* АБСОЛЮТНА ШТОРКА */
+/* АБСОЛЮТНА ШТОРКА (ДЛЯ ШОПІНГУ І БАРАХОЛКИ) */
 .shop-details-dropdown {
   position: absolute;
   top: calc(100% + 5px); 
@@ -688,7 +688,7 @@ function shuffleArray(array) {
   return array;
 }
 
-// ==== РЕНДЕР ШОПІНГУ (Без WI-FI) ====
+// ==== РЕНДЕР ШОПІНГУ ====
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
@@ -791,7 +791,12 @@ function renderFleaMarket(fleaData) {
       ? `<img src="${String(item.photo).trim()}" alt="${safeTitle}">` 
       : `<span style="font-size:28px;">📦</span>`;
 
-    const safePrice = item.price != null && String(item.price).trim() !== "" ? String(item.price).trim() : "Ціна договірна";
+    // Додаємо слово "грн" автоматично
+    let safePrice = item.price != null && String(item.price).trim() !== "" ? String(item.price).trim() : "Ціна договірна";
+    if (safePrice !== "Ціна договірна" && !safePrice.toLowerCase().includes("грн")) {
+      safePrice += " грн";
+    }
+
     const safeDesc = item.description != null ? String(item.description).replace(/\n/g, '<br>') : 'Без опису';
     
     const safeCategory = item.category != null && String(item.category).trim() !== "" ? String(item.category).trim() : "Різне";
@@ -886,7 +891,7 @@ async function loadFleaMarketData() {
              let firstPhoto = rawPhoto.split(',')[0].trim();
              let photoUrl = firstPhoto;
              
-             // Надійне витягування ID для обходу блокувань Google Drive
+             // Надійне витягування ID для фото
              let fileId = '';
              if (photoUrl.includes('id=')) {
                  fileId = photoUrl.split('id=')[1].split('&')[0];
@@ -896,7 +901,7 @@ async function loadFleaMarketData() {
              }
 
              if (fileId) {
-                 photoUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+                 photoUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
              }
 
              return {
