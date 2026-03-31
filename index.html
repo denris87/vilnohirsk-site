@@ -193,11 +193,11 @@ body {
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; }
 .details-divider { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 20px auto 15px; }
 
-/* ШТОРКА МАРКЕТУ */
+/* ШТОРКА МАРКЕТУ - БЕЗЛІМІТНА ВИСОТА */
 .shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
 .shopping-drawer.open { max-height: 99999px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
 
-/* ==== СІТКА МАГАЗИНІВ (ПЛИТКИ З АБСОЛЮТНИМИ ШТОРКАМИ) ==== */
+/* ==== СІТКА МАГАЗИНІВ ==== */
 .shops-tile-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -279,7 +279,7 @@ body {
   border-radius: 8px;
 }
 
-/* АБСОЛЮТНА ШТОРКА */
+/* АБСОЛЮТНА ШТОРКА МАГАЗИНУ */
 .shop-details-dropdown {
   position: absolute;
   top: calc(100% + 5px); 
@@ -424,8 +424,24 @@ body {
 <script>
 if (window.Telegram && window.Telegram.WebApp) { window.Telegram.WebApp.expand(); }
 
+// ФУНКЦІЯ ЗБРОСУ (ЗАКРИВАЄ ВСІ ВІДКРИТІ ШТОРКИ МАГАЗИНІВ)
+function closeAllShopDropdowns() {
+  document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
+    el.classList.remove('open');
+    if (el.parentElement) {
+      el.parentElement.classList.remove('tile-active');
+    }
+  });
+  const grid = document.querySelector('.shops-tile-grid');
+  if (grid) {
+    grid.style.paddingBottom = '0px';
+  }
+}
+
 function openScheduleTab(tabId, btn) {
   try {
+    closeAllShopDropdowns(); // <-- Закриваємо шторки магазинів при кліку на розклад
+
     const widget = document.getElementById('main-list-widget');
     if (btn.classList.contains('active')) {
       btn.classList.remove('active');
@@ -442,6 +458,8 @@ function openScheduleTab(tabId, btn) {
 
 function openMarketTab(tabId, btn) {
   try {
+    closeAllShopDropdowns(); // <-- Закриваємо шторки магазинів при кліку на інші вкладки маркета
+
     const widget = document.getElementById('market-drawer');
     if (btn.classList.contains('active')) {
       btn.classList.remove('active');
@@ -615,7 +633,6 @@ window.toggleShop = function(id, tileElement) {
   try {
     const grid = document.querySelector('.shops-tile-grid');
     
-    // Закриваємо інші шторки
     document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
       if (el.id !== id) {
         el.classList.remove('open');
@@ -645,7 +662,6 @@ window.toggleShop = function(id, tileElement) {
   } catch(e) {}
 };
 
-// === ФУНКЦІЯ ДЛЯ ПЕРЕМІШУВАННЯ МАСИВУ (Fisher-Yates) ===
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -753,8 +769,6 @@ async function loadShopsData() {
     }
     
     const activeShops = d.shops.filter(shop => shop && shop.name && String(shop.name).trim() !== "");
-    
-    // ПЕРЕМІШУВАННЯ МАСИВУ ТУТ
     const shuffledShops = shuffleArray([...activeShops]);
     
     renderShops(shuffledShops);
