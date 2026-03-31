@@ -102,7 +102,7 @@ body {
 .train-alert-dot { position: absolute; top: -4px; right: -4px; width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5); animation: pulseAlert 1.5s infinite; }
 @keyframes pulseAlert { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
-/* === ОНОВЛЕНІ СТИЛІ НАВІГАЦІЇ === */
+/* === СТИЛІ НАВІГАЦІЇ === */
 .schedule-group, .market-group { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 90; width: 100%;}
 .market-group { z-index: 80; }
 
@@ -201,7 +201,7 @@ body {
 .shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
 .shopping-drawer.open { max-height: 25000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
 
-/* ОНОВЛЕНА КАРУСЕЛЬ ДЛЯ ШОПІНГУ */
+/* КАРУСЕЛЬ ДЛЯ ШОПІНГУ */
 .shops-carousel-container { 
   display: flex; 
   overflow-x: auto; 
@@ -218,7 +218,7 @@ body {
 .shop-ad-card { 
   display: flex; 
   flex-direction: column; 
-  flex: 0 0 100%; /* На телефонах 1 картка займає всю ширину */
+  flex: 0 0 100%;
   scroll-snap-align: center;
   scroll-snap-stop: always;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); 
@@ -230,7 +230,6 @@ body {
   box-sizing: border-box;
 }
 
-/* На екранах ширше 650px поміщається по 2 картки, які також свайпаються */
 @media (min-width: 650px) { 
   .shop-ad-card { flex: 0 0 calc(50% - 7.5px); } 
 }
@@ -369,7 +368,7 @@ function openScheduleTab(tabId, btn) {
   widget.classList.add('open');
 }
 
-// ФУНКЦІЯ ДЛЯ ВКЛАДОК МАРКЕТУ (ШОПІНГ, БАРАХОЛКА ТОЩО)
+// ФУНКЦІЯ ДЛЯ ВКЛАДОК МАРКЕТУ
 function openMarketTab(tabId, btn) {
   const widget = document.getElementById('market-drawer');
   if (btn.classList.contains('active')) {
@@ -493,226 +492,4 @@ function renderBuses(el, data) {
       let rowsHtml = dir.rows.map(row => `<div class="schedule-row"><div class="schedule-left"><span class="station-name-text">${row[0]}</span></div><div class="time-normal">${row[1]}</div></div>`).join('');
       colsHtml += `<div class="schedule-column"><div style="text-align:center; color:var(--highlight-color); font-size:11px; margin-bottom:10px; font-weight:800; text-transform:uppercase;">${dir.title}</div>${rowsHtml}</div>`;
     });
-    html += `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')"><div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div><div class="route-text">${b.route}</div><div class="time-val future" style="font-size:11px;">Розклад ▾</div></div><div class="details ${isOpen}" id="${id}"><div class="bus-grid">${colsHtml}</div>${b.note ? `<div class="details-divider"></div><div class="details-note" style="color:#2af598;">${b.note}</div>` : ''}</div>`;
-  });
-  html += `</div>`; el.innerHTML = html;
-}
-
-// УНІВЕРСАЛЬНА ФУНКЦІЯ ДЛЯ ОНОВЛЕННЯ ТОЧОК НАВІГАЦІЇ
-window.updateCarouselDots = function(containerId, dotsId) {
-  const container = document.getElementById(containerId); 
-  const dotsContainer = document.getElementById(dotsId);
-  if (!container || !dotsContainer) return;
-  
-  const dots = dotsContainer.children;
-  if (!dots || dots.length === 0) return;
-
-  const firstChild = container.firstElementChild;
-  if (!firstChild) return;
-
-  // Рахуємо ширину елемента + відступ (gap)
-  const style = window.getComputedStyle(container);
-  const gap = parseFloat(style.gap) || 0;
-  const itemWidth = firstChild.offsetWidth + gap;
-
-  // Визначаємо поточний індекс скролу
-  let index = Math.round(container.scrollLeft / itemWidth);
-  if (index >= dots.length) index = dots.length - 1;
-
-  for (let i = 0; i < dots.length; i++) {
-    dots[i].classList.toggle('active', i === index);
-  }
-};
-
-function buildCarouselHtml(items, typeColor, typeId) {
-  if (items.length === 0) return `<div class="alert-empty">Немає актуальної інформації</div>`;
-  if (items.length === 1) {
-    const item = items[0]; const textHtml = item.text ? item.text.replace(/\n/g, '<br>') : '';
-    return `<div class="alert-item">${item.title ? `<div class="alert-card-title" style="color: ${typeColor};">${item.title}</div>` : ''}<div class="alert-card-text">${textHtml}</div></div>`;
-  }
-  const slidesHtml = items.map(item => {
-    const textHtml = item.text ? item.text.replace(/\n/g, '<br>') : '';
-    return `<div class="alert-item">${item.title ? `<div class="alert-card-title" style="color: ${typeColor};">${item.title}</div>` : ''}<div class="alert-card-text">${textHtml}</div></div>`;
-  }).join("");
-  const dotsHtml = items.map((_, i) => `<div class="carousel-dot ${i === 0 ? 'active' : ''}"></div>`).join("");
-  return `<div class="carousel-wrapper"><div class="carousel-container" id="carousel-${typeId}" onscroll="updateCarouselDots('carousel-${typeId}', 'dots-${typeId}')">${slidesHtml}</div><div class="carousel-dots" id="dots-${typeId}">${dotsHtml}</div></div>`;
-}
-
-async function loadAlerts() {
-  try {
-    const r = await fetch('https://vilnohirsk-alerts-production.up.railway.app/api/alert'); const d = await r.json();
-    const communalAlerts = Array.isArray(d.communal) ? d.communal.filter(i => i.show) : [];
-    const newsAlerts = Array.isArray(d.news) ? d.news.filter(i => i.show) : [];
-    const container = document.getElementById("alert-drawer-content"); const dot = document.getElementById("main-alert-dot");
-    if (communalAlerts.length > 0 || newsAlerts.length > 0) {
-      dot.classList.add("active");
-      const communalHtml = buildCarouselHtml(communalAlerts, '#ffcc00', 'communal');
-      const newsHtml = buildCarouselHtml(newsAlerts, '#00ff9c', 'news');
-      container.innerHTML = `<div class="alert-grid-container"><div class="alert-col"><div class="alert-col-header communal">Комунальний інформер</div>${communalHtml}</div><div class="alert-col"><div class="alert-col-header news">Міські новини</div>${newsHtml}</div></div>`;
-    } else {
-      dot.classList.remove("active"); container.innerHTML = `<div style="text-align: center; width: 100%; color: rgba(255,255,255,0.5); font-size: 14px; font-weight: 600;">Актуальних повідомлень немає</div>`;
-    }
-  } catch(e) {
-    document.getElementById("main-alert-dot").classList.remove("active");
-    document.getElementById("alert-drawer-content").innerHTML = `<div style="text-align: center; width: 100%; color: rgba(255,255,255,0.3); font-size: 13px;">Дані завантажуються...</div>`;
-  }
-}
-
-// ОНОВЛЕНИЙ РЕНДЕР МАГАЗИНІВ З КАРУСЕЛЛЮ СВАЙПА
-function renderShops(shopsData) {
-  const container = document.getElementById('shopping-list-content');
-  if (!shopsData || shopsData.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
-    return;
-  }
-
-  let cardsHtml = '';
-  
-  shopsData.forEach(shop => {
-    const photoHtml = shop.photo 
-      ? `<img src="${shop.photo}" alt="${shop.name}">` 
-      : `<span style="font-weight:800; opacity:0.3; font-size: 14px; letter-spacing: 1px;">НЕМАЄ ФОТО</span>`;
-
-    const titleHtml = shop.instagram 
-      ? `<a href="${shop.instagram}" target="_blank" class="shop-ad-title-link"><div class="shop-ad-title">${shop.name} 🔗</div></a>`
-      : `<div class="shop-ad-title">${shop.name}</div>`;
-
-    const mapHtml = shop.map_link
-      ? `<a href="${shop.map_link}" target="_blank" class="shop-map-link">🗺️ Відкрити на мапі</a>`
-      : '';
-
-    const scheduleHtml = shop.schedule ? shop.schedule.replace(/\n/g, '<br>') : 'Не вказано';
-
-    let phoneHtml = 'Не вказано';
-    if (shop.phone) {
-      const phonesArray = String(shop.phone).split(',').map(p => p.trim());
-      phoneHtml = phonesArray.map(p => {
-        const cleanNumber = p.replace(/[^0-9+]/g, '');
-        return `<a href="tel:${cleanNumber}" class="shop-phone-link">${p}</a>`;
-      }).join('<br>'); 
-    }
-
-    cardsHtml += `
-      <div class="shop-ad-card">
-        <div class="shop-ad-photo">
-          ${photoHtml}
-        </div>
-        <div class="shop-ad-info">
-          <div class="shop-ad-cat">${shop.category || 'Магазин'}</div>
-          ${titleHtml}
-          
-          <div class="shop-details-list">
-            <div class="shop-detail-item">
-              <span class="detail-icon">🕒</span>
-              <div class="detail-text"><b>Графік роботи:</b><br>${scheduleHtml}</div>
-            </div>
-            
-            <div class="shop-detail-item">
-              <span class="detail-icon">💳</span>
-              <div class="detail-text">Безконтактна оплата: <b>${shop.contactless ? '✅' : '❌'}</b></div>
-            </div>
-            
-            <div class="shop-detail-item">
-              <span class="detail-icon">📶</span>
-              <div class="detail-text">Безкоштовний WI-FI: <b>${shop.wifi ? '✅' : '❌'}</b></div>
-            </div>
-            
-            <div class="shop-detail-item">
-              <span class="detail-icon">📞</span>
-              <div class="detail-text">Телефон(и):<br>${phoneHtml}</div>
-            </div>
-            
-            <div class="shop-detail-item">
-              <span class="detail-icon">📍</span>
-              <div class="detail-text">Адреса:<br>${shop.address || 'Не вказано'} <br>${mapHtml}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  });
-  
-  // Додаємо крапочки навігації (якщо більше одного оголошення)
-  const dotsHtml = shopsData.map((_, i) => `<div class="carousel-dot ${i === 0 ? 'active' : ''}"></div>`).join('');
-  const dotsSection = shopsData.length > 1 ? `<div class="carousel-dots" id="dots-shops">${dotsHtml}</div>` : '';
-
-  // Будуємо фінальний HTML з каруселлю
-  container.innerHTML = `
-    <div class="carousel-wrapper">
-      <div class="shops-carousel-container" id="carousel-shops" onscroll="updateCarouselDots('carousel-shops', 'dots-shops')">
-        ${cardsHtml}
-      </div>
-      ${dotsSection}
-    </div>
-  `;
-}
-
-// ЗАВАНТАЖЕННЯ ДАНИХ МАГАЗИНІВ (СТАТИЧНІ ДАНІ ДЛЯ ТЕСТУ)
-function loadShopsData() {
-  const localShopsData = [
-    {
-      id: "shop-1",
-      category: "Кав'ярня",
-      name: "Coffee Lavka",
-      instagram: "https://www.instagram.com/coffee_lavka_vln",
-      schedule: "Пн - Нд: 08:00 - 21:00\nСб - Нд: 09:00 - 21:00\nПерерва: ",
-      contactless: true,
-      wifi: true,
-      phone: "",
-      address: "Площа Героїв (біля ПК)",
-      map_link: "",
-      photo: "https://github.com/denris87/vilnohirsk-shops/blob/main/photo_2026-03-30_22-17-03.jpg?raw=true"
-    },
-    {
-      id: "shop-2",
-      category: "Будівельний магазин",
-      name: "Квадратний метр",
-      instagram: "",
-      schedule: "Пн - Пт: 08:00 - 18:00\nСб - Нд: 08:00 - 14:00\nПерерва:",
-      contactless: true,
-      wifi: false,
-      phone: "0675675801 (Володимир), 0673427373 (Павло)",
-      address: "вул. Центральна 20",
-      map_link: "https://maps.app.goo.gl/xzm395pr6ZxEEJAu8",
-      photo: "https://github.com/denris87/vilnohirsk-shops/blob/main/photo_2026-03-30_22-24-27.jpg?raw=true"
-    },
-    {
-      id: "shop-3",
-      category: "Магазин Тест",
-      name: "Новий магазин",
-      instagram: "",
-      schedule: "Пн - Сб: 08:00 - 18:00 \nНд: Вихідний",
-      contactless: true,
-      wifi: false,
-      phone: "0990000000",
-      address: "Вулиця Тестова 1",
-      map_link: "",
-      photo: ""
-    }
-  ];
-
-  // Відфільтруємо порожні шаблони оголошень (щоб не виводились пусті картки)
-  const activeShops = localShopsData.filter(shop => shop.name && shop.name.trim() !== "");
-  
-  renderShops(activeShops);
-}
-
-function loadTrainsData(){ fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>renderTrains(document.getElementById("list"),d.trains)); }
-function loadLongTrainsData() { fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule").then(r=>r.json()).then(d=>renderLongTrains(document.getElementById("long-trains-list"),d.trains)); }
-function loadBusesData(){ fetch("https://vilnohirskbuses-production.up.railway.app/api/buses").then(r=>r.json()).then(d=>renderBuses(document.getElementById("buses-list"),d.buses)); }
-
-// ЗАПУСК УСІХ БЛОКІВ
-updateDateTime(); 
-loadWeather(); 
-loadAlerts(); 
-loadTrainsData(); 
-loadLongTrainsData(); 
-loadBusesData(); 
-loadShopsData(); // Запуск магазинів
-
-setInterval(updateDateTime, 1000); 
-setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); }, 30000);
-</script>
-
-</body>
-</html>
+    html += `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')"><div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div><div class="route-text">${b.route}</div><div class="time-val future" style="font-size:11px
