@@ -814,7 +814,14 @@ function renderFleaMarket(fleaData) {
     html += `
       <div class="shop-tile" onclick="toggleShop('${detailsId}', this)">
         <div class="shop-tile-photo">${safePhoto}</div>
-        <div class="shop-tile-cat" style="color: #00ff9c;">${safePrice}</div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px;">
+          <div class="shop-tile-cat" style="color: #00ff9c; margin-bottom: 0; white-space: nowrap; flex-shrink: 0;">${safePrice}</div>
+          <div style="font-size: 10px; color: rgba(255,255,255,0.6); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${safeLocation}">
+            📍 ${safeLocation}
+          </div>
+        </div>
+        
         <div class="shop-tile-name">${safeTitle}</div>
         <div class="shop-tile-chevron">Опис ▾</div>
         
@@ -827,10 +834,6 @@ function renderFleaMarket(fleaData) {
             <div class="shop-inner-item">
               <span class="detail-icon">✨</span>
               <div><b>Стан:</b><br>${safeCondition}</div>
-            </div>
-            <div class="shop-inner-item">
-              <span class="detail-icon">📍</span>
-              <div><b>Місто:</b><br>${safeLocation}</div>
             </div>
             <div class="shop-inner-item">
               <span class="detail-icon">📝</span>
@@ -899,7 +902,7 @@ async function loadFleaMarketData() {
                  if (match && match[1]) fileId = match[1];
              }
 
-             // ВИКОРИСТОВУЄМО БЕЗВІДМОВНИЙ ФОРМАТ THUMBNAIL
+             // ВИКОРИСТОВУЄМО ОФІЦІЙНИЙ THUMBNAIL API GOOGLE (НІКОЛИ НЕ ЗНИКАЄ)
              if (fileId) {
                  photoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
              }
