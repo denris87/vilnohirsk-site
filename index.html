@@ -102,7 +102,7 @@ body {
 .train-alert-dot { position: absolute; top: -4px; right: -4px; width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5); animation: pulseAlert 1.5s infinite; }
 @keyframes pulseAlert { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
-/* === ОНОВЛЕНІ СТИЛІ НАВІГАЦІЇ (КНОПКИ ТАБЛЕТКИ) === */
+/* === ОНОВЛЕНІ СТИЛІ НАВІГАЦІЇ (КНОПКИ ТАБЛЕТКИ З НАСИЧЕНИМ ТЕКСТОМ) === */
 .schedule-group, .market-group { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 90; width: 100%;}
 .market-group { z-index: 80; }
 
@@ -130,12 +130,13 @@ body {
 .tab-btn { 
   flex: 0 0 auto; 
   padding: 12px 16px; 
-  border: 1px solid rgba(255, 255, 255, 0.05); /* Ледь помітна межа */
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.15)); /* Опуклий градієнт */
+  border: 1px solid rgba(255, 255, 255, 0.1); 
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.25)); 
   box-shadow: 
-    2px 4px 8px rgba(0, 0, 0, 0.15), /* Зовнішня тінь */
-    inset 1px 1px 2px rgba(255, 255, 255, 0.15); /* Внутрішній відблиск зверху-зліва */
-  color: rgba(255, 255, 255, 0.65); 
+    2px 4px 8px rgba(0, 0, 0, 0.2), 
+    inset 1px 1px 2px rgba(255, 255, 255, 0.15); 
+  color: #ffffff; /* Насичений білий колір */
+  opacity: 0.9; /* Трохи приглушений для неактивного стану, щоб зберігався контраст */
   font-weight: 700; 
   cursor: pointer; 
   border-radius: 14px; 
@@ -144,16 +145,17 @@ body {
   white-space: nowrap; 
 }
 
-/* Активний стан (більш яскрава та "натиснута" кнопка) */
+/* Активний стан (світліша та "натиснута" кнопка) */
 .tab-btn.active { 
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.05)); 
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1)); 
   color: #ffffff; 
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.5); 
+  opacity: 1; /* Повністю насичений */
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1px 4px rgba(0,0,0,0.8); 
   box-shadow: 
-    0 4px 12px rgba(0,0,0,0.3), 
-    inset 1px 1px 3px rgba(255,255,255,0.3); 
-  transform: translateY(-1px); /* Злегка піднімається */
+    0 4px 12px rgba(0,0,0,0.4), 
+    inset 1px 1px 3px rgba(255,255,255,0.4); 
+  transform: translateY(-1px); 
 }
 
 .content-section { display: none; }
@@ -256,13 +258,13 @@ body {
 
   <div class="schedule-group">
     <div class="tabs-nav" id="schedule-tabs">
-      <button class="tab-btn active" onclick="openScheduleTab('trains', this)">Електрички</button>
+      <button class="tab-btn" onclick="openScheduleTab('trains', this)">Електрички</button>
       <button class="tab-btn" onclick="openScheduleTab('long-trains', this)">Потяги</button>
       <button class="tab-btn" onclick="openScheduleTab('buses', this)">Автобуси</button>
     </div>
 
-    <div id="main-list-widget" class="main-list-widget open">
-      <div id="trains" class="content-section active">
+    <div id="main-list-widget" class="main-list-widget">
+      <div id="trains" class="content-section">
         <div id="list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
       </div>
       <div id="long-trains" class="content-section">
