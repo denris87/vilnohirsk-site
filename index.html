@@ -598,7 +598,7 @@ window.toggleShop = function(id) {
   } catch(e) {}
 };
 
-// ==== НОВИЙ РЕНДЕР МАГАЗИНІВ (БЕЗЛІМІТНИЙ) ====
+// ==== НОВИЙ РЕНДЕР МАГАЗИНІВ (БРОНЕБІЙНИЙ) ====
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
@@ -612,26 +612,32 @@ function renderShops(shopsData) {
   shopsData.forEach((shop, index) => {
     if(!shop) return;
     
-    const displayName = shop.name && shop.name.trim() !== "" ? shop.name : "Оголошення " + (index + 1);
+    // Бронебійний парсинг усіх полів (запобігає крашу від чисел, null чи undefined)
+    const safeName = shop.name != null ? String(shop.name).trim() : "";
+    const displayName = safeName !== "" ? safeName : "Оголошення " + (index + 1);
+    
     const detailsId = 'shop-detail-' + index;
     const isOpen = openIds.includes(detailsId) ? 'open' : '';
 
-    const photoHtml = shop.photo 
-      ? `<img src="${shop.photo}" alt="${displayName}">` 
+    const safePhoto = shop.photo != null ? String(shop.photo).trim() : "";
+    const photoHtml = safePhoto !== "" 
+      ? `<img src="${safePhoto}" alt="${displayName}">` 
       : `<span style="font-size:28px;">🛍️</span>`;
 
-    const titleHtml = shop.instagram 
-      ? `<a href="${shop.instagram}" target="_blank" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${displayName} 🔗</a>`
+    const safeInsta = shop.instagram != null ? String(shop.instagram).trim() : "";
+    const titleHtml = safeInsta !== ""
+      ? `<a href="${safeInsta}" target="_blank" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${displayName} 🔗</a>`
       : displayName;
 
-    const mapHtml = shop.map_link
-      ? `<a href="${shop.map_link}" target="_blank" class="shop-map-link" onclick="event.stopPropagation();">🗺️ Відкрити на мапі</a>`
+    const safeMap = shop.map_link != null ? String(shop.map_link).trim() : "";
+    const mapHtml = safeMap !== ""
+      ? `<a href="${safeMap}" target="_blank" class="shop-map-link" onclick="event.stopPropagation();">🗺️ Відкрити на мапі</a>`
       : '';
 
-    const scheduleHtml = shop.schedule ? String(shop.schedule).replace(/\n/g, '<br>') : 'Не вказано';
+    const safeSchedule = shop.schedule != null ? String(shop.schedule).replace(/\n/g, '<br>') : 'Не вказано';
 
     let phoneHtml = 'Не вказано';
-    if (shop.phone) {
+    if (shop.phone != null && String(shop.phone).trim() !== "") {
       const phonesArray = String(shop.phone).split(',').map(p => p.trim());
       phoneHtml = phonesArray.map(p => {
         const cleanNumber = p.replace(/[^0-9+]/g, '');
@@ -639,10 +645,16 @@ function renderShops(shopsData) {
       }).join('<br>'); 
     }
 
+    const safeCategory = shop.category != null && String(shop.category).trim() !== "" ? String(shop.category).trim() : "Магазин";
+    const safeAddress = shop.address != null && String(shop.address).trim() !== "" ? String(shop.address).trim() : "Не вказано";
+    
+    const isContactless = shop.contactless === true || shop.contactless === 'true' || shop.contactless === '✅';
+    const isWifi = shop.wifi === true || shop.wifi === 'true' || shop.wifi === '✅';
+
     html += `
       <div class="shop-tile" onclick="toggleShop('${detailsId}')">
         <div class="shop-tile-photo">${photoHtml}</div>
-        <div class="shop-tile-cat">${shop.category || 'Магазин'}</div>
+        <div class="shop-tile-cat">${safeCategory}</div>
         <div class="shop-tile-name">${titleHtml}</div>
         <div class="shop-tile-chevron">Деталі ▾</div>
         
@@ -650,15 +662,15 @@ function renderShops(shopsData) {
           <div class="shop-inner-list">
             <div class="shop-inner-item">
               <span class="detail-icon">🕒</span>
-              <div><b>Графік роботи:</b><br>${scheduleHtml}</div>
+              <div><b>Графік роботи:</b><br>${safeSchedule}</div>
             </div>
             <div class="shop-inner-item">
               <span class="detail-icon">💳</span>
-              <div>Термінал: <b>${shop.contactless ? '✅' : '❌'}</b></div>
+              <div>Термінал: <b>${isContactless ? '✅' : '❌'}</b></div>
             </div>
             <div class="shop-inner-item">
               <span class="detail-icon">📶</span>
-              <div>WI-FI: <b>${shop.wifi ? '✅' : '❌'}</b></div>
+              <div>WI-FI: <b>${isWifi ? '✅' : '❌'}</b></div>
             </div>
             <div class="shop-inner-item">
               <span class="detail-icon">📞</span>
@@ -666,7 +678,7 @@ function renderShops(shopsData) {
             </div>
             <div class="shop-inner-item">
               <span class="detail-icon">📍</span>
-              <div>Адреса:<br>${shop.address || 'Не вказано'} <br>${mapHtml}</div>
+              <div>Адреса:<br>${safeAddress} <br>${mapHtml}</div>
             </div>
           </div>
         </div>
@@ -681,7 +693,7 @@ function renderShops(shopsData) {
 async function loadShopsData() {
   try {
     const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
-    if (!r.ok) throw new Error('Bad response');
+    if (!r.ok) throw new Error('Помилка HTTP: ' + r.status);
     const d = await r.json();
     
     if (!d || !d.shops || !Array.isArray(d.shops)) {
@@ -691,7 +703,7 @@ async function loadShopsData() {
     
     renderShops(d.shops);
   } catch(e) {
-    document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600;">Дані тимчасово недоступні (помилка сервера)</div>';
+    document.getElementById('shopping-list-content').innerHTML = `<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600; font-size: 13px;">Помилка завантаження: ${e.message}</div>`;
   }
 }
 
