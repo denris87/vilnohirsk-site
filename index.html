@@ -102,12 +102,45 @@ body {
 .train-alert-dot { position: absolute; top: -4px; right: -4px; width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5); animation: pulseAlert 1.5s infinite; }
 @keyframes pulseAlert { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
-/* РОЗКЛАДИ */
-.schedule-group { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 90; width: 100%;}
-.tabs-nav { display: flex; width: 100%; padding: 6px; background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; position: relative; z-index: 2; box-shadow: inset 0 2px 10px rgba(0,0,0,0.4), 0 4px 15px rgba(0,0,0,0.2); border: 1px solid var(--glass-border); overflow-x: auto; scrollbar-width: none;}
+/* === ОНОВЛЕНІ СТИЛІ НАВІГАЦІЇ === */
+.schedule-group, .market-group { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 90; width: 100%;}
+.market-group { z-index: 80; }
+
+.tabs-nav { 
+  display: flex; 
+  flex-wrap: nowrap; /* Строго в один ряд */
+  width: 100%; 
+  padding: 6px; 
+  gap: 8px; /* Відстань між кнопками */
+  background: var(--glass-bg); 
+  backdrop-filter: blur(24px); 
+  -webkit-backdrop-filter: blur(24px); 
+  border-radius: 20px; 
+  position: relative; 
+  z-index: 2; 
+  box-shadow: inset 0 2px 10px rgba(0,0,0,0.4), 0 4px 15px rgba(0,0,0,0.2); 
+  border: 1px solid var(--glass-border); 
+  overflow-x: auto; 
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch; /* Плавний скрол на iOS */
+}
 .tabs-nav::-webkit-scrollbar { display: none; }
-.tab-btn { flex: 1; padding: 12px 5px; border: none; background: transparent; color: rgba(255, 255, 255, 0.55); font-weight: 700; cursor: pointer; border-radius: 14px; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); font-size: clamp(11px, 3vw, 14px); white-space: nowrap; min-width: 80px; }
+
+.tab-btn { 
+  flex: 0 0 auto; /* Кнопки не стискаються, займають рівно стільки місця, скільки треба тексту */
+  padding: 12px 16px; 
+  border: none; 
+  background: transparent; 
+  color: rgba(255, 255, 255, 0.55); 
+  font-weight: 700; 
+  cursor: pointer; 
+  border-radius: 14px; 
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
+  font-size: clamp(12px, 3.5vw, 14px); 
+  white-space: nowrap; 
+}
 .tab-btn.active { background: rgba(255, 255, 255, 0.15); color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.5); box-shadow: 0 4px 10px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.2); }
+
 .content-section { display: none; }
 .content-section.active { display: block; animation: slideUpFade 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
 @keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -149,123 +182,41 @@ body {
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; }
 .details-divider { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 20px auto 15px; }
 
-/* БАРАХОЛКА ТА ШОПІНГ */
-.market-group { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 80; width: 100%; }
+/* БАРАХОЛКА ТА ШОПІНГ ШТОРКА */
 .shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
 .shopping-drawer.open { max-height: 25000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
 
 /* СІТКА ОГОЛОШЕНЬ */
-.shops-grid {
-  display: grid;
-  grid-template-columns: 1fr; /* 1 колонка на телефонах */
-  gap: 15px;
-}
-@media (min-width: 650px) {
-  .shops-grid {
-    grid-template-columns: 1fr 1fr; /* 2 колонки на ПК і планшетах */
-  }
-}
+.shops-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+@media (min-width: 650px) { .shops-grid { grid-template-columns: 1fr 1fr; } }
 
 /* КАРТКА МАГАЗИНУ */
-.shop-ad-card { 
-  display: flex; 
-  flex-direction: column;
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); 
-  border: 1px solid rgba(255, 255, 255, 0.05); 
-  border-radius: 16px; 
-  overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.shop-ad-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2); 
-}
+.shop-ad-card { display: flex; flex-direction: column; background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2)); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.shop-ad-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2); }
 
 /* ФОТО В КАРТЦІ */
-.shop-ad-photo {
-  width: 100%;
-  height: 200px;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-.shop-ad-photo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+.shop-ad-photo { width: 100%; height: 200px; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+.shop-ad-photo img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ІНФОРМАЦІЯ ПІД ФОТО */
-.shop-ad-info {
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  text-align: left;
-}
+.shop-ad-info { padding: 15px; display: flex; flex-direction: column; gap: 8px; text-align: left; }
 .shop-ad-cat { font-size: 11px; color: var(--highlight-color); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;}
 
 /* КЛІКАБЕЛЬНА НАЗВА (INSTAGRAM) */
-.shop-ad-title-link { 
-  text-decoration: none; 
-  color: inherit; 
-  display: inline-block; 
-  transition: opacity 0.3s; 
-}
+.shop-ad-title-link { text-decoration: none; color: inherit; display: inline-block; transition: opacity 0.3s; }
 .shop-ad-title-link:hover { opacity: 0.8; }
 .shop-ad-title { font-weight: 800; font-size: 18px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.6); margin-bottom: 4px; }
 
 /* СПИСОК ХАРАКТЕРИСТИК */
-.shop-details-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 5px;
-  background: rgba(0,0,0,0.15);
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-.shop-detail-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 13px;
-  line-height: 1.4;
-  color: rgba(255,255,255,0.85);
-}
-.detail-icon {
-  flex-shrink: 0;
-  font-size: 14px;
-}
+.shop-details-list { display: flex; flex-direction: column; gap: 8px; margin-top: 5px; background: rgba(0,0,0,0.15); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
+.shop-detail-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.4; color: rgba(255,255,255,0.85); }
+.detail-icon { flex-shrink: 0; font-size: 14px; }
 .detail-text b { color: #fff; }
 
 /* ПОСИЛАННЯ (ТЕЛЕФОН ТА МАПА) */
-.shop-phone-link {
-  color: #2af598;
-  text-decoration: none;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
-.shop-map-link {
-  color: #74b9ff;
-  text-decoration: none;
-  font-weight: 700;
-  display: inline-block;
-  margin-top: 6px;
-  background: rgba(116, 185, 255, 0.1);
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(116, 185, 255, 0.2);
-  transition: all 0.3s;
-}
-.shop-map-link:hover {
-  background: rgba(116, 185, 255, 0.2);
-}
+.shop-phone-link { color: #2af598; text-decoration: none; font-weight: 800; letter-spacing: 0.5px; }
+.shop-map-link { color: #74b9ff; text-decoration: none; font-weight: 700; display: inline-block; margin-top: 6px; background: rgba(116, 185, 255, 0.1); padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(116, 185, 255, 0.2); transition: all 0.3s; }
+.shop-map-link:hover { background: rgba(116, 185, 255, 0.2); }
 </style>
 </head>
 
