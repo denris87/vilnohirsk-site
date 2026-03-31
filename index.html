@@ -280,7 +280,7 @@ body {
   border-radius: 8px;
 }
 
-/* АБСОЛЮТНА ШТОРКА (ДЛЯ ШОПІНГУ І БАРАХОЛКИ) */
+/* АБСОЛЮТНА ШТОРКА */
 .shop-details-dropdown {
   position: absolute;
   top: calc(100% + 5px); 
@@ -688,7 +688,7 @@ function shuffleArray(array) {
   return array;
 }
 
-// ==== РЕНДЕР ШОПІНГУ ====
+// ==== РЕНДЕР ШОПІНГУ (Без WI-FI) ====
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
@@ -886,13 +886,17 @@ async function loadFleaMarketData() {
              let firstPhoto = rawPhoto.split(',')[0].trim();
              let photoUrl = firstPhoto;
              
-             if (photoUrl.includes('open?id=')) {
-                 photoUrl = photoUrl.replace('open?id=', 'uc?export=view&id=');
+             // Надійне витягування ID для обходу блокувань Google Drive
+             let fileId = '';
+             if (photoUrl.includes('id=')) {
+                 fileId = photoUrl.split('id=')[1].split('&')[0];
              } else if (photoUrl.includes('file/d/')) {
-                 const match = photoUrl.match(/\/d\/(.*?)\//);
-                 if (match && match[1]) {
-                     photoUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
-                 }
+                 let match = photoUrl.match(/\/d\/(.*?)\//);
+                 if (match && match[1]) fileId = match[1];
+             }
+
+             if (fileId) {
+                 photoUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
              }
 
              return {
