@@ -564,6 +564,39 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   if (tg.expand) { tg.expand(); }
 
+  // ==== ЗАКРИТТЯ ШТОРОК КЛІКОМ ПОЗА ЇХНЬОЮ ОБЛАСТЮ ====
+  document.addEventListener('click', function(e) {
+    // 1. Інформаційне табло
+    if (!e.target.closest('.alert-main-widget')) {
+      const alertDrawer = document.getElementById('alert-drawer');
+      if (alertDrawer) alertDrawer.classList.remove('open');
+    }
+
+    // 2. Внутрішні деталі транспорту (розклади поїздів/автобусів)
+    if (!e.target.closest('.train') && !e.target.closest('.details')) {
+      document.querySelectorAll('.details.open').forEach(el => el.classList.remove('open'));
+    }
+
+    // 3. Картки магазинів та барахолки
+    if (!e.target.closest('.shop-tile')) {
+      closeAllShopDropdowns();
+    }
+
+    // 4. Головні вкладки (Транспорт)
+    if (!e.target.closest('.schedule-group')) {
+      const transportWidget = document.getElementById('main-list-widget');
+      if (transportWidget) transportWidget.classList.remove('open');
+      document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    }
+
+    // 5. Головні вкладки (Маркет)
+    if (!e.target.closest('.market-group')) {
+      const marketWidget = document.getElementById('market-drawer');
+      if (marketWidget) marketWidget.classList.remove('open');
+      document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    }
+  });
+
   // ==== ФУНКЦІЯ ЗБРОСУ (ЗАКРИВАЄ ВСІ ВІДКРИТІ ШТОРКИ ПЛИТОК) ====
   function closeAllShopDropdowns() {
     document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
