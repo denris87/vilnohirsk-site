@@ -395,18 +395,27 @@ body {
 
   <div class="market-group">
     <div class="tabs-nav" id="market-tabs">
+      <button class="tab-btn" onclick="openMarketTab('city-guide-tab', this)">📖 Міський довідник</button>
+      <button class="tab-btn" onclick="openMarketTab('lost-found-tab', this)">🔍 Знахідки</button>
       <button class="tab-btn" onclick="openMarketTab('shopping-tab', this)">🛍 Шопінг</button>
       <button class="tab-btn" onclick="openMarketTab('flea-market-tab', this)">📦 Барахолка</button>
-      <button class="tab-btn" onclick="openMarketTab('lost-found-tab', this)">🔍 Знахідки</button>
-      <button class="tab-btn" onclick="openMarketTab('city-guide-tab', this)">📖 Міський довідник</button>
     </div>
 
     <div class="shopping-drawer" id="market-drawer">
+      <div id="city-guide-tab" class="content-section">
+        <div style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Інформація відсутня...</div>
+      </div>
+      
+      <div id="lost-found-tab" class="content-section">
+        <div style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Оголошень поки немає...</div>
+      </div>
+      
       <div id="shopping-tab" class="content-section">
         <div id="shopping-list-content">
           <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження...</div>
         </div>
       </div>
+      
       <div id="flea-market-tab" class="content-section">
         <div style="padding: 5px 10px 15px 10px; text-align: center;">
           <a href="https://forms.gle/wkb79TBuduCSVLJF8" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; padding: 12px 24px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.4); text-transform: uppercase; font-size: 13px; letter-spacing: 1px; transition: transform 0.2s;">➕ Додати своє оголошення</a>
@@ -415,12 +424,7 @@ body {
           <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження...</div>
         </div>
       </div>
-      <div id="lost-found-tab" class="content-section">
-        <div style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Оголошень поки немає...</div>
-      </div>
-      <div id="city-guide-tab" class="content-section">
-        <div style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Інформація відсутня...</div>
-      </div>
+
     </div>
   </div>
 
