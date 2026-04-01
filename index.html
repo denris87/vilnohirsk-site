@@ -78,7 +78,7 @@ body {
 <body>
 
 <div id="auth-screen" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; width: 100%; padding: 20px;">
-  <div class="liquid-glass" style="padding: 35px 25px; text-align: center; max-width: 400px; width: 100%;">
+  <div class="liquid-glass" style="padding: 35px 25px; text-align: center; max-width: 400px; width: 100%; background: rgba(13, 25, 48, 0.95);">
     <h2 style="color: var(--highlight-color); margin-top: 0; margin-bottom: 15px; font-size: 20px; text-transform: uppercase; letter-spacing: 1px;">Помилка доступу</h2>
     <p style="font-size: 15px; line-height: 1.5; margin: 0; color: rgba(255,255,255,0.9);">Цей додаток працює лише всередині Telegram-бота.</p>
   </div>
@@ -137,9 +137,12 @@ body {
 <script>
 const tg = window.Telegram.WebApp;
 
-// 🟢 ПЕРЕВІРКА ДОСТУПУ
-if (tg.initData !== "") {
-  // Користувач зайшов через Telegram - запускаємо додаток
+// 🟢 РОЗУМНА ПЕРЕВІРКА ДОСТУПУ
+// Telegram завжди передає "platform" (android, ios, tdesktop тощо). 
+// Якщо це звичайний браузер Chrome/Safari, платформа буде "unknown".
+if (tg.platform && tg.platform !== "unknown") {
+  
+  // Користувач зайшов через Telegram - відкриваємо додаток
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-app-content').style.display = 'flex';
   tg.expand();
@@ -160,7 +163,7 @@ if (tg.initData !== "") {
   });
 
 } else {
-  // Звичайний браузер - залишаємо екран помилки
+  // Звичайний браузер - показуємо екран помилки
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-app-content').style.display = 'none';
 }
@@ -260,7 +263,6 @@ async function loadWeather() {
     <div style="font-size:12px; opacity:0.6;">💨 ${Math.round(d.current_weather.windspeed)} м/с</div>
   `;
 }
-
 </script>
 </body>
 </html>
