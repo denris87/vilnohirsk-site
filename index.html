@@ -280,7 +280,7 @@ body {
   border-radius: 8px;
 }
 
-/* АБСОЛЮТНА ШТОРКА (ЗБІЛЬШЕНО ВИСОТУ ДЛЯ ВЕЛИКИХ ФОТО) */
+/* АБСОЛЮТНА ШТОРКА ТОВАРУ */
 .shop-details-dropdown {
   position: absolute;
   top: calc(100% + 5px); 
@@ -400,6 +400,58 @@ body {
 .blabla-date { font-size: 12px; color: var(--highlight-color); font-weight: 700; }
 .blabla-info-row { display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; align-items: center;}
 .blabla-phone { font-size: 14px; font-weight: 800; color: var(--time-green); text-decoration: none; }
+
+/* ==== ВЕЛИКЕ ФОТО (МОДАЛЬНЕ ВІКНО) ==== */
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 99999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.image-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+.image-modal img {
+  max-width: 95%;
+  max-height: 90%;
+  object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+  transform: scale(0.8);
+  transition: transform 0.3s ease;
+}
+.image-modal.active img {
+  transform: scale(1);
+}
+.image-modal-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: #fff;
+  font-size: 36px;
+  font-weight: 300;
+  cursor: pointer;
+  background: rgba(0,0,0,0.5);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+}
 </style>
 </head>
 
@@ -410,6 +462,11 @@ body {
     <h2 style="color: var(--highlight-color); margin-top: 0; margin-bottom: 15px; font-size: 20px; text-transform: uppercase; letter-spacing: 1px;">Помилка доступу</h2>
     <p style="font-size: 15px; line-height: 1.5; margin: 0; color: rgba(255,255,255,0.9);">Цей додаток працює лише всередині Telegram-бота.</p>
   </div>
+</div>
+
+<div class="image-modal" id="image-modal" onclick="closeImageModal()">
+  <div class="image-modal-close">&times;</div>
+  <img id="modal-image-src" src="" alt="Збільшене фото">
 </div>
 
 <div id="main-app-content" style="display: none; width: 100%; justify-content: center;">
@@ -561,8 +618,25 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   if (tg.expand) { tg.expand(); }
 
+  // ==== ФУНКЦІЇ МОДАЛЬНОГО ВІКНА (ЗБІЛЬШЕННЯ ФОТО) ====
+  window.openImageModal = function(src, event) {
+    if (event) event.stopPropagation();
+    const modal = document.getElementById('image-modal');
+    const img = document.getElementById('modal-image-src');
+    img.src = src;
+    modal.classList.add('active');
+  };
+
+  window.closeImageModal = function() {
+    const modal = document.getElementById('image-modal');
+    modal.classList.remove('active');
+  };
+
   // ==== ЗАКРИТТЯ ШТОРОК КЛІКОМ ПОЗА ЇХНЬОЮ ОБЛАСТЮ ====
   document.addEventListener('click', function(e) {
+    // Якщо клік був по самому модальному вікну з фото — не обробляємо закриття інших шторок
+    if (e.target.closest('.image-modal')) return;
+
     if (!e.target.closest('.alert-main-widget')) {
       const alertDrawer = document.getElementById('alert-drawer');
       if (alertDrawer) alertDrawer.classList.remove('open');
@@ -585,7 +659,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   });
 
-  // ==== ФУНКЦІЯ ПЕРЕРАХУНКУ ВИСОТИ ДЛЯ ВЕЛИКИХ ФОТО ====
+  // ==== ФУНКЦІЯ ПЕРЕРАХУНКУ ВИСОТИ ДЛЯ ФОТО У ШТОРЦІ ====
   window.recalcDropdownHeight = function(imgEl) {
     const dropdown = imgEl.closest('.shop-details-dropdown');
     const grid = imgEl.closest('.shops-tile-grid');
@@ -839,7 +913,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               grid.style.paddingBottom = (dropdownHeight + 15) + 'px';
             };
             setTimeout(updateHeight, 50);
-            setTimeout(updateHeight, 300); // Повторна перевірка для великих фото
+            setTimeout(updateHeight, 300); // Повторна перевірка
           } else if (grid) {
             grid.style.paddingBottom = '0px';
           }
@@ -875,10 +949,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safePhotoUrl = shop.photo != null && String(shop.photo).trim() !== "" ? String(shop.photo).trim() : null;
       const photoHtml = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${displayName}">` : `<span style="font-size:28px;">🛍️</span>`;
 
-      // ДОДАНО ВЕЛИКЕ ФОТО ДЛЯ ШТОРКИ
+      // ФОТО З МОЖЛИВІСТЮ ЗБІЛЬШЕННЯ
       const bigPhotoHtml = safePhotoUrl ? `
-        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px;">
-          <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:350px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
+        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${safePhotoUrl}', event)">
+          <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
+          <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Натисніть, щоб збільшити</div>
         </div>
       ` : '';
 
@@ -905,6 +980,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
       const safeCategory = shop.category != null && String(shop.category).trim() !== "" ? String(shop.category).trim() : "Магазин";
       const safeAddress = shop.address != null && String(shop.address).trim() !== "" ? String(shop.address).trim() : "Не вказано";
+      
       const isContactless = shop.contactless === true || shop.contactless === 'true' || shop.contactless === '✅';
 
       html += `
@@ -961,10 +1037,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safePhotoUrl = item.photo != null && String(item.photo).trim() !== "" ? String(item.photo).trim() : null;
       const safePhotoThumbnail = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${safeTitle}">` : `<span style="font-size:28px;">📦</span>`;
       
-      // ДОДАНО ВЕЛИКЕ ФОТО ДЛЯ ШТОРКИ
+      // ФОТО З МОЖЛИВІСТЮ ЗБІЛЬШЕННЯ
       const bigPhotoHtml = safePhotoUrl ? `
-        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px;">
-          <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:350px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
+        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${safePhotoUrl}', event)">
+          <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
+          <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Натисніть, щоб збільшити</div>
         </div>
       ` : '';
 
@@ -1163,7 +1240,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         const drivers = res.data.filter(row => {
           if (!row['Дата']) return false;
           const tripDate = parseDate(row['Дата']);
-          return tripDate >= todayStart; 
+          return tripDate >= todayStart; // Ховаємо вчорашні
         });
 
         if (drivers.length > 0) {
@@ -1194,7 +1271,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         const passengers = res.data.filter(row => {
           if (!row['Дата поїздки']) return false;
           const tripDate = parseDate(row['Дата поїздки']);
-          return tripDate >= todayStart; 
+          return tripDate >= todayStart; // Ховаємо вчорашні
         });
 
         if (passengers.length > 0) {
