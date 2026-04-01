@@ -224,6 +224,9 @@ body {
   position: relative; 
   z-index: 1; 
 }
+.shop-tile:hover {
+  transform: translateY(-2px);
+}
 .shop-tile:active {
   transform: translateY(1px);
 }
@@ -233,20 +236,36 @@ body {
   z-index: 50 !important;
 }
 
-/* --- VIP СТИЛІ (КРАСИВА АНІМАЦІЯ) --- */
+/* --- VIP СТИЛІ (КРАСИВА ОБ'ЄМНА АНІМАЦІЯ ЗІ СВІТІННЯМ) --- */
 .shop-tile.vip-tile {
-  background: linear-gradient(145deg, rgba(255, 215, 0, 0.12), rgba(0, 0, 0, 0.4));
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  animation: vipGlowBreathing 3s infinite alternate;
+  background: linear-gradient(145deg, rgba(255, 215, 0, 0.15), rgba(0, 0, 0, 0.45));
+  /* ТОВСТІША ТА ЯСКРАВІША БАЗОВА РАМКА */
+  border: 2px solid rgba(255, 215, 0, 0.7); 
+  /* СКЛАДНЕ БАГАТОШАРОВЕ СВІТІННЯ (зовнішнє + внутрішнє) */
+  animation: vipGlowBreathingPremium 3s infinite alternate ease-in-out;
 }
-@keyframes vipGlowBreathing {
-  0% { box-shadow: 0 4px 15px rgba(255, 215, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.1); border-color: rgba(255, 215, 0, 0.3); }
-  100% { box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4), inset 0 1px 2px rgba(255, 215, 0, 0.4); border-color: rgba(255, 215, 0, 0.8); }
+
+@keyframes vipGlowBreathingPremium {
+  0% { 
+    border-color: rgba(255, 215, 0, 0.5);
+    box-shadow: 
+      0 0 10px rgba(255, 215, 0, 0.3),    /* М'яке зовнішнє світіння */
+      0 4px 12px rgba(0, 0, 0, 0.4),      /* Тінь під карткою */
+      inset 0 0 5px rgba(255, 215, 0, 0.2);/* Легке внутрішнє світіння */
+  }
+  100% { 
+    border-color: rgba(255, 235, 59, 1);    /* Дуже яскрава рамка */
+    box-shadow: 
+      0 0 20px rgba(255, 215, 0, 0.7),    /* Потужне зовнішнє світіння (неон) */
+      0 6px 20px rgba(0, 0, 0, 0.6),      /* Глибша тінь под карткою */
+      inset 0 0 15px rgba(255, 215, 0, 0.5);/* Насичене внутрішнє світіння (об'єм) */
+  }
 }
+
 .shop-tile.vip-tile:hover {
-  background: linear-gradient(145deg, rgba(255, 215, 0, 0.2), rgba(0, 0, 0, 0.5));
-  transform: translateY(-2px);
+  background: linear-gradient(145deg, rgba(255, 215, 0, 0.25), rgba(0, 0, 0, 0.55));
 }
+
 .vip-badge {
   position: absolute;
   top: -8px;
@@ -1099,7 +1118,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safePhotoThumbnail = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${safeTitle}">` : `<span style="font-size:28px;">📦</span>`;
       
       const bigPhotoHtml = safePhotoUrl ? `
-        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${safePhotoUrl}', event)">
+        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${safePhotoUrl}', event urban air temperature)">
           <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
           <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Натисніть, щоб збільшити</div>
         </div>
