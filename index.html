@@ -280,7 +280,7 @@ body {
   border-radius: 8px;
 }
 
-/* АБСОЛЮТНА ШТОРКА */
+/* АБСОЛЮТНА ШТОРКА (ЗБІЛЬШЕНО ВИСОТУ ДЛЯ ВЕЛИКИХ ФОТО) */
 .shop-details-dropdown {
   position: absolute;
   top: calc(100% + 5px); 
@@ -290,14 +290,14 @@ body {
   opacity: 0;
   overflow: hidden;
   margin-top: 0;
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   pointer-events: none; 
   box-sizing: border-box;
   z-index: 50; 
 }
 
 .shop-details-dropdown.open {
-  max-height: 800px; 
+  max-height: 2500px; 
   opacity: 1;
   pointer-events: auto;
 }
@@ -475,7 +475,7 @@ body {
           </div>
           
           <div style="text-align: center; padding: 15px 10px 5px 10px; font-size: 11px; opacity: 0.6; color: #fff;">
-            Для видалення неактуального оголошення пишіть у тг: <b style="color:var(--time-green)">@vilnohirsk</b>
+            Для видалення неактуального оголошення пишіть: <b style="color:var(--time-green)">@vilnohirsk</b>
           </div>
 
         </div>
@@ -541,7 +541,6 @@ const REQUIRE_TELEGRAM = true;
 
 const tg = window.Telegram.WebApp;
 
-// Надійна перевірка на те, чи відкрито в Telegram
 let isInsideTelegram = false;
 if (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length > 0) {
   isInsideTelegram = true;
@@ -554,11 +553,9 @@ if (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length > 0) {
 }
 
 if (REQUIRE_TELEGRAM && !isInsideTelegram) {
-  // Блокуємо доступ (показуємо екран помилки)
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-app-content').style.display = 'none';
 } else {
-  // Дозволяємо доступ
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-app-content').style.display = 'flex'; 
 
@@ -566,30 +563,21 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   // ==== ЗАКРИТТЯ ШТОРОК КЛІКОМ ПОЗА ЇХНЬОЮ ОБЛАСТЮ ====
   document.addEventListener('click', function(e) {
-    // 1. Інформаційне табло
     if (!e.target.closest('.alert-main-widget')) {
       const alertDrawer = document.getElementById('alert-drawer');
       if (alertDrawer) alertDrawer.classList.remove('open');
     }
-
-    // 2. Внутрішні деталі транспорту (розклади поїздів/автобусів)
     if (!e.target.closest('.train') && !e.target.closest('.details')) {
       document.querySelectorAll('.details.open').forEach(el => el.classList.remove('open'));
     }
-
-    // 3. Картки магазинів та барахолки
     if (!e.target.closest('.shop-tile')) {
       closeAllShopDropdowns();
     }
-
-    // 4. Головні вкладки (Транспорт)
     if (!e.target.closest('.schedule-group')) {
       const transportWidget = document.getElementById('main-list-widget');
       if (transportWidget) transportWidget.classList.remove('open');
       document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
     }
-
-    // 5. Головні вкладки (Маркет)
     if (!e.target.closest('.market-group')) {
       const marketWidget = document.getElementById('market-drawer');
       if (marketWidget) marketWidget.classList.remove('open');
@@ -597,7 +585,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   });
 
-  // ==== ФУНКЦІЯ ЗБРОСУ (ЗАКРИВАЄ ВСІ ВІДКРИТІ ШТОРКИ ПЛИТОК) ====
+  // ==== ФУНКЦІЯ ПЕРЕРАХУНКУ ВИСОТИ ДЛЯ ВЕЛИКИХ ФОТО ====
+  window.recalcDropdownHeight = function(imgEl) {
+    const dropdown = imgEl.closest('.shop-details-dropdown');
+    const grid = imgEl.closest('.shops-tile-grid');
+    if (dropdown && dropdown.classList.contains('open') && grid) {
+      grid.style.paddingBottom = (dropdown.scrollHeight + 15) + 'px';
+    }
+  };
+
   function closeAllShopDropdowns() {
     document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
       el.classList.remove('open');
@@ -610,11 +606,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     });
   }
 
-  // ==== ВІДКРИТТЯ ВЕРХНІХ ВКЛАДОК (РОЗКЛАД) ====
   function openScheduleTab(tabId, btn) {
     try {
       closeAllShopDropdowns(); 
-
       const marketWidget = document.getElementById('market-drawer');
       if (marketWidget) marketWidget.classList.remove('open');
       document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -634,11 +628,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     } catch (e) { console.error(e); }
   }
 
-  // ==== ВІДКРИТТЯ НИЖНІХ ВКЛАДОК (МАРКЕТ) ====
   function openMarketTab(tabId, btn) {
     try {
       closeAllShopDropdowns();
-
       const scheduleWidget = document.getElementById('main-list-widget');
       if (scheduleWidget) scheduleWidget.classList.remove('open');
       document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -842,10 +834,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           tileElement.classList.toggle('tile-active', isOpen);
           
           if (isOpen && grid) {
-            setTimeout(() => {
+            const updateHeight = () => {
               const dropdownHeight = el.scrollHeight || 250;
               grid.style.paddingBottom = (dropdownHeight + 15) + 'px';
-            }, 50);
+            };
+            setTimeout(updateHeight, 50);
+            setTimeout(updateHeight, 300); // Повторна перевірка для великих фото
           } else if (grid) {
             grid.style.paddingBottom = '0px';
           }
@@ -878,10 +872,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const displayName = safeName !== "" ? safeName : "Оголошення " + (index + 1);
       const detailsId = 'shop-detail-' + index;
 
-      const safePhoto = shop.photo != null ? String(shop.photo).trim() : "";
-      const photoHtml = safePhoto !== "" 
-        ? `<img src="${safePhoto}" alt="${displayName}">` 
-        : `<span style="font-size:28px;">🛍️</span>`;
+      const safePhotoUrl = shop.photo != null && String(shop.photo).trim() !== "" ? String(shop.photo).trim() : null;
+      const photoHtml = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${displayName}">` : `<span style="font-size:28px;">🛍️</span>`;
+
+      // ДОДАНО ВЕЛИКЕ ФОТО ДЛЯ ШТОРКИ
+      const bigPhotoHtml = safePhotoUrl ? `
+        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px;">
+          <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:350px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
+        </div>
+      ` : '';
 
       const safeInsta = shop.instagram != null ? String(shop.instagram).trim() : "";
       const titleHtml = safeInsta !== ""
@@ -906,7 +905,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
       const safeCategory = shop.category != null && String(shop.category).trim() !== "" ? String(shop.category).trim() : "Магазин";
       const safeAddress = shop.address != null && String(shop.address).trim() !== "" ? String(shop.address).trim() : "Не вказано";
-      
       const isContactless = shop.contactless === true || shop.contactless === 'true' || shop.contactless === '✅';
 
       html += `
@@ -918,6 +916,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           
           <div class="shop-details-dropdown" id="${detailsId}" onclick="event.stopPropagation()">
             <div class="shop-inner-list">
+              ${bigPhotoHtml}
               <div class="shop-inner-item">
                 <span class="detail-icon">🕒</span>
                 <div><b>Графік роботи:</b><br>${safeSchedule}</div>
@@ -959,9 +958,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safeTitle = item.title != null ? String(item.title).trim() : "Оголошення " + (index + 1);
       const detailsId = 'flea-detail-' + index;
 
-      const safePhoto = item.photo != null && String(item.photo).trim() !== "" 
-        ? `<img src="${String(item.photo).trim()}" alt="${safeTitle}">` 
-        : `<span style="font-size:28px;">📦</span>`;
+      const safePhotoUrl = item.photo != null && String(item.photo).trim() !== "" ? String(item.photo).trim() : null;
+      const safePhotoThumbnail = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${safeTitle}">` : `<span style="font-size:28px;">📦</span>`;
+      
+      // ДОДАНО ВЕЛИКЕ ФОТО ДЛЯ ШТОРКИ
+      const bigPhotoHtml = safePhotoUrl ? `
+        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px;">
+          <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:350px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
+        </div>
+      ` : '';
 
       let safePrice = item.price != null && String(item.price).trim() !== "" ? String(item.price).trim() : "Ціна договірна";
       if (safePrice !== "Ціна договірна" && !safePrice.toLowerCase().includes("грн")) {
@@ -969,7 +974,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       }
 
       const safeDesc = item.description != null ? String(item.description).replace(/\n/g, '<br>') : 'Без опису';
-      
       const safeCategory = item.category != null && String(item.category).trim() !== "" ? String(item.category).trim() : "Різне";
       const safeCondition = item.condition != null && String(item.condition).trim() !== "" ? String(item.condition).trim() : "Не вказано";
       const safeLocation = item.location != null && String(item.location).trim() !== "" ? String(item.location).trim() : "Не вказано";
@@ -985,7 +989,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
       html += `
         <div class="shop-tile" onclick="toggleShop('${detailsId}', this)">
-          <div class="shop-tile-photo">${safePhoto}</div>
+          <div class="shop-tile-photo">${safePhotoThumbnail}</div>
           
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px;">
             <div class="shop-tile-cat" style="color: #00ff9c; margin-bottom: 0; white-space: nowrap; flex-shrink: 0;">${safePrice}</div>
@@ -999,6 +1003,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           
           <div class="shop-details-dropdown" id="${detailsId}" onclick="event.stopPropagation()">
             <div class="shop-inner-list">
+              ${bigPhotoHtml}
               <div class="shop-inner-item">
                 <span class="detail-icon">📌</span>
                 <div><b>Категорія:</b><br>${safeCategory}</div>
@@ -1158,7 +1163,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         const drivers = res.data.filter(row => {
           if (!row['Дата']) return false;
           const tripDate = parseDate(row['Дата']);
-          return tripDate >= todayStart; // Ховаємо вчорашні
+          return tripDate >= todayStart; 
         });
 
         if (drivers.length > 0) {
@@ -1189,7 +1194,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         const passengers = res.data.filter(row => {
           if (!row['Дата поїздки']) return false;
           const tripDate = parseDate(row['Дата поїздки']);
-          return tripDate >= todayStart; // Ховаємо вчорашні
+          return tripDate >= todayStart; 
         });
 
         if (passengers.length > 0) {
