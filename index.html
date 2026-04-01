@@ -60,8 +60,8 @@ body {
 .alert-header:active { background: rgba(255, 255, 255, 0.1); }
 .alert-title-box { position: relative; display: inline-block; font-weight: 800; font-size: clamp(14px, 4vw, 18px); color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
 
-.alert-drawer { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); border-radius: 24px; }
-.alert-drawer.open { max-height: 10000px; opacity: 1; padding: 15px; pointer-events: auto; }
+.alert-drawer { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: max-height 0.5s ease-in-out, opacity 0.4s ease, padding 0.4s ease; background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); border-radius: 24px; }
+.alert-drawer.open { max-height: 3000px; opacity: 1; padding: 15px; pointer-events: auto; }
 
 /* ПОГОДА І ЧАС */
 .top-row { display: flex; flex-direction: row; justify-content: space-between; gap: 12px; width: 100%; }
@@ -138,7 +138,7 @@ body {
   font-weight: 700; 
   cursor: pointer; 
   border-radius: 14px; 
-  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
+  transition: all 0.3s ease; 
   font-size: clamp(12px, 3.5vw, 14px); 
   white-space: nowrap; 
 }
@@ -152,12 +152,13 @@ body {
   transform: translateY(-1px); 
 }
 
+/* ОПТИМІЗАЦІЯ МЕРЕХТІННЯ (ПРОСТИЙ ФЕЙД БЕЗ ТРАНСФОРМУ) */
 .content-section { display: none; }
-.content-section.active { display: block; animation: slideUpFade 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
-@keyframes slideUpFade { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.content-section.active { display: block; animation: tabFadeIn 0.3s ease-out forwards; }
+@keyframes tabFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-.main-list-widget { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); border-radius: 24px; }
-.main-list-widget.open { max-height: 25000px; opacity: 1; visibility: visible; pointer-events: auto; padding: 20px 10px; }
+.main-list-widget { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; pointer-events: none; transition: max-height 0.5s ease-in-out, opacity 0.3s ease, padding 0.3s ease; background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); border-radius: 24px; }
+.main-list-widget.open { max-height: 3500px; opacity: 1; visibility: visible; pointer-events: auto; padding: 20px 10px; }
 
 .table-head { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.15); padding: 0 10px 10px 10px; margin-bottom: 12px; font-size: 10px; text-transform: uppercase; color: #74b9ff; letter-spacing: 0.5px; }
 
@@ -173,7 +174,7 @@ body {
 .time-val.future { color: var(--time-green); }
 .time-val.passed { color: var(--time-passed); }
 
-.details { max-height: 0; overflow: hidden; opacity: 0; transition: all 0.4s ease-in-out; background: rgba(0,0,0,0.25); border-radius: 16px; }
+.details { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease; background: rgba(0,0,0,0.25); border-radius: 16px; }
 .details.open { max-height: 2000px; opacity: 1; padding: 15px; margin-top: 2px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
 
 .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -194,9 +195,9 @@ body {
 .details-note { text-align: center; font-weight: 600; color: #ff6b6b; margin-bottom: 10px; font-size: 12px; line-height: 1.5; background: rgba(255, 107, 107, 0.1); padding: 10px; border-radius: 10px; }
 .details-divider { width: 50%; height: 1px; background: rgba(255,255,255,0.1); margin: 20px auto 15px; }
 
-/* ШТОРКА МАРКЕТУ - БЕЗЛІМІТНА ВИСОТА */
-.shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
-.shopping-drawer.open { max-height: 99999px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
+/* ШТОРКА МАРКЕТУ */
+.shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: max-height 0.5s ease-in-out, opacity 0.4s ease, padding 0.4s ease; background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
+.shopping-drawer.open { max-height: 8000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
 
 /* ==== СІТКА МАГАЗИНІВ / БАРАХОЛКИ ==== */
 .shops-tile-grid {
@@ -290,14 +291,14 @@ body {
   opacity: 0;
   overflow: hidden;
   margin-top: 0;
-  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease;
   pointer-events: none; 
   box-sizing: border-box;
   z-index: 50; 
 }
 
 .shop-details-dropdown.open {
-  max-height: 2500px; 
+  max-height: 1500px; 
   opacity: 1;
   pointer-events: auto;
 }
@@ -634,7 +635,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   // ==== ЗАКРИТТЯ ШТОРОК КЛІКОМ ПОЗА ЇХНЬОЮ ОБЛАСТЮ ====
   document.addEventListener('click', function(e) {
-    // Якщо клік був по самому модальному вікну з фото — не обробляємо закриття інших шторок
     if (e.target.closest('.image-modal')) return;
 
     if (!e.target.closest('.alert-main-widget')) {
