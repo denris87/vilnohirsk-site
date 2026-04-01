@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Smart Вільногірськ</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -31,6 +31,7 @@ html, body {
   user-select: none; 
   box-sizing: border-box; 
   -webkit-tap-highlight-color: transparent; 
+  touch-action: manipulation; /* Блокує подвійний клік для зуму */
 }
 
 body {
@@ -610,9 +611,11 @@ if (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length > 0) {
 }
 
 if (REQUIRE_TELEGRAM && !isInsideTelegram) {
+  // Блокуємо доступ (показуємо екран помилки)
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-app-content').style.display = 'none';
 } else {
+  // Дозволяємо доступ
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-app-content').style.display = 'flex'; 
 
@@ -634,7 +637,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   // ==== ЗАКРИТТЯ ШТОРОК КЛІКОМ ПОЗА ЇХНЬОЮ ОБЛАСТЮ ====
   document.addEventListener('click', function(e) {
-    // Якщо клік був по самому модальному вікну з фото — не обробляємо закриття інших шторок
     if (e.target.closest('.image-modal')) return;
 
     if (!e.target.closest('.alert-main-widget')) {
@@ -913,7 +915,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               grid.style.paddingBottom = (dropdownHeight + 15) + 'px';
             };
             setTimeout(updateHeight, 50);
-            setTimeout(updateHeight, 300); // Повторна перевірка
+            setTimeout(updateHeight, 300); 
           } else if (grid) {
             grid.style.paddingBottom = '0px';
           }
@@ -949,7 +951,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safePhotoUrl = shop.photo != null && String(shop.photo).trim() !== "" ? String(shop.photo).trim() : null;
       const photoHtml = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${displayName}">` : `<span style="font-size:28px;">🛍️</span>`;
 
-      // ФОТО З МОЖЛИВІСТЮ ЗБІЛЬШЕННЯ
       const bigPhotoHtml = safePhotoUrl ? `
         <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${safePhotoUrl}', event)">
           <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
@@ -1037,7 +1038,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safePhotoUrl = item.photo != null && String(item.photo).trim() !== "" ? String(item.photo).trim() : null;
       const safePhotoThumbnail = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${safeTitle}">` : `<span style="font-size:28px;">📦</span>`;
       
-      // ФОТО З МОЖЛИВІСТЮ ЗБІЛЬШЕННЯ
       const bigPhotoHtml = safePhotoUrl ? `
         <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${safePhotoUrl}', event)">
           <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
@@ -1217,7 +1217,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   };
 
-  // Розумне парсування дати (підтримує різні формати Google Sheets)
   function parseDate(dateStr) {
     if (!dateStr) return null;
     let parts = dateStr.split('.'); 
@@ -1233,14 +1232,13 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     const todayStart = new Date();
     todayStart.setHours(0,0,0,0);
 
-    // 1. Завантаження Водіїв
     Papa.parse('https://docs.google.com/spreadsheets/d/11TASmdTQ9rXVYE_xR_I51AKGeRKAWnVhJagKhmhCCeY/export?format=csv', {
       download: true, header: true, skipEmptyLines: true,
       complete: function(res) {
         const drivers = res.data.filter(row => {
           if (!row['Дата']) return false;
           const tripDate = parseDate(row['Дата']);
-          return tripDate >= todayStart; // Ховаємо вчорашні
+          return tripDate >= todayStart; 
         });
 
         if (drivers.length > 0) {
@@ -1264,14 +1262,13 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       }
     });
 
-    // 2. Завантаження Пасажирів
     Papa.parse('https://docs.google.com/spreadsheets/d/1Hl3TN0_i3YL7vhmi0U-RFcRORUZfx6zb487yDbKxZfo/export?format=csv', {
       download: true, header: true, skipEmptyLines: true,
       complete: function(res) {
         const passengers = res.data.filter(row => {
           if (!row['Дата поїздки']) return false;
           const tripDate = parseDate(row['Дата поїздки']);
-          return tripDate >= todayStart; // Ховаємо вчорашні
+          return tripDate >= todayStart; 
         });
 
         if (passengers.length > 0) {
