@@ -520,7 +520,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  display: none; /* Приховано за замовчуванням */
+  display: none; 
 }
 .modal-nav:active {
   background: rgba(0,0,0,0.6);
@@ -539,7 +539,7 @@ body {
   padding: 6px 16px;
   border-radius: 20px;
   z-index: 100001;
-  display: none; /* Приховано за замовчуванням */
+  display: none; 
   letter-spacing: 1px;
 }
 </style>
@@ -671,6 +671,9 @@ body {
           <div id="flea-market-list-content">
             <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження...</div>
           </div>
+          <div style="text-align: center; padding: 15px 10px 5px 10px; font-size: 11px; opacity: 0.6; color: #fff;">
+            Щоб видалити оголошення, пишіть: <b style="color:var(--time-green)">@vilnohirsk</b>
+          </div>
         </div>
         <div id="lost-found-tab" class="content-section">
           <div style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Оголошень поки немає...</div>
@@ -718,7 +721,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   window.openImageModal = function(srcData, event, isEncodedArray = false) {
     if (event) event.stopPropagation();
     
-    // Розбираємо отримані дані (одне фото чи масив фотографій)
     if (isEncodedArray) {
       try {
         currentModalImages = JSON.parse(decodeURIComponent(srcData));
@@ -792,12 +794,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   // ==== ЗАКРИТТЯ ШТОРОК КЛІКОМ ПОЗА ЇХНЬОЮ ОБЛАСТЮ ====
   document.addEventListener('click', function(e) {
-    // Клік по фону модалки закриває її
     if (e.target.id === 'image-modal') {
       closeImageModal();
       return;
     }
-    // Ігноруємо кліки всередині модалки (по фото чи кнопках)
     if (e.target.closest('.image-modal')) return;
 
     if (!e.target.closest('.alert-main-widget')) {
@@ -1118,7 +1118,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
       let bigPhotoHtml = '';
       if (safePhotoUrl) {
-        // Для магазинів поки підтримується 1 фото, тому пакуємо як масив з 1 елемента
         const photosJson = encodeURIComponent(JSON.stringify([safePhotoUrl]));
         bigPhotoHtml = `
           <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${photosJson}', event, true)">
@@ -1325,7 +1324,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             .filter(row => row['Статус'] && row['Статус'].trim().toLowerCase() === 'одобрено')
             .map((row) => {
               let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || '';
-              // Розбиваємо всі завантажені фото на масив
               let photoUrls = rawPhoto.split(',').map(p => p.trim()).filter(p => p);
               
               let parsedPhotos = photoUrls.map(url => {
