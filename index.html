@@ -329,6 +329,77 @@ body {
 .shop-phone-link { color: #2af598; text-decoration: none; font-weight: 800; letter-spacing: 0.5px; }
 .shop-map-link { color: #74b9ff; text-decoration: none; font-weight: 700; display: inline-block; margin-top: 4px; background: rgba(116, 185, 255, 0.1); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(116, 185, 255, 0.2); transition: all 0.3s; font-size: 11px; }
 .shop-map-link:hover { background: rgba(116, 185, 255, 0.2); }
+
+/* ==== BLA BLA CAR СТИЛІ ==== */
+.blabla-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  padding: 0 5px;
+}
+.blabla-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px 5px;
+  border-radius: 14px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 14px;
+  color: #0b1d3a;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+.blabla-btn:hover { transform: translateY(-2px); }
+.blabla-btn:active { transform: translateY(1px); }
+.btn-driver { background: linear-gradient(135deg, #00ff9c, #00b8ff); }
+.btn-passenger { background: linear-gradient(135deg, #ffcc00, #ff8800); }
+.blabla-subtext { font-size: 10px; font-weight: 600; opacity: 0.8; margin-top: 3px; text-transform: uppercase;}
+
+.blabla-toggle-container {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 15px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.blabla-tab-btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  font-weight: 700;
+  font-size: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.blabla-tab-btn.active {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.blabla-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2));
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 15px;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.blabla-route { font-size: 15px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+.blabla-date { font-size: 12px; color: var(--highlight-color); font-weight: 700; }
+.blabla-info-row { display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; align-items: center;}
+.blabla-phone { font-size: 14px; font-weight: 800; color: var(--time-green); text-decoration: none; }
 </style>
 </head>
 
@@ -364,7 +435,7 @@ body {
         <button class="tab-btn" onclick="openScheduleTab('trains', this)">🚆 Електрички</button>
         <button class="tab-btn" onclick="openScheduleTab('long-trains', this)">🛤️ Потяги</button>
         <button class="tab-btn" onclick="openScheduleTab('buses', this)">🚌 Автобуси</button>
-        <button class="tab-btn" onclick="openScheduleTab('blablacar', this)">🚗 Місцевий Bla Bla Car</button>
+        <button class="tab-btn" onclick="openScheduleTab('blablacar', this)">🚗 Bla Bla Car</button>
       </div>
 
       <div id="main-list-widget" class="main-list-widget">
@@ -377,8 +448,33 @@ body {
         <div id="buses" class="content-section">
           <div id="buses-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div>
         </div>
+        
         <div id="blablacar" class="content-section">
-          <div style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Оголошень поки немає...</div>
+          
+          <div class="blabla-actions">
+            <a href="https://forms.google.com/ТВОЯ_ФОРМА_ВОДІЯ" target="_blank" class="blabla-btn btn-driver">
+              🚗 Ти водій
+              <span class="blabla-subtext">Запропонувати поїздку</span>
+            </a>
+            <a href="https://forms.google.com/ТВОЯ_ФОРМА_ПАСАЖИРА" target="_blank" class="blabla-btn btn-passenger">
+              🧍 Ти пасажир
+              <span class="blabla-subtext">Знайти авто</span>
+            </a>
+          </div>
+
+          <div class="blabla-toggle-container">
+            <button class="blabla-tab-btn active" id="btn-show-drivers" onclick="switchBlaBlaList('drivers')">🚘 Пропозиції водіїв</button>
+            <button class="blabla-tab-btn" id="btn-show-passengers" onclick="switchBlaBlaList('passengers')">🙋‍♂️ Запити пасажирів</button>
+          </div>
+
+          <div id="blabla-drivers-list">
+            <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження водіїв...</div>
+          </div>
+          
+          <div id="blabla-passengers-list" style="display: none;">
+            <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження пасажирів...</div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -438,8 +534,6 @@ body {
 
 <script>
 // ==== ПЕРЕМИКАЧ БЛОКУВАННЯ ТЕЛЕГРАМУ ====
-// Якщо true - сайт працює ТІЛЬКИ в Telegram-боті.
-// Якщо false - сайт працює у всіх браузерах.
 const REQUIRE_TELEGRAM = true; 
 
 const tg = window.Telegram.WebApp;
@@ -457,11 +551,9 @@ if (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length > 0) {
 }
 
 if (REQUIRE_TELEGRAM && !isInsideTelegram) {
-  // Блокуємо доступ (показуємо екран помилки)
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-app-content').style.display = 'none';
 } else {
-  // Дозволяємо доступ
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-app-content').style.display = 'flex'; 
 
@@ -691,7 +783,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
-  // ==== УНІВЕРСАЛЬНА ФУНКЦІЯ ВІДКРИТТЯ ШТОРКИ ПЛИТКИ ====
   window.toggleShop = function(id, tileElement) {
     try {
       const grid = tileElement ? tileElement.closest('.shops-tile-grid') : null;
@@ -733,7 +824,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     return array;
   }
 
-  // ==== РЕНДЕР ШОПІНГУ ====
   function renderShops(shopsData) {
     const container = document.getElementById('shopping-list-content');
     if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
@@ -816,7 +906,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     container.innerHTML = html;
   }
 
-  // ==== РЕНДЕР БАРАХОЛКИ ====
   function renderFleaMarket(fleaData) {
     const container = document.getElementById('flea-market-list-content');
     if (!fleaData || !Array.isArray(fleaData) || fleaData.length === 0) {
@@ -898,7 +987,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     container.innerHTML = html;
   }
 
-  // ==== ЗАВАНТАЖЕННЯ ДАНИХ (ШОПІНГ) ====
   async function loadShopsData() {
     try {
       const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
@@ -921,7 +1009,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
-  // ==== ЗАВАНТАЖЕННЯ ДАНИХ (БАРАХОЛКА З GOOGLE ТАБЛИЦІ) ====
   async function loadFleaMarketData() {
     try {
       const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv';
@@ -938,7 +1025,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               let firstPhoto = rawPhoto.split(',')[0].trim();
               let photoUrl = firstPhoto;
                 
-              // Надійне витягування ID для фото
               let fileId = '';
               if (photoUrl.includes('id=')) {
                   fileId = photoUrl.split('id=')[1].split('&')[0];
@@ -947,7 +1033,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
                   if (match && match[1]) fileId = match[1];
               }
 
-              // ВИКОРИСТОВУЄМО ОФІЦІЙНИЙ THUMBNAIL API GOOGLE (НІКОЛИ НЕ ЗНИКАЄ)
               if (fileId) {
                   photoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
               }
@@ -981,6 +1066,76 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
+  // ==== ФУНКЦІЇ ДЛЯ BLA BLA CAR ====
+  window.switchBlaBlaList = function(type) {
+    document.querySelectorAll('.blabla-tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('blabla-drivers-list').style.display = 'none';
+    document.getElementById('blabla-passengers-list').style.display = 'none';
+    
+    if (type === 'drivers') {
+      document.getElementById('btn-show-drivers').classList.add('active');
+      document.getElementById('blabla-drivers-list').style.display = 'block';
+    } else {
+      document.getElementById('btn-show-passengers').classList.add('active');
+      document.getElementById('blabla-passengers-list').style.display = 'block';
+    }
+  };
+
+  // Тимчасова функція з фейковими даними. Згодом заміниш на Google Sheets.
+  function loadBlaBlaCarData() {
+    const driversList = document.getElementById('blabla-drivers-list');
+    const passengersList = document.getElementById('blabla-passengers-list');
+
+    // Фейкові дані для ВОДІЇВ
+    const drivers = [
+      { route: "Вільногірськ ➔ Дніпро", date: "3 квітня", time: "15:00 - 16:00", seats: 2, price: 150, phone: "099 123 45 67" },
+      { route: "Дніпро ➔ Вільногірськ", date: "5 квітня", time: "09:00", seats: 3, price: 150, phone: "067 987 65 43" }
+    ];
+
+    // Фейкові дані для ПАСАЖИРІВ
+    const passengers = [
+      { route: "Вільногірськ ➔ Кам'янське", date: "4 квітня", time: "Зранку", seats: 1, phone: "050 555 55 55", note: "Без великого багажу" }
+    ];
+
+    // Малюємо водіїв
+    if (drivers.length > 0) {
+      driversList.innerHTML = drivers.map(d => `
+        <div class="blabla-card">
+          <div class="blabla-route">📍 ${d.route}</div>
+          <div class="blabla-date">🗓 ${d.date} | 🕒 ${d.time}</div>
+          <div class="blabla-info-row">
+            <span>💺 Вільних місць: <b>${d.seats}</b></span>
+            <span>💵 <b>${d.price} грн</b></span>
+          </div>
+          <div style="text-align:right; margin-top:5px;">
+            <a href="tel:${d.phone.replace(/\D/g,'')}" class="blabla-phone">📞 ${d.phone}</a>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      driversList.innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Пропозицій поки немає</div>';
+    }
+
+    // Малюємо пасажирів
+    if (passengers.length > 0) {
+      passengersList.innerHTML = passengers.map(p => `
+        <div class="blabla-card">
+          <div class="blabla-route">📍 ${p.route}</div>
+          <div class="blabla-date">🗓 ${p.date} | 🕒 ${p.time}</div>
+          <div class="blabla-info-row">
+            <span>🧍 Потрібно місць: <b>${p.seats}</b></span>
+            <span>Коментар: ${p.note || '-'}</span>
+          </div>
+          <div style="text-align:right; margin-top:5px;">
+            <a href="tel:${p.phone.replace(/\D/g,'')}" class="blabla-phone">📞 ${p.phone}</a>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      passengersList.innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Запитів поки немає</div>';
+    }
+  }
+
   function loadTrainsData(){ 
     fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
       .then(r=>r.json()).then(d=>{if(d&&d.trains) renderTrains(document.getElementById("list"),d.trains);})
@@ -1006,6 +1161,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   loadBusesData(); 
   loadShopsData(); 
   loadFleaMarketData(); 
+  loadBlaBlaCarData(); // Запускаємо малювання фейкових даних для BlaBlaCar
 
   setInterval(updateDateTime, 1000); 
   setInterval(() => { 
