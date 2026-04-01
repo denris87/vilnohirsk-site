@@ -224,10 +224,6 @@ body {
   position: relative; 
   z-index: 1; 
 }
-.shop-tile:hover {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.3));
-  transform: translateY(-2px);
-}
 .shop-tile:active {
   transform: translateY(1px);
 }
@@ -237,36 +233,39 @@ body {
   z-index: 50 !important;
 }
 
-/* --- VIP СТИЛІ --- */
+/* --- VIP СТИЛІ (КРАСИВА АНІМАЦІЯ) --- */
 .shop-tile.vip-tile {
-  background: linear-gradient(145deg, rgba(255, 204, 0, 0.15), rgba(0, 0, 0, 0.4));
-  border: 1px solid rgba(255, 204, 0, 0.4);
-  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  background: linear-gradient(145deg, rgba(255, 215, 0, 0.12), rgba(0, 0, 0, 0.4));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  animation: vipGlowBreathing 3s infinite alternate;
+}
+@keyframes vipGlowBreathing {
+  0% { box-shadow: 0 4px 15px rgba(255, 215, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.1); border-color: rgba(255, 215, 0, 0.3); }
+  100% { box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4), inset 0 1px 2px rgba(255, 215, 0, 0.4); border-color: rgba(255, 215, 0, 0.8); }
 }
 .shop-tile.vip-tile:hover {
-  background: linear-gradient(145deg, rgba(255, 204, 0, 0.2), rgba(0, 0, 0, 0.5));
-  box-shadow: 0 6px 20px rgba(255, 204, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  background: linear-gradient(145deg, rgba(255, 215, 0, 0.2), rgba(0, 0, 0, 0.5));
+  transform: translateY(-2px);
 }
 .vip-badge {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  background: linear-gradient(135deg, #ffcc00, #ff8800);
-  color: #000;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(110deg, #ffdf00 0%, #d4af37 40%, #fff6a8 50%, #d4af37 60%, #ffdf00 100%);
+  background-size: 200% auto;
+  color: #3e2700;
   font-size: 10px;
   font-weight: 900;
-  padding: 4px 8px;
+  padding: 5px 10px;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.8);
   z-index: 10;
   text-transform: uppercase;
   letter-spacing: 1px;
-  animation: vipPulse 2s infinite;
+  animation: vipShine 3s linear infinite;
 }
-@keyframes vipPulse {
-  0% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
-  50% { transform: scale(1.05); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.6); }
-  100% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
+@keyframes vipShine {
+  to { background-position: -200% center; }
 }
 
 .shop-tile-photo {
@@ -977,7 +976,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const displayName = safeName !== "" ? safeName : "Оголошення " + (index + 1);
       const detailsId = 'shop-detail-' + index;
 
-      // ПЕРЕВІРКА НА VIP
       const isVip = shop.vip === true || shop.vip === 'true';
       const vipClass = isVip ? 'vip-tile' : '';
       const vipBadge = isVip ? '<div class="vip-badge">VIP</div>' : '';
