@@ -665,14 +665,14 @@ body {
           </div>
         </div>
         <div id="flea-market-tab" class="content-section">
-          <div style="padding: 5px 10px 15px 10px; text-align: center;">
+          <div style="text-align: center; padding: 5px 10px 10px 10px; font-size: 12px; opacity: 0.9; color: #fff;">
+            Щоб видалити неактуальне оголошення, пишіть: <b style="color:var(--time-green)">@vilnohirsk</b>
+          </div>
+          <div style="padding: 0 10px 15px 10px; text-align: center;">
             <a href="https://forms.gle/wkb79TBuduCSVLJF8" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; padding: 12px 24px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.4); text-transform: uppercase; font-size: 13px; letter-spacing: 1px; transition: transform 0.2s;">➕ Додати своє оголошення</a>
           </div>
           <div id="flea-market-list-content">
             <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження...</div>
-          </div>
-          <div style="text-align: center; padding: 15px 10px 5px 10px; font-size: 11px; opacity: 0.6; color: #fff;">
-            Щоб видалити оголошення, пишіть: <b style="color:var(--time-green)">@vilnohirsk</b>
           </div>
         </div>
         <div id="lost-found-tab" class="content-section">
@@ -788,8 +788,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   
   function handleModalSwipe() {
       if (currentModalImages.length <= 1) return;
-      if (touchendX < touchstartX - 50) changeModalImage(1); // Свайп вліво -> наступне
-      if (touchendX > touchstartX + 50) changeModalImage(-1); // Свайп вправо -> попереднє
+      if (touchendX < touchstartX - 50) changeModalImage(1); 
+      if (touchendX > touchstartX + 50) changeModalImage(-1); 
   }
 
   // ==== ЗАКРИТТЯ ШТОРОК КЛІКОМ ПОЗА ЇХНЬОЮ ОБЛАСТЮ ====
