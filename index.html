@@ -190,7 +190,7 @@ body {
 @keyframes tabFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .main-list-widget { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; visibility: hidden; pointer-events: none; transition: max-height 0.5s ease-in-out, opacity 0.3s ease, padding 0.3s ease; background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); border-radius: 24px; }
-.main-list-widget.open { max-height: 3500px; opacity: 1; visibility: visible; pointer-events: auto; padding: 20px 10px; }
+.main-list-widget.open { max-height: 15000px; opacity: 1; visibility: visible; pointer-events: auto; padding: 20px 10px; }
 
 .table-head { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; justify-items: center; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.15); padding: 0 10px 10px 10px; margin-bottom: 12px; font-size: 10px; text-transform: uppercase; color: #74b9ff; letter-spacing: 0.5px; }
 
@@ -207,7 +207,7 @@ body {
 .time-val.passed { color: var(--time-passed); }
 
 .details { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease; background: rgba(0,0,0,0.25); border-radius: 16px; }
-.details.open { max-height: 2000px; opacity: 1; padding: 15px; margin-top: 2px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
+.details.open { max-height: 5000px; opacity: 1; padding: 15px; margin-top: 2px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); }
 
 .schedule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .bus-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -229,7 +229,7 @@ body {
 
 /* ШТОРКА МАРКЕТУ */
 .shopping-drawer { max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: max-height 0.5s ease-in-out, opacity 0.4s ease, padding 0.4s ease; background: linear-gradient(135deg, #0b1d3a, #061124); border-radius: 24px; }
-.shopping-drawer.open { max-height: 8000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
+.shopping-drawer.open { max-height: 15000px; opacity: 1; pointer-events: auto; padding: 20px 15px; margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); }
 
 /* ==== СІТКА МАГАЗИНІВ / БАРАХОЛКИ ==== */
 .shops-tile-grid {
@@ -361,7 +361,7 @@ body {
 }
 
 .shop-details-dropdown.open {
-  max-height: 1500px; 
+  max-height: 3000px; 
   opacity: 1;
   pointer-events: auto;
 }
@@ -884,6 +884,30 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   document.getElementById('main-app-content').style.display = 'flex'; 
 
   if (tg.expand) { tg.expand(); }
+
+  // ==== ФУНКЦІЯ ВІДКРИТТЯ ШТОРОК ДЛЯ МАГАЗИНІВ ТА БАРАХОЛКИ ====
+  window.toggleShop = function(detailsId, tileElement) {
+    const dropdown = document.getElementById(detailsId);
+    if (!dropdown) return;
+    
+    const isOpen = dropdown.classList.contains('open');
+    
+    // Закриваємо всі інші відкриті шторки
+    closeAllShopDropdowns();
+    
+    // Якщо шторка не була відкрита — відкриваємо її
+    if (!isOpen) {
+      dropdown.classList.add('open');
+      tileElement.classList.add('tile-active');
+      
+      const grid = tileElement.closest('.shops-tile-grid');
+      if (grid) {
+        setTimeout(() => {
+          grid.style.paddingBottom = (dropdown.scrollHeight + 15) + 'px';
+        }, 50);
+      }
+    }
+  };
 
   // ==== ЛОГІКА ВЛАСНОЇ ФОРМИ BLA BLA CAR ====
   window.openBlaBlaForm = function(type) {
