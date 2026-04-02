@@ -13,387 +13,299 @@
   --highlight-color: #ffcc00; 
   --glass-bg: rgba(0, 0, 0, 0.45);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-border-light: rgba(255, 255, 255, 0.15);
   --glass-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
   --time-green: #00ff9c;
-  --time-passed: rgba(255, 255, 255, 0.4);
 }
 
-html, body { margin: 0; padding: 0; min-height: 100vh; }
-* { -webkit-user-select: none; user-select: none; box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+html, body { margin: 0; padding: 0; min-height: 100vh; background: #1e3c72; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
   color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  min-height: 100vh;
-  background: linear-gradient(-45deg, #1e3c72, #2a5298, #009ffd, #2af598, #009ffd);
+  background: linear-gradient(-45deg, #1e3c72, #2a5298, #009ffd, #2af598);
   background-size: 300% 300%;
-  animation: gradientMove 30s ease-in-out infinite alternate;
+  animation: gradientMove 20s ease infinite alternate;
 }
-
 @keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
 
-.wrapper { width: 100%; max-width: 900px; padding: 15px; padding-bottom: 40px; }
-.container { display: flex; flex-direction: column; gap: 15px; }
-.liquid-glass { background: var(--glass-bg); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid var(--glass-border); border-top: 1px solid var(--glass-border-light); border-left: 1px solid var(--glass-border-light); box-shadow: var(--glass-shadow); border-radius: 28px; }
+.wrapper { width: 100%; max-width: 500px; padding: 15px; display: flex; flex-direction: column; gap: 15px; }
+.liquid-glass { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 24px; box-shadow: var(--glass-shadow); }
 
-/* ІНФОРМАЦІЙНЕ ТАБЛО */
-.alert-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 100; }
-.alert-header { padding: 16px; text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.05); transition: background 0.3s; border-radius: 28px; }
-.alert-title-box { position: relative; display: inline-block; font-weight: 800; font-size: clamp(14px, 4vw, 18px); color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
-.alert-drawer { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); border-radius: 24px; }
-.alert-drawer.open { max-height: 1000px; opacity: 1; padding: 15px; pointer-events: auto; }
+/* ІНФО ТАБЛО */
+.alert-widget { padding: 15px; text-align: center; cursor: pointer; }
+.alert-drawer { max-height: 0; overflow: hidden; transition: 0.4s ease; font-size: 14px; opacity: 0; }
+.alert-drawer.open { max-height: 200px; opacity: 1; padding-top: 10px; }
 
-/* ВІДЖЕТИ ЧАСУ ТА ПОГОДИ */
-.top-row { display: flex; flex-direction: row; justify-content: space-between; gap: 12px; width: 100%; }
-.widget { padding: 15px 10px; flex: 1; min-height: 125px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; }
-#date { font-size: clamp(18px, 4.8vw, 24px); font-weight: 800; }
-#time { font-size: clamp(16px, 4.2vw, 20px); font-weight: 700; font-variant-numeric: tabular-nums; }
-.weekdays { display: flex; justify-content: center; gap: 3px; font-size: clamp(9px, 2.3vw, 12px); font-weight: 700; margin: 6px 0; text-transform: uppercase; }
-.day { color: rgba(255,255,255,0.4); }
-.day.active { background-color: #ff4d4d !important; color: #fff !important; border-radius: 6px; padding: 2px 5px; }
+/* ВІДЖЕТИ ВЕРХУ */
+.top-row { display: flex; gap: 10px; }
+.datetime-widget, .weather-widget { flex: 1; padding: 15px; text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 110px; }
+#date { font-size: 18px; font-weight: 800; }
+#time { font-size: 22px; font-weight: 700; color: var(--time-green); }
+.day-labels { display: flex; justify-content: center; gap: 4px; font-size: 10px; margin-top: 5px; opacity: 0.5; }
+.day-labels .active { color: #ff4d4d; font-weight: 900; opacity: 1; }
 
-.weather-box { position: relative; width: 100%; height: 95px; }
-.weather-content { position: absolute; width: 100%; opacity: 0; text-align: center; transition: 0.8s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.weather-content.active { opacity: 1; }
-.weather-city { font-weight: 700; font-size: 11px; opacity: 0.6; text-transform: uppercase; }
-.weather-temp { font-size: 28px; font-weight: 800; }
+/* ТАБИ (ГРУПИ) */
+.tab-group { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.tabs-nav { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.tabs-nav::-webkit-scrollbar { display: none; }
+.tab-btn { flex: 0 0 auto; padding: 10px 16px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.3s; }
+.tab-btn.active { background: #fff; color: #000; border-color: #fff; }
 
-/* ТАБИ ТА СПИСКИ */
-.tabs-nav { display: flex; overflow-x: auto; padding: 6px; gap: 8px; scrollbar-width: none; }
-.tab-btn { flex: 0 0 auto; padding: 12px 16px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; border-radius: 14px; font-weight: 700; font-size: 13px; }
-.tab-btn.active { background: rgba(255,255,255,0.2); border-color: #fff; }
+/* КОНТЕЙНЕРИ СПИСКІВ (ВИПАДАЮЧІ) */
+.list-drawer { 
+  display: none; 
+  width: 100%; 
+  padding: 15px; 
+  background: rgba(11, 29, 58, 0.9); 
+  border-radius: 20px; 
+  border: 1px solid rgba(255,255,255,0.1); 
+  animation: slideIn 0.3s ease-out;
+}
+.list-drawer.active { display: block; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-.main-list-widget, .shopping-drawer { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; transition: 0.5s ease; background: #0b1d3a; border-radius: 24px; z-index: 150; }
-.main-list-widget.open, .shopping-drawer.open { max-height: 2000px; opacity: 1; padding: 15px 10px; border: 1px solid rgba(255,255,255,0.15); pointer-events: auto; }
-.content-section { display: none; }
-.content-section.active { display: block; }
+/* ТРАНСПОРТ */
+.train-item { display: grid; grid-template-columns: 50px 1fr 60px; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 8px; }
+.train-no { font-weight: 800; color: var(--highlight-color); }
+.train-route { font-size: 13px; font-weight: 600; text-align: center; }
+.train-time { font-weight: 800; text-align: right; }
 
-/* КАРТКИ ТРАНСПОРТУ */
-.table-head { display: grid; grid-template-columns: 15% 1fr 18%; font-size: 10px; font-weight: 700; color: #74b9ff; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.train { display: grid; grid-template-columns: 15% 1fr 18%; align-items: center; padding: 14px 10px; background: rgba(255,255,255,0.05); border-radius: 16px; margin-bottom: 8px; }
-.train-num-box { font-weight: 800; font-size: 12px; background: rgba(255,255,255,0.1); padding: 4px; border-radius: 6px; text-align: center; }
-.route-text { text-align: center; font-weight: 700; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.time-val { font-weight: 800; text-align: center; }
+/* BLA BLA CAR */
+.blabla-btns { display: flex; gap: 10px; margin-bottom: 15px; }
+.bb-btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
+.bb-driver { background: #00ff9c; color: #000; }
+.bb-pass { background: #ffcc00; color: #000; }
+.bb-sub { font-size: 9px; opacity: 0.7; }
+.ride-card { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+.ride-row { display: flex; justify-content: space-between; font-size: 13px; margin-top: 8px; padding: 6px; background: rgba(0,0,0,0.2); border-radius: 8px; }
+.ride-tel { display: block; text-align: right; color: #00ff9c; font-weight: 800; text-decoration: none; margin-top: 10px; }
 
-/* BLA BLA CAR КАРТКИ */
-.blabla-actions { display: flex; gap: 10px; margin-bottom: 15px; }
-.blabla-btn { flex: 1; padding: 12px; border-radius: 14px; border: none; font-weight: 800; font-family: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-.btn-driver { background: linear-gradient(135deg, #00ff9c, #00b8ff); }
-.btn-passenger { background: linear-gradient(135deg, #ffcc00, #ff8800); }
-.blabla-subtext { font-size: 9px; text-transform: uppercase; opacity: 0.7; }
-.blabla-card { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 15px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
-.blabla-route { font-weight: 800; font-size: 15px; margin-bottom: 5px; }
-.blabla-date { color: var(--highlight-color); font-size: 12px; font-weight: 700; margin-bottom: 8px; }
-.blabla-info-row { display: flex; justify-content: space-between; font-size: 13px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 8px; }
-.blabla-phone { display: block; text-align: right; color: #00ff9c; font-weight: 800; text-decoration: none; margin-top: 10px; font-size: 15px; }
+/* МОДАЛКА */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 1000; display: none; padding: 20px; overflow-y: auto; }
+.modal.active { display: flex; justify-content: center; align-items: flex-start; }
+.modal-content { background: #0b1d3a; width: 100%; max-width: 400px; border-radius: 24px; padding: 25px; position: relative; border: 1px solid rgba(255,255,255,0.1); }
+.modal-close { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
+.f-input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: #fff; font-family: inherit; }
+.f-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 800; cursor: pointer; background: #00ff9c; }
 
-/* МОДАЛЬНІ ВІКНА */
-.custom-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; display: none; justify-content: center; align-items: flex-start; padding: 20px; overflow-y: auto; }
-.custom-modal-overlay.active { display: flex; }
-.custom-modal-box { background: #0b1d3a; width: 100%; max-width: 400px; border-radius: 24px; padding: 25px; border: 1px solid rgba(255,255,255,0.1); position: relative; }
-.close-modal-btn { position: absolute; top: 15px; right: 15px; font-size: 24px; cursor: pointer; }
-.form-input { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; color: #fff; margin-bottom: 12px; font-family: inherit; }
-.form-submit-btn { width: 100%; padding: 15px; border-radius: 14px; border: none; font-weight: 800; cursor: pointer; }
-
-/* ШОПІНГ ТА БАРАХОЛКА */
-.shops-tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.shop-tile { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 10px; display: flex; flex-direction: column; }
-.shop-tile-photo { aspect-ratio: 1/1; background: #000; border-radius: 10px; margin-bottom: 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-.shop-tile-photo img { width: 100%; height: 100%; object-fit: cover; }
-.shop-tile-name { font-weight: 800; font-size: 13px; line-height: 1.2; height: 32px; overflow: hidden; }
+/* МАРКЕТ */
+.market-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.market-tile { background: rgba(255,255,255,0.05); border-radius: 15px; padding: 10px; text-align: center; }
+.market-img { width: 100%; aspect-ratio: 1; border-radius: 10px; background: #000; object-fit: cover; margin-bottom: 8px; }
 </style>
 </head>
 
 <body>
 
-<div id="auth-screen" style="display: none; justify-content: center; align-items: center; min-height: 100vh; width: 100%;">
-  <div class="liquid-glass" style="padding: 30px; text-align: center;">
-    <h2 style="color: var(--highlight-color);">Помилка доступу</h2>
-    <p>Додаток працює лише в Telegram.</p>
+<div class="wrapper">
+  
+  <div class="alert-widget liquid-glass" onclick="document.getElementById('alert-box').classList.toggle('open')">
+    <b style="letter-spacing: 1px;">ІНФОРМАЦІЙНЕ ТАБЛО</b>
+    <div id="alert-box" class="alert-drawer">Актуальних новин зараз немає.</div>
   </div>
+
+  <div class="tab-group">
+    <div class="tabs-nav">
+      <button class="tab-btn" onclick="toggleSection('trains', this)">🚆 Електрички</button>
+      <button class="tab-btn" onclick="toggleSection('buses', this)">🚌 Автобуси</button>
+      <button class="tab-btn" onclick="toggleSection('blabla', this)">🚗 BlaBlaCar</button>
+    </div>
+
+    <div id="section-trains" class="list-drawer">
+      <div id="trains-list">Завантаження розкладу...</div>
+    </div>
+
+    <div id="section-buses" class="list-drawer">
+      <div id="buses-list">Завантаження автобусів...</div>
+    </div>
+
+    <div id="section-blabla" class="list-drawer">
+      <div class="blabla-btns">
+        <button class="bb-btn bb-driver" onclick="openBB('driver')">🚗 ВОДІЙ <span class="bb-sub">Додати авто</span></button>
+        <button class="bb-btn bb-pass" onclick="openBB('passenger')">🧍 ПАСАЖИР <span class="bb-sub">Шукаю місце</span></button>
+      </div>
+      <div id="blabla-data">Оновлення списку...</div>
+    </div>
+  </div>
+
+  <div class="top-row">
+    <div class="datetime-widget liquid-glass">
+      <div id="date">--.--.----</div>
+      <div class="day-labels">
+        <span>пн</span><span>вт</span><span>ср</span><span>чт</span><span>пт</span><span>сб</span><span>нд</span>
+      </div>
+      <div id="time">00:00:00</div>
+    </div>
+    <div class="weather-widget liquid-glass" id="weather-box">
+      Завантаження...
+    </div>
+  </div>
+
+  <div class="tab-group">
+    <div class="tabs-nav">
+      <button class="tab-btn" onclick="toggleSection('shops', this)">🛍️ Магазини</button>
+      <button class="tab-btn" onclick="toggleSection('flea', this)">📦 Барахолка</button>
+    </div>
+
+    <div id="section-shops" class="list-drawer">
+      <div class="market-grid" id="shops-list"></div>
+    </div>
+
+    <div id="section-flea" class="list-drawer">
+      <div class="market-grid" id="flea-list"></div>
+    </div>
+  </div>
+
 </div>
 
-<div class="custom-modal-overlay" id="blabla-modal" onclick="closeBlaBlaForm(event)">
-  <div class="custom-modal-box" onclick="event.stopPropagation()">
-    <div class="close-modal-btn" onclick="closeBlaBlaForm()">&times;</div>
-    <h3 id="form-modal-title" style="text-align: center; margin-bottom: 20px;">Поїздка</h3>
-    <form id="custom-blabla-form" onsubmit="submitBlaBlaForm(event)">
-      <div style="display: flex; gap: 10px;">
-        <input type="text" class="form-input" id="input-from" placeholder="Звідки" required>
-        <input type="text" class="form-input" id="input-to" placeholder="Куди" required>
+<div class="modal" id="bb-modal" onclick="this.classList.remove('active')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-close" onclick="document.getElementById('bb-modal').classList.remove('active')">&times;</div>
+    <h3 id="modal-title" style="text-align:center;">Поїздка</h3>
+    <form onsubmit="sendRide(event)">
+      <div style="display:flex; gap:10px;">
+        <input type="text" id="f-from" class="f-input" placeholder="Звідки" required>
+        <input type="text" id="f-to" class="f-input" placeholder="Куди" required>
       </div>
-      <input type="date" class="form-input" id="input-date" required>
-      <div style="display: flex; gap: 10px;">
-        <input type="time" class="form-input" id="input-time-from" required>
-        <input type="time" class="form-input" id="input-time-to" placeholder="До">
+      <input type="date" id="f-date" class="f-input" required>
+      <input type="time" id="f-time" class="f-input" required>
+      <div style="display:flex; gap:10px;">
+        <input type="number" id="f-seats" class="f-input" placeholder="Місць" required>
+        <input type="number" id="f-price" class="f-input" placeholder="Ціна грн">
       </div>
-      <div style="display: flex; gap: 10px;">
-        <select class="form-input" id="input-seats">
-          <option value="1">1 місце</option><option value="2" selected>2 місця</option>
-          <option value="3">3 місця</option><option value="4">4 місця</option>
-        </select>
-        <input type="number" class="form-input" id="input-price" placeholder="Ціна грн">
-      </div>
-      <input type="tel" class="form-input" id="input-phone" placeholder="0971234567" required>
-      <textarea class="form-input" id="input-comment" placeholder="Коментар..."></textarea>
-      <input type="hidden" id="input-type">
-      <button type="submit" class="form-submit-btn btn-driver" id="form-submit-btn">Опублікувати</button>
+      <input type="tel" id="f-phone" class="f-input" placeholder="Телефон" required>
+      <textarea id="f-comment" class="f-input" placeholder="Коментар..."></textarea>
+      <input type="hidden" id="f-type">
+      <button type="submit" class="f-btn" id="f-submit">Опублікувати</button>
     </form>
-  </div>
-</div>
-
-<div id="main-app-content" class="wrapper">
-  <div class="container">
-    
-    <div class="alert-main-widget liquid-glass">
-      <div class="alert-header" onclick="document.getElementById('alert-drawer').classList.toggle('open')">
-        <div class="alert-title-box">ІНФОРМАЦІЙНЕ ТАБЛО <span id="main-alert-dot" style="color:red; display:none;">●</span></div>
-      </div>
-      <div class="alert-drawer" id="alert-drawer">
-        <div id="alert-drawer-content" style="font-size: 14px; text-align: center; opacity: 0.6;">Немає нових повідомлень</div>
-      </div>
-    </div>
-
-    <div style="position: relative;">
-      <div class="tabs-nav" id="schedule-tabs">
-        <button class="tab-btn" onclick="openTab('trains', this)">🚆 Електрички</button>
-        <button class="tab-btn" onclick="openTab('buses', this)">🚌 Автобуси</button>
-        <button class="tab-btn" onclick="openTab('blablacar', this)">🚗 Bla Bla Car</button>
-      </div>
-
-      <div id="main-list-widget" class="main-list-widget">
-        <div id="trains" class="content-section">
-          <div id="list" style="text-align:center; padding:20px;">Завантаження...</div>
-        </div>
-        <div id="buses" class="content-section">
-          <div id="buses-list" style="text-align:center; padding:20px;">Завантаження...</div>
-        </div>
-        <div id="blablacar" class="content-section">
-          <div class="blabla-actions">
-            <button class="blabla-btn btn-driver" onclick="openBlaBlaForm('driver')">🚗 ВОДІЙ<span class="blabla-subtext">Дати авто</span></button>
-            <button class="blabla-btn btn-passenger" onclick="openBlaBlaForm('passenger')">🧍 ПАСАЖИР<span class="blabla-subtext">Знайти місце</span></button>
-          </div>
-          <div id="blabla-list" style="min-height: 100px;">
-             <div style="text-align:center; padding:20px; opacity:0.5;">Оновлення списку...</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="top-row">
-      <div class="widget liquid-glass">
-        <div id="date"></div>
-        <div class="weekdays">
-          <div class="day">пн</div><div class="day">вт</div><div class="day">ср</div><div class="day">чт</div><div class="day">пт</div><div class="day">сб</div><div class="day">нд</div>
-        </div>
-        <div id="time"></div>
-      </div>
-      <div class="widget liquid-glass" id="weather-container"></div>
-    </div>
-
-    <div style="position: relative;">
-      <div class="tabs-nav">
-        <button class="tab-btn" onclick="openMarket('shopping-tab', this)">🛍️ Магазини</button>
-        <button class="tab-btn" onclick="openMarket('flea-tab', this)">📦 Барахолка</button>
-      </div>
-      <div id="market-drawer" class="shopping-drawer">
-        <div id="shopping-tab" class="content-section">
-          <div id="shopping-list" class="shops-tile-grid"></div>
-        </div>
-        <div id="flea-tab" class="content-section">
-          <div id="flea-list" class="shops-tile-grid"></div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
 
 <script>
 const tg = window.Telegram.WebApp;
-if (tg.expand) tg.expand();
+tg.expand();
 
-// Налаштування серверів
 const API_URL = 'https://vilnohirsk-blablacar-api-production.up.railway.app/api/rides';
 
-// --- ЧАС ТА ПОГОДА ---
+// --- ЛОГІКА ТАБІВ ---
+function toggleSection(id, btn) {
+  const isAlreadyActive = btn.classList.contains('active');
+  const parent = btn.closest('.tab-group');
+  
+  // Закриваємо всі в цій групі
+  parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  parent.querySelectorAll('.list-drawer').forEach(d => d.classList.remove('active'));
+
+  if (!isAlreadyActive) {
+    btn.classList.add('active');
+    document.getElementById('section-' + id).classList.add('active');
+    if (id === 'blabla') loadBlaBla();
+  }
+}
+
+// --- ЧАС ---
 function updateTime() {
   const now = new Date(new Date().toLocaleString("en-US", {timeZone: "Europe/Kyiv"}));
   document.getElementById('date').innerText = now.toLocaleDateString('uk-UA');
   document.getElementById('time').innerText = now.toLocaleTimeString('uk-UA');
-  const days = document.querySelectorAll('.day');
+  const days = document.querySelectorAll('.day-labels span');
   days.forEach(d => d.classList.remove('active'));
   let dIdx = now.getDay();
   days[dIdx === 0 ? 6 : dIdx - 1].classList.add('active');
 }
-setInterval(updateTime, 1000);
-updateTime();
+setInterval(updateTime, 1000); updateTime();
 
+// --- ПОГОДА ---
 async function loadWeather() {
   try {
     const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=48.48&longitude=34.02&current_weather=true');
     const d = await res.json();
-    document.getElementById('weather-container').innerHTML = `
-      <div class="weather-content active">
-        <div class="weather-city">Вільногірськ</div>
-        <div class="weather-temp">${Math.round(d.current_weather.temperature)}°C</div>
-        <div style="font-size:10px; opacity:0.6;">💨 ${d.current_weather.windspeed} м/с</div>
-      </div>`;
+    document.getElementById('weather-box').innerHTML = `
+      <div style="font-size:11px; opacity:0.6;">ВІЛЬНОГІРСЬК</div>
+      <div style="font-size:28px; font-weight:800;">${Math.round(d.current_weather.temperature)}°C</div>
+      <div style="font-size:11px; opacity:0.6;">💨 ${d.current_weather.windspeed} м/с</div>
+    `;
   } catch(e) {}
 }
 loadWeather();
 
-// --- ТАБИ ---
-function openTab(id, btn) {
-  const widget = document.getElementById('main-list-widget');
-  const sections = document.querySelectorAll('#main-list-widget .content-section');
-  const btns = document.querySelectorAll('#schedule-tabs .tab-btn');
-  
-  if (btn.classList.contains('active')) {
-    btn.classList.remove('active');
-    widget.classList.remove('open');
-    return;
-  }
-  
-  btns.forEach(b => b.classList.remove('active'));
-  sections.forEach(s => s.classList.remove('active'));
-  
-  btn.classList.add('active');
-  document.getElementById(id).classList.add('active');
-  widget.classList.add('open');
-  
-  if (id === 'blablacar') loadBlaBlaCarData();
+// --- ТРАНСПОРТ ---
+async function loadTrains() {
+  try {
+    const res = await fetch('https://vilnohirsk-trains-production.up.railway.app/api/trains');
+    const d = await res.json();
+    document.getElementById('trains-list').innerHTML = d.trains.map(t => `
+      <div class="train-item">
+        <div class="train-no">${t.number}</div>
+        <div class="train-route">${t.route}</div>
+        <div class="train-time">${t.time}</div>
+      </div>
+    `).join('');
+  } catch(e) { document.getElementById('trains-list').innerText = "Помилка завантаження"; }
+}
+loadTrains();
+
+// --- BLA BLA CAR ---
+function openBB(type) {
+  document.getElementById('f-type').value = type;
+  document.getElementById('modal-title').innerText = type === 'driver' ? '🚘 Дати авто' : '🧍 Шукаю місце';
+  document.getElementById('bb-modal').classList.add('active');
 }
 
-function openMarket(id, btn) {
-  const drawer = document.getElementById('market-drawer');
-  const sections = document.querySelectorAll('#market-drawer .content-section');
-  const btns = btn.parentElement.querySelectorAll('.tab-btn');
-
-  if (btn.classList.contains('active')) {
-    btn.classList.remove('active');
-    drawer.classList.remove('open');
-    return;
-  }
-
-  btns.forEach(b => b.classList.remove('active'));
-  sections.forEach(s => s.classList.remove('active'));
-
-  btn.classList.add('active');
-  document.getElementById(id).classList.add('active');
-  drawer.classList.add('open');
-  
-  if (id === 'shopping-tab') loadShops();
-  if (id === 'flea-tab') loadFlea();
-}
-
-// --- BLA BLA CAR ЛОГІКА ---
-function openBlaBlaForm(type) {
-  const modal = document.getElementById('blabla-modal');
-  document.getElementById('input-type').value = type;
-  document.getElementById('form-modal-title').innerText = type === 'driver' ? '🚘 Дати авто' : '🧍 Знайти місце';
-  document.getElementById('form-submit-btn').className = 'form-submit-btn ' + (type === 'driver' ? 'btn-driver' : 'btn-passenger');
-  modal.classList.add('active');
-}
-
-function closeBlaBlaForm() {
-  document.getElementById('blabla-modal').classList.remove('active');
-}
-
-async function submitBlaBlaForm(e) {
+async function sendRide(e) {
   e.preventDefault();
-  const btn = document.getElementById('form-submit-btn');
-  btn.disabled = true;
-  btn.innerText = 'Відправка...';
+  const btn = document.getElementById('f-submit');
+  btn.disabled = true; btn.innerText = "Відправка...";
 
-  const payload = {
-    type: document.getElementById('input-type').value,
-    from: document.getElementById('input-from').value,
-    to: document.getElementById('input-to').value,
-    date: document.getElementById('input-date').value,
-    time: document.getElementById('input-time-from').value,
-    seats: document.getElementById('input-seats').value,
-    price: document.getElementById('input-price').value || 0,
-    phone: document.getElementById('input-phone').value,
-    comment: document.getElementById('input-comment').value
+  const data = {
+    type: document.getElementById('f-type').value,
+    from: document.getElementById('f-from').value,
+    to: document.getElementById('f-to').value,
+    date: document.getElementById('f-date').value,
+    time: document.getElementById('f-time').value,
+    seats: document.getElementById('f-seats').value,
+    price: document.getElementById('f-price').value || 0,
+    phone: document.getElementById('f-phone').value,
+    comment: document.getElementById('f-comment').value
   };
 
   try {
-    const res = await fetch(API_URL, {
+    await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data)
     });
-    if (res.ok) {
-      alert('✅ Додано!');
-      document.getElementById('custom-blabla-form').reset();
-      closeBlaBlaForm();
-      loadBlaBlaCarData();
-    } else {
-      alert('❌ Помилка сервера');
-    }
-  } catch (err) {
-    alert('❌ Помилка мережі');
-  } finally {
-    btn.disabled = false;
-    btn.innerText = 'Опублікувати';
-  }
+    alert("✅ Опубліковано!");
+    document.getElementById('bb-modal').classList.remove('active');
+    loadBlaBla();
+  } catch(e) { alert("❌ Помилка"); }
+  finally { btn.disabled = false; btn.innerText = "Опублікувати"; }
 }
 
-async function loadBlaBlaCarData() {
-  const list = document.getElementById('blabla-list');
+async function loadBlaBla() {
+  const box = document.getElementById('blabla-data');
   try {
     const res = await fetch(API_URL);
     const data = await res.json();
-    if (data.length === 0) {
-      list.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Поїздок поки немає</div>';
-      return;
-    }
-    list.innerHTML = data.map(d => `
-      <div class="blabla-card">
-        <div class="blabla-route">📍 ${d.from} → ${d.to}</div>
-        <div class="blabla-date">🗓 ${d.date} | 🕒 ${d.time}</div>
-        <div class="blabla-info-row">
-          <span>💺 Місць: <b>${d.seats}</b></span>
-          <span>💰 <b>${d.price} грн</b></span>
+    if(data.length === 0) { box.innerHTML = "<center opacity='0.5'>Поїздок немає</center>"; return; }
+    box.innerHTML = data.map(r => `
+      <div class="ride-card">
+        <div class="ride-route"><b>${r.from}</b> → <b>${r.to}</b></div>
+        <div style="font-size:12px; color:var(--highlight-color); margin-top:4px;">🗓 ${r.date} | 🕒 ${r.time}</div>
+        <div class="ride-row">
+          <span>💺 ${r.seats} місць</span>
+          <span>💰 ${r.price} грн</span>
         </div>
-        ${d.comment ? `<div style="font-size:11px; margin-top:8px; opacity:0.7;">💬 ${d.comment}</div>` : ''}
-        <a href="tel:${d.phone}" class="blabla-phone">📞 ${d.phone}</a>
+        ${r.comment ? `<div style="font-size:11px; margin-top:8px; opacity:0.7;">💬 ${r.comment}</div>` : ''}
+        <a href="tel:${r.phone}" class="ride-tel">📞 ${r.phone}</a>
       </div>
     `).join('');
-  } catch (e) {
-    list.innerHTML = '<div style="text-align:center; padding:20px; color:#ff6b6b;">Сервер недоступний</div>';
-  }
+  } catch(e) { box.innerText = "Сервер не відповідає"; }
 }
-
-// --- ТРАНСПОРТ ТА ІНШЕ ---
-async function loadTransport() {
-  try {
-    const r = await fetch('https://vilnohirsk-trains-production.up.railway.app/api/trains');
-    const d = await r.json();
-    document.getElementById('list').innerHTML = d.trains.map(t => `
-      <div class="train">
-        <div class="train-num-box">${t.number}</div>
-        <div class="route-text">${t.route}</div>
-        <div class="time-val">${t.time}</div>
-      </div>`).join('');
-  } catch(e) {}
-}
-loadTransport();
-
-// Закриття по кліку зовні
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.tabs-nav') && !e.target.closest('.main-list-widget') && !e.target.closest('.shopping-drawer')) {
-     document.getElementById('main-list-widget').classList.remove('open');
-     document.getElementById('market-drawer').classList.remove('open');
-     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  }
-});
-
 </script>
+
 </body>
 </html>
