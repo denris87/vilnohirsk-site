@@ -930,7 +930,7 @@ const tg = window.Telegram.WebApp;
 
 let isInsideTelegram = false;
 if (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length > 0) {
-  isInsideTelegram = true;
+  isInsideTelegram = false;
 } else if (tg.initData && tg.initData.length > 0) {
   isInsideTelegram = true;
 } else if (tg.platform && tg.platform !== "unknown") {
