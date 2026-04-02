@@ -681,18 +681,17 @@ select.form-input option {
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Дата поїздки</label>
-          <input type="date" class="form-input" id="input-date" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label" id="label-time">Час відправлення</label>
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="time" class="form-input" id="input-time-from" required style="padding: 12px 8px;">
-            <span style="color: rgba(255,255,255,0.5); font-weight: bold;">-</span>
-            <input type="time" class="form-input" id="input-time-to" style="padding: 12px 8px;">
-          </div>
+      <div class="form-group">
+        <label class="form-label">Дата поїздки</label>
+        <input type="date" class="form-input" id="input-date" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" id="label-time">Час відправлення</label>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="time" class="form-input" id="input-time-from" required>
+          <span style="color: rgba(255,255,255,0.5); font-weight: bold;">-</span>
+          <input type="time" class="form-input" id="input-time-to">
         </div>
       </div>
 
@@ -706,9 +705,6 @@ select.form-input option {
             <option value="3">3</option>
             <option value="4">4</option>
             <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
           </select>
         </div>
         <div class="form-group" id="group-price">
@@ -893,6 +889,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   window.openBlaBlaForm = function(type) {
     const modal = document.getElementById('blabla-modal');
     const title = document.getElementById('form-modal-title');
+    const timeLabel = document.getElementById('label-time');
     const seatsLabel = document.getElementById('label-seats');
     const priceGroup = document.getElementById('group-price');
     const priceInput = document.getElementById('input-price');
@@ -909,6 +906,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       title.innerText = '🚘 Запропонувати поїздку';
       title.style.color = '#00ff9c';
       
+      timeLabel.innerText = 'Час відправлення';
       seatsLabel.innerText = 'Вільних місць';
       
       priceGroup.style.display = 'flex';
@@ -920,6 +918,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       title.innerText = '🙋‍♂️ Знайти авто';
       title.style.color = '#ffcc00';
       
+      timeLabel.innerText = 'Бажаний час';
       seatsLabel.innerText = 'Потрібно місць';
       
       priceGroup.style.display = 'none';
