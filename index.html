@@ -478,7 +478,8 @@ body {
   z-index: 99999;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  overflow-y: auto;
   padding: 20px;
   opacity: 0;
   pointer-events: none;
@@ -491,6 +492,7 @@ body {
 .custom-modal-box {
   width: 100%;
   max-width: 400px;
+  margin: auto;
   background: linear-gradient(145deg, rgba(20, 30, 50, 0.9), rgba(10, 15, 30, 0.95));
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 24px;
@@ -1673,6 +1675,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     loadFleaMarketData(); 
     loadBlaBlaCarData();
   }, 30000);
+
+  // Автоматична прокрутка до поля вводу при виклику клавіатури
+  document.querySelectorAll('.form-input').forEach(input => {
+    input.addEventListener('focus', function() {
+      setTimeout(() => {
+        this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    });
+  });
 
 }
 </script>
