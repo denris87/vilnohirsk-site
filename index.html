@@ -836,11 +836,14 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         skipEmptyLines: true,
         complete: function(results) {
           const approvedItems = results.data.filter(row => {
-            let status = row['Статус'] || row['Status'];
-            if(!status && Object.keys(row).length > 0) status = row[Object.keys(row)[Object.keys(row).length - 1]];
-            return status && String(status).trim().toLowerCase() === 'одобрено';
+            return Object.values(row).some(val => String(val).trim().toLowerCase() === 'одобрено');
           }).map(row => {
-            let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || row['Фото'] || row['Ссылки на фото'] || '';
+            const getVal = (keywords) => {
+               for (let k of Object.keys(row)) { if (keywords.some(kw => k.toLowerCase().includes(kw))) return row[k]; }
+               return '';
+            };
+
+            let rawPhoto = getVal(['фото', 'photo', 'світлин']);
             let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
             let processedPhotos = photoUrls.map(url => {
                 let fileId = '';
@@ -848,15 +851,16 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
                 else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
                 return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
             });
+
             return {
-              title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['title'] || '',
-              price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['price'] || '',
-              description: row['Опис (Абзац)'] || row['Опис'] || row['description'] || '',
-              phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['phone'] || '',
+              title: getVal(['назва', 'title', 'що продаєте']),
+              price: getVal(['ціна', 'price', 'вартість']),
+              description: getVal(['опис', 'description', 'деталі']),
+              phone: getVal(['телефон', 'phone', 'зв\'язок']),
               photos: processedPhotos, 
-              category: row['Категорія товару'] || row['Категорія'] || row['category'] || 'Різне',
-              condition: row['Стан товару'] || row['Стан'] || row['condition'] || 'Не вказано',
-              location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['location'] || 'Не вказано'
+              category: getVal(['категорія', 'category']),
+              condition: getVal(['стан', 'condition']),
+              location: getVal(['місто', 'локація', 'location'])
             };
           });
 
@@ -869,8 +873,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           shuffleArray([...approvedItems]).forEach((item, i) => {
             const id = 'flea-detail-' + i;
             const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">📦</span>`;
-            let priceText = String(item.price);
-            if (priceText && priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
+            let priceText = item.price ? String(item.price).trim() : 'Ціна договірна';
+            if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
             
             let allPhotosHtml = '';
             if (item.photos.length > 0) {
@@ -883,22 +887,29 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               `;
             }
 
+            const safeTitle = item.title || 'Без назви';
+            const safeCat = item.category || 'Різне';
+            const safeCond = item.condition || 'Не вказано';
+            const safeDesc = (item.description || 'Без опису').replace(/\n/g, '<br>');
+            const safeLoc = item.location || 'Вільногірськ';
+            const safePhone = item.phone || 'Не вказано';
+
             html += `
               <div class="shop-tile" onclick="toggleShop('${id}', this)">
                 <div class="shop-tile-photo">${thumb}</div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
                    <span class="shop-tile-cat" style="color:#00ff9c; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${priceText}</span>
-                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${item.location}</span>
+                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
                 </div>
-                <div class="shop-tile-name">${item.title}</div>
+                <div class="shop-tile-name">${safeTitle}</div>
                 <div class="shop-tile-chevron">Опис ▾</div>
                 <div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
                   <div class="shop-inner-list">
                     ${allPhotosHtml}
-                    <div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${item.category}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">✨</span><div><b>Стан:</b><br>${item.condition}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${String(item.description).replace(/\n/g, '<br>')}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${String(item.phone).replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a></div></div>
+                    <div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${safeCat}</div></div>
+                    <div class="shop-inner-item"><span class="detail-icon">✨</span><div><b>Стан:</b><br>${safeCond}</div></div>
+                    <div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${safeDesc}</div></div>
+                    <div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${safePhone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${safePhone}</a></div></div>
                   </div>
                 </div>
               </div>`;
@@ -919,12 +930,14 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         skipEmptyLines: true,
         complete: function(results) {
           const approvedItems = results.data.filter(row => {
-            let status = row['Статус'] || row['Status'];
-            if(!status && Object.keys(row).length > 0) status = row[Object.keys(row)[Object.keys(row).length - 1]];
-            return status && String(status).trim().toLowerCase() === 'одобрено';
+            return Object.values(row).some(val => String(val).trim().toLowerCase() === 'одобрено');
           }).map(row => {
-            const keys = Object.keys(row);
-            let rawPhoto = row['Додати фото'] || row['Photos'] || row['Фото'] || row[keys[5]] || '';
+            const getVal = (keywords) => {
+               for (let k of Object.keys(row)) { if (keywords.some(kw => k.toLowerCase().includes(kw))) return row[k]; }
+               return '';
+            };
+
+            let rawPhoto = getVal(['фото', 'photo', 'світлин']);
             let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
             let processedPhotos = photoUrls.map(url => {
                 let fileId = '';
@@ -932,14 +945,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
                 else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
                 return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
             });
+
             return {
-              title: row['Назва речі'] || row['Title'] || row[keys[1]] || '',
-              type: row['Що сталося?'] || row['Type'] || row['Тип'] || row[keys[2]] || 'Знайдено',
-              description: row['Опис та обставини'] || row['Description'] || row['Опис'] || row[keys[3]] || '',
-              phone: row['Ваш телефон'] || row['Phone'] || row['Телефон'] || row[keys[4]] || '',
+              title: getVal(['назва', 'що', 'title']),
+              type: getVal(['сталося', 'тип', 'type']) || 'Знайдено',
+              description: getVal(['опис', 'обставини', 'description']),
+              phone: getVal(['телефон', 'phone', 'зв\'язок']),
               photos: processedPhotos, 
-              category: row['Категорія'] || row['Category'] || row[keys[6]] || 'Інше',
-              location: row['Локація'] || row['Location'] || row[keys[7]] || 'Не вказано'
+              category: getVal(['категорія', 'category']) || 'Інше',
+              location: getVal(['локація', 'місто', 'location'])
             };
           });
 
@@ -952,7 +966,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           approvedItems.reverse().forEach((item, i) => {
             const id = 'lost-detail-' + i;
             const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`;
-            const badgeColor = item.type === 'Знайдено' ? '#00ff9c' : '#ff4d4d';
+            const badgeColor = item.type.toLowerCase().includes('знайдено') ? '#00ff9c' : '#ff4d4d';
             
             let allPhotosHtml = '';
             if (item.photos.length > 0) {
@@ -965,21 +979,26 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               `;
             }
 
+            const safeTitle = item.title || 'Без назви';
+            const safeDesc = (item.description || 'Без опису').replace(/\n/g, '<br>');
+            const safeLoc = item.location || 'Вільногірськ';
+            const safePhone = item.phone || 'Не вказано';
+
             html += `
               <div class="shop-tile" onclick="toggleShop('${id}', this)">
                 <div class="shop-tile-photo">${thumb}</div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
                    <span class="shop-tile-cat" style="color:${badgeColor}; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${item.type}</span>
-                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${item.location}</span>
+                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
                 </div>
-                <div class="shop-tile-name">${item.title}</div>
+                <div class="shop-tile-name">${safeTitle}</div>
                 <div class="shop-tile-chevron">Опис ▾</div>
                 <div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
                   <div class="shop-inner-list">
                     ${allPhotosHtml}
                     <div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${item.category}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${String(item.description).replace(/\n/g, '<br>')}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${String(item.phone).replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a></div></div>
+                    <div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${safeDesc}</div></div>
+                    <div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${safePhone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${safePhone}</a></div></div>
                   </div>
                 </div>
               </div>`;
