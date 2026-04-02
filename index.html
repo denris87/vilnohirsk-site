@@ -522,7 +522,7 @@ body {
 .blabla-info-row { display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; align-items: center;}
 .blabla-phone { font-size: 14px; font-weight: 800; color: var(--time-green); text-decoration: none; }
 
-/* ==== ВЛАСНІ ФОРМИ ДЛЯ BLA BLA CAR (МОДАЛЬНІ ВІКНА) ==== */
+/* ==== ВЛАСНІ ФОРМИ ДЛЯ BLA BLA CAR ТА БАРАХОЛКИ (МОДАЛЬНІ ВІКНА) ==== */
 .custom-modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -633,6 +633,10 @@ select.form-input option {
   background: #0b1d3a;
   color: #fff;
 }
+input[type="file"].form-input {
+  padding: 8px;
+  font-size: 12px;
+}
 
 .form-submit-btn {
   width: 100%;
@@ -649,6 +653,7 @@ select.form-input option {
 }
 .form-submit-btn.driver { background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); }
 .form-submit-btn.passenger { background: linear-gradient(135deg, #ffcc00, #ff8800); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.3); }
+.form-submit-btn.flea { background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); }
 .form-submit-btn:active { transform: translateY(2px); }
 
 /* ==== ВЕЛИКЕ ФОТО ТА ГАЛЕРЕЯ (МОДАЛЬНЕ ВІКНО) ==== */
@@ -792,6 +797,70 @@ select.form-input option {
   </div>
 </div>
 
+<div class="custom-modal-overlay" id="flea-modal" onclick="closeFleaForm(event)">
+  <div class="custom-modal-box" onclick="event.stopPropagation()">
+    <div class="close-modal-btn" onclick="closeFleaForm(event)">&times;</div>
+    <h3 class="form-title" style="color: #00ff9c;">📦 Додати оголошення</h3>
+    
+    <form id="custom-flea-form" onsubmit="submitFleaForm(event)">
+      <div class="form-group">
+        <label class="form-label">Назва товару</label>
+        <input type="text" class="form-input" name="title" placeholder="Продам велосипед" required maxlength="50">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Категорія</label>
+          <select class="form-input" name="category" required>
+            <option value="" disabled selected>Виберіть...</option>
+            <option value="Електроніка">Електроніка</option>
+            <option value="Одяг та взуття">Одяг та взуття</option>
+            <option value="Для дому">Для дому</option>
+            <option value="Дитячі товари">Дитячі товари</option>
+            <option value="Авто/Мото">Авто/Мото</option>
+            <option value="Інше">Інше</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Стан</label>
+          <select class="form-input" name="condition" required>
+            <option value="Вживане">Вживане</option>
+            <option value="Нове">Нове</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Ціна (грн)</label>
+          <input type="number" class="form-input" name="price" placeholder="Наприклад: 500" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Локація</label>
+          <input type="text" class="form-input" name="location" placeholder="Вільногірськ" value="Вільногірськ" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Опис товару</label>
+        <textarea class="form-input" name="description" rows="3" placeholder="Опишіть стан, характеристики..." required></textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Фотографії (до 5 шт)</label>
+        <input type="file" class="form-input" name="photos" accept="image/*" multiple required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Номер телефону</label>
+        <input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required title="Почніть з нуля, 10 цифр">
+      </div>
+      
+      <button type="submit" class="form-submit-btn flea" id="flea-submit-btn">Опублікувати</button>
+    </form>
+  </div>
+</div>
+
 <div id="main-app-content" style="display: none; width: 100%; justify-content: center;">
   <div class="wrapper">
   <div class="container">
@@ -918,7 +987,7 @@ select.form-input option {
         </div>
         <div id="flea-market-tab" class="content-section">
           <div style="padding: 5px 10px 15px 10px; text-align: center;">
-            <a href="https://forms.gle/wkb79TBuduCSVLJF8" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; padding: 12px 24px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.4); text-transform: uppercase; font-size: 13px; letter-spacing: 1px; transition: transform 0.2s;">➕ Додати своє оголошення</a>
+            <button onclick="openFleaForm()" style="display: inline-block; border:none; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-family: inherit; font-weight: 800; padding: 12px 24px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.4); text-transform: uppercase; font-size: 13px; letter-spacing: 1px; transition: transform 0.2s;">➕ Додати своє оголошення</button>
           </div>
           <div id="flea-market-list-content">
             <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження...</div>
@@ -942,11 +1011,10 @@ select.form-input option {
 const REQUIRE_TELEGRAM = true; 
 
 const tg = window.Telegram.WebApp;
-tg.ready(); // Сповіщаємо Telegram, що додаток готовий
+tg.ready(); 
 
 let isInsideTelegram = false;
 
-// Перевіряємо платформу - це найнадійніший спосіб в останніх версіях Telegram API
 if (tg.platform && tg.platform !== "unknown") {
   isInsideTelegram = true;
 } 
@@ -969,7 +1037,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   if (tg.expand) { tg.expand(); }
 
-  // ==== СИСТЕМА СПОВІЩЕНЬ (ЧЕРВОНІ КРАПКИ) ====
+  // ==== СИСТЕМА СПОВІЩЕНЬ ====
   window.currentDataSignature = {};
 
   function checkNotification(key, dataArray) {
@@ -1015,7 +1083,95 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   };
 
-  // ==== ЛОГІКА ВЛАСНОЇ ФОРМИ BLA BLA CAR ====
+  // ==== ЛОГІКА ФОРМИ БАРАХОЛКИ ====
+  window.openFleaForm = function() {
+    document.getElementById('custom-flea-form').reset();
+    document.getElementById('flea-modal').classList.add('active');
+  };
+
+  window.closeFleaForm = function(event) {
+    if (!event || event.target.classList.contains('close-modal-btn')) {
+      document.getElementById('flea-modal').classList.remove('active');
+    }
+  };
+
+  window.submitFleaForm = async function(event) {
+    event.preventDefault(); 
+    
+    const submitBtn = document.getElementById('flea-submit-btn');
+    const originalBtnText = submitBtn.innerText;
+    
+    submitBtn.innerText = 'Завантаження фото...';
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.7';
+
+    try {
+      const form = document.getElementById('custom-flea-form');
+      const formData = new FormData(form);
+      const photos = document.querySelector('input[name="photos"]').files;
+      let photoUrls = [];
+
+      // 1. ЗАГРУЖАЕМ ФОТО НА IMGBB
+      // ⚠️ ВАЖЛИВО: ВСТАВ СВІЙ КЛЮЧ IMGBB МІЖ ОДИНАРНИМИ ЛАПКАМИ!
+      const IMGBB_API_KEY = 'd11436ad8fa81ca991d924b69419577e'; 
+
+      if (photos.length > 5) {
+        throw new Error('Можна додати максимум 5 фото!');
+      }
+
+      for (let i = 0; i < photos.length; i++) {
+        const imgData = new FormData();
+        imgData.append('image', photos[i]);
+        
+        const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+          method: 'POST',
+          body: imgData
+        });
+        
+        const imgJson = await imgRes.json();
+        if (imgJson.success) {
+          photoUrls.push(imgJson.data.url);
+        } else {
+          throw new Error('Не вдалося завантажити одне з фото. Перевір ключ API.');
+        }
+      }
+
+      // 2. ОТПРАВЛЯЕМ ДАННЫЕ В GOOGLE ТАБЛИЦУ
+      submitBtn.innerText = 'Збереження...';
+      
+      const sheetData = {
+        title: formData.get('title'),
+        category: formData.get('category'),
+        condition: formData.get('condition'),
+        price: formData.get('price'),
+        location: formData.get('location'),
+        description: formData.get('description'),
+        phone: formData.get('phone'),
+        photos: photoUrls.join(', ') 
+      };
+
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0hYWR1CkmonE4pvm70SBcLdHPmZlitnthHWyPlGP-E7gS0bV7D8elvzaDov1Y8D2s/exec';
+
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Важливо для Google Apps Script, щоб не блокувався запит
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(sheetData)
+      });
+
+      alert('✅ Ваше оголошення успішно відправлено на модерацію!');
+      closeFleaForm();
+
+    } catch (error) {
+      alert('❌ Помилка: ' + error.message);
+    } finally {
+      submitBtn.innerText = originalBtnText;
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+    }
+  };
+
+  // ==== ЛОГІКА ФОРМИ BLA BLA CAR ====
   window.openBlaBlaForm = function(type) {
     const modal = document.getElementById('blabla-modal');
     const title = document.getElementById('form-modal-title');
@@ -1058,7 +1214,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     modal.classList.add('active');
   };
 
-  // ВАЖЛИВО: Закриваємо ТІЛЬКИ якщо клікнули на хрестик
   window.closeBlaBlaForm = function(event) {
     if (!event || event.target.classList.contains('close-modal-btn')) {
       document.getElementById('blabla-modal').classList.remove('active');
@@ -1262,7 +1417,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     });
   }
 
-  // ==== ФУНКЦІЇ ДЛЯ ТАБІВ (З ОЧИЩЕННЯМ СПОВІЩЕНЬ) ====
+  // ==== ФУНКЦІЇ ДЛЯ ТАБІВ ====
   window.openAlertTab = function(tabId, btn) {
     try {
       closeAllShopDropdowns(); 
@@ -1295,7 +1450,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   function openScheduleTab(tabId, btn) {
     try {
       if (tabId === 'blablacar') clearNotification('blablacar');
-      if (tabId === 'trains') clearNotification('trains'); // ОЧИЩАЄМО СПОВІЩЕННЯ ЕЛЕКТРИЧОК
+      if (tabId === 'trains') clearNotification('trains');
       
       closeAllShopDropdowns(); 
       document.getElementById('market-drawer').classList.remove('open');
@@ -1537,10 +1692,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
-  // НОВА ФУНКЦІЯ ДЛЯ СЯЙВА ПОДІЙ З GITHUB
   async function loadEventsData() {
     try {
-      // ЗАМІНИ НА СВОЄ ПОСИЛАННЯ В GITHUB
       const API_URL = `https://raw.githubusercontent.com/denris87/vilnohirsk-events/main/events.json?t=${new Date().getTime()}`;
       
       const r = await fetch(API_URL);
@@ -1798,7 +1951,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             .filter(row => row['Статус'] && row['Статус'].trim().toLowerCase() === 'одобрено')
             .map((row) => {
               
-              let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || '';
+              let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || row['Фото'] || '';
               let photoUrls = rawPhoto.split(',').map(p => p.trim()).filter(p => p);
               
               let processedPhotos = photoUrls.map(url => {
@@ -1817,14 +1970,14 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               });
 
               return {
-                title: row['Назва товару (Коротка відповідь)'],
-                price: row['Ціна (Коротка відповідь)'],
-                description: row['Опис (Абзац)'],
-                phone: row['Телефон (Коротка відповідь)'],
+                title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'],
+                price: row['Ціна (Коротка відповідь)'] || row['Ціна'],
+                description: row['Опис (Абзац)'] || row['Опис'],
+                phone: row['Телефон (Коротка відповідь)'] || row['Телефон'],
                 photos: processedPhotos, 
-                category: row['Категорія товару'],
-                condition: row['Стан товару'],
-                location: row['Місто/Область, де знаходиться товар']
+                category: row['Категорія товару'] || row['Категорія'],
+                condition: row['Стан товару'] || row['Стан'],
+                location: row['Місто/Область, де знаходиться товар'] || row['Місто']
               };
             });
 
@@ -1853,7 +2006,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         if(d&&d.trains) {
           renderTrains(document.getElementById("list"),d.trains);
           
-          // ПЕРЕВІРКА НА ЗМІНИ ДЛЯ ЧЕРВОНОЇ КРАПКИ
           const changedTrains = d.trains.filter(x => x && x.note && x.note !== "змін немає...");
           if (changedTrains.length > 0) {
             checkNotification('trains', changedTrains);
