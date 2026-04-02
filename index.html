@@ -1042,8 +1042,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       loadBlaBlaCarData();
 
     } catch (error) {
-      console.error('Помилка:', error);
-      alert(`❌ Виникла помилка при відправці. Перевірте з'єднання або спробуйте пізніше. Деталі: ${error.message}`);
+      console.error('Помилка відправки:', error);
+      let errMsg = error.message;
+      if (errMsg.includes('Load failed') || errMsg.includes('Failed to fetch')) {
+        errMsg = "Сервер Railway вимкнений або недоступний (проблема з CORS).";
+      }
+      alert(`❌ Виникла помилка при відправці:\n\n${errMsg}`);
     } finally {
       submitBtn.innerText = originalText;
       submitBtn.disabled = false;
@@ -1715,8 +1719,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
     } catch (error) {
       console.error('Помилка завантаження BlaBlaCar:', error);
-      document.getElementById('blabla-drivers-list').innerHTML = `<div style="text-align: center; padding: 20px; color: #ff6b6b; font-size: 13px;"><b>Помилка завантаження пропозицій</b><br><span style="font-size: 11px; opacity: 0.8;">${error.message}</span></div>`;
-      document.getElementById('blabla-passengers-list').innerHTML = `<div style="text-align: center; padding: 20px; color: #ff6b6b; font-size: 13px;"><b>Помилка завантаження запитів</b><br><span style="font-size: 11px; opacity: 0.8;">${error.message}</span></div>`;
+      let errMsg = error.message;
+      if (errMsg.includes('Load failed') || errMsg.includes('Failed to fetch')) {
+        errMsg = "Сервер Railway вимкнений або недоступний (проблема з CORS).";
+      }
+      document.getElementById('blabla-drivers-list').innerHTML = `<div style="text-align: center; padding: 20px; color: #ff6b6b; font-size: 13px;"><b>Помилка завантаження пропозицій</b><br><span style="font-size: 11px; opacity: 0.8;">${errMsg}</span></div>`;
+      document.getElementById('blabla-passengers-list').innerHTML = `<div style="text-align: center; padding: 20px; color: #ff6b6b; font-size: 13px;"><b>Помилка завантаження запитів</b><br><span style="font-size: 11px; opacity: 0.8;">${errMsg}</span></div>`;
     }
   }
 
