@@ -394,6 +394,37 @@ body {
 .shop-map-link { color: #74b9ff; text-decoration: none; font-weight: 700; display: inline-block; margin-top: 4px; background: rgba(116, 185, 255, 0.1); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(116, 185, 255, 0.2); transition: all 0.3s; font-size: 11px; }
 .shop-map-link:hover { background: rgba(116, 185, 255, 0.2); }
 
+/* === ГАЛЕРЕЯ ФОТО В ШТОРЦІ БАРАХОЛКИ === */
+.item-photo-gallery {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 5px;
+  scroll-snap-type: x mandatory;
+}
+.item-photo-gallery::-webkit-scrollbar { display: none; }
+.item-photo-card {
+  flex: 0 0 85%;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  padding: 5px;
+  cursor: pointer;
+  scroll-snap-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.item-photo-card img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
 /* ==== BLA BLA CAR СТИЛІ ==== */
 .blabla-actions {
   display: flex;
@@ -1421,15 +1452,26 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safeTitle = item.title != null ? String(item.title).trim() : "Оголошення " + (index + 1);
       const detailsId = 'flea-detail-' + index;
 
-      const safePhotoUrl = item.photo != null && String(item.photo).trim() !== "" ? String(item.photo).trim() : null;
-      const safePhotoThumbnail = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${safeTitle}">` : `<span style="font-size:28px;">📦</span>`;
+      const safePhotos = item.photos || [];
+      const safePhotoThumbnail = safePhotos.length > 0 ? `<img src="${safePhotos[0]}" alt="${safeTitle}">` : `<span style="font-size:28px;">📦</span>`;
       
-      const bigPhotoHtml = safePhotoUrl ? `
-        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${safePhotoUrl}', event)">
-          <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
-          <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Натисніть, щоб збільшити</div>
-        </div>
-      ` : '';
+      let allPhotosHtml = '';
+      if (safePhotos.length > 0) {
+        const galleryItems = safePhotos.map(url => `
+          <div class="item-photo-card" onclick="openImageModal('${url}', event)">
+            <img src="${url}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" alt="Детальне фото">
+          </div>
+        `).join('');
+        
+        allPhotosHtml = `
+          <div class="item-photo-gallery">
+            ${galleryItems}
+          </div>
+          <div style="font-size:10px; text-align:center; color:rgba(255,255,255,0.5); font-weight:700; margin-bottom:10px; margin-top:2px;">
+            🔍 ${safePhotos.length > 1 ? 'Гортайте фото вбік та натискайте для збільшення' : 'Натисніть на фото, щоб збільшити'}
+          </div>
+        `;
+      }
 
       let safePrice = item.price != null && String(item.price).trim() !== "" ? String(item.price).trim() : "Ціна договірна";
       if (safePrice !== "Ціна договірна" && !safePrice.toLowerCase().includes("грн")) {
@@ -1466,7 +1508,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           
           <div class="shop-details-dropdown" id="${detailsId}" onclick="event.stopPropagation()">
             <div class="shop-inner-list">
-              ${bigPhotoHtml}
+              ${allPhotosHtml}
               <div class="shop-inner-item">
                 <span class="detail-icon">📌</span>
                 <div><b>Категорія:</b><br>${safeCategory}</div>
@@ -1505,28 +1547,31 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           const approvedItems = results.data
             .filter(row => row['Статус'] && row['Статус'].trim().toLowerCase() === 'одобрено')
             .map((row) => {
+              
               let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || '';
-              let firstPhoto = rawPhoto.split(',')[0].trim();
-              let photoUrl = firstPhoto;
-                
-              let fileId = '';
-              if (photoUrl.includes('id=')) {
-                  fileId = photoUrl.split('id=')[1].split('&')[0];
-              } else if (photoUrl.includes('file/d/')) {
-                  let match = photoUrl.match(/\/d\/(.*?)\//);
-                  if (match && match[1]) fileId = match[1];
-              }
+              let photoUrls = rawPhoto.split(',').map(p => p.trim()).filter(p => p);
+              
+              let processedPhotos = photoUrls.map(url => {
+                  let fileId = '';
+                  if (url.includes('id=')) {
+                      fileId = url.split('id=')[1].split('&')[0];
+                  } else if (url.includes('file/d/')) {
+                      let match = url.match(/\/d\/(.*?)\//);
+                      if (match && match[1]) fileId = match[1];
+                  }
 
-              if (fileId) {
-                  photoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
-              }
+                  if (fileId) {
+                      return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+                  }
+                  return url;
+              });
 
               return {
                 title: row['Назва товару (Коротка відповідь)'],
                 price: row['Ціна (Коротка відповідь)'],
                 description: row['Опис (Абзац)'],
                 phone: row['Телефон (Коротка відповідь)'],
-                photo: photoUrl,
+                photos: processedPhotos, 
                 category: row['Категорія товару'],
                 condition: row['Стан товару'],
                 location: row['Місто/Область, де знаходиться товар']
