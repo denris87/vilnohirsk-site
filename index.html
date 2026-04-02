@@ -994,30 +994,58 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   };
 
-  window.submitBlaBlaForm = function(event) {
+ window.submitBlaBlaForm = async function(event) {
     event.preventDefault(); 
+    
+    const submitBtn = document.getElementById('form-submit-btn');
+    const originalBtnText = submitBtn.innerText;
+    
+    submitBtn.innerText = 'Відправка...';
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.7';
     
     const type = document.getElementById('input-type').value;
     const from = document.getElementById('input-from').value;
     const to = document.getElementById('input-to').value;
     const date = document.getElementById('input-date').value;
     
-    // Склеюємо час
     const timeFrom = document.getElementById('input-time-from').value;
     const timeTo = document.getElementById('input-time-to').value;
     const time = timeTo ? `${timeFrom} - ${timeTo}` : timeFrom;
 
-    const seats = document.getElementById('input-seats').value;
-    const price = document.getElementById('input-price').value;
+    const seats = parseInt(document.getElementById('input-seats').value, 10);
+    const priceInput = document.getElementById('input-price').value;
+    const price = priceInput ? parseInt(priceInput, 10) : 0;
+    
     const phone = document.getElementById('input-phone').value;
     const comment = document.getElementById('input-comment').value;
 
-    console.log('Дані готові до відправки на сервер:', { type, from, to, date, time, seats, price, phone, comment });
-    
-    alert('✅ Ваше оголошення успішно додано!');
-    closeBlaBlaForm();
-    
-    switchBlaBlaList(type === 'driver' ? 'drivers' : 'passengers');
+    const formData = { type, from, to, date, time, seats, price, phone, comment };
+
+    try {
+      const API_URL = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides'; 
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      if (!response.ok) throw new Error('Помилка сервера при збереженні');
+
+      alert('✅ Ваше оголошення успішно додано!');
+      closeBlaBlaForm();
+      switchBlaBlaList(type === 'driver' ? 'drivers' : 'passengers');
+      
+      loadBlaBlaCarData(); 
+
+    } catch (error) {
+      alert('❌ Помилка при відправці: ' + error.message);
+    } finally {
+      submitBtn.innerText = originalBtnText;
+      submitBtn.disabled = false;
+      submitBtn.style.opacity = '1';
+    }
   };
 
   // ==== ЛОГІКА СТРІЛОК-ПІДКАЗОК ДЛЯ СКРОЛУ ====
@@ -1636,39 +1664,61 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     return new Date(dateStr); 
   }
 
-  function loadBlaBlaCarData() {
-    const todayStart = new Date();
-    todayStart.setHours(0,0,0,0);
+  async function loadBlaBlaCarData() {
+    try {
+      const API_URL = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides'; 
+      
+      const response = await fetch(API_URL);
+      if (!response.ok) throw new Error('Не вдалося завантажити дані');
+      
+      const rides = await response.json();
+      
+      const drivers = rides.filter(r => r.type === 'driver');
+      const passengers = rides.filter(r => r.type === 'passenger');
 
-    Papa.parse('https://docs.google.com/spreadsheets/d/11TASmdTQ9rXVYE_xR_I51AKGeRKAWnVhJagKhmhCCeY/export?format=csv', {
-      download: true, header: true, skipEmptyLines: true,
-      complete: function(res) {
-        const drivers = res.data.filter(row => {
-          if (!row['Дата']) return false;
-          const tripDate = parseDate(row['Дата']);
-          return tripDate >= todayStart; 
-        });
-
-        if (drivers.length > 0) {
-          document.getElementById('blabla-drivers-list').innerHTML = drivers.map(d => `
-            <div class="blabla-card">
-              <div class="blabla-route">📍 ${d['Маршрут (звідки - куди)']}</div>
-              <div class="blabla-date">🗓 ${d['Дата']} | 🕒 ${d['Час відправлення']}</div>
-              <div class="blabla-info-row">
-                <span>💺 Місць: <b>${d['Кількість вільних місць']}</b></span>
-                <span>💵 <b>${d['Вартість поїздки (грн)']} грн</b></span>
-              </div>
-              ${d['Додатковий коментар'] ? `<div style="font-size:11px; opacity:0.8; margin-top:5px;">💬 ${d['Додатковий коментар']}</div>` : ''}
-              <div style="text-align:right; margin-top:5px;">
-                <a href="tel:${(d['Номер телефону'] || '').replace(/\D/g,'')}" class="blabla-phone">📞 ${d['Номер телефону']}</a>
-              </div>
+      if (drivers.length > 0) {
+        document.getElementById('blabla-drivers-list').innerHTML = drivers.map(d => `
+          <div class="blabla-card">
+            <div class="blabla-route">📍 ${d.from} - ${d.to}</div>
+            <div class="blabla-date">🗓 ${d.date} | 🕒 ${d.time}</div>
+            <div class="blabla-info-row">
+              <span>💺 Місць: <b>${d.seats}</b></span>
+              <span>💵 <b>${d.price > 0 ? d.price + ' грн' : 'Договірна'}</b></span>
             </div>
-          `).join('');
-        } else {
-          document.getElementById('blabla-drivers-list').innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Пропозицій від водіїв поки немає</div>';
-        }
+            ${d.comment ? `<div style="font-size:11px; opacity:0.8; margin-top:5px;">💬 ${d.comment}</div>` : ''}
+            <div style="text-align:right; margin-top:5px;">
+              <a href="tel:${(d.phone || '').replace(/\D/g,'')}" class="blabla-phone">📞 ${d.phone}</a>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        document.getElementById('blabla-drivers-list').innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Пропозицій від водіїв поки немає</div>';
       }
-    });
+
+      if (passengers.length > 0) {
+        document.getElementById('blabla-passengers-list').innerHTML = passengers.map(p => `
+          <div class="blabla-card">
+            <div class="blabla-route">📍 ${p.from} - ${p.to}</div>
+            <div class="blabla-date">🗓 ${p.date} | 🕒 ${p.time}</div>
+            <div class="blabla-info-row">
+              <span>🧍 Потрібно місць: <b>${p.seats}</b></span>
+            </div>
+            ${p.comment ? `<div style="font-size:11px; opacity:0.8; margin-top:5px;">💬 ${p.comment}</div>` : ''}
+            <div style="text-align:right; margin-top:5px;">
+              <a href="tel:${(p.phone || '').replace(/\D/g,'')}" class="blabla-phone">📞 ${p.phone}</a>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        document.getElementById('blabla-passengers-list').innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Запитів від пасажирів поки немає</div>';
+      }
+
+    } catch (error) {
+      console.error("Помилка BlaBlaCar:", error);
+      document.getElementById('blabla-drivers-list').innerHTML = '<div style="text-align: center; padding: 20px; color: #ff6b6b;">Помилка підключення до сервера</div>';
+      document.getElementById('blabla-passengers-list').innerHTML = '<div style="text-align: center; padding: 20px; color: #ff6b6b;">Помилка підключення до сервера</div>';
+    }
+  }
 
     Papa.parse('https://docs.google.com/spreadsheets/d/1Hl3TN0_i3YL7vhmi0U-RFcRORUZfx6zb487yDbKxZfo/export?format=csv', {
       download: true, header: true, skipEmptyLines: true,
