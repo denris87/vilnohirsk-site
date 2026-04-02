@@ -927,15 +927,21 @@ select.form-input option {
 const REQUIRE_TELEGRAM = true; 
 
 const tg = window.Telegram.WebApp;
+tg.ready(); // Сповіщаємо Telegram, що додаток готовий
 
 let isInsideTelegram = false;
-if (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length > 0) {
-  isInsideTelegram = false;
-} else if (tg.initData && tg.initData.length > 0) {
+
+// Перевіряємо платформу - це найнадійніший спосіб в останніх версіях Telegram API
+if (tg.platform && tg.platform !== "unknown") {
   isInsideTelegram = true;
-} else if (tg.platform && tg.platform !== "unknown") {
+} 
+else if (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length > 0) {
   isInsideTelegram = true;
-} else if (/Telegram/i.test(navigator.userAgent)) {
+} 
+else if (tg.initData && tg.initData.length > 0) {
+  isInsideTelegram = true;
+} 
+else if (navigator.userAgent.toLowerCase().includes('telegram')) {
   isInsideTelegram = true;
 }
 
