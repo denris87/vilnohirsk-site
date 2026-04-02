@@ -400,6 +400,37 @@ body {
 .shop-map-link { color: #74b9ff; text-decoration: none; font-weight: 700; display: inline-block; margin-top: 4px; background: rgba(116, 185, 255, 0.1); padding: 4px 8px; border-radius: 8px; border: 1px solid rgba(116, 185, 255, 0.2); transition: all 0.3s; font-size: 11px; }
 .shop-map-link:hover { background: rgba(116, 185, 255, 0.2); }
 
+/* === ГАЛЕРЕЯ ФОТО В ШТОРЦІ БАРАХОЛКИ === */
+.item-photo-gallery {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 5px;
+  scroll-snap-type: x mandatory;
+}
+.item-photo-gallery::-webkit-scrollbar { display: none; }
+.item-photo-card {
+  flex: 0 0 85%;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  padding: 5px;
+  cursor: pointer;
+  scroll-snap-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.item-photo-card img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
 /* ==== BLA BLA CAR СТИЛІ ==== */
 .blabla-actions {
   display: flex;
@@ -656,29 +687,6 @@ select.form-input option {
   z-index: 100001;
 }
 
-/* Навігація по галереї */
-.modal-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  color: white;
-  font-size: 30px;
-  font-weight: bold;
-  cursor: pointer;
-  background: rgba(0,0,0,0.5);
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  z-index: 100002;
-  transition: background 0.3s;
-}
-.modal-nav:hover { background: rgba(0,0,0,0.8); }
-.modal-nav.left { left: 15px; }
-.modal-nav.right { right: 15px; }
-
 </style>
 </head>
 
@@ -691,11 +699,9 @@ select.form-input option {
   </div>
 </div>
 
-<div class="image-modal" id="image-modal" onclick="closeImageModal(event)">
+<div class="image-modal" id="image-modal" onclick="closeImageModal(event)" ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event)">
   <div class="image-modal-close" onclick="closeImageModal(event)">&times;</div>
-  <div class="modal-nav left" onclick="prevModalImage(event)" style="display:none;">&#10094;</div>
   <img id="modal-image-src" src="" alt="Збільшене фото" onclick="event.stopPropagation()">
-  <div class="modal-nav right" onclick="nextModalImage(event)" style="display:none;">&#10095;</div>
   <div id="modal-image-counter" style="position: absolute; bottom: 20px; color: white; font-weight: bold; font-size: 14px;"></div>
 </div>
 
@@ -991,7 +997,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   };
 
   window.closeBlaBlaForm = function(event) {
-    if (!event || event.target.id === 'blabla-modal' || event.target.classList.contains('close-modal-btn')) {
+    // ВАЖЛИВО: Закриваємо ТІЛЬКИ якщо клікнули на хрестик або якщо виклик був без event (після відправки)
+    if (!event || event.target.classList.contains('close-modal-btn')) {
       document.getElementById('blabla-modal').classList.remove('active');
     }
   };
@@ -1023,7 +1030,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     const phone = document.getElementById('input-phone').value;
     const comment = document.getElementById('input-comment').value;
 
-    // Додано name до відправки на бекенд
     const formData = { type, name, from, to, date, time, seats, price, phone, comment };
 
     try {
@@ -1074,9 +1080,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   handleScrollHint('schedule-tabs', 'hint-schedule');
   handleScrollHint('market-tabs', 'hint-market');
 
-  // ==== ФУНКЦІЇ МОДАЛЬНОГО ВІКНА (ЗБІЛЬШЕННЯ ФОТО ТА ГАЛЕРЕЯ) ====
+  // ==== ФУНКЦІЇ МОДАЛЬНОГО ВІКНА (ЗБІЛЬШЕННЯ ФОТО ТА ГАЛЕРЕЯ ЗІ СВАЙПОМ) ====
   let currentGallery = [];
   let currentGalleryIndex = 0;
+  let touchStartX = 0;
+  let touchEndX = 0;
 
   window.openImageModal = function(images, index, event) {
     if (event) event.stopPropagation();
@@ -1098,40 +1106,48 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
      img.src = currentGallery[currentGalleryIndex];
      
      const counter = document.getElementById('modal-image-counter');
-     const navLeft = document.querySelector('.modal-nav.left');
-     const navRight = document.querySelector('.modal-nav.right');
      
      if (currentGallery.length > 1) {
          counter.innerText = `${currentGalleryIndex + 1} з ${currentGallery.length}`;
-         navLeft.style.display = 'flex';
-         navRight.style.display = 'flex';
      } else {
          counter.innerText = '';
-         navLeft.style.display = 'none';
-         navRight.style.display = 'none';
      }
   };
 
-  window.prevModalImage = function(event) {
-     if (event) event.stopPropagation();
+  window.prevModalImage = function() {
      if (currentGallery.length <= 1) return;
      currentGalleryIndex = (currentGalleryIndex - 1 + currentGallery.length) % currentGallery.length;
      updateModalImage();
   };
 
-  window.nextModalImage = function(event) {
-     if (event) event.stopPropagation();
+  window.nextModalImage = function() {
      if (currentGallery.length <= 1) return;
      currentGalleryIndex = (currentGalleryIndex + 1) % currentGallery.length;
      updateModalImage();
+  };
+
+  // Обробка свайпів
+  window.handleTouchStart = function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  };
+
+  window.handleTouchEnd = function(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    if (currentGallery.length <= 1) return;
+    
+    if (touchEndX < touchStartX - 50) {
+        nextModalImage(); // свайп вліво -> наступне
+    }
+    if (touchEndX > touchStartX + 50) {
+        prevModalImage(); // свайп вправо -> попереднє
+    }
   };
 
   window.closeImageModal = function(event) {
     if (event && event.target.id !== 'image-modal' && !event.target.classList.contains('image-modal-close')) {
         return; 
     }
-    const modal = document.getElementById('image-modal');
-    modal.classList.remove('active');
+    document.getElementById('image-modal').classList.remove('active');
   };
 
   // ==== ЗАКРИТТЯ ШТОРОК КЛІКОМ ПОЗА ЇХНЬОЮ ОБЛАСТЮ ====
@@ -1537,6 +1553,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       if (safePhotos.length > 0) {
         const encodedPhotos = encodeURIComponent(JSON.stringify(safePhotos));
         
+        // Відображається лише одне фото з текстом підказкою
         allPhotosHtml = `
           <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
             <img src="${safePhotos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
