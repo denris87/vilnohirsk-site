@@ -57,19 +57,16 @@ body {
 
 /* ІНФОРМАЦІЙНЕ ТАБЛО ВЕРХНЄ */
 .alert-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 100; }
-.alert-title-box { position: relative; display: inline-block; font-weight: 800; font-size: clamp(14px, 4vw, 18px); color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
 
 .alert-drawer { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); border-radius: 24px; z-index: 100; }
 .alert-drawer.open { max-height: 10000px; opacity: 1; padding: 15px; pointer-events: auto; }
 
 /* СТАТИЧНІ ПІДПИСИ (ВКЛАДКИ ТАБЛА) */
 .tab-alert {
-  flex: 1 1 auto;
-  padding: 14px 12px;
+  padding: 14px 8px;
   border-radius: 12px;
   font-weight: 800;
-  font-size: clamp(11px, 3.2vw, 13px);
-  white-space: nowrap;
+  font-size: clamp(10px, 3.2vw, 14px);
   text-align: center;
   cursor: pointer;
   background: linear-gradient(145deg, rgba(20, 30, 50, 0.9), rgba(10, 15, 30, 0.95));
@@ -79,6 +76,10 @@ body {
   letter-spacing: 0.5px;
   color: #fff;
   position: relative; /* Для крапки-сповіщення */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 1.2;
 }
 .tab-alert.communal { color: #ffcc00; border-bottom: 3px solid #ffcc00; }
 .tab-alert.communal.active { background: rgba(255, 204, 0, 0.15); box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
@@ -94,7 +95,7 @@ body {
   100% { box-shadow: 0 0 12px rgba(224, 86, 253, 0.5); }
 }
 
-/* КРАПКИ-СПОВІЩЕННЯ НА ВКЛАДКАХ */
+/* КРАПКИ-СПОВІЩЕННЯ */
 .notification-dot {
   position: absolute;
   top: -4px;
@@ -337,6 +338,11 @@ body {
   text-transform: uppercase;
   letter-spacing: 1px;
   animation: vipPulse 2s infinite;
+}
+@keyframes vipPulse {
+  0% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.6); }
+  100% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
 }
 
 .shop-tile-photo {
@@ -782,21 +788,23 @@ select.form-input option {
   <div class="container">
 
     <div class="alert-main-widget liquid-glass" style="padding: 15px;">
+      
       <div id="alert-tabs" style="display: flex; flex-direction: column; gap: 8px;">
-        <div style="display: flex; gap: 8px;">
-          <div class="tab-alert communal" onclick="openAlertTab('alert-communal', this)">
+        <div class="tab-alert news" onclick="openAlertTab('alert-news', this)" style="width: 100%;">
+          Міські новини<span class="notification-dot" id="dot-news"></span>
+        </div>
+        
+        <div style="display: flex; gap: 8px; width: 100%;">
+          <div class="tab-alert communal" onclick="openAlertTab('alert-communal', this)" style="flex: 1;">
             Комунальний інформер<span class="notification-dot" id="dot-communal"></span>
           </div>
-          <div class="tab-alert news" onclick="openAlertTab('alert-news', this)">
-            Міські новини<span class="notification-dot" id="dot-news"></span>
+          <div class="tab-alert events glow-tab" onclick="openAlertTab('alert-events', this)" style="flex: 1;">
+            Сяйво подій<span class="notification-dot" id="dot-events"></span>
           </div>
-        </div>
-        <div class="tab-alert events glow-tab" onclick="openAlertTab('alert-events', this)">
-          Сяйво подій<span class="notification-dot" id="dot-events"></span>
         </div>
       </div>
 
-      <div class="alert-drawer" id="alert-drawer">
+      <div class="alert-drawer" id="alert-drawer" style="margin-top: 10px;">
         <div id="alert-communal" class="content-section">
           <div id="alert-communal-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div>
         </div>
