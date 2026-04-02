@@ -109,6 +109,21 @@ body {
   display: none;
   z-index: 10;
 }
+
+/* КРАПКА-СПОВІЩЕННЯ ДЛЯ НОМЕРА ЕЛЕКТРИЧКИ */
+.train-alert-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  background: #ff3b3b;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.5);
+  animation: pulseAlert 1.5s infinite;
+  z-index: 5;
+}
+
 @keyframes pulseAlert { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
 /* КАРУСЕЛЬ ДЛЯ НОВИН ТА АФІШ */
@@ -814,7 +829,7 @@ select.form-input option {
     <div class="schedule-group">
       <div class="tabs-wrapper">
         <div class="tabs-nav" id="schedule-tabs">
-          <button class="tab-btn" onclick="openScheduleTab('trains', this)">🚆 Електрички</button>
+          <button class="tab-btn" onclick="openScheduleTab('trains', this)">🚆 Електрички<span class="notification-dot" id="dot-trains"></span></button>
           <button class="tab-btn" onclick="openScheduleTab('long-trains', this)">🛤️ Потяги</button>
           <button class="tab-btn" onclick="openScheduleTab('buses', this)">🚌 Автобуси</button>
           <button class="tab-btn" onclick="openScheduleTab('blablacar', this)">🚗 Bla Bla Car<span class="notification-dot" id="dot-blablacar"></span></button>
@@ -1280,6 +1295,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   function openScheduleTab(tabId, btn) {
     try {
       if (tabId === 'blablacar') clearNotification('blablacar');
+      if (tabId === 'trains') clearNotification('trains'); // ОЧИЩАЄМО СПОВІЩЕННЯ ЕЛЕКТРИЧОК
       
       closeAllShopDropdowns(); 
       document.getElementById('market-drawer').classList.remove('open');
@@ -1833,9 +1849,23 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   function loadTrainsData(){ 
     fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains")
-      .then(r=>r.json()).then(d=>{if(d&&d.trains) renderTrains(document.getElementById("list"),d.trains);})
+      .then(r=>r.json()).then(d=>{
+        if(d&&d.trains) {
+          renderTrains(document.getElementById("list"),d.trains);
+          
+          // ПЕРЕВІРКА НА ЗМІНИ ДЛЯ ЧЕРВОНОЇ КРАПКИ
+          const changedTrains = d.trains.filter(x => x && x.note && x.note !== "змін немає...");
+          if (changedTrains.length > 0) {
+            checkNotification('trains', changedTrains);
+          } else {
+            const dot = document.getElementById('dot-trains');
+            if (dot) dot.style.display = 'none';
+          }
+        }
+      })
       .catch(e=>document.getElementById("list").innerHTML="<div style='text-align:center; padding: 20px;'>Помилка завантаження</div>"); 
   }
+  
   function loadLongTrainsData() { 
     fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule")
       .then(r=>r.json()).then(d=>{if(d&&d.trains) renderLongTrains(document.getElementById("long-trains-list"),d.trains);})
