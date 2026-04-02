@@ -104,9 +104,12 @@ body {
 .train-alert-dot { position: absolute; top: -4px; right: -4px; width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5); animation: pulseAlert 1.5s infinite; }
 @keyframes pulseAlert { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
-/* === СТИЛІ НАВІГАЦІЇ === */
+/* === СТИЛІ НАВІГАЦІЇ ТА СТРІЛОК-ПІДКАЗОК === */
 .schedule-group, .market-group { display: flex; flex-direction: column; gap: 8px; position: relative; z-index: 90; width: 100%;}
 .market-group { z-index: 80; }
+
+/* Обгортка для вкладок і стрілки */
+.tabs-wrapper { position: relative; width: 100%; border-radius: 20px; display: flex; overflow: hidden; }
 
 .tabs-nav { 
   display: flex; 
@@ -127,6 +130,37 @@ body {
   -webkit-overflow-scrolling: touch; 
 }
 .tabs-nav::-webkit-scrollbar { display: none; }
+
+/* Блимаюча стрілка-підказка */
+.scroll-hint {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 12px;
+  background: linear-gradient(to right, rgba(0,0,0,0), rgba(0,0,0,0.9));
+  border-radius: 0 20px 20px 0;
+  pointer-events: none; /* Щоб кліки проходили крізь неї */
+  opacity: 1;
+  transition: opacity 0.4s ease;
+  z-index: 5;
+}
+.scroll-hint.hidden { opacity: 0; }
+.scroll-hint span {
+  color: var(--highlight-color);
+  font-size: 16px;
+  font-weight: 900;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  animation: blinkArrow 1.5s infinite;
+}
+@keyframes blinkArrow {
+  0%, 100% { transform: translateX(0); opacity: 0.3; }
+  50% { transform: translateX(4px); opacity: 1; }
+}
 
 .tab-btn { 
   flex: 0 0 auto; 
@@ -211,20 +245,22 @@ body {
   .shops-tile-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
-/* Обычная плитка стала чуть меньше */
 .shop-tile {
   display: flex;
   flex-direction: column;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.2));
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 14px;
-  padding: 8px;
-  margin: 4px; 
+  border-radius: 16px;
+  padding: 10px;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative; 
   z-index: 1; 
+}
+.shop-tile:hover {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.3));
+  transform: translateY(-2px);
 }
 .shop-tile:active {
   transform: translateY(1px);
@@ -235,47 +271,36 @@ body {
   z-index: 50 !important;
 }
 
-/* --- VIP СТИЛІ КАРТКИ --- */
+/* --- VIP СТИЛІ --- */
 .shop-tile.vip-tile {
-  margin: 0px; /* На всю ширину ячейки */
-  padding: 12px; /* Увеличенные отступы */
-  border-radius: 16px;
-  background: linear-gradient(145deg, rgba(255, 215, 0, 0.15), rgba(0, 0, 0, 0.45));
-  border: 2px solid rgba(255, 215, 0, 0.7); 
-  animation: vipGlowBreathingPremium 3s infinite alternate ease-in-out;
-}
-@keyframes vipGlowBreathingPremium {
-  0% { 
-    border-color: rgba(255, 215, 0, 0.5);
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 0 5px rgba(255, 215, 0, 0.2);
-  }
-  100% { 
-    border-color: rgba(255, 235, 59, 1);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.7), 0 6px 20px rgba(0, 0, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.5);
-  }
+  background: linear-gradient(145deg, rgba(255, 204, 0, 0.15), rgba(0, 0, 0, 0.4));
+  border: 1px solid rgba(255, 204, 0, 0.4);
+  box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.1);
 }
 .shop-tile.vip-tile:hover {
-  background: linear-gradient(145deg, rgba(255, 215, 0, 0.25), rgba(0, 0, 0, 0.55));
+  background: linear-gradient(145deg, rgba(255, 204, 0, 0.2), rgba(0, 0, 0, 0.5));
+  box-shadow: 0 6px 20px rgba(255, 204, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2);
 }
 .vip-badge {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  background: linear-gradient(110deg, #ffdf00 0%, #d4af37 40%, #fff6a8 50%, #d4af37 60%, #ffdf00 100%);
-  background-size: 200% auto;
-  color: #3e2700;
+  top: -6px;
+  right: -6px;
+  background: linear-gradient(135deg, #ffcc00, #ff8800);
+  color: #000;
   font-size: 10px;
   font-weight: 900;
-  padding: 5px 10px;
+  padding: 4px 8px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4);
   z-index: 10;
   text-transform: uppercase;
   letter-spacing: 1px;
-  animation: vipShine 3s linear infinite;
+  animation: vipPulse 2s infinite;
 }
-@keyframes vipShine {
-  to { background-position: -200% center; }
+@keyframes vipPulse {
+  0% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
+  50% { transform: scale(1.05); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.6); }
+  100% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
 }
 
 .shop-tile-photo {
@@ -296,9 +321,8 @@ body {
   object-fit: cover;
 }
 
-/* Обычные шрифты стали чуть меньше */
 .shop-tile-cat {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--highlight-color);
   font-weight: 800;
   text-transform: uppercase;
@@ -307,25 +331,20 @@ body {
 }
 .shop-tile-name {
   font-weight: 800;
-  font-size: 12px;
+  font-size: 13px;
   color: #fff;
   line-height: 1.2;
 }
 .shop-tile-chevron {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--time-green);
   font-weight: 800;
-  margin-top: 6px;
+  margin-top: 8px;
   text-align: center;
   background: rgba(0,255,156,0.1);
   padding: 4px;
   border-radius: 8px;
 }
-
-/* Переопределение шрифтов для VIP */
-.shop-tile.vip-tile .shop-tile-cat { font-size: 11px; margin-bottom: 4px; }
-.shop-tile.vip-tile .shop-tile-name { font-size: 15px; }
-.shop-tile.vip-tile .shop-tile-chevron { font-size: 12px; margin-top: 8px; padding: 5px; }
 
 /* АБСОЛЮТНА ШТОРКА ТОВАРУ */
 .shop-details-dropdown {
@@ -342,6 +361,7 @@ body {
   box-sizing: border-box;
   z-index: 50; 
 }
+
 .shop-details-dropdown.open {
   max-height: 1500px; 
   opacity: 1;
@@ -362,22 +382,6 @@ body {
   border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.2);
   box-shadow: 0 15px 35px rgba(0,0,0,0.8); 
-}
-
-/* --- VIP ШТОРКА ТОВАРУ --- */
-.vip-tile .shop-inner-list {
-  background: linear-gradient(135deg, rgba(40, 30, 5, 0.98), rgba(11, 29, 58, 0.98));
-  animation: vipDropdownGlow 3s infinite alternate ease-in-out;
-}
-@keyframes vipDropdownGlow {
-  0% { 
-    border-color: rgba(255, 215, 0, 0.4);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 0 10px rgba(255, 215, 0, 0.1);
-  }
-  100% { 
-    border-color: rgba(255, 215, 0, 0.8);
-    box-shadow: 0 15px 40px rgba(0,0,0,0.9), inset 0 0 20px rgba(255, 215, 0, 0.3), 0 0 15px rgba(255, 215, 0, 0.2);
-  }
 }
 
 .shop-inner-item {
@@ -463,7 +467,7 @@ body {
 .blabla-info-row { display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.2); padding: 8px 10px; border-radius: 8px; align-items: center;}
 .blabla-phone { font-size: 14px; font-weight: 800; color: var(--time-green); text-decoration: none; }
 
-/* ==== ВЕЛИКЕ ФОТО (МОДАЛЬНЕ ВІКНО) З ГАЛЕРЕЄЮ ==== */
+/* ==== ВЕЛИКЕ ФОТО (МОДАЛЬНЕ ВІКНО) ==== */
 .image-modal {
   position: fixed;
   top: 0;
@@ -487,7 +491,7 @@ body {
 }
 .image-modal img {
   max-width: 95%;
-  max-height: 85%;
+  max-height: 90%;
   object-fit: contain;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.8);
@@ -514,45 +518,6 @@ body {
   justify-content: center;
   z-index: 100000;
 }
-.modal-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  color: white;
-  font-size: 30px;
-  padding: 15px;
-  cursor: pointer;
-  user-select: none;
-  z-index: 100001;
-  background: rgba(0,0,0,0.3);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  display: none; 
-}
-.modal-nav:active {
-  background: rgba(0,0,0,0.6);
-}
-.modal-prev { left: 10px; }
-.modal-next { right: 10px; }
-.modal-counter {
-  position: absolute;
-  bottom: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: white;
-  font-size: 14px;
-  font-weight: 800;
-  background: rgba(0,0,0,0.6);
-  padding: 6px 16px;
-  border-radius: 20px;
-  z-index: 100001;
-  display: none; 
-  letter-spacing: 1px;
-}
 </style>
 </head>
 
@@ -565,12 +530,9 @@ body {
   </div>
 </div>
 
-<div class="image-modal" id="image-modal">
-  <div class="image-modal-close" onclick="closeImageModal()">&times;</div>
-  <div class="modal-nav modal-prev" id="modal-prev" onclick="changeModalImage(-1, event)">&#10094;</div>
-  <div class="modal-nav modal-next" id="modal-next" onclick="changeModalImage(1, event)">&#10095;</div>
-  <img id="modal-image-src" src="" alt="Збільшене фото" onclick="event.stopPropagation()">
-  <div class="modal-counter" id="modal-counter">1 / 1</div>
+<div class="image-modal" id="image-modal" onclick="closeImageModal()">
+  <div class="image-modal-close">&times;</div>
+  <img id="modal-image-src" src="" alt="Збільшене фото">
 </div>
 
 <div id="main-app-content" style="display: none; width: 100%; justify-content: center;">
@@ -592,11 +554,14 @@ body {
     </div>
 
     <div class="schedule-group">
-      <div class="tabs-nav" id="schedule-tabs">
-        <button class="tab-btn" onclick="openScheduleTab('trains', this)">🚆 Електрички</button>
-        <button class="tab-btn" onclick="openScheduleTab('long-trains', this)">🛤️ Потяги</button>
-        <button class="tab-btn" onclick="openScheduleTab('buses', this)">🚌 Автобуси</button>
-        <button class="tab-btn" onclick="openScheduleTab('blablacar', this)">🚗 Bla Bla Car</button>
+      <div class="tabs-wrapper">
+        <div class="tabs-nav" id="schedule-tabs">
+          <button class="tab-btn" onclick="openScheduleTab('trains', this)">🚆 Електрички</button>
+          <button class="tab-btn" onclick="openScheduleTab('long-trains', this)">🛤️ Потяги</button>
+          <button class="tab-btn" onclick="openScheduleTab('buses', this)">🚌 Автобуси</button>
+          <button class="tab-btn" onclick="openScheduleTab('blablacar', this)">🚗 Bla Bla Car</button>
+        </div>
+        <div class="scroll-hint" id="hint-schedule"><span>❯</span></div>
       </div>
 
       <div id="main-list-widget" class="main-list-widget">
@@ -662,11 +627,14 @@ body {
     </div>
 
     <div class="market-group">
-      <div class="tabs-nav" id="market-tabs">
-        <button class="tab-btn" onclick="openMarketTab('shopping-tab', this)">🛍 Шопінг</button>
-        <button class="tab-btn" onclick="openMarketTab('flea-market-tab', this)">📦 Барахолка</button>
-        <button class="tab-btn" onclick="openMarketTab('lost-found-tab', this)">🔍 Знахідки</button>
-        <button class="tab-btn" onclick="openMarketTab('city-guide-tab', this)">📖 Міський довідник</button>
+      <div class="tabs-wrapper">
+        <div class="tabs-nav" id="market-tabs">
+          <button class="tab-btn" onclick="openMarketTab('shopping-tab', this)">🛍 Шопінг</button>
+          <button class="tab-btn" onclick="openMarketTab('flea-market-tab', this)">📦 Барахолка</button>
+          <button class="tab-btn" onclick="openMarketTab('lost-found-tab', this)">🔍 Знахідки</button>
+          <button class="tab-btn" onclick="openMarketTab('city-guide-tab', this)">📖 Міський довідник</button>
+        </div>
+        <div class="scroll-hint" id="hint-market"><span>❯</span></div>
       </div>
 
       <div class="shopping-drawer" id="market-drawer">
@@ -676,10 +644,7 @@ body {
           </div>
         </div>
         <div id="flea-market-tab" class="content-section">
-          <div style="text-align: center; padding: 5px 10px 10px 10px; font-size: 12px; opacity: 0.9; color: #fff;">
-            Щоб видалити неактуальне оголошення, пишіть: <b style="color:var(--time-green)">@vilnohirsk</b>
-          </div>
-          <div style="padding: 0 10px 15px 10px; text-align: center;">
+          <div style="padding: 5px 10px 15px 10px; text-align: center;">
             <a href="https://forms.gle/wkb79TBuduCSVLJF8" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; padding: 12px 24px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.4); text-transform: uppercase; font-size: 13px; letter-spacing: 1px; transition: transform 0.2s;">➕ Додати своє оголошення</a>
           </div>
           <div id="flea-market-list-content">
@@ -725,90 +690,47 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   if (tg.expand) { tg.expand(); }
 
-  // ==== ФУНКЦІЇ МОДАЛЬНОГО ВІКНА (ГАЛЕРЕЯ ФОТО) ====
-  let currentModalImages = [];
-  let currentModalIndex = 0;
-
-  window.openImageModal = function(srcData, event, isEncodedArray = false) {
-    if (event) event.stopPropagation();
+  // ==== ЛОГІКА СТРІЛОК-ПІДКАЗОК ДЛЯ СКРОЛУ ====
+  function handleScrollHint(navId, hintId) {
+    const nav = document.getElementById(navId);
+    const hint = document.getElementById(hintId);
+    if (!nav || !hint) return;
     
-    if (isEncodedArray) {
-      try {
-        currentModalImages = JSON.parse(decodeURIComponent(srcData));
-      } catch(e) {
-        currentModalImages = [srcData];
+    const checkScroll = () => {
+      // Якщо доскролили до кінця (похибка 5px), ховаємо стрілку
+      if (nav.scrollWidth - nav.clientWidth <= nav.scrollLeft + 5) {
+        hint.classList.add('hidden');
+      } else {
+        hint.classList.remove('hidden');
       }
-    } else {
-      currentModalImages = [srcData];
-    }
+    };
+    
+    nav.addEventListener('scroll', checkScroll);
+    window.addEventListener('resize', checkScroll);
+    // Початкова перевірка з невеликою затримкою для рендеру
+    setTimeout(checkScroll, 300);
+  }
 
-    currentModalIndex = 0;
-    updateModalView();
-    document.getElementById('image-modal').classList.add('active');
+  // Запуск перевірки стрілок
+  handleScrollHint('schedule-tabs', 'hint-schedule');
+  handleScrollHint('market-tabs', 'hint-market');
+
+  // ==== ФУНКЦІЇ МОДАЛЬНОГО ВІКНА (ЗБІЛЬШЕННЯ ФОТО) ====
+  window.openImageModal = function(src, event) {
+    if (event) event.stopPropagation();
+    const modal = document.getElementById('image-modal');
+    const img = document.getElementById('modal-image-src');
+    img.src = src;
+    modal.classList.add('active');
   };
 
   window.closeImageModal = function() {
-    document.getElementById('image-modal').classList.remove('active');
+    const modal = document.getElementById('image-modal');
+    modal.classList.remove('active');
   };
-
-  window.changeModalImage = function(direction, event) {
-    if (event) event.stopPropagation();
-    if (currentModalImages.length <= 1) return;
-
-    currentModalIndex += direction;
-    if (currentModalIndex < 0) currentModalIndex = currentModalImages.length - 1;
-    if (currentModalIndex >= currentModalImages.length) currentModalIndex = 0;
-    
-    updateModalView();
-  };
-
-  window.updateModalView = function() {
-    if(currentModalImages.length === 0) return;
-    
-    document.getElementById('modal-image-src').src = currentModalImages[currentModalIndex];
-    
-    const prevBtn = document.getElementById('modal-prev');
-    const nextBtn = document.getElementById('modal-next');
-    const counter = document.getElementById('modal-counter');
-    
-    if (currentModalImages.length > 1) {
-      prevBtn.style.display = 'flex';
-      nextBtn.style.display = 'flex';
-      counter.style.display = 'block';
-      counter.innerText = (currentModalIndex + 1) + ' / ' + currentModalImages.length;
-    } else {
-      prevBtn.style.display = 'none';
-      nextBtn.style.display = 'none';
-      counter.style.display = 'none';
-    }
-  };
-
-  // СВАЙПИ В МОДАЛЬНОМУ ВІКНІ
-  let touchstartX = 0;
-  let touchendX = 0;
-  const modalElement = document.getElementById('image-modal');
-  
-  modalElement.addEventListener('touchstart', function(event) {
-      touchstartX = event.changedTouches[0].screenX;
-  }, {passive: true});
-  
-  modalElement.addEventListener('touchend', function(event) {
-      touchendX = event.changedTouches[0].screenX;
-      handleModalSwipe();
-  }, {passive: true});
-  
-  function handleModalSwipe() {
-      if (currentModalImages.length <= 1) return;
-      if (touchendX < touchstartX - 50) changeModalImage(1); 
-      if (touchendX > touchstartX + 50) changeModalImage(-1); 
-  }
 
   // ==== ЗАКРИТТЯ ШТОРОК КЛІКОМ ПОЗА ЇХНЬОЮ ОБЛАСТЮ ====
   document.addEventListener('click', function(e) {
-    if (e.target.id === 'image-modal') {
-      closeImageModal();
-      return;
-    }
     if (e.target.closest('.image-modal')) return;
 
     if (!e.target.closest('.alert-main-widget')) {
@@ -1061,49 +983,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
-  window.toggleShop = function(id, tileElement) {
-    try {
-      const grid = tileElement ? tileElement.closest('.shops-tile-grid') : null;
-      
-      document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
-        if (el.id !== id) {
-          el.classList.remove('open');
-          if(el.parentElement) {
-            el.parentElement.classList.remove('tile-active');
-          }
-        }
-      });
-
-      const el = document.getElementById(id);
-      if(el) {
-        const isOpen = el.classList.toggle('open');
-        
-        if (tileElement) {
-          tileElement.classList.toggle('tile-active', isOpen);
-          
-          if (isOpen && grid) {
-            const updateHeight = () => {
-              const dropdownHeight = el.scrollHeight || 250;
-              grid.style.paddingBottom = (dropdownHeight + 15) + 'px';
-            };
-            setTimeout(updateHeight, 50);
-            setTimeout(updateHeight, 300); 
-          } else if (grid) {
-            grid.style.paddingBottom = '0px';
-          }
-        }
-      }
-    } catch(e) {}
-  };
-
-  function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
-
   function renderShops(shopsData) {
     const container = document.getElementById('shopping-list-content');
     if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
@@ -1127,16 +1006,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safePhotoUrl = shop.photo != null && String(shop.photo).trim() !== "" ? String(shop.photo).trim() : null;
       const photoHtml = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${displayName}">` : `<span style="font-size:28px;">🛍️</span>`;
 
-      let bigPhotoHtml = '';
-      if (safePhotoUrl) {
-        const photosJson = encodeURIComponent(JSON.stringify([safePhotoUrl]));
-        bigPhotoHtml = `
-          <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${photosJson}', event, true)">
-            <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
-            <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Натисніть, щоб збільшити</div>
-          </div>
-        `;
-      }
+      const bigPhotoHtml = safePhotoUrl ? `
+        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${safePhotoUrl}', event)">
+          <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
+          <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Натисніть, щоб збільшити</div>
+        </div>
+      ` : '';
 
       const safeInsta = shop.instagram != null ? String(shop.instagram).trim() : "";
       const titleHtml = safeInsta !== ""
@@ -1201,6 +1076,14 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     container.innerHTML = html;
   }
 
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
   async function loadShopsData() {
     try {
       const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
@@ -1243,22 +1126,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safeTitle = item.title != null ? String(item.title).trim() : "Оголошення " + (index + 1);
       const detailsId = 'flea-detail-' + index;
 
-      const photos = item.photos || [];
-      const mainPhotoUrl = photos.length > 0 ? photos[0] : null;
-      const safePhotoThumbnail = mainPhotoUrl ? `<img src="${mainPhotoUrl}" alt="${safeTitle}">` : `<span style="font-size:28px;">📦</span>`;
+      const safePhotoUrl = item.photo != null && String(item.photo).trim() !== "" ? String(item.photo).trim() : null;
+      const safePhotoThumbnail = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${safeTitle}">` : `<span style="font-size:28px;">📦</span>`;
       
-      let bigPhotoHtml = '';
-      if (mainPhotoUrl) {
-          const photosJson = encodeURIComponent(JSON.stringify(photos));
-          const hint = photos.length > 1 ? `📸 Фотографій: ${photos.length} (натисніть, щоб дивитися всі)` : `🔍 Натисніть, щоб збільшити`;
-          
-          bigPhotoHtml = `
-            <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${photosJson}', event, true)">
-              <img src="${mainPhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
-              <div style="font-size:10px; color:${photos.length > 1 ? 'var(--highlight-color)' : 'rgba(255,255,255,0.5)'}; margin-top:4px; font-weight:700;">${hint}</div>
-            </div>
-          `;
-      }
+      const bigPhotoHtml = safePhotoUrl ? `
+        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${safePhotoUrl}', event)">
+          <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
+          <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Натисніть, щоб збільшити</div>
+        </div>
+      ` : '';
 
       let safePrice = item.price != null && String(item.price).trim() !== "" ? String(item.price).trim() : "Ціна договірна";
       if (safePrice !== "Ціна договірна" && !safePrice.toLowerCase().includes("грн")) {
@@ -1335,26 +1211,27 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             .filter(row => row['Статус'] && row['Статус'].trim().toLowerCase() === 'одобрено')
             .map((row) => {
               let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || '';
-              // Розбиваємо всі завантажені фото на масив
-              let photoUrls = rawPhoto.split(',').map(p => p.trim()).filter(p => p);
-              
-              let parsedPhotos = photoUrls.map(url => {
-                  let fileId = '';
-                  if (url.includes('id=')) {
-                      fileId = url.split('id=')[1].split('&')[0];
-                  } else if (url.includes('file/d/')) {
-                      let match = url.match(/\/d\/(.*?)\//);
-                      if (match && match[1]) fileId = match[1];
-                  }
-                  return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
-              });
+              let firstPhoto = rawPhoto.split(',')[0].trim();
+              let photoUrl = firstPhoto;
+                
+              let fileId = '';
+              if (photoUrl.includes('id=')) {
+                  fileId = photoUrl.split('id=')[1].split('&')[0];
+              } else if (photoUrl.includes('file/d/')) {
+                  let match = photoUrl.match(/\/d\/(.*?)\//);
+                  if (match && match[1]) fileId = match[1];
+              }
+
+              if (fileId) {
+                  photoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+              }
 
               return {
                 title: row['Назва товару (Коротка відповідь)'],
                 price: row['Ціна (Коротка відповідь)'],
                 description: row['Опис (Абзац)'],
                 phone: row['Телефон (Коротка відповідь)'],
-                photos: parsedPhotos,
+                photo: photoUrl,
                 category: row['Категорія товару'],
                 condition: row['Стан товару'],
                 location: row['Місто/Область, де знаходиться товар']
