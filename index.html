@@ -932,7 +932,7 @@ let isInsideTelegram = false;
 if (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length > 0) {
   isInsideTelegram = false;
 } else if (tg.initData && tg.initData.length > 0) {
-  isInsideTelegram = true;
+  isInsideTelegram = fasle;
 } else if (tg.platform && tg.platform !== "unknown") {
   isInsideTelegram = true;
 } else if (/Telegram/i.test(navigator.userAgent)) {
