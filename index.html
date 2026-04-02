@@ -263,7 +263,6 @@ body {
 .shop-tile:active {
   transform: translateY(1px);
 }
-
 .shop-tile.tile-active {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.3));
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2);
@@ -535,9 +534,6 @@ body {
   display: flex;
   gap: 10px;
 }
-.form-row .form-group {
-  flex: 1;
-}
 .form-label {
   font-size: 11px;
   font-weight: 700;
@@ -656,36 +652,37 @@ textarea.form-input { resize: none; }
     
     <form id="custom-blabla-form" onsubmit="submitBlaBlaForm(event)">
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group" style="flex: 1;">
           <label class="form-label">Звідки</label>
           <input type="text" class="form-input" id="input-from" placeholder="Вільногірськ" required maxlength="20">
         </div>
-        <div class="form-group">
+        <div class="form-group" style="flex: 1;">
           <label class="form-label">Куди</label>
           <input type="text" class="form-input" id="input-to" placeholder="Дніпро" required maxlength="20">
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Дата поїздки</label>
-        <input type="date" class="form-input" id="input-date" required>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" id="label-time">Час відправлення</label>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="time" class="form-input" id="input-time-from" required>
-          <span style="color: rgba(255,255,255,0.5); font-weight: bold;">-</span>
-          <input type="time" class="form-input" id="input-time-to">
+      <div class="form-row">
+        <div class="form-group" style="flex: 0.8;">
+          <label class="form-label">Дата</label>
+          <input type="date" class="form-input" id="input-date" required>
+        </div>
+        <div class="form-group" style="flex: 1.2;">
+          <label class="form-label" id="label-time">Час (З - До)</label>
+          <div style="display: flex; gap: 6px; align-items: center;">
+            <input type="time" class="form-input" id="input-time-from" required style="padding: 12px 8px;">
+            <span style="color: rgba(255,255,255,0.5); font-weight: bold;">-</span>
+            <input type="time" class="form-input" id="input-time-to" style="padding: 12px 8px;">
+          </div>
         </div>
       </div>
 
       <div class="form-row">
-        <div class="form-group">
+        <div class="form-group" style="flex: 1;">
           <label class="form-label" id="label-seats">Вільних місць</label>
           <input type="number" class="form-input" id="input-seats" min="1" max="8" placeholder="2" required>
         </div>
-        <div class="form-group" id="group-price">
+        <div class="form-group" id="group-price" style="flex: 1;">
           <label class="form-label">Ціна (грн)</label>
           <input type="number" class="form-input" id="input-price" min="0" placeholder="150" required>
         </div>
@@ -693,7 +690,7 @@ textarea.form-input { resize: none; }
 
       <div class="form-group">
         <label class="form-label">Номер телефону</label>
-        <input type="tel" class="form-input" id="input-phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required>
+        <input type="tel" class="form-input" id="input-phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required title="Почніть з нуля, 10 цифр">
       </div>
 
       <div class="form-group">
@@ -751,12 +748,12 @@ textarea.form-input { resize: none; }
           
           <div class="blabla-actions">
             <button class="blabla-btn btn-driver" onclick="openBlaBlaForm('driver')">
-              🚗 Ти водій
-              <span class="blabla-subtext">Запропонувати авто</span>
+              🚗 Запропонувати
+              <span class="blabla-subtext">Створити поїздку</span>
             </button>
             <button class="blabla-btn btn-passenger" onclick="openBlaBlaForm('passenger')">
-              🧍 Ти пасажир
-              <span class="blabla-subtext">Знайти місце</span>
+              🧍 Знайти авто
+              <span class="blabla-subtext">Стати пасажиром</span>
             </button>
           </div>
 
@@ -867,7 +864,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   window.openBlaBlaForm = function(type) {
     const modal = document.getElementById('blabla-modal');
     const title = document.getElementById('form-modal-title');
-    const timeLabel = document.getElementById('label-time');
     const seatsLabel = document.getElementById('label-seats');
     const priceGroup = document.getElementById('group-price');
     const priceInput = document.getElementById('input-price');
@@ -881,10 +877,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     document.getElementById('input-date').value = today;
 
     if (type === 'driver') {
-      title.innerText = '🚘 Пропоную поїздку';
+      title.innerText = '🚘 Запропонувати поїздку';
       title.style.color = '#00ff9c';
       
-      timeLabel.innerText = 'Час відправлення';
       seatsLabel.innerText = 'Вільних місць';
       
       priceGroup.style.display = 'flex';
@@ -893,10 +888,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       submitBtn.className = 'form-submit-btn driver';
       typeInput.value = 'driver';
     } else {
-      title.innerText = '🙋‍♂️ Шукаю авто';
+      title.innerText = '🙋‍♂️ Знайти авто';
       title.style.color = '#ffcc00';
       
-      timeLabel.innerText = 'Бажаний час';
       seatsLabel.innerText = 'Потрібно місць';
       
       priceGroup.style.display = 'none';
@@ -1230,6 +1224,49 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
+  window.toggleShop = function(id, tileElement) {
+    try {
+      const grid = tileElement ? tileElement.closest('.shops-tile-grid') : null;
+      
+      document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
+        if (el.id !== id) {
+          el.classList.remove('open');
+          if(el.parentElement) {
+            el.parentElement.classList.remove('tile-active');
+          }
+        }
+      });
+
+      const el = document.getElementById(id);
+      if(el) {
+        const isOpen = el.classList.toggle('open');
+        
+        if (tileElement) {
+          tileElement.classList.toggle('tile-active', isOpen);
+          
+          if (isOpen && grid) {
+            const updateHeight = () => {
+              const dropdownHeight = el.scrollHeight || 250;
+              grid.style.paddingBottom = (dropdownHeight + 15) + 'px';
+            };
+            setTimeout(updateHeight, 50);
+            setTimeout(updateHeight, 300); 
+          } else if (grid) {
+            grid.style.paddingBottom = '0px';
+          }
+        }
+      }
+    } catch(e) {}
+  };
+
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
   function renderShops(shopsData) {
     const container = document.getElementById('shopping-list-content');
     if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
@@ -1323,41 +1360,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     container.innerHTML = html;
   }
 
-  function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-  }
-
-  async function loadShopsData() {
-    try {
-      const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
-      if (!r.ok) throw new Error('Помилка HTTP: ' + r.status);
-      const d = await r.json();
-      
-      let itemsArray = d.shops || d.items || (Array.isArray(d) ? d : []);
-
-      if (!itemsArray || itemsArray.length === 0) {
-        document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
-        return;
-      }
-      
-      const activeShops = itemsArray.filter(shop => shop && shop.name && String(shop.name).trim() !== "");
-      
-      const vipShops = activeShops.filter(shop => shop.vip === true || shop.vip === 'true');
-      const regularShops = activeShops.filter(shop => shop.vip !== true && shop.vip !== 'true');
-
-      const shuffledRegular = shuffleArray([...regularShops]);
-      const finalShopsList = [...vipShops, ...shuffledRegular];
-      
-      renderShops(finalShopsList);
-    } catch(e) {
-      document.getElementById('shopping-list-content').innerHTML = `<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600; font-size: 13px;">Помилка завантаження: ${e.message}</div>`;
-    }
-  }
-
   function renderFleaMarket(fleaData) {
     const container = document.getElementById('flea-market-list-content');
     if (!fleaData || !Array.isArray(fleaData) || fleaData.length === 0) {
@@ -1443,6 +1445,33 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     
     html += '</div>';
     container.innerHTML = html;
+  }
+
+  async function loadShopsData() {
+    try {
+      const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
+      if (!r.ok) throw new Error('Помилка HTTP: ' + r.status);
+      const d = await r.json();
+      
+      let itemsArray = d.shops || d.items || (Array.isArray(d) ? d : []);
+
+      if (!itemsArray || itemsArray.length === 0) {
+        document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
+        return;
+      }
+      
+      const activeShops = itemsArray.filter(shop => shop && shop.name && String(shop.name).trim() !== "");
+      
+      const vipShops = activeShops.filter(shop => shop.vip === true || shop.vip === 'true');
+      const regularShops = activeShops.filter(shop => shop.vip !== true && shop.vip !== 'true');
+
+      const shuffledRegular = shuffleArray([...regularShops]);
+      const finalShopsList = [...vipShops, ...shuffledRegular];
+      
+      renderShops(finalShopsList);
+    } catch(e) {
+      document.getElementById('shopping-list-content').innerHTML = `<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600; font-size: 13px;">Помилка завантаження: ${e.message}</div>`;
+    }
   }
 
   async function loadFleaMarketData() {
