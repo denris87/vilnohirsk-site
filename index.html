@@ -57,6 +57,7 @@ body {
 
 /* ІНФОРМАЦІЙНЕ ТАБЛО ВЕРХНЄ */
 .alert-main-widget { padding: 0; border-radius: 28px; position: relative; z-index: 100; }
+.alert-title-box { position: relative; display: inline-block; font-weight: 800; font-size: clamp(14px, 4vw, 18px); color: #ffffff; text-transform: uppercase; letter-spacing: 1px; }
 
 .alert-drawer { position: absolute; top: calc(100% + 10px); left: 0; width: 100%; max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1); background: linear-gradient(135deg, #0b1d3a, #061124); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8); border-radius: 24px; z-index: 100; }
 .alert-drawer.open { max-height: 10000px; opacity: 1; padding: 15px; pointer-events: auto; }
@@ -77,6 +78,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: #fff;
+  position: relative; /* Для крапки-сповіщення */
 }
 .tab-alert.communal { color: #ffcc00; border-bottom: 3px solid #ffcc00; }
 .tab-alert.communal.active { background: rgba(255, 204, 0, 0.15); box-shadow: 0 0 15px rgba(255, 204, 0, 0.4); }
@@ -92,6 +94,22 @@ body {
   100% { box-shadow: 0 0 12px rgba(224, 86, 253, 0.5); }
 }
 
+/* КРАПКИ-СПОВІЩЕННЯ НА ВКЛАДКАХ */
+.notification-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  background: #ff3b3b;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.5);
+  animation: pulseAlert 1.5s infinite;
+  display: none;
+  z-index: 10;
+}
+@keyframes pulseAlert { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
+
 /* КАРУСЕЛЬ ДЛЯ НОВИН ТА АФІШ */
 .carousel-wrapper { width: 100%; position: relative; }
 .carousel-container { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 15px; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; padding-bottom: 5px; align-items: center; }
@@ -104,11 +122,6 @@ body {
 .carousel-dots { display: flex; justify-content: center; align-items: center; gap: 6px; margin-top: 10px; }
 .carousel-dot { width: 8px; height: 8px; border-radius: 50%; transition: background 0.3s, transform 0.3s; }
 .carousel-dot.active { transform: scale(1.3); }
-
-.banner-alert-dot { position: absolute; top: -6px; right: -6px; width: 10px; height: 10px; background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5); animation: pulseAlert 1.5s infinite; display: none; z-index: 10; }
-.banner-alert-dot.active { display: block; }
-.train-alert-dot { position: absolute; top: -4px; right: -4px; width: 8px; height: 8px; background: #ff3b3b; border-radius: 50%; border: 1px solid rgba(0,0,0,0.5); animation: pulseAlert 1.5s infinite; }
-@keyframes pulseAlert { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 59, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 59, 0); } }
 
 /* ПОГОДА І ЧАС */
 .top-row { display: flex; flex-direction: row; justify-content: space-between; gap: 12px; width: 100%; }
@@ -197,6 +210,7 @@ body {
   transition: all 0.3s ease; 
   font-size: clamp(12px, 3.5vw, 14px); 
   white-space: nowrap; 
+  position: relative; /* Для крапки-сповіщення */
 }
 .tab-btn.active { 
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1)); 
@@ -323,11 +337,6 @@ body {
   text-transform: uppercase;
   letter-spacing: 1px;
   animation: vipPulse 2s infinite;
-}
-@keyframes vipPulse {
-  0% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
-  50% { transform: scale(1.05); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.6); }
-  100% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
 }
 
 .shop-tile-photo {
@@ -773,15 +782,21 @@ select.form-input option {
   <div class="container">
 
     <div class="alert-main-widget liquid-glass" style="padding: 15px;">
-      <span class="banner-alert-dot" id="main-alert-dot"></span>
-      
-      <div id="alert-tabs" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
-        <button class="tab-alert communal" onclick="openAlertTab('alert-communal', this)">Комунальний інформер</button>
-        <button class="tab-alert news" onclick="openAlertTab('alert-news', this)">Міські новини</button>
-        <button class="tab-alert events glow-tab" onclick="openAlertTab('alert-events', this)">Сяйво подій</button>
+      <div id="alert-tabs" style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; gap: 8px;">
+          <div class="tab-alert communal" onclick="openAlertTab('alert-communal', this)">
+            Комунальний інформер<span class="notification-dot" id="dot-communal"></span>
+          </div>
+          <div class="tab-alert news" onclick="openAlertTab('alert-news', this)">
+            Міські новини<span class="notification-dot" id="dot-news"></span>
+          </div>
+        </div>
+        <div class="tab-alert events glow-tab" onclick="openAlertTab('alert-events', this)">
+          Сяйво подій<span class="notification-dot" id="dot-events"></span>
+        </div>
       </div>
 
-      <div class="alert-drawer" id="alert-drawer" style="margin-top: 10px;">
+      <div class="alert-drawer" id="alert-drawer">
         <div id="alert-communal" class="content-section">
           <div id="alert-communal-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div>
         </div>
@@ -800,7 +815,7 @@ select.form-input option {
           <button class="tab-btn" onclick="openScheduleTab('trains', this)">🚆 Електрички</button>
           <button class="tab-btn" onclick="openScheduleTab('long-trains', this)">🛤️ Потяги</button>
           <button class="tab-btn" onclick="openScheduleTab('buses', this)">🚌 Автобуси</button>
-          <button class="tab-btn" onclick="openScheduleTab('blablacar', this)">🚗 Bla Bla Car</button>
+          <button class="tab-btn" onclick="openScheduleTab('blablacar', this)">🚗 Bla Bla Car<span class="notification-dot" id="dot-blablacar"></span></button>
         </div>
         <div class="scroll-hint" id="hint-schedule"><span>❯</span></div>
       </div>
@@ -870,9 +885,9 @@ select.form-input option {
     <div class="market-group">
       <div class="tabs-wrapper">
         <div class="tabs-nav" id="market-tabs">
-          <button class="tab-btn" onclick="openMarketTab('shopping-tab', this)">🛍 Шопінг</button>
-          <button class="tab-btn" onclick="openMarketTab('flea-market-tab', this)">📦 Барахолка</button>
-          <button class="tab-btn" onclick="openMarketTab('lost-found-tab', this)">🔍 Знахідки</button>
+          <button class="tab-btn" onclick="openMarketTab('shopping-tab', this)">🛍 Шопінг<span class="notification-dot" id="dot-shopping"></span></button>
+          <button class="tab-btn" onclick="openMarketTab('flea-market-tab', this)">📦 Барахолка<span class="notification-dot" id="dot-flea"></span></button>
+          <button class="tab-btn" onclick="openMarketTab('lost-found-tab', this)">🔍 Знахідки<span class="notification-dot" id="dot-lost"></span></button>
           <button class="tab-btn" onclick="openMarketTab('city-guide-tab', this)">📖 Міський довідник</button>
         </div>
         <div class="scroll-hint" id="hint-market"><span>❯</span></div>
@@ -930,6 +945,30 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   document.getElementById('main-app-content').style.display = 'flex'; 
 
   if (tg.expand) { tg.expand(); }
+
+  // ==== СИСТЕМА СПОВІЩЕНЬ (ЧЕРВОНІ КРАПКИ) ====
+  window.currentDataSignature = {};
+
+  function checkNotification(key, dataArray) {
+    if (!dataArray || dataArray.length === 0) return;
+    const signature = String(dataArray.length);
+    window.currentDataSignature[key] = signature;
+    
+    const seenSignature = localStorage.getItem('seen_' + key);
+    const dot = document.getElementById('dot-' + key);
+    
+    if (dot && signature !== seenSignature) {
+        dot.style.display = 'block';
+    }
+  }
+
+  function clearNotification(key) {
+    const dot = document.getElementById('dot-' + key);
+    if (dot) dot.style.display = 'none';
+    if (window.currentDataSignature[key]) {
+        localStorage.setItem('seen_' + key, window.currentDataSignature[key]);
+    }
+  }
 
   // ==== ФУНКЦІЯ ВІДКРИТТЯ ШТОРОК ДЛЯ МАГАЗИНІВ ТА БАРАХОЛКИ ====
   window.toggleShop = function(detailsId, tileElement) {
@@ -996,7 +1035,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     modal.classList.add('active');
   };
 
-  // ВАЖЛИВО: Закриваємо ТІЛЬКИ якщо клікнули на хрестик, клік повз не працює
+  // ВАЖЛИВО: Закриваємо ТІЛЬКИ якщо клікнули на хрестик
   window.closeBlaBlaForm = function(event) {
     if (!event || event.target.classList.contains('close-modal-btn')) {
       document.getElementById('blabla-modal').classList.remove('active');
@@ -1200,10 +1239,14 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     });
   }
 
-  // ==== ФУНКЦІЇ ДЛЯ ТАБІВ ====
+  // ==== ФУНКЦІЇ ДЛЯ ТАБІВ (З ОЧИЩЕННЯМ СПОВІЩЕНЬ) ====
   window.openAlertTab = function(tabId, btn) {
     try {
       closeAllShopDropdowns(); 
+      
+      if (tabId === 'alert-communal') clearNotification('communal');
+      if (tabId === 'alert-news') clearNotification('news');
+      if (tabId === 'alert-events') clearNotification('events');
       
       document.getElementById('main-list-widget').classList.remove('open');
       document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -1228,6 +1271,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   function openScheduleTab(tabId, btn) {
     try {
+      if (tabId === 'blablacar') clearNotification('blablacar');
+      
       closeAllShopDropdowns(); 
       document.getElementById('market-drawer').classList.remove('open');
       document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -1251,6 +1296,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   function openMarketTab(tabId, btn) {
     try {
+      if (tabId === 'shopping-tab') clearNotification('shopping');
+      if (tabId === 'flea-market-tab') clearNotification('flea');
+      if (tabId === 'lost-found-tab') clearNotification('lost');
+
       closeAllShopDropdowns();
       document.getElementById('main-list-widget').classList.remove('open');
       document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -1453,22 +1502,18 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const newsAlerts = (d && Array.isArray(d.news)) ? d.news.filter(i => i && i.show) : [];
       const eventAlerts = (d && Array.isArray(d.events)) ? d.events.filter(i => i && i.show) : [];
       
-      // Зберігаємо всі фото афіш глобально для галереї
+      // Перевірка на сповіщення
+      checkNotification('communal', communalAlerts);
+      checkNotification('news', newsAlerts);
+      checkNotification('events', eventAlerts);
+      
       window.currentEventImages = eventAlerts.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
-
-      const dot = document.getElementById("main-alert-dot");
-      if (communalAlerts.length > 0 || newsAlerts.length > 0 || eventAlerts.length > 0) {
-        dot.classList.add("active");
-      } else {
-        dot.classList.remove("active");
-      }
 
       document.getElementById("alert-communal-content").innerHTML = buildCarouselHtml(communalAlerts, '#ffcc00', 'communal');
       document.getElementById("alert-news-content").innerHTML = buildCarouselHtml(newsAlerts, '#00ff9c', 'news');
       document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(eventAlerts, '#e056fd', 'events', true);
 
     } catch(e) {
-      document.getElementById("main-alert-dot").classList.remove("active");
       document.getElementById("alert-communal-content").innerHTML = `<div class="alert-empty">Помилка завантаження</div>`;
       document.getElementById("alert-news-content").innerHTML = `<div class="alert-empty">Помилка завантаження</div>`;
       document.getElementById("alert-events-content").innerHTML = `<div class="alert-empty">Помилка завантаження</div>`;
@@ -1583,6 +1628,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const d = await r.json();
       
       let itemsArray = d.shops || d.items || (Array.isArray(d) ? d : []);
+
+      checkNotification('shopping', itemsArray);
 
       if (!itemsArray || itemsArray.length === 0) {
         document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>';
@@ -1740,6 +1787,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               };
             });
 
+          checkNotification('flea', approvedItems);
+
           if (approvedItems.length === 0) {
             document.getElementById('flea-market-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає (або вони ще не схвалені)</div>';
             return;
@@ -1796,6 +1845,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       
       const rides = await response.json();
       
+      checkNotification('blablacar', rides);
+
       const drivers = rides.filter(r => r.type === 'driver');
       const passengers = rides.filter(r => r.type === 'passenger');
 
