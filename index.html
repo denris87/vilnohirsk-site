@@ -339,11 +339,6 @@ body {
   letter-spacing: 1px;
   animation: vipPulse 2s infinite;
 }
-@keyframes vipPulse {
-  0% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
-  50% { transform: scale(1.05); box-shadow: 0 4px 15px rgba(255, 204, 0, 0.6); }
-  100% { transform: scale(1); box-shadow: 0 4px 10px rgba(255, 204, 0, 0.4); }
-}
 
 .shop-tile-photo {
   width: 100%;
@@ -610,7 +605,6 @@ body {
 .form-input::placeholder { color: rgba(255,255,255,0.3); }
 textarea.form-input { resize: none; }
 
-/* Кастомний стиль для випадаючого списку */
 select.form-input {
   appearance: none;
   -webkit-appearance: none;
@@ -930,7 +924,7 @@ select.form-input option {
 
 <script>
 // ==== ПЕРЕМИКАЧ БЛОКУВАННЯ ТЕЛЕГРАМУ ====
-const REQUIRE_TELEGRAM = true; 
+const REQUIRE_TELEGRAM = false; 
 
 const tg = window.Telegram.WebApp;
 
@@ -1452,7 +1446,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   function buildCarouselHtml(items, typeColor, typeId, isEvent = false) {
     if (!items || items.length === 0) {
-      if (isEvent) return `<div class="alert-empty" style="margin-bottom:15px;">Афіш поки немає</div><div style="font-size:11px; color:rgba(255,255,255,0.5); text-align:center; padding:0 10px;">Щоб додати афішу, додайте об'єкт у масив "events" на вашому сервері API з ключем "photo".</div>`;
+      if (isEvent) return `<div class="alert-empty" style="margin-bottom:15px;">Афіш поки немає</div>`;
       return `<div class="alert-empty">Актуальних повідомлень немає</div>`;
     }
     
@@ -1508,23 +1502,40 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       
       const communalAlerts = (d && Array.isArray(d.communal)) ? d.communal.filter(i => i && i.show) : [];
       const newsAlerts = (d && Array.isArray(d.news)) ? d.news.filter(i => i && i.show) : [];
-      const eventAlerts = (d && Array.isArray(d.events)) ? d.events.filter(i => i && i.show) : [];
       
-      // Перевірка на сповіщення
       checkNotification('communal', communalAlerts);
       checkNotification('news', newsAlerts);
-      checkNotification('events', eventAlerts);
-      
-      window.currentEventImages = eventAlerts.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
 
       document.getElementById("alert-communal-content").innerHTML = buildCarouselHtml(communalAlerts, '#ffcc00', 'communal');
       document.getElementById("alert-news-content").innerHTML = buildCarouselHtml(newsAlerts, '#00ff9c', 'news');
-      document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(eventAlerts, '#e056fd', 'events', true);
 
     } catch(e) {
       document.getElementById("alert-communal-content").innerHTML = `<div class="alert-empty">Помилка завантаження</div>`;
       document.getElementById("alert-news-content").innerHTML = `<div class="alert-empty">Помилка завантаження</div>`;
-      document.getElementById("alert-events-content").innerHTML = `<div class="alert-empty">Помилка завантаження</div>`;
+    }
+  }
+
+  // НОВА ФУНКЦІЯ ДЛЯ СЯЙВА ПОДІЙ З GITHUB
+  async function loadEventsData() {
+    try {
+      // ЗАМІНИ НА СВОЄ ПОСИЛАННЯ В GITHUB
+      const API_URL = `https://raw.githubusercontent.com/denris87/vilnohirsk-events/main/events.json?t=${new Date().getTime()}`;
+      
+      const r = await fetch(API_URL);
+      if (!r.ok) throw new Error('Network error');
+      
+      const eventAlerts = await r.json();
+      const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i.show !== false) : [];
+
+      checkNotification('events', activeEvents);
+      window.currentEventImages = activeEvents.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
+
+      document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#e056fd', 'events', true);
+    } catch(e) {
+      document.getElementById("alert-events-content").innerHTML = `
+        <div class="alert-empty" style="margin-bottom:15px;">Афіш поки немає</div>
+        <div style="font-size:11px; color:rgba(255,255,255,0.5); text-align:center; padding:0 10px;">Створіть events.json у GitHub та додайте туди посилання на фото.</div>
+      `;
     }
   }
 
@@ -1908,6 +1919,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   updateDateTime(); 
   loadWeather(); 
   loadAlerts(); 
+  loadEventsData();
   loadTrainsData(); 
   loadLongTrainsData(); 
   loadBusesData(); 
@@ -1920,6 +1932,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     loadTrainsData(); 
     loadLongTrainsData(); 
     loadAlerts(); 
+    loadEventsData();
     loadShopsData(); 
     loadFleaMarketData(); 
     loadBlaBlaCarData();
