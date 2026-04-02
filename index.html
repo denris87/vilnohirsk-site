@@ -1653,17 +1653,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   };
 
-  function parseDate(dateStr) {
-    if (!dateStr) return null;
-    let parts = dateStr.split('.'); 
-    if (parts.length === 3) return new Date(parts[2], parts[1]-1, parts[0]);
-    parts = dateStr.split('-'); 
-    if (parts.length === 3) return new Date(parts[0], parts[1]-1, parts[2]);
-    parts = dateStr.split('/'); 
-    if (parts.length === 3) return new Date(parts[2], parts[0]-1, parts[1]);
-    return new Date(dateStr); 
-  }
-
   async function loadBlaBlaCarData() {
     try {
       const API_URL = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides'; 
@@ -1718,36 +1707,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       document.getElementById('blabla-drivers-list').innerHTML = '<div style="text-align: center; padding: 20px; color: #ff6b6b;">Помилка підключення до сервера</div>';
       document.getElementById('blabla-passengers-list').innerHTML = '<div style="text-align: center; padding: 20px; color: #ff6b6b;">Помилка підключення до сервера</div>';
     }
-  }
-
-    Papa.parse('https://docs.google.com/spreadsheets/d/1Hl3TN0_i3YL7vhmi0U-RFcRORUZfx6zb487yDbKxZfo/export?format=csv', {
-      download: true, header: true, skipEmptyLines: true,
-      complete: function(res) {
-        const passengers = res.data.filter(row => {
-          if (!row['Дата поїздки']) return false;
-          const tripDate = parseDate(row['Дата поїздки']);
-          return tripDate >= todayStart; 
-        });
-
-        if (passengers.length > 0) {
-          document.getElementById('blabla-passengers-list').innerHTML = passengers.map(p => `
-            <div class="blabla-card">
-              <div class="blabla-route">📍 ${p['Маршрут (звідки - куди)']}</div>
-              <div class="blabla-date">🗓 ${p['Дата поїздки']} | 🕒 ${p['Бажаний час відправлення']}</div>
-              <div class="blabla-info-row">
-                <span>🧍 Потрібно місць: <b>${p['Скільки потрібно місць']}</b></span>
-              </div>
-              ${p['Додатковий коментар (необов\'язково)'] ? `<div style="font-size:11px; opacity:0.8; margin-top:5px;">💬 ${p['Додатковий коментар (необов\'язково)']}</div>` : ''}
-              <div style="text-align:right; margin-top:5px;">
-                <a href="tel:${(p['Номер телефону'] || '').replace(/\D/g,'')}" class="blabla-phone">📞 ${p['Номер телефону']}</a>
-              </div>
-            </div>
-          `).join('');
-        } else {
-          document.getElementById('blabla-passengers-list').innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Запитів від пасажирів поки немає</div>';
-        }
-      }
-    });
   }
 
   // ЗАПУСК УСІХ БЛОКІВ
