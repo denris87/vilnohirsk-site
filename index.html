@@ -25,11 +25,11 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
   overflow-x: auto;
   gap: 8px;
   padding: 5px 15px 15px 15px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* IE 10+ */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .flea-categories-wrapper::-webkit-scrollbar {
-  display: none; /* Chrome, Safari */
+  display: none;
 }
 .flea-category-tag {
   padding: 6px 14px;
@@ -267,7 +267,6 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 
 <script>
 // ГЛОБАЛЬНА ЄДИНА СИЛКА ДЛЯ ВСІХ ФОРМ (БАРАХОЛКА, НАХІДКИ, ВІДГУКИ)
-// Вставте сюди вашу нову фінальну URL-адресу розгортання:
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxbFq8U225-ypSiEgGM0zXDhLvz2gImQAGADtWhI_SsP05WOpIk-6URUxdIeUmYvMMI/exec';
 
 const REQUIRE_TELEGRAM = false; 
@@ -321,7 +320,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               canvas.height = height;
               const ctx = canvas.getContext('2d');
               ctx.drawImage(img, 0, 0, width, height);
-              
               const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
               resolve(dataUrl.split(',')[1]); 
           };
@@ -449,7 +447,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const form = document.getElementById('custom-lost-form');
       const formData = new FormData(form);
       const photos = document.querySelector('#custom-lost-form input[name="photos"]').files;
-      
       let base64Photos = [];
 
       if (photos.length > 0) {
@@ -508,7 +505,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         body: JSON.stringify({ text: text })
       });
 
-      alert('✅ Дякуємо! Ваш відгук успішно відправлено. Це дуже допоможе нам покращити сайт.');
+      alert('✅ Дякуємо! Ваш відгук успішно відправлено.');
       textEl.value = '';
       document.getElementById('beta-drawer').classList.remove('open');
     } catch(e) {
@@ -519,432 +516,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   };
 
-  window.openBlaBlaForm = function(type) {
-    const modal = document.getElementById('blabla-modal');
-    const title = document.getElementById('form-modal-title');
-    const timeLabel = document.getElementById('label-time');
-    const seatsLabel = document.getElementById('label-seats');
-    const priceGroup = document.getElementById('group-price');
-    const priceInput = document.getElementById('input-price');
-    const submitBtn = document.getElementById('form-submit-btn');
-    const typeInput = document.getElementById('input-type');
-    const nameLabel = document.getElementById('label-name');
-
-    document.getElementById('custom-blabla-form').reset();
-    
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('input-date').setAttribute('min', today);
-    document.getElementById('input-date').value = today;
-
-    if (type === 'driver') {
-      title.innerText = '🚘 Запропонувати поїздку';
-      title.style.color = '#00ff9c';
-      nameLabel.innerText = 'Ім\'я водія';
-      timeLabel.innerText = 'Час відправлення';
-      seatsLabel.innerText = 'Вільних місць';
-      priceGroup.style.display = 'flex';
-      priceInput.required = true;
-      submitBtn.className = 'form-submit-btn driver';
-      typeInput.value = 'driver';
-    } else {
-      title.innerText = '🙋‍♂️ Знайти авто';
-      title.style.color = '#ffcc00';
-      nameLabel.innerText = 'Ваше ім\'я';
-      timeLabel.innerText = 'Бажаний час';
-      seatsLabel.innerText = 'Потрібно місць';
-      priceGroup.style.display = 'none';
-      priceInput.required = false;
-      submitBtn.className = 'form-submit-btn passenger';
-      typeInput.value = 'passenger';
-    }
-
-    modal.classList.add('active');
-  };
-
-  window.closeBlaBlaForm = function(event) {
-    if (!event || event.target.classList.contains('close-modal-btn')) {
-      document.getElementById('blabla-modal').classList.remove('active');
-    }
-  };
-
-  window.submitBlaBlaForm = async function(event) {
-    event.preventDefault(); 
-    const submitBtn = document.getElementById('form-submit-btn');
-    const originalBtnText = submitBtn.innerText;
-    submitBtn.innerText = 'Відправка...';
-    submitBtn.disabled = true;
-    submitBtn.style.opacity = '0.7';
-    
-    const formData = {
-      type: document.getElementById('input-type').value,
-      name: document.getElementById('input-name').value,
-      from: document.getElementById('input-from').value,
-      to: document.getElementById('input-to').value,
-      date: document.getElementById('input-date').value,
-      time: document.getElementById('input-time-to').value ? `${document.getElementById('input-time-from').value} - ${document.getElementById('input-time-to').value}` : document.getElementById('input-time-from').value,
-      seats: parseInt(document.getElementById('input-seats').value, 10),
-      price: document.getElementById('input-price').value ? parseInt(document.getElementById('input-price').value, 10) : 0,
-      phone: document.getElementById('input-phone').value,
-      comment: document.getElementById('input-comment').value
-    };
-
-    try {
-      const API_URL = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides'; 
-      const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-      if (!response.ok) throw new Error('Помилка сервера при збереженні');
-      alert('✅ Ваше оголошення успішно додано!');
-      closeBlaBlaForm();
-      switchBlaBlaList(formData.type === 'driver' ? 'drivers' : 'passengers');
-      loadBlaBlaCarData(); 
-    } catch (error) {
-      alert('❌ Помилка при відправці: ' + error.message);
-    } finally {
-      submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1';
-    }
-  };
-
-  window.switchBlaBlaList = function(type) {
-    document.querySelectorAll('.blabla-tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('blabla-drivers-list').style.display = 'none';
-    document.getElementById('blabla-passengers-list').style.display = 'none';
-    if (type === 'drivers') {
-      document.getElementById('btn-show-drivers').classList.add('active');
-      document.getElementById('blabla-drivers-list').style.display = 'block';
-    } else {
-      document.getElementById('btn-show-passengers').classList.add('active');
-      document.getElementById('blabla-passengers-list').style.display = 'block';
-    }
-  };
-
-  function handleScrollHint(navId, hintId) {
-    const nav = document.getElementById(navId); const hint = document.getElementById(hintId);
-    if (!nav || !hint) return;
-    const checkScroll = () => { if (nav.scrollWidth - nav.clientWidth <= nav.scrollLeft + 5) { hint.classList.add('hidden'); } else { hint.classList.remove('hidden'); } };
-    nav.addEventListener('scroll', checkScroll); window.addEventListener('resize', checkScroll); setTimeout(checkScroll, 300);
-  }
-  handleScrollHint('schedule-tabs', 'hint-schedule');
-  handleScrollHint('market-tabs', 'hint-market');
-
-  let currentGallery = []; let currentGalleryIndex = 0; let touchStartX = 0; let touchEndX = 0;
-  window.currentEventImages = [];
-
-  window.openImageModal = function(images, index, event) {
-    if (event) event.stopPropagation();
-    if (typeof images === 'string') { currentGallery = [images]; currentGalleryIndex = 0; }
-    else { currentGallery = images; currentGalleryIndex = index || 0; }
-    updateModalImage(); document.getElementById('image-modal').classList.add('active');
-  };
-
-  window.updateModalImage = function() {
-     const img = document.getElementById('modal-image-src');
-     img.src = currentGallery[currentGalleryIndex];
-     const counter = document.getElementById('modal-image-counter');
-     if (currentGallery.length > 1) { counter.innerText = `${currentGalleryIndex + 1} з ${currentGallery.length}`; }
-     else { counter.innerText = ''; }
-  };
-
-  window.prevModalImage = function() {
-     if (currentGallery.length <= 1) return;
-     currentGalleryIndex = (currentGalleryIndex - 1 + currentGallery.length) % currentGallery.length;
-     updateModalImage();
-  };
-
-  window.nextModalImage = function() {
-     if (currentGallery.length <= 1) return;
-     currentGalleryIndex = (currentGalleryIndex + 1) % currentGallery.length;
-     updateModalImage();
-  };
-
-  window.handleTouchStart = function(e) { touchStartX = e.changedTouches[0].screenX; };
-  window.handleTouchEnd = function(e) {
-    touchEndX = e.changedTouches[0].screenX;
-    if (currentGallery.length <= 1) return;
-    if (touchEndX < touchStartX - 50) { nextModalImage(); }
-    if (touchEndX > touchStartX + 50) { prevModalImage(); }
-  };
-
-  window.closeImageModal = function(event) {
-    if (event && event.target.id !== 'image-modal' && !event.target.classList.contains('image-modal-close')) { return; }
-    document.getElementById('image-modal').classList.remove('active');
-  };
-
-  document.addEventListener('click', function(e) {
-    if (e.target.closest('.image-modal') || e.target.closest('.custom-modal-box')) return;
-    if (!e.target.closest('.alert-main-widget')) {
-      const alertDrawer = document.getElementById('alert-drawer');
-      if (alertDrawer) { alertDrawer.classList.remove('open'); document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active')); }
-    }
-    if (!e.target.closest('.train') && !e.target.closest('.details')) { document.querySelectorAll('.details.open').forEach(el => el.classList.remove('open')); }
-    if (!e.target.closest('.shop-tile')) { closeAllShopDropdowns(); }
-    if (!e.target.closest('.schedule-group')) {
-      const transportWidget = document.getElementById('main-list-widget'); if (transportWidget) transportWidget.classList.remove('open');
-      document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-    }
-    if (!e.target.closest('.market-group')) {
-      const marketWidget = document.getElementById('market-drawer'); if (marketWidget) marketWidget.classList.remove('open');
-      document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-    }
-  });
-
-  window.recalcDropdownHeight = function(imgEl) {
-    const dropdown = imgEl.closest('.shop-details-dropdown');
-    const grid = imgEl.closest('.shops-tile-grid');
-    if (dropdown && dropdown.classList.contains('open') && grid) { grid.style.paddingBottom = (dropdown.scrollHeight + 15) + 'px'; }
-  };
-
-  window.openAlertTab = function(tabId, btn) {
-    try {
-      closeAllShopDropdowns(); 
-      if (tabId === 'alert-communal') clearNotification('communal');
-      if (tabId === 'alert-news') clearNotification('news');
-      if (tabId === 'alert-events') clearNotification('events');
-      
-      document.getElementById('main-list-widget').classList.remove('open');
-      document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('market-drawer').classList.remove('open');
-      document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-
-      const drawer = document.getElementById('alert-drawer');
-      if (btn.classList.contains('active')) { btn.classList.remove('active'); drawer.classList.remove('open'); return; }
-      
-      document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('#alert-drawer .content-section').forEach(s => s.classList.remove('active'));
-      
-      btn.classList.add('active'); document.getElementById(tabId).classList.add('active'); drawer.classList.add('open');
-    } catch (e) { console.error(e); }
-  };
-
-  window.openScheduleTab = function(tabId, btn) {
-    try {
-      if (tabId === 'blablacar') clearNotification('blablacar');
-      if (tabId === 'trains') clearNotification('trains');
-      
-      closeAllShopDropdowns(); 
-      document.getElementById('market-drawer').classList.remove('open');
-      document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('alert-drawer').classList.remove('open');
-      document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active'));
-
-      const widget = document.getElementById('main-list-widget');
-      if (btn.classList.contains('active')) { btn.classList.remove('active'); widget.classList.remove('open'); return; }
-      document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('#main-list-widget .content-section').forEach(s => s.classList.remove('active'));
-      btn.classList.add('active'); document.getElementById(tabId).classList.add('active'); widget.classList.add('open');
-    } catch (e) { console.error(e); }
-  };
-
-  window.openMarketTab = function(tabId, btn) {
-    try {
-      if (tabId === 'shopping-tab') clearNotification('shopping');
-      if (tabId === 'flea-market-tab') clearNotification('flea');
-      if (tabId === 'lost-found-tab') clearNotification('lost');
-
-      closeAllShopDropdowns();
-      document.getElementById('main-list-widget').classList.remove('open');
-      document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-      document.getElementById('alert-drawer').classList.remove('open');
-      document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active'));
-
-      const widget = document.getElementById('market-drawer');
-      if (btn.classList.contains('active')) { btn.classList.remove('active'); widget.classList.remove('open'); return; }
-      document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('#market-drawer .content-section').forEach(s => s.classList.remove('active'));
-      btn.classList.add('active'); document.getElementById(tabId).classList.add('active'); widget.classList.add('open');
-    } catch(e) { console.error(e); }
-  };
-
-  function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
-  function getWeatherEmoji(code){
-    if(code === 0) return "☀️"; if(code <= 2) return "⛅"; if(code <= 3) return "☁️"; if(code <= 48) return "🌫️";
-    if(code <= 67) return "🌧️"; if(code <= 77) return "🌨️"; if(code <= 99) return "⛈️"; return "🌡️";
-  }
-
-  async function loadWeather(){
-    const coords = [{name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {name: 'Дніпро', lat: 48.45, lon: 34.98}];
-    let results = [];
-    for(let c of coords){
-      try {
-        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
-        const d = await r.json(); results.push({name: c.name, w: d.current_weather});
-      } catch(e) {}
-    }
-    const container = document.getElementById("weather-container");
-    if(results.length === 0) return;
-    container.innerHTML = results.map((item, index) => `<div class="weather-content ${index === 0 ? 'active' : ''}"><div class="weather-city">${item.name}</div><div class="weather-temp">${getWeatherEmoji(item.w.weathercode)} ${Math.round(item.w.temperature)}°C</div><div class="weather-wind">💨 ${Math.round(item.w.windspeed)} м/с</div></div>`).join("");
-    let currentIndex = 0;
-    setInterval(() => {
-      const slides = document.querySelectorAll('.weather-content');
-      if(slides.length < 2) return;
-      slides[currentIndex].classList.remove('active');
-      currentIndex = (currentIndex + 1) % slides.length;
-      slides[currentIndex].classList.add('active');
-    }, 7000); 
-  }
-
-  function updateDateTime(){
-    try {
-      const now = getKyivNow();
-      document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-      document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-      const days=document.querySelectorAll(".day"); days.forEach(d=>d.classList.remove("active"));
-      let i=now.getDay(); i=i===0?6:i-1; days[i].classList.add("active");
-    } catch(e) {}
-  }
-
-  function buildCarouselHtml(items, typeColor, typeId, isEvent = false) {
-    if (!items || items.length === 0) {
-      if (isEvent) return `<div class="alert-empty" style="margin-bottom:15px;">Афіш поки немає</div>`;
-      return `<div class="alert-empty">Актуальних повідомлень немає</div>`;
-    }
-    const slidesHtml = items.map((item, index) => {
-      if(!item) return '';
-      if (isEvent) {
-        const photoUrl = item.photo || item.image || item.url;
-        if(!photoUrl) return '';
-        return `<div class="alert-item" style="padding:0; background:transparent; border:none; display:flex; justify-content:center; align-items:center;">
-                  <img src="${photoUrl}" style="max-width:100%; max-height:350px; object-fit:contain; border-radius:12px; box-shadow: 0 4px 15px rgba(224, 86, 253, 0.4); cursor:pointer;" alt="Афіша" onclick="openImageModal(window.currentEventImages, ${index}, event)">
-                </div>`;
-      } else {
-        const textHtml = item.text ? String(item.text).replace(/\n/g, '<br>') : '';
-        return `<div class="alert-item">
-                  ${item.title ? `<div class="alert-card-title" style="color: ${typeColor};">${item.title}</div>` : ''}
-                  <div class="alert-card-text">${textHtml}</div>
-                </div>`;
-      }
-    }).join("");
-    if (items.length === 1) return `<div class="carousel-wrapper"><div class="carousel-container">${slidesHtml}</div></div>`;
-    const dotsHtml = items.map((_, i) => `<div class="carousel-dot ${i === 0 ? 'active' : ''}" style="background: ${i === 0 ? typeColor : 'rgba(255,255,255,0.3)'};"></div>`).join("");
-    return `<div class="carousel-wrapper">
-              <div class="carousel-container" id="carousel-${typeId}" onscroll="updateCarouselDots('carousel-${typeId}', 'dots-${typeId}', '${typeColor}')">${slidesHtml}</div>
-              <div class="carousel-dots" id="dots-${typeId}">${dotsHtml}</div>
-            </div>`;
-  }
-
-  window.updateCarouselDots = function(containerId, dotsId, activeColor) {
-    const container = document.getElementById(containerId); const dotsContainer = document.getElementById(dotsId);
-    if (!container || !dotsContainer) return;
-    const dots = dotsContainer.children;
-    const index = Math.round(container.scrollLeft / container.clientWidth);
-    for (let i = 0; i < dots.length; i++) {
-      if (i === index) { dots[i].classList.add('active'); if(activeColor) dots[i].style.background = activeColor; } 
-      else { dots[i].classList.remove('active'); dots[i].style.background = 'rgba(255,255,255,0.3)'; }
-    }
-  };
-
-  async function loadAlerts() {
-    try {
-      const r = await fetch('https://vilnohirsk-alerts-production.up.railway.app/api/alert'); const d = await r.json();
-      const communalAlerts = (d && Array.isArray(d.communal)) ? d.communal.filter(i => i && i.show) : [];
-      const newsAlerts = (d && Array.isArray(d.news)) ? d.news.filter(i => i && i.show) : [];
-      checkNotification('communal', communalAlerts); checkNotification('news', newsAlerts);
-      document.getElementById("alert-communal-content").innerHTML = buildCarouselHtml(communalAlerts, '#ffcc00', 'communal');
-      document.getElementById("alert-news-content").innerHTML = buildCarouselHtml(newsAlerts, '#00ff9c', 'news');
-    } catch(e) {
-      document.getElementById("alert-communal-content").innerHTML = `<div class="alert-empty">Помилка завантаження</div>`;
-      document.getElementById("alert-news-content").innerHTML = `<div class="alert-empty">Помилка завантаження</div>`;
-    }
-  }
-
-  async function loadEventsData() {
-    try {
-      const API_URL = `https://raw.githubusercontent.com/denris87/vilnohirsk-events/main/events.json?t=${new Date().getTime()}`;
-      const r = await fetch(API_URL);
-      if (!r.ok) throw new Error('Network error');
-      const eventAlerts = await r.json();
-      const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i.show !== false) : [];
-      checkNotification('events', activeEvents);
-      window.currentEventImages = activeEvents.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
-      document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#e056fd', 'events', true);
-    } catch(e) {
-      document.getElementById("alert-events-content").innerHTML = `<div class="alert-empty" style="margin-bottom:15px;">Афіш поки немає</div>`;
-    }
-  }
-
-  function renderShops(shopsData) {
-    const container = document.getElementById('shopping-list-content');
-    if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
-      container.innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>'; return;
-    }
-    let html = '<div class="shops-tile-grid">';
-    shopsData.forEach((shop, index) => {
-      if(!shop) return;
-      const safeName = shop.name != null ? String(shop.name).trim() : "";
-      const displayName = safeName !== "" ? safeName : "Оголошення " + (index + 1);
-      const detailsId = 'shop-detail-' + index;
-      const isVip = shop.vip === true || shop.vip === 'true';
-      const vipClass = isVip ? 'vip-tile' : '';
-      const vipBadge = isVip ? '<div class="vip-badge">VIP</div>' : '';
-      const safePhotoUrl = shop.photo != null && String(shop.photo).trim() !== "" ? String(shop.photo).trim() : null;
-      const photoHtml = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${displayName}">` : `<span style="font-size:28px;">🛍️</span>`;
-      const bigPhotoHtml = safePhotoUrl ? `
-        <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${safePhotoUrl}', 0, event)">
-          <img src="${safePhotoUrl}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; height:auto; max-height:250px; object-fit:contain; border-radius:6px;" alt="Детальне фото">
-          <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Натисніть, щоб збільшити</div>
-        </div>
-      ` : '';
-      const safeInsta = shop.instagram != null ? String(shop.instagram).trim() : "";
-      const titleHtml = safeInsta !== "" ? `<a href="${safeInsta}" target="_blank" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${displayName} 🔗</a>` : displayName;
-      const safeMap = shop.map_link != null ? String(shop.map_link).trim() : "";
-      const mapHtml = safeMap !== "" ? `<a href="${safeMap}" target="_blank" class="shop-map-link" onclick="event.stopPropagation();">🗺️ Відкрити на мапі</a>` : '';
-      const safeSchedule = shop.schedule != null ? String(shop.schedule).replace(/\n/g, '<br>') : 'Не вказано';
-      let phoneHtml = 'Не вказано';
-      if (shop.phone != null && String(shop.phone).trim() !== "") {
-        const phonesArray = String(shop.phone).split(',').map(p => p.trim());
-        phoneHtml = phonesArray.map(p => {
-          const cleanNumber = p.replace(/[^0-9+]/g, '');
-          return `<a href="tel:${cleanNumber}" class="shop-phone-link" onclick="event.stopPropagation();">${p}</a>`;
-        }).join('<br>'); 
-      }
-      const safeCategory = shop.category != null && String(shop.category).trim() !== "" ? String(shop.category).trim() : "Магазин";
-      const safeAddress = shop.address != null && String(shop.address).trim() !== "" ? String(shop.address).trim() : "Не вказано";
-      const isContactless = shop.contactless === true || shop.contactless === 'true' || shop.contactless === '✅';
-
-      html += `
-        <div class="shop-tile ${vipClass}" onclick="toggleShop('${detailsId}', this)">
-          ${vipBadge}
-          <div class="shop-tile-photo">${photoHtml}</div>
-          <div class="shop-tile-cat">${safeCategory}</div>
-          <div class="shop-tile-name">${titleHtml}</div>
-          <div class="shop-tile-chevron">Деталі ▾</div>
-          <div class="shop-details-dropdown" id="${detailsId}" onclick="event.stopPropagation()">
-            <div class="shop-inner-list">
-              ${bigPhotoHtml}
-              <div class="shop-inner-item"><span class="detail-icon">🕒</span><div><b>Графік роботи:</b><br>${safeSchedule}</div></div>
-              <div class="shop-inner-item"><span class="detail-icon">💳</span><div>Термінал: <b>${isContactless ? '✅' : '❌'}</b></div></div>
-              <div class="shop-inner-item"><span class="detail-icon">📞</span><div>Телефон(и):<br>${phoneHtml}</div></div>
-              <div class="shop-inner-item"><span class="detail-icon">📍</span><div>Адреса:<br>${safeAddress} <br>${mapHtml}</div></div>
-            </div>
-          </div>
-        </div>
-      `;
-    });
-    container.innerHTML = html + '</div>';
-  }
-
-  function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array;
-  }
-
-  async function loadShopsData() {
-    try {
-      const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
-      if (!r.ok) throw new Error('Помилка HTTP');
-      const d = await r.json();
-      let itemsArray = d.shops || d.items || (Array.isArray(d) ? d : []);
-      checkNotification('shopping', itemsArray);
-      if (!itemsArray || itemsArray.length === 0) { document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>'; return; }
-      
-      const activeShops = itemsArray.filter(shop => shop && shop.name && String(shop.name).trim() !== "");
-      const vipShops = activeShops.filter(shop => shop.vip === true || shop.vip === 'true');
-      const regularShops = activeShops.filter(shop => shop.vip !== true && shop.vip !== 'true');
-      
-      renderShops([...vipShops, ...shuffleArray([...regularShops])]);
-    } catch(e) {
-      document.getElementById('shopping-list-content').innerHTML = `<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600; font-size: 13px;">Помилка завантаження магазинів</div>`;
-    }
-  }
-
-  // ВІДОКРЕМЛЕНА ФУНКЦІЯ РЕНДЕРУ БАРАХОЛКИ ДЛЯ ЗРУЧНОГО ФІЛЬТРУВАННЯ
   window.renderFleaMarketList = function(items) {
     const cont = document.getElementById('flea-market-list-content');
     if (!items || !items.length) { 
@@ -962,12 +533,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       let allPhotosHtml = '';
       if (item.photos.length > 0) {
         const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos));
-        allPhotosHtml = `
-          <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
-            <img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;">
-            <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div>
-          </div>
-        `;
+        allPhotosHtml = `<div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;"><div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div></div>`;
       }
 
       const safeTitle = item.title;
@@ -1000,11 +566,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     cont.innerHTML = html + '</div>';
   };
 
-  // ФУНКЦІЯ ДЛЯ ФІЛЬТРАЦІЇ ПО КАТЕГОРІЯХ
   window.filterFleaMarket = function(category, element) {
-    // Знімаємо 'active' з усіх тегів
     document.querySelectorAll('.flea-category-tag').forEach(tag => tag.classList.remove('active'));
-    // Додаємо 'active' до натиснутого
     if(element) element.classList.add('active');
 
     if (category === 'Всі') {
@@ -1020,11 +583,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   async function loadFleaMarketData() {
     try {
       const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=111977759';
-      
       const response = await fetch(csvUrl);
-      if (!response.ok) throw new Error("Не вдалося завантажити таблицю барахолки");
       const csvText = await response.text();
-
       Papa.parse(csvText, {
         header: true,
         skipEmptyLines: true,
@@ -1044,49 +604,33 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
                 else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
                 return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
             });
-
             return {
               title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви',
               price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['Price'] || row['price'] || row[keys[2]] || '',
               description: row['Опис (Абзац)'] || row['Опис'] || row['Description'] || row['description'] || row[keys[3]] || 'Без опису',
               phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['Phone'] || row['phone'] || row[keys[4]] || 'Не вказано',
               photos: processedPhotos, 
-              category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Різне',
+              category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Інше',
               condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row['condition'] || row[keys[7]] || 'Не вказано',
               location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row['location'] || row[keys[8]] || 'Вільногірськ'
             };
           });
-
           checkNotification('flea', approvedItems);
-          
-          // ЗБЕРІГАЄМО В ГЛОБАЛЬНУ ЗМІННУ ДЛЯ ФІЛЬТРІВ
           window.allFleaMarketItems = approvedItems;
-          
-          // Застосовуємо поточний активний фільтр (щоб при автооновленні не збивався вибір)
           const activeTag = document.querySelector('.flea-category-tag.active');
           const currentCategory = activeTag ? activeTag.innerText.trim() : 'Всі';
-          
-          if(currentCategory === 'Всі') {
-              renderFleaMarketList(approvedItems);
-          } else {
-              filterFleaMarket(currentCategory, activeTag); 
-          }
+          if(currentCategory === 'Всі') renderFleaMarketList(approvedItems);
+          else filterFleaMarket(currentCategory, activeTag); 
         }
       });
-    } catch (e) {
-      console.error("Помилка завантаження барахолки:", e);
-      document.getElementById('flea-market-list-content').innerHTML = `<div style="text-align:center; padding:20px; color:#ff4d4d; font-size:12px;">Помилка: ${e.message}</div>`;
-    }
+    } catch (e) { console.error(e); }
   }
 
   async function loadLostFoundData() {
     try {
       const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=624471689';
-      
       const response = await fetch(csvUrl);
-      if (!response.ok) throw new Error("Не вдалося завантажити таблицю знахідок");
       const csvText = await response.text();
-
       Papa.parse(csvText, {
         header: true,
         skipEmptyLines: true,
@@ -1115,60 +659,25 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               location: row['Локація'] || row['Location'] || row['location'] || row[keys[7]] || 'Вільногірськ'
             };
           });
-
           checkNotification('lost', approvedItems);
-          
           const cont = document.getElementById('lost-found-list-content');
           if (!approvedItems.length) { cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень немає</div>'; return; }
-          
           let html = '<div class="shops-tile-grid">';
           approvedItems.reverse().forEach((item, i) => {
             const id = 'lost-detail-' + i;
             const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`;
             const badgeColor = item.type.toLowerCase().includes('знайдено') ? '#00ff9c' : '#ff4d4d';
-            
             let allPhotosHtml = '';
             if (item.photos.length > 0) {
               const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos));
-              allPhotosHtml = `
-                <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
-                  <img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;">
-                  <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div>
-                </div>
-              `;
+              allPhotosHtml = `<div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;"><div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div></div>`;
             }
-
-            const safeTitle = item.title;
-            const safeDesc = item.description.replace(/\n/g, '<br>');
-            const safeLoc = item.location;
-            const safePhone = item.phone;
-
-            html += `
-              <div class="shop-tile" onclick="toggleShop('${id}', this)">
-                <div class="shop-tile-photo">${thumb}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
-                   <span class="shop-tile-cat" style="color:${badgeColor}; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${item.type}</span>
-                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
-                </div>
-                <div class="shop-tile-name">${safeTitle}</div>
-                <div class="shop-tile-chevron">Опис ▾</div>
-                <div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
-                  <div class="shop-inner-list">
-                    ${allPhotosHtml}
-                    <div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${item.category}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${safeDesc}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${safePhone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${safePhone}</a></div></div>
-                  </div>
-                </div>
-              </div>`;
+            html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;"><span class="shop-tile-cat" style="color:${badgeColor}; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${item.type}</span><span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${item.location}</span></div><div class="shop-tile-name">${item.title}</div><div class="shop-tile-chevron">Опис ▾</div><div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()"><div class="shop-inner-list">${allPhotosHtml}<div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${item.category}</div></div><div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${item.description.replace(/\n/g, '<br>')}</div></div><div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a></div></div></div></div></div>`;
           });
           cont.innerHTML = html + '</div>';
         }
       });
-    } catch (e) {
-      console.error("Помилка завантаження знахідок:", e);
-      document.getElementById('lost-found-list-content').innerHTML = `<div style="text-align:center; padding:20px; color:#ff4d4d; font-size:12px;">Помилка: ${e.message}</div>`;
-    }
+    } catch (e) { console.error(e); }
   }
 
   function isPast(timeStr) {
@@ -1230,7 +739,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           let infoHtml = "";
           if (x.periodicityText) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність:</b><br><span style="color:rgba(255,255,255,0.7); font-weight:500;">${x.periodicityText}</span></div>`;
           if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500; color: rgba(255,255,255,0.8);">${x.changes.map(c => `<li>${c}</li>`).join('')}</ul></div>`;
-
           h += `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')"><div class="train-num-box">${x.number}</div><div class="route-text">${x.route}</div><div class="time-val" style="color:#fff;">${x.time}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
         });
         document.getElementById("long-trains-list").innerHTML = h;
@@ -1248,7 +756,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             let rh = dir.rows.map(row => `<div class="schedule-row"><div class="schedule-left"><span class="station-name-text">${row[0]}</span></div><div class="time-normal">${row[1]}</div></div>`).join('');
             ch += `<div class="schedule-column"><div style="text-align:center; color:var(--highlight-color); font-size:11px; margin-bottom:10px; font-weight:800; text-transform:uppercase;">${dir.title}</div>${rh}</div>`;
           });
-          h += `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')"><div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div><div class="route-text">${b.route}</div><div class="time-val future" style="font-size:11px;">Розклад ▾</div></div><div class="details" id="${id}"><div class="bus-grid">${ch}</div></div>`;
+          
+          let extraInfo = '';
+          if (b.note) extraInfo += `<div class="details-divider"></div><div class="details-note">${b.note}</div>`;
+          if (b.info) extraInfo += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);">${b.info}</div>`;
+
+          h += `<div class="train" onclick="document.getElementById('${id}').classList.toggle('open')"><div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div><div class="route-text">${b.route}</div><div class="time-val future" style="font-size:11px;">Розклад ▾</div></div><div class="details" id="${id}"><div class="bus-grid">${ch}</div>${extraInfo}</div>`;
         });
         document.getElementById("buses-list").innerHTML = h;
       }
@@ -1260,28 +773,98 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const r = await fetch('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides');
       const d = await r.json(); checkNotification('blablacar', d);
       const dr = d.filter(x => x.type === 'driver'); const ps = d.filter(x => x.type === 'passenger');
-      
-      document.getElementById('blabla-drivers-list').innerHTML = dr.length ? dr.map(x => `
-        <div class="blabla-card">
-          <div class="blabla-route">📍 ${x.from} - ${x.to}</div>
-          <div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div>
-          <div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div>
-          <div class="blabla-info-row"><span>💺 Місць: <b>${x.seats}</b></span><span>💵 <b>${x.price > 0 ? x.price + ' грн' : 'Договірна'}</b></span></div>
-          ${x.comment ? `<div style="font-size:11px; opacity:0.8; margin-top:5px;">💬 ${x.comment}</div>` : ''}
-          <div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div>
-        </div>`).join('') : '<div style="text-align:center; padding:20px; opacity:0.5;">Пропозицій немає</div>';
-        
-      document.getElementById('blabla-passengers-list').innerHTML = ps.length ? ps.map(x => `
-        <div class="blabla-card">
-          <div class="blabla-route">📍 ${x.from} - ${x.to}</div>
-          <div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div>
-          <div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div>
-          <div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${x.seats}</b></span></div>
-          ${x.comment ? `<div style="font-size:11px; opacity:0.8; margin-top:5px;">💬 ${x.comment}</div>` : ''}
-          <div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div>
-        </div>`).join('') : '<div style="text-align:center; padding:20px; opacity:0.5;">Запитів немає</div>';
+      document.getElementById('blabla-drivers-list').innerHTML = dr.length ? dr.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${x.from} - ${x.to}</div><div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div><div class="blabla-info-row"><span>💺 Місць: <b>${x.seats}</b></span><span>💵 <b>${x.price > 0 ? x.price + ' грн' : 'Договірна'}</b></span></div>${x.comment ? `<div style="font-size:11px; opacity:0.8; margin-top:5px;">💬 ${x.comment}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div></div>`).join('') : '<div style="text-align:center; padding:20px; opacity:0.5;">Пропозицій немає</div>';
+      document.getElementById('blabla-passengers-list').innerHTML = ps.length ? ps.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${x.from} - ${x.to}</div><div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div><div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${x.seats}</b></span></div>${x.comment ? `<div style="font-size:11px; opacity:0.8; margin-top:5px;">💬 ${x.comment}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div></div>`).join('') : '<div style="text-align:center; padding:20px; opacity:0.5;">Запитів немає</div>';
     } catch(e) {}
   }
+
+  function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
+  function updateDateTime(){
+    try {
+      const now = getKyivNow();
+      document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
+      document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+      const days=document.querySelectorAll(".day"); days.forEach(d=>d.classList.remove("active"));
+      let i=now.getDay(); i=i===0?6:i-1; days[i].classList.add("active");
+    } catch(e) {}
+  }
+
+  async function loadWeather(){
+    const coords = [{name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {name: 'Дніпро', lat: 48.45, lon: 34.98}];
+    let results = [];
+    for(let c of coords){
+      try {
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`);
+        const d = await r.json(); results.push({name: c.name, w: d.current_weather});
+      } catch(e) {}
+    }
+    const container = document.getElementById("weather-container");
+    if(results.length === 0) return;
+    container.innerHTML = results.map((item, index) => `<div class="weather-content ${index === 0 ? 'active' : ''}"><div class="weather-city">${item.name}</div><div class="weather-temp">🌡️ ${Math.round(item.w.temperature)}°C</div><div class="weather-wind">💨 ${Math.round(item.w.windspeed)} м/с</div></div>`).join("");
+    let currentIndex = 0;
+    setInterval(() => {
+      const slides = document.querySelectorAll('.weather-content');
+      if(slides.length < 2) return;
+      slides[currentIndex].classList.remove('active');
+      currentIndex = (currentIndex + 1) % slides.length;
+      slides[currentIndex].classList.add('active');
+    }, 7000); 
+  }
+
+  async function loadAlerts() {
+    try {
+      const r = await fetch('https://vilnohirsk-alerts-production.up.railway.app/api/alert'); const d = await r.json();
+      const communalAlerts = (d && Array.isArray(d.communal)) ? d.communal.filter(i => i && i.show) : [];
+      const newsAlerts = (d && Array.isArray(d.news)) ? d.news.filter(i => i && i.show) : [];
+      checkNotification('communal', communalAlerts); checkNotification('news', newsAlerts);
+      document.getElementById("alert-communal-content").innerHTML = buildCarouselHtml(communalAlerts, '#ffcc00', 'communal');
+      document.getElementById("alert-news-content").innerHTML = buildCarouselHtml(newsAlerts, '#00ff9c', 'news');
+    } catch(e) { console.error(e); }
+  }
+
+  async function loadEventsData() {
+    try {
+      const API_URL = `https://raw.githubusercontent.com/denris87/vilnohirsk-events/main/events.json?t=${new Date().getTime()}`;
+      const r = await fetch(API_URL);
+      const eventAlerts = await r.json();
+      const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i.show !== false) : [];
+      checkNotification('events', activeEvents);
+      window.currentEventImages = activeEvents.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
+      document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#e056fd', 'events', true);
+    } catch(e) { console.error(e); }
+  }
+
+  function openAlertTab(tabId, btn) {
+    closeAllShopDropdowns(); clearNotification(tabId.replace('alert-',''));
+    const drawer = document.getElementById('alert-drawer');
+    if (btn.classList.contains('active')) { btn.classList.remove('active'); drawer.classList.remove('open'); return; }
+    document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#alert-drawer .content-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active'); document.getElementById(tabId).classList.add('active'); drawer.classList.add('open');
+  }
+  window.openAlertTab = openAlertTab;
+
+  function openScheduleTab(tabId, btn) {
+    if (tabId === 'blablacar' || tabId === 'trains') clearNotification(tabId);
+    closeAllShopDropdowns(); 
+    const widget = document.getElementById('main-list-widget');
+    if (btn.classList.contains('active')) { btn.classList.remove('active'); widget.classList.remove('open'); return; }
+    document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#main-list-widget .content-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active'); document.getElementById(tabId).classList.add('active'); widget.classList.add('open');
+  }
+  window.openScheduleTab = openScheduleTab;
+
+  function openMarketTab(tabId, btn) {
+    const key = tabId.split('-')[0]; clearNotification(key);
+    closeAllShopDropdowns();
+    const widget = document.getElementById('market-drawer');
+    if (btn.classList.contains('active')) { btn.classList.remove('active'); widget.classList.remove('open'); return; }
+    document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#market-drawer .content-section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active'); document.getElementById(tabId).classList.add('active'); widget.classList.add('open');
+  }
+  window.openMarketTab = openMarketTab;
 
   updateDateTime(); loadWeather(); loadAlerts(); loadEventsData(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadShopsData(); loadFleaMarketData(); loadLostFoundData(); loadBlaBlaCarData(); 
   setInterval(updateDateTime, 1000); 
