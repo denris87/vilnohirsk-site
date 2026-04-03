@@ -9,6 +9,13 @@
 <meta property="og:url" content="https://vilnohirsk.online">
 <meta property="og:type" content="website">
 
+<!-- Іконки для екрану телефона (iOS/Android) та браузера -->
+<link rel="icon" type="image/png" href="https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true">
+<link rel="apple-touch-icon" href="https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true">
+<meta name="apple-mobile-web-app-title" content="Вільногірськ">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <title>Smart Вільногірськ</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -18,8 +25,8 @@
 /* НОВІ НАСИЧЕНІ КОЛЬОРИ ДЛЯ ВЕРХНІХ ВКЛАДОК */
 .tab-alert.communal{color:#FFD700;border-bottom:3px solid #FFD700;background:linear-gradient(145deg,rgba(255,215,0,0.15),rgba(10,15,30,0.95))}.tab-alert.communal.active{background:rgba(255,215,0,0.3);box-shadow:0 0 15px rgba(255,215,0,0.6);color:#fff}
 .tab-alert.news{color:#00FF9D;border-bottom:3px solid #00FF9D;background:linear-gradient(145deg,rgba(0,255,157,0.15),rgba(10,15,30,0.95))}.tab-alert.news.active{background:rgba(0,255,157,0.3);box-shadow:0 0 15px rgba(0,255,157,0.6);color:#fff}
-.tab-alert.events{color:#E056FD;border-bottom:3px solid #E056FD;background:linear-gradient(145deg,rgba(224,86,253,0.15),rgba(10,15,30,0.95));text-shadow:0 0 5px rgba(224,86,253,0.6);animation:neonPulse 2s infinite alternate}.tab-alert.events.active{background:rgba(224,86,253,0.3);box-shadow:0 0 15px rgba(224,86,253,0.8);color:#fff}
-@keyframes neonPulse{0%{box-shadow:0 0 5px rgba(224,86,253,0.1)}100%{box-shadow:0 0 12px rgba(224,86,253,0.5)}}
+.tab-alert.events{color:#FF3366;border-bottom:3px solid #FF3366;background:linear-gradient(145deg,rgba(255,51,102,0.15),rgba(10,15,30,0.95));text-shadow:0 0 5px rgba(255,51,102,0.6);animation:neonPulse 2s infinite alternate}.tab-alert.events.active{background:rgba(255,51,102,0.3);box-shadow:0 0 15px rgba(255,51,102,0.8);color:#fff}
+@keyframes neonPulse{0%{box-shadow:0 0 5px rgba(255,51,102,0.1)}100%{box-shadow:0 0 12px rgba(255,51,102,0.5)}}
 
 .notification-dot{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;display:none;z-index:10}.train-alert-dot{position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;z-index:5}.carousel-wrapper{width:100%;position:relative}.carousel-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:15px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding-bottom:5px;align-items:center}.carousel-container::-webkit-scrollbar{display:none}.alert-item{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:15px;flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box}.alert-card-title{font-size:15px;font-weight:800;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px}.alert-card-text{font-size:14px;font-weight:500;line-height:1.5;text-align:left;color:rgba(255,255,255,0.9)}.alert-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.5);padding:15px;font-weight:600}.carousel-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px}.carousel-dot{width:8px;height:8px;border-radius:50%;transition:background 0.3s,transform 0.3s}.carousel-dot.active{transform:scale(1.3)}.top-row{display:flex;flex-direction:row;justify-content:space-between;gap:12px;width:100%}.widget{padding:15px 10px;flex:1;min-height:125px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;position:relative}.widget::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(to bottom,rgba(255,255,255,0.08),transparent);border-radius:28px 28px 0 0;pointer-events:none}.datetime{text-align:center;width:100%}#date{font-size:clamp(18px,4.8vw,24px);font-weight:800;white-space:nowrap;letter-spacing:0.5px}#time{font-size:clamp(16px,4.2vw,20px);font-weight:700;white-space:nowrap;color:#fff;font-variant-numeric:tabular-nums}.weekdays{display:flex;justify-content:center;gap:3px;font-size:clamp(9px,2.3vw,12px);font-weight:700;margin:6px 0;text-transform:uppercase;width:100%;padding:0 5px}.day{color:rgba(255,255,255,0.4);transition:0.3s ease}.day.active{background-color:#ff4d4d !important;color:#fff !important;border-radius:6px;padding:2px 5px;box-shadow:0 0 10px rgba(255,77,77,0.4)}.weather-box{position:relative;width:100%;height:95px;display:flex;align-items:center;justify-content:center}.weather-content{position:absolute;width:100%;transition:all 0.8s cubic-bezier(0.25,1,0.5,1);opacity:0;transform:translateY(10px) scale(0.95);text-align:center;pointer-events:none;display:flex;flex-direction:column;justify-content:center;align-items:center}.weather-content.active{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}.weather-city{font-weight:700;font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}.weather-temp{font-size:clamp(24px,6.5vw,32px);font-weight:800;white-space:nowrap;text-shadow:0 2px 10px rgba(0,0,0,0.4);line-height:1.1}.weather-wind{font-size:13px;color:rgba(255,255,255,0.5);margin-top:6px;font-weight:500}.schedule-group,.market-group{display:flex;flex-direction:column;gap:8px;position:relative;z-index:90;width:100%}.market-group{z-index:80}.tabs-wrapper{position:relative;width:100%;border-radius:20px;display:flex;overflow:hidden}.tabs-nav{display:flex;flex-wrap:nowrap;width:100%;padding:6px;gap:8px;background:var(--glass-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;position:relative;z-index:2;box-shadow:inset 0 2px 10px rgba(0,0,0,0.4),0 4px 15px rgba(0,0,0,0.2);border:1px solid var(--glass-border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.tabs-nav::-webkit-scrollbar{display:none}.scroll-hint{position:absolute;right:0;top:0;bottom:0;width:45px;display:flex;align-items:center;justify-content:flex-end;padding-right:12px;background:linear-gradient(to right,rgba(0,0,0,0),rgba(0,0,0,0.9));border-radius:0 20px 20px 0;pointer-events:none;opacity:1;transition:opacity 0.4s ease;z-index:5}.scroll-hint.hidden{opacity:0}.scroll-hint span{color:var(--highlight-color);font-size:16px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,0.8);animation:blinkArrow 1.5s infinite}@keyframes blinkArrow{0%,100%{transform:translateX(0);opacity:0.3}50%{transform:translateX(4px);opacity:1}}.tab-btn{flex:0 0 auto;padding:10px 14px;border:1px solid rgba(255,255,255,0.1);background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.25));box-shadow:2px 4px 8px rgba(0,0,0,0.2),inset 1px 1px 2px rgba(255,255,255,0.15);color:#fff;opacity:0.9;font-weight:700;cursor:pointer;border-radius:12px;transition:all 0.3s ease;font-size:clamp(11px,3.2vw,13px);white-space:nowrap;position:relative}.tab-btn.active{background:linear-gradient(145deg,rgba(255,255,255,0.3),rgba(255,255,255,0.1));color:#fff;opacity:1;border:1px solid rgba(255,255,255,0.3);text-shadow:0 1px 4px rgba(0,0,0,0.8);box-shadow:0 4px 12px rgba(0,0,0,0.4),inset 1px 1px 3px rgba(255,255,255,0.4);transform:translateY(-1px)}.content-section{display:none}.content-section.active{display:block;animation:tabFadeIn 0.3s ease-out forwards}@keyframes tabFadeIn{from{opacity:0}to{opacity:1}}.main-list-widget{position:absolute;top:calc(100% + 10px);left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.5s ease-in-out,opacity 0.3s ease,padding 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 30px 60px rgba(0,0,0,0.8);border-radius:24px}.main-list-widget.open{max-height:15000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 10px}.table-head{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.15);padding:0 10px 10px 10px;margin-bottom:12px;font-size:10px;text-transform:uppercase;color:#74b9ff;letter-spacing:0.5px}.train{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;padding:14px 10px;margin-bottom:10px;cursor:pointer;transition:all 0.3s ease;border-radius:16px;min-height:60px;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05)}.train:hover{background:linear-gradient(145deg,rgba(255,255,255,0.08),rgba(0,0,0,0.3));transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3),inset 0 1px 1px rgba(255,255,255,0.15)}.train:active{transform:translateY(1px);box-shadow:0 2px 5px rgba(0,0,0,0.2),inset 0 2px 4px rgba(0,0,0,0.3)}.train:last-child{margin-bottom:0}.train-num-box{position:relative;font-weight:800;display:inline-block;font-size:clamp(10px,2.8vw,12px);background:rgba(255,255,255,0.1);padding:4px 6px;border-radius:8px}.route-text{font-weight:700;color:#fff;text-align:center;font-size:clamp(9px,2.7vw,14px);width:100%;padding:0 5px;text-shadow:0 1px 4px rgba(0,0,0,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.time-val{font-weight:800;font-size:clamp(12px,3.2vw,15px);font-variant-numeric:tabular-nums}.time-val.soon{color:var(--highlight-color)}.time-val.future{color:var(--time-green)}.time-val.passed{color:var(--time-passed)}.details{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;background:rgba(0,0,0,0.25);border-radius:16px}.details.open{max-height:5000px;opacity:1;padding:15px;margin-top:2px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05)}.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.bus-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:600px){.schedule-grid,.bus-grid{grid-template-columns:1fr}}@media (max-width:550px){.top-row{flex-wrap:wrap}.widget{min-width:45%}}.schedule-column{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:10px 8px}.schedule-row{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;align-items:center;gap:10px;text-align:left}.schedule-row:last-child{border-bottom:none}.schedule-left{flex:1;display:flex;align-items:flex-start;text-align:left;line-height:1.2;font-weight:500}.station-number{color:rgba(255,255,255,0.3);font-weight:600;margin-right:6px;font-size:10px;min-width:18px;text-align:right;padding-top:2px}.station-name-text{flex:1;word-wrap:break-word}.row-highlight{background:rgba(255,255,255,0.1) !important;color:var(--highlight-color) !important;font-weight:800;border-radius:6px;box-shadow:inset 0 1px 2px rgba(255,255,255,0.1)}.time-green{color:var(--time-green);font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}.time-passed{color:var(--time-passed);font-weight:500;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}.time-normal{color:#fff;font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}.details-note{text-align:center;font-weight:600;color:#ff6b6b;margin-bottom:10px;font-size:12px;line-height:1.5;background:rgba(255,107,107,0.1);padding:10px;border-radius:10px}.details-divider{width:50%;height:1px;background:rgba(255,255,255,0.1);margin:20px auto 15px}.shopping-drawer{max-height:0;overflow:hidden;opacity:0;pointer-events:none;transition:max-height 0.5s ease-in-out,opacity 0.4s ease,padding 0.4s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border-radius:24px}.shopping-drawer.open{max-height:15000px;opacity:1;pointer-events:auto;padding:20px 15px;margin-top:5px;border:1px solid rgba(255,255,255,0.15);box-shadow:0 30px 60px rgba(0,0,0,0.8)}.shops-tile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;align-items:start;transition:padding-bottom 0.3s ease}@media (min-width:650px){.shops-tile-grid{grid-template-columns:repeat(3,1fr)}}.shop-tile{display:flex;flex-direction:column;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:10px;cursor:pointer;transition:transform 0.3s ease,box-shadow 0.3s ease;position:relative;z-index:1}.shop-tile:hover{background:linear-gradient(145deg,rgba(255,255,255,0.08),rgba(0,0,0,0.3));transform:translateY(-2px)}.shop-tile:active{transform:translateY(1px)}.shop-tile.tile-active{background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.3));box-shadow:0 8px 24px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.2);z-index:50 !important}.shop-tile.vip-tile{background:linear-gradient(145deg,rgba(255,204,0,0.15),rgba(0,0,0,0.4));border:1px solid rgba(255,204,0,0.4);box-shadow:0 4px 15px rgba(255,204,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1)}.shop-tile.vip-tile:hover{background:linear-gradient(145deg,rgba(255,204,0,0.2),rgba(0,0,0,0.5));box-shadow:0 6px 20px rgba(255,204,0,0.3),inset 0 1px 1px rgba(255,255,255,0.2)}.shop-tile.vip-tile .shop-inner-list{background:linear-gradient(145deg,rgba(35,25,5,0.98),rgba(15,10,0,0.98));border:1px solid rgba(255,204,0,0.3)}.vip-badge{position:absolute;top:-6px;right:-6px;background:linear-gradient(135deg,#ffcc00,#ff8800);color:#000;font-size:10px;font-weight:900;padding:4px 8px;border-radius:12px;box-shadow:0 4px 10px rgba(255,204,0,0.4);z-index:10;text-transform:uppercase;letter-spacing:1px;animation:vipPulse 2s infinite}
 
@@ -135,9 +142,9 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
           <label class="form-label" id="label-seats">Вільних місць</label>
           <select class="form-input" id="input-seats" required><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option></select>
         </div>
-        <div class="form-group" id="group-price"><label class="form-label">Ціна (грн)</label><input type="number" class="form-input" id="input-price" placeholder="150"></div>
+        <div class="form-group" id="group-price"><label class="form-label">Ціна (грн)</label><input type="tel" class="form-input" id="input-price" placeholder="150" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
       </div>
-      <div class="form-group"><label class="form-label">Номер телефону</label><input type="tel" class="form-input" id="input-phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required></div>
+      <div class="form-group"><label class="form-label">Номер телефону</label><input type="tel" class="form-input" id="input-phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
       <div class="form-group"><label class="form-label">Коментар</label><textarea class="form-input" id="input-comment" rows="2"></textarea></div>
       <input type="hidden" id="input-type" value="">
       <button type="submit" class="form-submit-btn driver" id="form-submit-btn">Опублікувати</button>
@@ -162,12 +169,12 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
         <div class="form-group"><label class="form-label">Стан</label><select class="form-input" name="condition" required><option value="Вживане">Вживане</option><option value="Нове">Нове</option></select></div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Ціна (грн)</label><input type="number" class="form-input" name="price" required></div>
+        <div class="form-group"><label class="form-label">Ціна (грн)</label><input type="tel" class="form-input" name="price" placeholder="500" required maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
         <div class="form-group"><label class="form-label">Локація</label><input type="text" class="form-input" name="location" value="Вільногірськ" required></div>
       </div>
       <div class="form-group"><label class="form-label">Опис товару</label><textarea class="form-input" name="description" rows="3" required></textarea></div>
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
-      <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" required></div>
+      <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
       <button type="submit" class="form-submit-btn flea" id="flea-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -184,7 +191,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Опис та обставини</label><textarea class="form-input" name="description" rows="3" placeholder="Де і коли..." required></textarea></div>
       <div class="form-group"><label class="form-label">Локація</label><input type="text" class="form-input" name="location" value="Вільногірськ" required></div>
       <div class="form-group"><label class="form-label">Додати фото (якщо є)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple></div>
-      <div class="form-group"><label class="form-label">Ваш телефон</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" required></div>
+      <div class="form-group"><label class="form-label">Ваш телефон</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
       <button type="submit" class="form-submit-btn lost" id="lost-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -197,11 +204,29 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
     <form id="custom-job-form" onsubmit="submitJobForm(event)">
       <div class="form-group"><label class="form-label">Посада</label><input type="text" class="form-input" name="title" placeholder="Наприклад: Продавець" required></div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Зарплата</label><input type="text" class="form-input" name="salary" placeholder="15000 грн" required></div>
+        <div class="form-group"><label class="form-label">Зарплата</label><input type="tel" class="form-input" name="salary" placeholder="15000" required maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
         <div class="form-group"><label class="form-label">Компанія</label><input type="text" class="form-input" name="company" placeholder="Назва фірми" required></div>
       </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Кого шукають</label>
+          <select class="form-input" name="gender" required>
+            <option value="Не має значення">Не має значення</option>
+            <option value="Чоловік">Чоловік</option>
+            <option value="Жінка">Жінка</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Зайнятість</label>
+          <select class="form-input" name="employment" required>
+            <option value="Повна">Повна</option>
+            <option value="Неповна">Неповна</option>
+            <option value="Віддалена">Віддалена</option>
+          </select>
+        </div>
+      </div>
       <div class="form-group"><label class="form-label">Опис</label><textarea class="form-input" name="description" rows="4" required></textarea></div>
-      <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required></div>
+      <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
       <button type="submit" class="form-submit-btn" style="background: linear-gradient(135deg, #00b8ff, #0055ff); color: #fff;" id="job-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -216,7 +241,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
             <div class="tab-alert news" onclick="openAlertTab('alert-news', this)" style="width: 100%;">Міські новини<span class="notification-dot" id="dot-news"></span></div>
             <div style="display: flex; gap: 8px; width: 100%;">
                 <div class="tab-alert communal" onclick="openAlertTab('alert-communal', this)" style="flex: 1;">Комунальний інформер<span class="notification-dot" id="dot-communal"></span></div>
-                <div class="tab-alert events" onclick="openAlertTab('alert-events', this)" style="flex: 1;">Сяйво подій<span class="notification-dot" id="dot-events"></span></div>
+                <div class="tab-alert events" onclick="openAlertTab('alert-events', this)" style="flex: 1;">АФІШІ<span class="notification-dot" id="dot-events"></span></div>
             </div>
         </div>
         <div class="alert-drawer" id="alert-drawer" style="margin-top: 10px;">
@@ -333,19 +358,28 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 
 <script>
 // ГЛОБАЛЬНА ЄДИНА СИЛКА ДЛЯ ВСІХ ФОРМ
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxKoltPV4roMKeVxtJaA-pPcyS5ECFoI9o9k1iF4F_EshCDajn6u_1qKQWjtRJZBUkR/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbywM7gXvtsu3k6Zfaxd6z4TVTXpu_gqs2l_1HxXJUfKM9vHAVJF6b_p3QOusUYFseTt/exec';
 
 const REQUIRE_TELEGRAM = false; 
-const tg = window.Telegram.WebApp;
-tg.ready(); 
+
+// Безпечне підключення Telegram
+let tg = null;
+try {
+    if (window.Telegram && window.Telegram.WebApp) {
+        tg = window.Telegram.WebApp;
+        tg.ready();
+    }
+} catch (e) {
+    console.log("Telegram WebApp not found");
+}
 
 let isInsideTelegram = false;
 
-if (tg.platform && tg.platform !== "unknown") {
+if (tg && tg.platform && tg.platform !== "unknown") {
   isInsideTelegram = true;
-} else if (tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length > 0) {
+} else if (tg && tg.initDataUnsafe && Object.keys(tg.initDataUnsafe).length > 0) {
   isInsideTelegram = true;
-} else if (tg.initData && tg.initData.length > 0) {
+} else if (tg && tg.initData && tg.initData.length > 0) {
   isInsideTelegram = true;
 } else if (navigator.userAgent.toLowerCase().includes('telegram')) {
   isInsideTelegram = true;
@@ -358,7 +392,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('main-app-content').style.display = 'flex'; 
 
-  if (tg.expand) { tg.expand(); }
+  if (tg && tg.expand) { tg.expand(); }
 
   window.currentDataSignature = {};
   window.allFleaMarketItems = [];
@@ -581,6 +615,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         title: formData.get('title'),
         salary: formData.get('salary'),
         company: formData.get('company'),
+        gender: formData.get('gender'),
+        employment: formData.get('employment'),
         description: formData.get('description'),
         phone: formData.get('phone')
       };
@@ -862,7 +898,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const drawer = document.getElementById('alert-drawer');
       
       // Очищаємо всі кольорові класи перед зміною
-      drawer.classList.remove('drawer-communal', 'drawer-news', 'drawer-events');
+      drawer.classList.remove('drawer-events');
 
       if (btn.classList.contains('active')) { 
           btn.classList.remove('active'); 
@@ -870,9 +906,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           return; 
       }
       
-      // Додаємо відповідний кольоровий клас
-      if(tabId === 'alert-communal') drawer.classList.add('drawer-communal');
-      if(tabId === 'alert-news') drawer.classList.add('drawer-news');
+      // Додаємо підсвітку ТІЛЬКИ для Афіш (як ви просили)
       if(tabId === 'alert-events') drawer.classList.add('drawer-events');
       
       document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active'));
@@ -1024,7 +1058,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i.show !== false) : [];
       checkNotification('events', activeEvents);
       window.currentEventImages = activeEvents.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
-      document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#e056fd', 'events', true);
+      document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#FF3366', 'events', true);
     } catch(e) {
       document.getElementById("alert-events-content").innerHTML = `<div class="alert-empty" style="margin-bottom:15px;">Афіш поки немає</div>`;
     }
@@ -1486,9 +1520,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             }).map(row => {
               const keys = Object.keys(row);
               const phone = row['Телефон'] || row[keys[6]] || '';
+              const gender = row['Стать'] || row['gender'] || row[keys[7]] || '';
+              const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || '';
               
-              // ПЕРЕВІРЯЄМО, ЧИ Є ВІДМІТКА VIP (Колонка має називатися "VIP")
-              const vipStatus = row['VIP'] || '';
+              // ПЕРЕВІРЯЄМО, ЧИ Є ВІДМІТКА VIP 
+              const vipStatus = row['VIP'] || row[keys[9]] || '';
               const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
 
               return {
@@ -1498,8 +1534,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
                 description: row['Опис'] || row[keys[5]] || '',
                 date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно',
                 phone: phone,
+                gender: gender,
+                employment: employment,
                 url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#',
-                isVip: isVip // Додаємо параметр VIP до об'єкта
+                isVip: isVip 
               };
             });
             
@@ -1553,22 +1591,48 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Деталі 🔗');
       const targetAttr = isTel ? '_self' : '_blank'; // Для телефонів краще _self щоб не відкривало порожню вкладку
       
+      // Додаємо слово "грн" до зарплати, якщо там тільки цифри
+      let displaySalary = job.salary;
+      if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) {
+          displaySalary = displaySalary.trim() + ' грн';
+      }
+
       // СТИЛІЗОВАНЕ ОФОРМЛЕННЯ ДЛЯ VIP
       const isVip = job.isVip || job.vip;
       const vipBadge = isVip ? '<div style="position:absolute; top:-8px; right:-8px; background:linear-gradient(135deg, #ffcc00, #ff8800); color:#000; font-size:10px; font-weight:900; padding:4px 8px; border-radius:12px; box-shadow:0 4px 10px rgba(255,204,0,0.4); text-transform:uppercase; letter-spacing:1px; z-index:10; animation:vipPulse 2s infinite;">VIP</div>' : '';
       const borderStyle = isVip ? 'border: 1px solid rgba(255, 204, 0, 0.4);' : 'border: 1px solid rgba(255, 255, 255, 0.05);';
       const bgStyle = isVip ? 'background: linear-gradient(145deg, rgba(255, 204, 0, 0.1), rgba(0, 0, 0, 0.3)); box-shadow: 0 4px 15px rgba(255,204,0,0.15);' : 'background: rgba(255, 255, 255, 0.03);';
       
+      // Ліміт символів та обрізка опису (максимум 200 символів)
+      let safeDesc = job.description || '';
+      if (safeDesc.length > 200) {
+          safeDesc = safeDesc.substring(0, 200) + '...';
+      }
+      
+      // Теги для статі та зайнятості
+      let tagsHtml = '';
+      if (job.employment || (job.gender && job.gender !== 'Не має значення' && job.gender !== 'Будь-яка')) {
+        tagsHtml = '<div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">';
+        if (job.employment) {
+           tagsHtml += `<span style="background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7);">🕒 ${job.employment}</span>`;
+        }
+        if (job.gender && job.gender !== 'Не має значення' && job.gender !== 'Будь-яка') {
+           tagsHtml += `<span style="background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7);">👤 ${job.gender}</span>`;
+        }
+        tagsHtml += '</div>';
+      }
+
       html += `
-        <div class="blabla-card" style="position: relative; text-align: left; ${bgStyle} ${borderStyle} border-radius: 16px; padding: 16px; cursor: pointer; display: flex; flex-direction: column;" onclick="window.open('${job.url}', '${targetAttr}')">
+        <div class="blabla-card" style="position: relative; text-align: left; ${bgStyle} ${borderStyle} border-radius: 16px; padding: 16px; display: flex; flex-direction: column;">
           ${vipBadge}
-          <div style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 6px; line-height: 1.3;">${job.title}</div>
-          <div style="font-size: 14px; font-weight: 800; color: #00ff9c; margin-bottom: 12px;">${job.salary}</div>
-          <div style="font-size: 12px; color: #ffcc00; font-weight: 700; margin-bottom: 8px;">🏢 ${job.company}</div>
-          <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1;">${job.description}</div>
+          <div style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 6px; line-height: 1.3; word-break: break-word; overflow-wrap: break-word;">${job.title}</div>
+          <div style="font-size: 14px; font-weight: 800; color: #00ff9c; margin-bottom: 12px; word-break: break-word; overflow-wrap: break-word;">${displaySalary}</div>
+          <div style="font-size: 12px; color: #ffcc00; font-weight: 700; margin-bottom: 8px; word-break: break-word; overflow-wrap: break-word;">🏢 ${job.company}</div>
+          ${tagsHtml}
+          <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1; word-break: break-word; overflow-wrap: break-word;">${safeDesc}</div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
              <div style="font-size: 11px; color: rgba(255,255,255,0.5);">📆 ${job.date}</div>
-             <div style="font-size: 11px; font-weight: bold; color: #74b9ff; background: rgba(116, 185, 255, 0.05); border: 1px solid rgba(116, 185, 255, 0.1); padding: 6px 14px; border-radius: 12px; transition: background 0.3s; white-space: nowrap;">${btnText}</div>
+             <div style="font-size: 11px; font-weight: bold; color: #74b9ff; background: rgba(116, 185, 255, 0.05); border: 1px solid rgba(116, 185, 255, 0.1); padding: 6px 14px; border-radius: 12px; transition: background 0.3s; white-space: nowrap; cursor: pointer;" onclick="window.open('${job.url}', '${targetAttr}'); event.stopPropagation();">${btnText}</div>
           </div>
         </div>
       `;
