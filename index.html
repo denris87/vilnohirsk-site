@@ -120,7 +120,6 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Назва товару</label><input type="text" class="form-input" name="title" required></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Категорія</label>
-          <!-- ОНОВЛЕНІ КАТЕГОРІЇ У ФОРМІ -->
           <select class="form-input" name="category" required>
             <option value="Інше">Інше</option>
             <option value="Електроніка">Електроніка</option>
@@ -232,7 +231,6 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
         <div id="flea-market-tab" class="content-section">
           <div style="padding: 10px; text-align: center;"><button onclick="openFleaForm()" style="border:none; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer;">➕ Додати оголошення</button></div>
           
-          <!-- ОНОВЛЕНИЙ БЛОК: ТЕГИ КАТЕГОРІЙ -->
           <div class="flea-categories-wrapper" id="flea-categories">
             <div class="flea-category-tag active" onclick="filterFleaMarket('Всі', this)">Всі</div>
             <div class="flea-category-tag" onclick="filterFleaMarket('Електроніка', this)">Електроніка</div>
@@ -268,6 +266,10 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 </div>
 
 <script>
+// ГЛОБАЛЬНА ЄДИНА СИЛКА ДЛЯ ВСІХ ФОРМ (БАРАХОЛКА, НАХІДКИ, ВІДГУКИ)
+// Вставте сюди вашу нову фінальну URL-адресу розгортання:
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz777Gc3EI6MrQIZpCKqpi6hFctNFER7p9Ly7zCzgARafeUc8Nbv7myg7K3XLutoNEs/exec';
+
 const REQUIRE_TELEGRAM = false; 
 const tg = window.Telegram.WebApp;
 tg.ready(); 
@@ -295,6 +297,37 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   window.currentDataSignature = {};
   window.allFleaMarketItems = []; // Глобальна змінна для зберігання всіх товарів барахолки
+
+  const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 1000;
+              const MAX_HEIGHT = 1000;
+              let width = img.width;
+              let height = img.height;
+
+              if (width > height) {
+                  if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+              } else {
+                  if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+              resolve(dataUrl.split(',')[1]); 
+          };
+      };
+      reader.onerror = error => reject(error);
+  });
 
   function checkNotification(key, dataArray) {
     if (!dataArray || dataArray.length === 0) return;
@@ -347,7 +380,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     event.preventDefault(); 
     const submitBtn = document.getElementById('flea-submit-btn');
     const originalBtnText = submitBtn.innerText;
-    submitBtn.innerText = 'Завантаження фото...';
+    submitBtn.innerText = 'Обробка фото...';
     submitBtn.disabled = true;
     submitBtn.style.opacity = '0.7';
 
@@ -355,18 +388,14 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const form = document.getElementById('custom-flea-form');
       const formData = new FormData(form);
       const photos = document.querySelector('#custom-flea-form input[name="photos"]').files;
-      let photoUrls = [];
-
-      const IMGBB_API_KEY = 'd11436ad8fa81ca991d924b69419577e'; 
+      
+      let base64Photos = [];
 
       if (photos.length > 5) throw new Error('Можна додати максимум 5 фото!');
 
       for (let i = 0; i < photos.length; i++) {
-        const imgData = new FormData();
-        imgData.append('image', photos[i]);
-        const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: imgData });
-        const imgJson = await imgRes.json();
-        if (imgJson.success) { photoUrls.push(imgJson.data.url); } else { throw new Error('Не вдалося завантажити фото'); }
+        const b64 = await compressAndGetBase64(photos[i]);
+        base64Photos.push(b64);
       }
 
       submitBtn.innerText = 'Збереження...';
@@ -378,12 +407,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         location: formData.get('location'),
         description: formData.get('description'),
         phone: formData.get('phone'),
-        photos: photoUrls.join(', ')
+        photosBase64: base64Photos
       };
 
-      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0hYWR1CkmonE4pvm70SBcLdHPmZlitnthHWyPlGP-E7gS0bV7D8elvzaDov1Y8D2s/exec';
-
-      await fetch(GOOGLE_SCRIPT_URL, {
+      await fetch(APP_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -414,7 +441,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     event.preventDefault(); 
     const submitBtn = document.getElementById('lost-submit-btn');
     const originalBtnText = submitBtn.innerText;
-    submitBtn.innerText = 'Завантаження...';
+    submitBtn.innerText = 'Обробка фото...';
     submitBtn.disabled = true;
     submitBtn.style.opacity = '0.7';
 
@@ -422,18 +449,14 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const form = document.getElementById('custom-lost-form');
       const formData = new FormData(form);
       const photos = document.querySelector('#custom-lost-form input[name="photos"]').files;
-      let photoUrls = [];
-
-      const IMGBB_API_KEY = '2c3711421eed5451f268afbd7cbd8bce'; 
+      
+      let base64Photos = [];
 
       if (photos.length > 0) {
         if (photos.length > 5) throw new Error('Можна додати максимум 5 фото!');
         for (let i = 0; i < photos.length; i++) {
-          const imgData = new FormData();
-          imgData.append('image', photos[i]);
-          const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: imgData });
-          const imgJson = await imgRes.json();
-          if (imgJson.success) { photoUrls.push(imgJson.data.url); } else { throw new Error('Не вдалося завантажити фото'); }
+          const b64 = await compressAndGetBase64(photos[i]);
+          base64Photos.push(b64);
         }
       }
 
@@ -445,12 +468,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         location: formData.get('location'),
         description: formData.get('description'),
         phone: formData.get('phone'),
-        photos: photoUrls.join(', ')
+        photosBase64: base64Photos
       };
 
-      const GOOGLE_SCRIPT_LOST_URL = 'https://script.google.com/macros/s/AKfycbwgTYWkaoqiy5tGCRVL2aAwfd8nvStlM2FPTcNA370K7uG1xJMSNURG0fgZXVE2bac/exec';
-
-      await fetch(GOOGLE_SCRIPT_LOST_URL, {
+      await fetch(APP_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -463,6 +484,38 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       alert('❌ Помилка: ' + error.message);
     } finally {
       submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1';
+    }
+  };
+
+  window.submitBetaFeedback = async function(event) {
+    event.preventDefault();
+    const textEl = document.getElementById('beta-feedback-text');
+    const text = textEl.value.trim();
+    if (!text) {
+      alert('Будь ласка, напишіть текст відгуку.');
+      return;
+    }
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = 'Відправка...';
+    btn.disabled = true;
+
+    try {
+      await fetch(APP_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ text: text })
+      });
+
+      alert('✅ Дякуємо! Ваш відгук успішно відправлено. Це дуже допоможе нам покращити сайт.');
+      textEl.value = '';
+      document.getElementById('beta-drawer').classList.remove('open');
+    } catch(e) {
+      alert('❌ Помилка: ' + e.message);
+    } finally {
+      btn.innerText = originalText;
+      btn.disabled = false;
     }
   };
 
@@ -1144,41 +1197,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
     return html + '</div>';
   }
-
-  window.submitBetaFeedback = async function(event) {
-    event.preventDefault();
-    const textEl = document.getElementById('beta-feedback-text');
-    const text = textEl.value.trim();
-    if (!text) {
-      alert('Будь ласка, напишіть текст відгуку.');
-      return;
-    }
-    const btn = event.target;
-    const originalText = btn.innerText;
-    btn.innerText = 'Відправка...';
-    btn.disabled = true;
-
-    try {
-      // Відправка в Google Таблицю
-      const GOOGLE_SCRIPT_FEEDBACK_URL = 'https://script.google.com/macros/s/AKfycbwQzj_Yb3MlCScIfAI0ZVu0hrU7wSsBnF0IqvSooYvfEbak3TiGbWQs8pEkZkIXl9EP/exec';
-
-      await fetch(GOOGLE_SCRIPT_FEEDBACK_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ text: text })
-      });
-
-      alert('✅ Дякуємо! Ваш відгук успішно відправлено. Це дуже допоможе нам покращити сайт.');
-      textEl.value = '';
-      document.getElementById('beta-drawer').classList.remove('open');
-    } catch(e) {
-      alert('❌ Помилка: ' + e.message);
-    } finally {
-      btn.innerText = originalText;
-      btn.disabled = false;
-    }
-  };
 
   function loadTrainsData(){ 
     fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>{
