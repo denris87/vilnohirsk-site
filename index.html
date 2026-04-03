@@ -232,6 +232,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
           <button class="tab-btn" onclick="openMarketTab('shopping-tab', this)">🛍 Шопінг<span class="notification-dot" id="dot-shopping"></span></button>
           <button class="tab-btn" onclick="openMarketTab('flea-market-tab', this)">📦 Барахолка<span class="notification-dot" id="dot-flea"></span></button>
           <button class="tab-btn" onclick="openMarketTab('lost-found-tab', this)">🔍 Знахідки<span class="notification-dot" id="dot-lost"></span></button>
+          <button class="tab-btn" onclick="openMarketTab('jobs-tab', this)">💼 Вакансії<span class="notification-dot" id="dot-jobs"></span></button>
           <button class="tab-btn" onclick="openMarketTab('city-guide-tab', this)">📖 Довідник</button>
         </div>
         <div class="scroll-hint" id="hint-market"><span>❯</span></div>
@@ -256,6 +257,16 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
           <div style="padding: 10px; text-align: center;"><button onclick="openLostForm()" style="border:none; background: linear-gradient(135deg, #e056fd, #8c7ae6); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer;">➕ Повідомити про знахідку/втрату</button></div>
           <div id="lost-found-list-content"></div>
         </div>
+
+        <div id="jobs-tab" class="content-section">
+          <div style="padding: 10px; text-align: center; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 5px;">
+            Актуальні вакансії у Вільногірську
+          </div>
+          <div id="jobs-list-content" style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">
+            Завантаження вакансій...
+          </div>
+        </div>
+
         <div id="city-guide-tab" class="content-section"><div style="text-align: center; padding: 20px;">Інформація відсутня...</div></div>
       </div>
     </div>
@@ -788,6 +799,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       if (tabId === 'shopping-tab') clearNotification('shopping');
       if (tabId === 'flea-market-tab') clearNotification('flea');
       if (tabId === 'lost-found-tab') clearNotification('lost');
+      if (tabId === 'jobs-tab') clearNotification('jobs');
 
       closeAllShopDropdowns();
       document.getElementById('main-list-widget').classList.remove('open');
@@ -1332,9 +1344,57 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     } catch(e) {}
   }
 
-  updateDateTime(); loadWeather(); loadAlerts(); loadEventsData(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadShopsData(); loadFleaMarketData(); loadLostFoundData(); loadBlaBlaCarData(); 
+  async function loadJobsData() {
+    try {
+      // Тут буде запит до вашого майбутнього парсера на Railway
+      const r = await fetch('https://vilnohirsk-jobs-production.up.railway.app/api/jobs');
+      if (!r.ok) throw new Error('API Error');
+      const jobs = await r.json();
+      checkNotification('jobs', jobs);
+      renderJobs(jobs, false);
+    } catch(e) {
+      // Демо-дані, поки бекенд не підключено
+      const demoJobs = [
+        { title: "Слюсар-ремонтник", salary: "18 000 грн", company: "Філія «Вільногірський ГМК»", description: "Ремонт та обслуговування технологічного обладнання. Повний соцпакет, офіційне працевлаштування.", date: "Сьогодні", url: "https://www.work.ua/" },
+        { title: "Продавець-консультант", salary: "12 000 - 15 000 грн", company: "ТОВ «АТБ-маркет»", description: "Гнучкий графік, навчання за рахунок компанії. Досвід роботи не обов'язковий.", date: "Вчора", url: "https://www.work.ua/" },
+        { title: "Вчитель математики", salary: "10 000 - 14 000 грн", company: "Загальноосвітня школа №3", description: "Викладання математики в 5-9 класах. Педагогічна освіта обов'язкова.", date: "2 дні тому", url: "https://www.work.ua/" }
+      ];
+      renderJobs(demoJobs, true);
+    }
+  }
+
+  function renderJobs(jobs, isDemo = false) {
+    const container = document.getElementById('jobs-list-content');
+    if (!container) return;
+    if (!jobs || jobs.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Актуальних вакансій немає</div>';
+      return;
+    }
+    
+    let html = isDemo ? '<div style="text-align:center; font-size:10px; color:#ffcc00; margin-bottom:15px; background: rgba(255,204,0,0.1); padding: 5px; border-radius: 8px;">⚠️ Демонстраційний режим (Бекенд у розробці)</div>' : '';
+    
+    jobs.forEach(job => {
+      html += `
+        <div class="blabla-card" style="text-align: left; background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(0,0,0,0.3)); cursor: pointer;" onclick="window.open('${job.url}', '_blank')">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div style="font-size:15px; font-weight:800; color:#fff; padding-right: 10px;">${job.title}</div>
+            <div style="font-size:13px; font-weight:800; color:var(--time-green); white-space:nowrap;">${job.salary}</div>
+          </div>
+          <div style="font-size:11px; color:var(--highlight-color); font-weight:700; margin-top: 2px; margin-bottom:6px;">🏢 ${job.company}</div>
+          <div style="font-size:12px; color:rgba(255,255,255,0.8); line-height:1.4; margin-bottom:8px;">${job.description}</div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+             <div style="font-size:10px; color:rgba(255,255,255,0.4);">📅 Опубліковано: ${job.date}</div>
+             <div style="font-size:10px; font-weight:bold; color:#74b9ff; background: rgba(116, 185, 255, 0.1); padding: 3px 8px; border-radius: 6px;">Детальніше 🔗</div>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  updateDateTime(); loadWeather(); loadAlerts(); loadEventsData(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadShopsData(); loadFleaMarketData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData();
   setInterval(updateDateTime, 1000); 
-  setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadShopsData(); loadFleaMarketData(); loadLostFoundData(); loadBlaBlaCarData(); }, 30000);
+  setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadShopsData(); loadFleaMarketData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); }, 30000);
 
   document.querySelectorAll('.form-input').forEach(input => {
     input.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); });
