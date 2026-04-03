@@ -327,13 +327,18 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         photos: photoUrls.join(', ')
       };
 
-      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0hYWR1CkmonE4pvm70SBcLdHPmZlitnthHWyPlGP-E7gS0bV7D8elvzaDov1Y8D2s/exec';
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSG3z5xYs3BPOwzzYwxpkGlQnUXmGOLlKMyOYsTFn60reCR0I_wt4CJG9MVJhCrS7T/exec';
+
+      const params = new URLSearchParams();
+      for (const key in sheetData) {
+        params.append(key, sheetData[key]);
+      }
 
       await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(sheetData)
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString()
       });
 
       showToast('✅ Ваше оголошення успішно відправлено на модерацію!');
@@ -396,11 +401,16 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
       const GOOGLE_SCRIPT_LOST_URL = 'https://script.google.com/macros/s/AKfycbwgTYWkaoqiy5tGCRVL2aAwfd8nvStlM2FPTcNA370K7uG1xJMSNURG0fgZXVE2bac/exec';
 
+      const paramsLost = new URLSearchParams();
+      for (const key in sheetData) {
+        paramsLost.append(key, sheetData[key]);
+      }
+
       await fetch(GOOGLE_SCRIPT_LOST_URL, {
         method: 'POST',
         mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(sheetData)
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: paramsLost.toString()
       });
 
       showToast('✅ Ваше повідомлення успішно відправлено!');
