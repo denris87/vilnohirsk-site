@@ -3,6 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<!-- Додані Meta-теги для красивих прев'ю (Open Graph) -->
+<meta property="og:title" content="Smart Вільногірськ — Твій міський помічник">
+<meta property="og:description" content="Розклад транспорту, барахолка, афіша подій та пошук попутників у Вільногірську.">
+<meta property="og:image" content="https://vilnohirsk.online/preview-image.jpg">
+<meta property="og:url" content="https://vilnohirsk.online">
+<meta property="og:type" content="website">
+
 <title>Smart Вільногірськ</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -215,6 +222,40 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   window.currentDataSignature = {};
 
+  // Функція для стиснення фото та конвертації в Base64
+  // Це економить трафік користувача та вирішує проблему лімітів
+  const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+          const img = new Image();
+          img.src = event.target.result;
+          img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_WIDTH = 1000;
+              const MAX_HEIGHT = 1000;
+              let width = img.width;
+              let height = img.height;
+
+              if (width > height) {
+                  if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+              } else {
+                  if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+              
+              // Отримуємо чистий base64 без "data:image/jpeg;base64,"
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+              resolve(dataUrl.split(',')[1]); 
+          };
+      };
+      reader.onerror = error => reject(error);
+  });
+
   function checkNotification(key, dataArray) {
     if (!dataArray || dataArray.length === 0) return;
     const signature = String(dataArray.length);
@@ -266,7 +307,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     event.preventDefault(); 
     const submitBtn = document.getElementById('flea-submit-btn');
     const originalBtnText = submitBtn.innerText;
-    submitBtn.innerText = 'Завантаження фото...';
+    submitBtn.innerText = 'Обробка фото...';
     submitBtn.disabled = true;
     submitBtn.style.opacity = '0.7';
 
@@ -274,18 +315,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const form = document.getElementById('custom-flea-form');
       const formData = new FormData(form);
       const photos = document.querySelector('#custom-flea-form input[name="photos"]').files;
-      let photoUrls = [];
-
-      const IMGBB_API_KEY = 'd11436ad8fa81ca991d924b69419577e'; 
+      
+      let base64Photos = [];
 
       if (photos.length > 5) throw new Error('Можна додати максимум 5 фото!');
 
+      // Стискаємо фото та переводимо в Base64 прямо на пристрої клієнта
       for (let i = 0; i < photos.length; i++) {
-        const imgData = new FormData();
-        imgData.append('image', photos[i]);
-        const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: imgData });
-        const imgJson = await imgRes.json();
-        if (imgJson.success) { photoUrls.push(imgJson.data.url); } else { throw new Error('Не вдалося завантажити фото'); }
+        const b64 = await compressAndGetBase64(photos[i]);
+        base64Photos.push(b64);
       }
 
       submitBtn.innerText = 'Збереження...';
@@ -297,10 +335,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         location: formData.get('location'),
         description: formData.get('description'),
         phone: formData.get('phone'),
-        photos: photoUrls.join(', ')
+        photosBase64: base64Photos // Відправляємо готові тексти Base64
       };
 
-      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0hYWR1CkmonE4pvm70SBcLdHPmZlitnthHWyPlGP-E7gS0bV7D8elvzaDov1Y8D2s/exec';
+      // НОВЕ ПОСИЛАННЯ РОЗГОРТАННЯ БАРАХОЛКИ
+      const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzaEiVqwSSeltjIS-LLAMdLzb34Ob4F7Wq2KYwMO6jrMY_4rrgMCuXff_jNvRmiHCc5/exec';
 
       await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST',
@@ -333,7 +372,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     event.preventDefault(); 
     const submitBtn = document.getElementById('lost-submit-btn');
     const originalBtnText = submitBtn.innerText;
-    submitBtn.innerText = 'Завантаження...';
+    submitBtn.innerText = 'Обробка фото...';
     submitBtn.disabled = true;
     submitBtn.style.opacity = '0.7';
 
@@ -341,18 +380,14 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const form = document.getElementById('custom-lost-form');
       const formData = new FormData(form);
       const photos = document.querySelector('#custom-lost-form input[name="photos"]').files;
-      let photoUrls = [];
-
-      const IMGBB_API_KEY = '2c3711421eed5451f268afbd7cbd8bce'; 
+      
+      let base64Photos = [];
 
       if (photos.length > 0) {
         if (photos.length > 5) throw new Error('Можна додати максимум 5 фото!');
         for (let i = 0; i < photos.length; i++) {
-          const imgData = new FormData();
-          imgData.append('image', photos[i]);
-          const imgRes = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: imgData });
-          const imgJson = await imgRes.json();
-          if (imgJson.success) { photoUrls.push(imgJson.data.url); } else { throw new Error('Не вдалося завантажити фото'); }
+          const b64 = await compressAndGetBase64(photos[i]);
+          base64Photos.push(b64);
         }
       }
 
@@ -364,10 +399,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         location: formData.get('location'),
         description: formData.get('description'),
         phone: formData.get('phone'),
-        photos: photoUrls.join(', ')
+        photosBase64: base64Photos // Відправляємо готові тексти Base64
       };
 
-      const GOOGLE_SCRIPT_LOST_URL = 'https://script.google.com/macros/s/AKfycbwgTYWkaoqiy5tGCRVL2aAwfd8nvStlM2FPTcNA370K7uG1xJMSNURG0fgZXVE2bac/exec';
+      // НОВЕ ПОСИЛАННЯ РОЗГОРТАННЯ ЗНАХІДОК
+      const GOOGLE_SCRIPT_LOST_URL = 'https://script.google.com/macros/s/AKfycbxVp4hytmbEWvdgl5cuL0PSQET69xXU-11ykOWL7H67nDKlRPOAZzsKhdp28PsjZkyL/exec';
 
       await fetch(GOOGLE_SCRIPT_LOST_URL, {
         method: 'POST',
@@ -810,10 +846,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
-  // ==== БАРАХОЛКА РЕНДЕР (ИСПРАВЛЕНО!) ====
   async function loadFleaMarketData() {
     try {
-      // Используем официальный Google GViz API - он имеет правильные настройки CORS и не блокируется Safari
       const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=111977759';
       
       const response = await fetch(csvUrl);
@@ -824,8 +858,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         header: true,
         skipEmptyLines: true,
         complete: function(results) {
-          console.log("Усі рядки таблиці Барахолки:", results.data);
-
           const approvedItems = results.data.filter(row => {
             const keys = Object.keys(row);
             let status = row['Статус'] || row['Status'] || row['status'] || row[keys[keys.length - 1]];
@@ -854,7 +886,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             };
           });
 
-          console.log("Одобрені товари (після фільтрації):", approvedItems);
           checkNotification('flea', approvedItems);
           
           const cont = document.getElementById('flea-market-list-content');
@@ -917,10 +948,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
-  // ==== ЗНАХІДКИ РЕНДЕР (ИСПРАВЛЕНО!) ====
   async function loadLostFoundData() {
     try {
-      // Используем официальный Google GViz API для раздела находок
       const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=624471689';
       
       const response = await fetch(csvUrl);
@@ -931,8 +960,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         header: true,
         skipEmptyLines: true,
         complete: function(results) {
-          console.log("Усі рядки таблиці Знахідок:", results.data);
-
           const approvedItems = results.data.filter(row => {
             const keys = Object.keys(row);
             let status = row['Статус'] || row['Status'] || row['status'] || row[keys[keys.length - 1]];
@@ -1013,7 +1040,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
-  // ==== ТРАНСПОРТ ====
   function isPast(timeStr) {
     if (!timeStr || !timeStr.includes(":")) return false;
     const now = getKyivNow(); const [h, m] = timeStr.split(":").map(Number);
@@ -1126,7 +1152,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     } catch(e) {}
   }
 
-  // ==== ЗАПУСК УСІХ БЛОКІВ ====
   updateDateTime(); loadWeather(); loadAlerts(); loadEventsData(); loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadShopsData(); loadFleaMarketData(); loadLostFoundData(); loadBlaBlaCarData(); 
   setInterval(updateDateTime, 1000); 
   setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadShopsData(); loadFleaMarketData(); loadLostFoundData(); loadBlaBlaCarData(); }, 30000);
