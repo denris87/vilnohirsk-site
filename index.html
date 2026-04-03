@@ -813,10 +813,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   // ==== БАРАХОЛКА РЕНДЕР (ИСПРАВЛЕНО!) ====
   async function loadFleaMarketData() {
     try {
-      const rawCSV = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv&gid=111977759';
-      const proxyCSV = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rawCSV);
+      // Используем официальный Google GViz API - он имеет правильные настройки CORS и не блокируется Safari
+      const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=111977759';
       
-      const response = await fetch(proxyCSV);
+      const response = await fetch(csvUrl);
       if (!response.ok) throw new Error("Не вдалося завантажити таблицю барахолки");
       const csvText = await response.text();
 
@@ -920,10 +920,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   // ==== ЗНАХІДКИ РЕНДЕР (ИСПРАВЛЕНО!) ====
   async function loadLostFoundData() {
     try {
-      const rawCSV = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv&gid=624471689';
-      const proxyCSV = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rawCSV);
+      // Используем официальный Google GViz API для раздела находок
+      const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=624471689';
       
-      const response = await fetch(proxyCSV);
+      const response = await fetch(csvUrl);
       if (!response.ok) throw new Error("Не вдалося завантажити таблицю знахідок");
       const csvText = await response.text();
 
