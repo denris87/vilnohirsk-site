@@ -813,9 +813,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   // ==== БАРАХОЛКА РЕНДЕР (ИСПРАВЛЕНО!) ====
   async function loadFleaMarketData() {
     try {
-      const CSV = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv&gid=111977759';
+      const rawCSV = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv&gid=111977759';
+      const proxyCSV = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rawCSV);
       
-      const response = await fetch(CSV);
+      const response = await fetch(proxyCSV);
       if (!response.ok) throw new Error("Не вдалося завантажити таблицю барахолки");
       const csvText = await response.text();
 
@@ -912,16 +913,17 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       });
     } catch (e) {
       console.error("Помилка завантаження барахолки:", e);
-      document.getElementById('flea-market-list-content').innerHTML = '<div style="text-align:center; padding:20px; color:#ff4d4d; font-size:12px;">Помилка мережі. Спробуйте пізніше.</div>';
+      document.getElementById('flea-market-list-content').innerHTML = `<div style="text-align:center; padding:20px; color:#ff4d4d; font-size:12px;">Помилка: ${e.message}</div>`;
     }
   }
 
   // ==== ЗНАХІДКИ РЕНДЕР (ИСПРАВЛЕНО!) ====
   async function loadLostFoundData() {
     try {
-      const CSV = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv&gid=624471689';
+      const rawCSV = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv&gid=624471689';
+      const proxyCSV = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(rawCSV);
       
-      const response = await fetch(CSV);
+      const response = await fetch(proxyCSV);
       if (!response.ok) throw new Error("Не вдалося завантажити таблицю знахідок");
       const csvText = await response.text();
 
@@ -1007,7 +1009,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       });
     } catch (e) {
       console.error("Помилка завантаження знахідок:", e);
-      document.getElementById('lost-found-list-content').innerHTML = '<div style="text-align:center; padding:20px; color:#ff4d4d; font-size:12px;">Помилка мережі. Спробуйте пізніше.</div>';
+      document.getElementById('lost-found-list-content').innerHTML = `<div style="text-align:center; padding:20px; color:#ff4d4d; font-size:12px;">Помилка: ${e.message}</div>`;
     }
   }
 
