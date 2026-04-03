@@ -188,7 +188,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 </div>
 
 <script>
-const REQUIRE_TELEGRAM = true; 
+const REQUIRE_TELEGRAM = false; // Змінено на false, щоб ви могли перевірити у звичайному браузері
 const tg = window.Telegram.WebApp;
 tg.ready(); 
 
@@ -203,6 +203,33 @@ if (tg.platform && tg.platform !== "unknown") {
 } else if (navigator.userAgent.toLowerCase().includes('telegram')) {
   isInsideTelegram = true;
 }
+
+// Функція для заміни стандартного alert() на стильний Toast
+function showToast(msg, isError = false) {
+    const toast = document.createElement('div');
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = isError ? 'rgba(255, 77, 77, 0.95)' : 'rgba(0, 255, 156, 0.95)';
+    toast.style.color = isError ? '#fff' : '#0b1d3a';
+    toast.style.padding = '12px 24px';
+    toast.style.borderRadius = '12px';
+    toast.style.fontWeight = 'bold';
+    toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.5)';
+    toast.style.zIndex = '999999';
+    toast.style.transition = 'opacity 0.3s ease';
+    toast.style.textAlign = 'center';
+    toast.style.minWidth = '250px';
+    toast.innerText = msg;
+    document.body.appendChild(toast);
+    
+    setTimeout(() => { 
+        toast.style.opacity = '0'; 
+        setTimeout(() => toast.remove(), 300); 
+    }, 3500);
+}
+
 
 if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   document.getElementById('auth-screen').style.display = 'flex';
@@ -309,10 +336,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         body: JSON.stringify(sheetData)
       });
 
-      alert('✅ Ваше оголошення успішно відправлено на модерацію!');
+      showToast('✅ Ваше оголошення успішно відправлено на модерацію!');
       closeFleaForm();
     } catch (error) {
-      alert('❌ Помилка: ' + error.message);
+      showToast('❌ Помилка: ' + error.message, true);
     } finally {
       submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1';
     }
@@ -376,10 +403,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         body: JSON.stringify(sheetData)
       });
 
-      alert('✅ Ваше повідомлення успішно відправлено!');
+      showToast('✅ Ваше повідомлення успішно відправлено!');
       closeLostForm();
     } catch (error) {
-      alert('❌ Помилка: ' + error.message);
+      showToast('❌ Помилка: ' + error.message, true);
     } finally {
       submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1';
     }
@@ -458,12 +485,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const API_URL = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides'; 
       const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
       if (!response.ok) throw new Error('Помилка сервера при збереженні');
-      alert('✅ Ваше оголошення успішно додано!');
+      showToast('✅ Ваше оголошення успішно додано!');
       closeBlaBlaForm();
       switchBlaBlaList(formData.type === 'driver' ? 'drivers' : 'passengers');
       loadBlaBlaCarData(); 
     } catch (error) {
-      alert('❌ Помилка при відправці: ' + error.message);
+      showToast('❌ Помилка при відправці: ' + error.message, true);
     } finally {
       submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1';
     }
@@ -810,181 +837,224 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
-  // ==== БАРАХОЛКА РЕНДЕР ====
+  // ==== БАРАХОЛКА РЕНДЕР (ВИПРАВЛЕНО) ====
   async function loadFleaMarketData() {
     try {
-      const CSV = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv&gid=111977759';
+      // Додано &t=timestamp для запобігання кешуванню браузером!
+      const CSV = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv&gid=111977759&t=' + new Date().getTime();
+      
       Papa.parse(CSV, {
         download: true,
         header: true,
         skipEmptyLines: true,
         complete: function(results) {
-          const approvedItems = results.data.filter(row => {
-            const keys = Object.keys(row);
-            let status = row['Статус'] || row['Status'] || row[keys[keys.length - 1]];
-            return status && String(status).trim().toLowerCase() === 'одобрено';
-          }).map(row => {
-            const keys = Object.keys(row);
-            let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || row['Фото'] || row['Ссылки на фото'] || row['Photos'] || row[keys[5]] || '';
-            let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
-            let processedPhotos = photoUrls.map(url => {
-                let fileId = '';
-                if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0];
-                else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
-                return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
+          try {
+            const approvedItems = results.data.filter(row => {
+              const keys = Object.keys(row);
+              
+              // Динамічний пошук колонки зі статусом
+              let statusKey = keys.find(k => k.toLowerCase().includes('статус') || k.toLowerCase().includes('status'));
+              let status = statusKey ? row[statusKey] : row[keys[keys.length - 1]];
+              
+              if (!status) return false;
+              let st = String(status).trim().toLowerCase();
+              // Розширена перевірка, якщо модератор написав не "одобрено", а "Схвалено", "Активно" тощо
+              return st.includes('одобр') || st.includes('схвал') || st.includes('актив') || st.includes('опублік') || st === 'так' || st === 'yes' || st === '+';
+            }).map(row => {
+              const keys = Object.keys(row);
+              
+              // Динамічний пошук колонок
+              const getVal = (keywords, fallbackIdx) => {
+                  const foundK = keys.find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
+                  return foundK ? row[foundK] : (row[keys[fallbackIdx]] || '');
+              };
+
+              let rawPhoto = getVal(['фото', 'photo', 'світлин'], 5);
+              let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
+              let processedPhotos = photoUrls.map(url => {
+                  let fileId = '';
+                  if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0];
+                  else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
+                  return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
+              });
+
+              return {
+                title: getVal(['назва', 'title'], 1),
+                price: getVal(['ціна', 'price'], 2),
+                description: getVal(['опис', 'desc'], 3),
+                phone: getVal(['телефон', 'phone', 'контакт'], 4),
+                photos: processedPhotos, 
+                category: getVal(['категорія', 'category'], 6) || 'Різне',
+                condition: getVal(['стан', 'condition'], 7) || 'Не вказано',
+                location: getVal(['місто', 'локація', 'location'], 8) || 'Вільногірськ'
+              };
             });
-            return {
-              title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['Title'] || row[keys[1]] || '',
-              price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['Price'] || row[keys[2]] || '',
-              description: row['Опис (Абзац)'] || row['Опис'] || row['Description'] || row[keys[3]] || '',
-              phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['Phone'] || row[keys[4]] || '',
-              photos: processedPhotos, 
-              category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row[keys[6]] || 'Різне',
-              condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row[keys[7]] || 'Не вказано',
-              location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row[keys[8]] || 'Не вказано'
-            };
-          });
 
-          checkNotification('flea', approvedItems);
-          
-          const cont = document.getElementById('flea-market-list-content');
-          if (!approvedItems.length) { cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень немає</div>'; return; }
-          
-          let html = '<div class="shops-tile-grid">';
-          shuffleArray([...approvedItems]).forEach((item, i) => {
-            const id = 'flea-detail-' + i;
-            const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">📦</span>`;
-            let priceText = item.price ? String(item.price).trim() : 'Ціна договірна';
-            if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
+            checkNotification('flea', approvedItems);
             
-            let allPhotosHtml = '';
-            if (item.photos.length > 0) {
-              const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos));
-              allPhotosHtml = `
-                <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
-                  <img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;">
-                  <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div>
-                </div>
-              `;
-            }
-
-            const safeTitle = item.title || 'Без назви';
-            const safeCat = item.category || 'Різне';
-            const safeCond = item.condition || 'Не вказано';
-            const safeDesc = (item.description || 'Без опису').replace(/\n/g, '<br>');
-            const safeLoc = item.location || 'Вільногірськ';
-            const safePhone = item.phone || 'Не вказано';
-
-            html += `
-              <div class="shop-tile" onclick="toggleShop('${id}', this)">
-                <div class="shop-tile-photo">${thumb}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
-                   <span class="shop-tile-cat" style="color:#00ff9c; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${priceText}</span>
-                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
-                </div>
-                <div class="shop-tile-name">${safeTitle}</div>
-                <div class="shop-tile-chevron">Опис ▾</div>
-                <div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
-                  <div class="shop-inner-list">
-                    ${allPhotosHtml}
-                    <div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${safeCat}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">✨</span><div><b>Стан:</b><br>${safeCond}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${safeDesc}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${safePhone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${safePhone}</a></div></div>
+            const cont = document.getElementById('flea-market-list-content');
+            if (!approvedItems.length) { cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень немає</div>'; return; }
+            
+            let html = '<div class="shops-tile-grid">';
+            shuffleArray([...approvedItems]).forEach((item, i) => {
+              const id = 'flea-detail-' + i;
+              const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">📦</span>`;
+              let priceText = item.price ? String(item.price).trim() : 'Ціна договірна';
+              if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
+              
+              let allPhotosHtml = '';
+              if (item.photos.length > 0) {
+                const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos));
+                allPhotosHtml = `
+                  <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
+                    <img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;">
+                    <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div>
                   </div>
-                </div>
-              </div>`;
-          });
-          cont.innerHTML = html + '</div>';
+                `;
+              }
+
+              const safeTitle = item.title || 'Без назви';
+              const safeCat = item.category || 'Різне';
+              const safeCond = item.condition || 'Не вказано';
+              const safeDesc = (item.description || 'Без опису').replace(/\n/g, '<br>');
+              const safeLoc = item.location || 'Вільногірськ';
+              const safePhone = item.phone || 'Не вказано';
+
+              html += `
+                <div class="shop-tile" onclick="toggleShop('${id}', this)">
+                  <div class="shop-tile-photo">${thumb}</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
+                     <span class="shop-tile-cat" style="color:#00ff9c; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${priceText}</span>
+                     <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
+                  </div>
+                  <div class="shop-tile-name">${safeTitle}</div>
+                  <div class="shop-tile-chevron">Опис ▾</div>
+                  <div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
+                    <div class="shop-inner-list">
+                      ${allPhotosHtml}
+                      <div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${safeCat}</div></div>
+                      <div class="shop-inner-item"><span class="detail-icon">✨</span><div><b>Стан:</b><br>${safeCond}</div></div>
+                      <div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${safeDesc}</div></div>
+                      <div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${safePhone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${safePhone}</a></div></div>
+                    </div>
+                  </div>
+                </div>`;
+            });
+            cont.innerHTML = html + '</div>';
+          } catch(err) {
+            console.error('Помилка обробки Барахолки:', err);
+          }
         }
       });
-    } catch (e) {}
+    } catch (e) {
+      console.error('Помилка завантаження Барахолки:', e);
+    }
   }
 
-  // ==== ЗНАХІДКИ РЕНДЕР ====
+  // ==== ЗНАХІДКИ РЕНДЕР (ВИПРАВЛЕНО) ====
   async function loadLostFoundData() {
     try {
-      const CSV = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv&gid=624471689';
+      // Додано &t=timestamp для запобігання кешуванню браузером
+      const CSV = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/export?format=csv&gid=624471689&t=' + new Date().getTime();
       Papa.parse(CSV, {
         download: true,
         header: true,
         skipEmptyLines: true,
         complete: function(results) {
-          const approvedItems = results.data.filter(row => {
-            const keys = Object.keys(row);
-            let status = row['Статус'] || row['Status'] || row[keys[keys.length - 1]];
-            return status && String(status).trim().toLowerCase() === 'одобрено';
-          }).map(row => {
-            const keys = Object.keys(row);
-            let rawPhoto = row['Додати фото'] || row['Photos'] || row['Фото'] || row[keys[5]] || '';
-            let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
-            let processedPhotos = photoUrls.map(url => {
-                let fileId = '';
-                if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0];
-                else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
-                return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
+          try {
+            const approvedItems = results.data.filter(row => {
+              const keys = Object.keys(row);
+              
+              // Динамічний пошук колонки зі статусом
+              let statusKey = keys.find(k => k.toLowerCase().includes('статус') || k.toLowerCase().includes('status'));
+              let status = statusKey ? row[statusKey] : row[keys[keys.length - 1]];
+              
+              if (!status) return false;
+              let st = String(status).trim().toLowerCase();
+              return st.includes('одобр') || st.includes('схвал') || st.includes('актив') || st.includes('опублік') || st === 'так' || st === 'yes' || st === '+';
+            }).map(row => {
+              const keys = Object.keys(row);
+              
+              const getVal = (keywords, fallbackIdx) => {
+                  const foundK = keys.find(k => keywords.some(kw => k.toLowerCase().includes(kw)));
+                  return foundK ? row[foundK] : (row[keys[fallbackIdx]] || '');
+              };
+
+              let rawPhoto = getVal(['фото', 'photo', 'світлин'], 5);
+              let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
+              let processedPhotos = photoUrls.map(url => {
+                  let fileId = '';
+                  if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0];
+                  else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
+                  return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
+              });
+
+              return {
+                title: getVal(['назва', 'title'], 1),
+                type: getVal(['що сталося', 'type', 'тип'], 2) || 'Знайдено',
+                description: getVal(['опис', 'desc'], 3),
+                phone: getVal(['телефон', 'phone', 'контакт'], 4),
+                photos: processedPhotos, 
+                category: getVal(['категорія', 'category'], 6) || 'Інше',
+                location: getVal(['локація', 'location', 'місто'], 7) || 'Не вказано'
+              };
             });
-            return {
-              title: row['Назва речі'] || row['Title'] || row[keys[1]] || '',
-              type: row['Що сталося?'] || row['Type'] || row['Тип'] || row[keys[2]] || 'Знайдено',
-              description: row['Опис та обставини'] || row['Description'] || row['Опис'] || row[keys[3]] || '',
-              phone: row['Ваш телефон'] || row['Phone'] || row['Телефон'] || row[keys[4]] || '',
-              photos: processedPhotos, 
-              category: row['Категорія'] || row['Category'] || row[keys[6]] || 'Інше',
-              location: row['Локація'] || row['Location'] || row[keys[7]] || 'Не вказано'
-            };
-          });
 
-          checkNotification('lost', approvedItems);
-          
-          const cont = document.getElementById('lost-found-list-content');
-          if (!approvedItems.length) { cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень немає</div>'; return; }
-          
-          let html = '<div class="shops-tile-grid">';
-          approvedItems.reverse().forEach((item, i) => {
-            const id = 'lost-detail-' + i;
-            const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`;
-            const badgeColor = item.type.toLowerCase().includes('знайдено') ? '#00ff9c' : '#ff4d4d';
+            checkNotification('lost', approvedItems);
             
-            let allPhotosHtml = '';
-            if (item.photos.length > 0) {
-              const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos));
-              allPhotosHtml = `
-                <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
-                  <img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;">
-                  <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div>
-                </div>
-              `;
-            }
-
-            const safeTitle = item.title || 'Без назви';
-            const safeDesc = (item.description || 'Без опису').replace(/\n/g, '<br>');
-            const safeLoc = item.location || 'Вільногірськ';
-            const safePhone = item.phone || 'Не вказано';
-
-            html += `
-              <div class="shop-tile" onclick="toggleShop('${id}', this)">
-                <div class="shop-tile-photo">${thumb}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
-                   <span class="shop-tile-cat" style="color:${badgeColor}; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${item.type}</span>
-                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
-                </div>
-                <div class="shop-tile-name">${safeTitle}</div>
-                <div class="shop-tile-chevron">Опис ▾</div>
-                <div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
-                  <div class="shop-inner-list">
-                    ${allPhotosHtml}
-                    <div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${item.category}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${safeDesc}</div></div>
-                    <div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${safePhone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${safePhone}</a></div></div>
+            const cont = document.getElementById('lost-found-list-content');
+            if (!approvedItems.length) { cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень немає</div>'; return; }
+            
+            let html = '<div class="shops-tile-grid">';
+            approvedItems.reverse().forEach((item, i) => {
+              const id = 'lost-detail-' + i;
+              const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`;
+              const badgeColor = item.type.toLowerCase().includes('знайдено') ? '#00ff9c' : '#ff4d4d';
+              
+              let allPhotosHtml = '';
+              if (item.photos.length > 0) {
+                const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos));
+                allPhotosHtml = `
+                  <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
+                    <img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;">
+                    <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div>
                   </div>
-                </div>
-              </div>`;
-          });
-          cont.innerHTML = html + '</div>';
+                `;
+              }
+
+              const safeTitle = item.title || 'Без назви';
+              const safeDesc = (item.description || 'Без опису').replace(/\n/g, '<br>');
+              const safeLoc = item.location || 'Вільногірськ';
+              const safePhone = item.phone || 'Не вказано';
+
+              html += `
+                <div class="shop-tile" onclick="toggleShop('${id}', this)">
+                  <div class="shop-tile-photo">${thumb}</div>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
+                     <span class="shop-tile-cat" style="color:${badgeColor}; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${item.type}</span>
+                     <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
+                  </div>
+                  <div class="shop-tile-name">${safeTitle}</div>
+                  <div class="shop-tile-chevron">Опис ▾</div>
+                  <div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
+                    <div class="shop-inner-list">
+                      ${allPhotosHtml}
+                      <div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${item.category}</div></div>
+                      <div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${safeDesc}</div></div>
+                      <div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${safePhone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${safePhone}</a></div></div>
+                    </div>
+                  </div>
+                </div>`;
+            });
+            cont.innerHTML = html + '</div>';
+          } catch(err) {
+            console.error('Помилка обробки Бюро знахідок:', err);
+          }
         }
       });
-    } catch (e) {}
+    } catch (e) {
+      console.error('Помилка завантаження Бюро знахідок:', e);
+    }
   }
 
   // ==== ТРАНСПОРТ ====
