@@ -1533,9 +1533,21 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     
     // Переворачиваем массив, чтобы свежие вакансии были сверху
     jobs.reverse().forEach(job => {
-      // Если это спарсенная вакансия - пишем "Деталі", если от пользователей - "Подзвонити 📞"
       const isTel = job.url && job.url.startsWith('tel:');
-      const btnText = isTel ? 'Подзвонити 📞' : 'Деталі 🔗';
+      
+      // Форматуємо номер, щоб він завжди починався з 0 (наприклад: 0971234567)
+      let displayPhone = job.phone;
+      if (displayPhone) {
+          let cleanPhone = displayPhone.replace(/\D/g, ''); // видаляємо всі не-цифри
+          if (cleanPhone.length >= 10) {
+              displayPhone = '0' + cleanPhone.slice(-9);
+          } else if (cleanPhone.length === 9) {
+              displayPhone = '0' + cleanPhone;
+          }
+      }
+
+      // Якщо є номер телефону - показуємо його без емодзі, інакше пишемо "Деталі"
+      const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Деталі 🔗');
       const targetAttr = isTel ? '_self' : '_blank'; // Для телефонів краще _self щоб не відкривало порожню вкладку
       
       html += `
@@ -1546,7 +1558,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; flex-grow: 1;">${job.description}</div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
              <div style="font-size: 11px; color: rgba(255,255,255,0.5);">📆 ${job.date}</div>
-             <div style="font-size: 11px; font-weight: bold; color: #74b9ff; background: rgba(116, 185, 255, 0.05); border: 1px solid rgba(116, 185, 255, 0.1); padding: 6px 14px; border-radius: 12px; transition: background 0.3s;">${btnText}</div>
+             <div style="font-size: 11px; font-weight: bold; color: #74b9ff; background: rgba(116, 185, 255, 0.05); border: 1px solid rgba(116, 185, 255, 0.1); padding: 6px 14px; border-radius: 12px; transition: background 0.3s; white-space: nowrap;">${btnText}</div>
           </div>
         </div>
       `;
