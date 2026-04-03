@@ -41,7 +41,11 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Дата поїздки</label><input type="date" class="form-input" id="input-date" required></div>
       <div class="form-group">
         <label class="form-label" id="label-time">Час відправлення</label>
-        <div style="display: flex; gap: 10px; align-items: center; width: 100%;"><input type="time" class="form-input" id="input-time-from" style="flex:1;" required><span style="color: rgba(255,255,255,0.5); font-weight: bold;">-</span><input type="time" class="form-input" id="input-time-to" style="flex:1;"></div>
+        <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+          <input type="time" class="form-input" id="input-time-from" style="flex:1;" required>
+          <span style="color: rgba(255,255,255,0.5); font-weight: bold;">-</span>
+          <input type="time" class="form-input" id="input-time-to" style="flex:1;">
+        </div>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -209,7 +213,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   if (tg.expand) { tg.expand(); }
 
-  // ==== СИСТЕМА СПОВІЩЕНЬ ====
   window.currentDataSignature = {};
 
   function checkNotification(key, dataArray) {
@@ -227,7 +230,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     if (window.currentDataSignature[key]) { localStorage.setItem('seen_' + key, window.currentDataSignature[key]); }
   }
 
-  // ==== ФУНКЦІЯ ВІДКРИТТЯ ШТОРОК ДЛЯ МАГАЗИНІВ ТА БАРАХОЛКИ ====
   window.toggleShop = function(detailsId, tileElement) {
     const dropdown = document.getElementById(detailsId);
     if (!dropdown) return;
@@ -249,7 +251,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; });
   }
 
-  // ==== ЛОГІКА ФОРМИ БАРАХОЛКИ ====
   window.openFleaForm = function() {
     document.getElementById('custom-flea-form').reset();
     document.getElementById('flea-modal').classList.add('active');
@@ -317,7 +318,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   };
 
-  // ==== ЛОГІКА ФОРМИ ЗНАХІДОК ====
   window.openLostForm = function() {
     document.getElementById('custom-lost-form').reset();
     document.getElementById('lost-modal').classList.add('active');
@@ -385,7 +385,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   };
 
-  // ==== ЛОГІКА ФОРМИ BLA BLA CAR ====
   window.openBlaBlaForm = function(type) {
     const modal = document.getElementById('blabla-modal');
     const title = document.getElementById('form-modal-title');
@@ -483,7 +482,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   };
 
-  // ==== ЛОГІКА СТРІЛОК-ПІДКАЗОК ДЛЯ СКРОЛУ ====
   function handleScrollHint(navId, hintId) {
     const nav = document.getElementById(navId); const hint = document.getElementById(hintId);
     if (!nav || !hint) return;
@@ -493,7 +491,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   handleScrollHint('schedule-tabs', 'hint-schedule');
   handleScrollHint('market-tabs', 'hint-market');
 
-  // ==== ВЕЛИКЕ ФОТО ТА ГАЛЕРЕЯ (МОДАЛЬНЕ ВІКНО) ====
   let currentGallery = []; let currentGalleryIndex = 0; let touchStartX = 0; let touchEndX = 0;
   window.currentEventImages = [];
 
@@ -537,7 +534,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     document.getElementById('image-modal').classList.remove('active');
   };
 
-  // ==== ЗАКРИТТЯ ШТОРОК КЛІКОМ ПОЗА ОБЛАСТЮ ====
   document.addEventListener('click', function(e) {
     if (e.target.closest('.image-modal') || e.target.closest('.custom-modal-box')) return;
     if (!e.target.closest('.alert-main-widget')) {
@@ -562,15 +558,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     if (dropdown && dropdown.classList.contains('open') && grid) { grid.style.paddingBottom = (dropdown.scrollHeight + 15) + 'px'; }
   };
 
-  function closeAllShopDropdowns() {
-    document.querySelectorAll('.shop-details-dropdown.open').forEach(el => {
-      el.classList.remove('open');
-      if (el.parentElement) el.parentElement.classList.remove('tile-active');
-    });
-    document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; });
-  }
-
-  // ==== ФУНКЦІЇ ДЛЯ ТАБІВ ====
   window.openAlertTab = function(tabId, btn) {
     try {
       closeAllShopDropdowns(); 
@@ -632,7 +619,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     } catch(e) { console.error(e); }
   };
 
-  // ==== ЧАС І ПОГОДА ====
   function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
   function getWeatherEmoji(code){
     if(code === 0) return "☀️"; if(code <= 2) return "⛅"; if(code <= 3) return "☁️"; if(code <= 48) return "🌫️";
@@ -671,7 +657,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     } catch(e) {}
   }
 
-  // ==== ОПОВІЩЕННЯ ТА АФІШІ ====
   function buildCarouselHtml(items, typeColor, typeId, isEvent = false) {
     if (!items || items.length === 0) {
       if (isEvent) return `<div class="alert-empty" style="margin-bottom:15px;">Афіш поки немає</div>`;
@@ -741,7 +726,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
-  // ==== МАГАЗИНИ ====
   function renderShops(shopsData) {
     const container = document.getElementById('shopping-list-content');
     if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) {
@@ -836,14 +820,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         skipEmptyLines: true,
         complete: function(results) {
           const approvedItems = results.data.filter(row => {
-            return Object.values(row).some(val => String(val).trim().toLowerCase() === 'одобрено');
+            const keys = Object.keys(row);
+            let status = row['Статус'] || row['Status'] || row[keys[keys.length - 1]];
+            return status && String(status).trim().toLowerCase() === 'одобрено';
           }).map(row => {
-            const getVal = (keywords) => {
-               for (let k of Object.keys(row)) { if (keywords.some(kw => k.toLowerCase().includes(kw))) return row[k]; }
-               return '';
-            };
-
-            let rawPhoto = getVal(['фото', 'photo', 'світлин']);
+            const keys = Object.keys(row);
+            let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || row['Фото'] || row['Ссылки на фото'] || row['Photos'] || row[keys[5]] || '';
             let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
             let processedPhotos = photoUrls.map(url => {
                 let fileId = '';
@@ -851,16 +833,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
                 else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
                 return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
             });
-
             return {
-              title: getVal(['назва', 'title', 'що продаєте']),
-              price: getVal(['ціна', 'price', 'вартість']),
-              description: getVal(['опис', 'description', 'деталі']),
-              phone: getVal(['телефон', 'phone', 'зв\'язок']),
+              title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['Title'] || row[keys[1]] || '',
+              price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['Price'] || row[keys[2]] || '',
+              description: row['Опис (Абзац)'] || row['Опис'] || row['Description'] || row[keys[3]] || '',
+              phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['Phone'] || row[keys[4]] || '',
               photos: processedPhotos, 
-              category: getVal(['категорія', 'category']),
-              condition: getVal(['стан', 'condition']),
-              location: getVal(['місто', 'локація', 'location'])
+              category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row[keys[6]] || 'Різне',
+              condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row[keys[7]] || 'Не вказано',
+              location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row[keys[8]] || 'Не вказано'
             };
           });
 
@@ -930,14 +911,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         skipEmptyLines: true,
         complete: function(results) {
           const approvedItems = results.data.filter(row => {
-            return Object.values(row).some(val => String(val).trim().toLowerCase() === 'одобрено');
+            const keys = Object.keys(row);
+            let status = row['Статус'] || row['Status'] || row[keys[keys.length - 1]];
+            return status && String(status).trim().toLowerCase() === 'одобрено';
           }).map(row => {
-            const getVal = (keywords) => {
-               for (let k of Object.keys(row)) { if (keywords.some(kw => k.toLowerCase().includes(kw))) return row[k]; }
-               return '';
-            };
-
-            let rawPhoto = getVal(['фото', 'photo', 'світлин']);
+            const keys = Object.keys(row);
+            let rawPhoto = row['Додати фото'] || row['Photos'] || row['Фото'] || row[keys[5]] || '';
             let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
             let processedPhotos = photoUrls.map(url => {
                 let fileId = '';
@@ -945,15 +924,14 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
                 else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
                 return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
             });
-
             return {
-              title: getVal(['назва', 'що', 'title']),
-              type: getVal(['сталося', 'тип', 'type']) || 'Знайдено',
-              description: getVal(['опис', 'обставини', 'description']),
-              phone: getVal(['телефон', 'phone', 'зв\'язок']),
+              title: row['Назва речі'] || row['Title'] || row[keys[1]] || '',
+              type: row['Що сталося?'] || row['Type'] || row['Тип'] || row[keys[2]] || 'Знайдено',
+              description: row['Опис та обставини'] || row['Description'] || row['Опис'] || row[keys[3]] || '',
+              phone: row['Ваш телефон'] || row['Phone'] || row['Телефон'] || row[keys[4]] || '',
               photos: processedPhotos, 
-              category: getVal(['категорія', 'category']) || 'Інше',
-              location: getVal(['локація', 'місто', 'location'])
+              category: row['Категорія'] || row['Category'] || row[keys[6]] || 'Інше',
+              location: row['Локація'] || row['Location'] || row[keys[7]] || 'Не вказано'
             };
           });
 
