@@ -1675,10 +1675,19 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     
     let html = isDemo ? '<div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; color: #ffcc00; font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 15px;">⚠️ Демонстраційний режим (Бекенд у розробці)</div>' : '';
     
-    // РОЗДІЛЯЄМО МАСИВ НА ТРИ КАТЕГОРІЇ (Тепер беремо тільки Work.ua з інтернету)
-    const vipJobs = jobs.filter(j => j.isVip || j.vip).reverse();
-    const internetJobs = jobs.filter(j => !j.isVip && !j.vip && j.date === 'Work.ua');
-    const regularJobs = jobs.filter(j => !j.isVip && !j.vip && j.date !== 'Work.ua');
+    // --- СТОП-СЛОВА ДЛЯ ВІЙСЬКОВИХ ВАКАНСІЙ ---
+    const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
+    
+    // Фільтруємо вакансії (видаляємо військові)
+    const safeJobs = jobs.filter(job => {
+        const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase();
+        return !stopWords.some(word => textToSearch.includes(word));
+    });
+
+    // РОЗДІЛЯЄМО МАСИВ НА ТРИ КАТЕГОРІЇ (використовуємо безпечний масив safeJobs)
+    const vipJobs = safeJobs.filter(j => j.isVip || j.vip).reverse();
+    const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.date === 'Work.ua');
+    const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.date !== 'Work.ua');
     
     // Функція генерації однієї картки (ОНОВЛЕНИЙ ДИЗАЙН)
     function createJobCardHtml(job, extraClass = '') {
