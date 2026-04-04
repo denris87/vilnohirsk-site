@@ -1686,8 +1686,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
     // РОЗДІЛЯЄМО МАСИВ НА ТРИ КАТЕГОРІЇ (використовуємо безпечний масив safeJobs)
     const vipJobs = safeJobs.filter(j => j.isVip || j.vip).reverse();
-    const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.date === 'Work.ua');
-    const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.date !== 'Work.ua');
+    const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && (j.source === 'Work.ua' || j.date === 'Work.ua'));
+    const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source !== 'Work.ua' && j.date !== 'Work.ua');
     
     // Функція генерації однієї картки (ОНОВЛЕНИЙ ДИЗАЙН)
     function createJobCardHtml(job, extraClass = '') {
