@@ -9,6 +9,11 @@
 <meta property="og:url" content="https://vilnohirsk.online">
 <meta property="og:type" content="website">
 
+<!-- Попереднє підключення до серверів для прискорення завантаження -->
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://docs.google.com">
+<link rel="preconnect" href="https://api.open-meteo.com">
+
 <!-- Іконки для екрану телефона (iOS/Android) та браузера -->
 <link rel="icon" type="image/png" href="https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true">
 <link rel="apple-touch-icon" href="https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true">
@@ -19,7 +24,8 @@
 <title>Smart Вільногірськ</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<!-- Defer для PapaParse, щоб не блокувати відображення сторінки -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
 <style>
 :root{--highlight-color:#ffcc00;--glass-bg:rgba(0,0,0,0.45);--glass-border:rgba(255,255,255,0.08);--glass-border-light:rgba(255,255,255,0.15);--glass-shadow:0 16px 40px rgba(0,0,0,0.3);--time-green:#00ff9c;--time-passed:rgba(255,255,255,0.4)}html,body{margin:0;padding:0;min-height:100vh}*{-webkit-user-select:none;user-select:none;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}body{color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background:linear-gradient(-45deg,#1e3c72,#2a5298,#009ffd,#2af598,#009ffd);background-size:300% 300%;animation:gradientMove 30s ease-in-out infinite alternate}@keyframes gradientMove{0%{background-position:0% 50%}100%{background-position:100% 50%}}.wrapper{width:100%;max-width:900px;padding:15px;padding-bottom:40px}.container{display:flex;flex-direction:column;gap:15px}.liquid-glass{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-border);border-top:1px solid var(--glass-border-light);border-left:1px solid var(--glass-border-light);box-shadow:var(--glass-shadow);border-radius:28px}.alert-main-widget{padding:0;border-radius:28px;position:relative;z-index:100}.alert-drawer{position:absolute;top:calc(100% + 10px);left:0;width:100%;max-height:0;overflow:hidden;opacity:0;pointer-events:none;transition:all 0.5s cubic-bezier(0.25,1,0.5,1);background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 30px 60px rgba(0,0,0,0.8);border-radius:24px;z-index:100}.alert-drawer.open{max-height:10000px;opacity:1;padding:15px;pointer-events:auto}.tab-alert{padding:14px 8px;border-radius:12px;font-weight:800;font-size:clamp(10px,3.2vw,14px);text-align:center;cursor:pointer;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.05);transition:transform 0.2s,box-shadow 0.2s,background 0.3s;text-transform:uppercase;letter-spacing:0.5px;color:#fff;position:relative;display:flex;justify-content:center;align-items:center;line-height:1.2}
 
@@ -433,7 +439,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
         <div id="estate-tab" class="content-section">
           <div style="padding: 10px; text-align: center;"><button onclick="openEstateForm()" style="border:none; background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">➕ Додати оголошення</button></div>
           <div class="flea-categories-wrapper" id="estate-categories">
-            <div class="flea-category-tag active" onclick="filterEstate('Всі', this)">Всі</div>
+            <div class="flea-category-tag active" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff;" onclick="filterEstate('Всі', this)">Всі</div>
             <div class="flea-category-tag" onclick="filterEstate('Оренда', this)">Оренда</div>
             <div class="flea-category-tag" onclick="filterEstate('Продаж', this)">Продаж</div>
           </div>
@@ -2026,22 +2032,38 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     container.innerHTML = html;
   }
 
+  // ОПТИМІЗАЦІЯ ЗАВАНТАЖЕННЯ (LAZY LOADING)
   window.onload = () => {
+    // 1. Негайне завантаження (Інтерфейс, час, погода)
     updateDateTime(); 
+    setInterval(updateDateTime, 1000); 
     loadWeather(); 
     loadAlerts(); 
-    loadEventsData(); 
-    loadTrainsData(); 
-    loadLongTrainsData(); 
-    loadBusesData(); 
-    loadShopsData(); 
-    loadFleaMarketData(); 
-    loadEstateData(); 
-    loadLostFoundData(); 
-    loadBlaBlaCarData(); 
-    loadJobsData();
-    setInterval(updateDateTime, 1000); 
-    setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); }, 30000);
+
+    // 2. Середній пріоритет (Завантажуємо транспорт через півсекунди)
+    setTimeout(() => {
+        loadTrainsData(); 
+        loadLongTrainsData(); 
+        loadBusesData(); 
+        loadEventsData();
+    }, 600);
+
+    // 3. Низький пріоритет (Тяжкі таблиці та CSV завантажуємо через 1.5 секунди)
+    setTimeout(() => {
+        loadShopsData(); 
+        loadFleaMarketData(); 
+        loadEstateData(); 
+        loadLostFoundData(); 
+        loadBlaBlaCarData(); 
+        loadJobsData();
+    }, 1500);
+
+    // Збільшено інтервал оновлення до 60 секунд, щоб не "вішати" телефон постійними запитами
+    setInterval(() => { 
+        loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); 
+        loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); 
+        loadBlaBlaCarData(); loadJobsData(); 
+    }, 60000);
 
     document.querySelectorAll('.form-input').forEach(input => {
       input.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); });
