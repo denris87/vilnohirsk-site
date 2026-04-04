@@ -1740,9 +1740,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           </div>
           
           <!-- Підвал картки (Дата + Кнопка) -->
-          <div style="background: rgba(0,0,0,0.3); border-radius: 0 0 16px 16px; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; min-width: 0; gap: 8px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05);">
-             <div style="font-size: 11px; color: rgba(255,255,255,0.5); flex-shrink: 0; font-weight: 600;">Дата: ${job.date}</div>
-             <div style="font-size: 13px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #00b8ff, #0055ff); padding: 10px 20px; border-radius: 12px; white-space: nowrap; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0, 184, 255, 0.4); text-transform: uppercase; letter-spacing: 0.5px;" onclick="window.open('${job.url}', '${targetAttr}'); event.stopPropagation();">${btnText}</div>
+          <div style="background: rgba(0,0,0,0.3); border-radius: 0 0 16px 16px; padding: 12px 15px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; min-width: 0; gap: 10px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05);">
+             <div style="font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; margin-right: auto;">Дата: ${job.date}</div>
+             <div style="font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #00b8ff, #0055ff); padding: 8px 14px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 184, 255, 0.4); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; flex-shrink: 1; word-wrap: break-word;" onclick="window.open('${job.url}', '${targetAttr}'); event.stopPropagation();">${btnText}</div>
           </div>
         </div>
       `;
