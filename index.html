@@ -1677,8 +1677,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     
     // РОЗДІЛЯЄМО МАСИВ НА ТРИ КАТЕГОРІЇ
     const vipJobs = jobs.filter(j => j.isVip || j.vip).reverse();
-    const internetJobs = jobs.filter(j => !j.isVip && !j.vip && (j.date === 'Work.ua' || j.date === 'Robota.ua'));
-    const regularJobs = jobs.filter(j => !j.isVip && !j.vip && j.date !== 'Work.ua' && j.date !== 'Robota.ua');
+    const internetJobs = jobs.filter(j => !j.isVip && !j.vip && (j.date === 'Work.ua' || j.date === 'Robota.ua' || j.date === 'dcz.gov.ua'));
+    const regularJobs = jobs.filter(j => !j.isVip && !j.vip && j.date !== 'Work.ua' && j.date !== 'Robota.ua' && j.date !== 'dcz.gov.ua');
     
     // Функція генерації однієї картки
     function createJobCardHtml(job, extraClass = '') {
