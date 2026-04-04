@@ -162,8 +162,8 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 }
 .jobs-carousel::-webkit-scrollbar { display: none; }
 .jobs-carousel-card {
-  flex: 0 0 85%;
-  max-width: 320px;
+  flex: 0 0 90%;
+  max-width: 350px;
   scroll-snap-align: center;
 }
 @media (min-width: 650px) {
@@ -1675,12 +1675,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     
     let html = isDemo ? '<div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; color: #ffcc00; font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 15px;">⚠️ Демонстраційний режим (Бекенд у розробці)</div>' : '';
     
-    // РОЗДІЛЯЄМО МАСИВ НА ТРИ КАТЕГОРІЇ
+    // РОЗДІЛЯЄМО МАСИВ НА ТРИ КАТЕГОРІЇ (Тепер беремо тільки Work.ua з інтернету)
     const vipJobs = jobs.filter(j => j.isVip || j.vip).reverse();
-    const internetJobs = jobs.filter(j => !j.isVip && !j.vip && (j.date === 'Work.ua' || j.date === 'Robota.ua' || j.date === 'dcz.gov.ua'));
-    const regularJobs = jobs.filter(j => !j.isVip && !j.vip && j.date !== 'Work.ua' && j.date !== 'Robota.ua' && j.date !== 'dcz.gov.ua');
+    const internetJobs = jobs.filter(j => !j.isVip && !j.vip && j.date === 'Work.ua');
+    const regularJobs = jobs.filter(j => !j.isVip && !j.vip && j.date !== 'Work.ua');
     
-    // Функція генерації однієї картки
+    // Функція генерації однієї картки (ОНОВЛЕНИЙ ДИЗАЙН)
     function createJobCardHtml(job, extraClass = '') {
       const isTel = job.url && job.url.startsWith('tel:');
       
@@ -1691,7 +1691,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone;
       }
 
-      const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Деталі 🔗');
+      const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Відгукнутися 🔗');
       const targetAttr = isTel ? '_self' : '_blank'; 
       
       let displaySalary = job.salary;
@@ -1700,33 +1700,40 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       }
 
       const isVip = job.isVip || job.vip;
-      const vipBadge = isVip ? '<div style="position:absolute; top:-8px; right:-8px; background:linear-gradient(135deg, #ffcc00, #ff8800); color:#000; font-size:10px; font-weight:900; padding:4px 8px; border-radius:12px; box-shadow:0 4px 10px rgba(255,204,0,0.4); text-transform:uppercase; letter-spacing:1px; z-index:10; animation:vipPulse 2s infinite;">VIP</div>' : '';
-      const vipClass = isVip ? 'vip-job-card' : '';
-      const bgStyle = isVip ? '' : 'background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);';
-      
-      let safeDesc = job.description || '';
-      if (safeDesc.length > 200) safeDesc = safeDesc.substring(0, 200) + '...';
-      safeDesc = safeDesc.replace(/\n/g, '<br>');
+      const vipBadge = isVip ? '<div class="vip-badge" style="top:-8px; right:-8px; font-size: 12px; padding: 4px 10px;">VIP</div>' : '';
+      const vipClass = isVip ? 'vip-job-card' : 'regular-job-card';
       
       let tagsHtml = '';
-      if (job.employment || (job.gender && job.gender !== 'Не має значення' && job.gender !== 'Будь-яка')) {
-        tagsHtml = '<div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">';
-        if (job.employment) tagsHtml += `<span style="background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7);">🕒 ${job.employment}</span>`;
-        if (job.gender && job.gender !== 'Не має значення' && job.gender !== 'Будь-яка') tagsHtml += `<span style="background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7);">👤 ${job.gender}</span>`;
-        tagsHtml += '</div>';
-      }
-
+      const employment = job.employment || 'Повна / Не вказано';
+      const city = 'Вільногірськ';
+      
+      // Створюємо картку за новим дизайном
       return `
-        <div class="blabla-card ${vipClass} ${extraClass}" style="position: relative; text-align: left; ${bgStyle} border-radius: 16px; padding: 16px; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box;">
+        <div class="blabla-card ${vipClass} ${extraClass}" style="position: relative; text-align: left; background: ${isVip ? 'linear-gradient(135deg, rgba(255, 170, 0, 0.25), rgba(50, 15, 0, 0.9))' : 'linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.3))'}; border: 1px solid ${isVip ? 'rgba(255, 204, 0, 0.4)' : 'rgba(255, 255, 255, 0.1)'}; border-radius: 16px; padding: 0; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
           ${vipBadge}
-          <div style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 6px; line-height: 1.3; min-width: 0; word-break: break-word; overflow-wrap: anywhere;">${job.title}</div>
-          <div style="font-size: 14px; font-weight: 800; color: #00ff9c; margin-bottom: 12px; min-width: 0; word-break: break-word; overflow-wrap: anywhere;">${displaySalary}</div>
-          <div style="font-size: 12px; color: #ffcc00; font-weight: 700; margin-bottom: 8px; min-width: 0; word-break: break-word; overflow-wrap: anywhere;">🏢 ${job.company}</div>
-          ${tagsHtml}
-          <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; min-width: 0; word-break: break-word; overflow-wrap: anywhere;">${safeDesc}</div>
-          <div style="display: flex; justify-content: space-between; align-items: center; min-width: 0; gap: 8px; margin-top: auto;">
-             <div style="font-size: 11px; color: rgba(255,255,255,0.5); flex-shrink: 0;">📆 ${job.date}</div>
-             <div style="font-size: 11px; font-weight: bold; color: #74b9ff; background: rgba(116, 185, 255, 0.05); border: 1px solid rgba(116, 185, 255, 0.1); padding: 6px 14px; border-radius: 12px; transition: background 0.3s; white-space: nowrap; cursor: pointer; flex-shrink: 0;" onclick="window.open('${job.url}', '${targetAttr}'); event.stopPropagation();">${btnText}</div>
+          
+          <!-- Шапка картки -->
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 15px;">
+            <div style="font-size: 15px; font-weight: 800; color: ${isVip ? '#ffcc00' : '#74b9ff'}; min-width: 0; word-break: break-word; line-height: 1.3;">${job.title}</div>
+            <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 10px; font-size: 16px; border: 1px solid rgba(255,255,255,0.05);">💼</div>
+          </div>
+          
+          <!-- Тіло картки (Деталі + Зарплата) -->
+          <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.8; flex: 1; min-width: 150px;">
+              <div><b>Населений пункт:</b> ${city}</div>
+              <div><b>Роботодавець:</b> ${job.company}</div>
+              <div><b>Зайнятість:</b> ${employment}</div>
+            </div>
+            <div style="font-size: 18px; font-weight: 900; color: #00ff9c; white-space: nowrap; text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+              ${displaySalary}
+            </div>
+          </div>
+          
+          <!-- Підвал картки (Дата + Кнопка) -->
+          <div style="background: rgba(0,0,0,0.3); border-radius: 0 0 16px 16px; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; min-width: 0; gap: 8px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05);">
+             <div style="font-size: 11px; color: rgba(255,255,255,0.5); flex-shrink: 0; font-weight: 600;">Дата: ${job.date}</div>
+             <div style="font-size: 13px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #00b8ff, #0055ff); padding: 10px 20px; border-radius: 12px; white-space: nowrap; cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0, 184, 255, 0.4); text-transform: uppercase; letter-spacing: 0.5px;" onclick="window.open('${job.url}', '${targetAttr}'); event.stopPropagation();">${btnText}</div>
           </div>
         </div>
       `;
@@ -1744,9 +1751,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         html += '<div class="section-divider"></div>';
     }
 
-    // 2. Інтернет вакансії (Карусель)
+    // 2. Інтернет вакансії (Карусель - тепер тільки Work.ua)
     if (internetJobs.length > 0) {
-        html += '<div style="font-size:11px; color:var(--time-green); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌐 Знайдено в інтернеті</div>';
+        html += '<div style="font-size:11px; color:var(--time-green); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌐 Знайдено на Work.ua</div>';
         html += '<div class="jobs-carousel">';
         internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); });
         html += '</div>';
