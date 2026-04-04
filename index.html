@@ -1149,14 +1149,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           ${vipBadge}
           <div class="shop-tile-photo">${photoHtml}</div>
           <div class="shop-tile-cat">${safeCategory}</div>
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom: 4px; width: 100%;">
-             <div class="shop-tile-name" style="flex:1; text-align:left; min-width: 0; word-break: break-word; overflow-wrap: anywhere;">${titleHtml}</div>
-             <div style="font-size:10px; color:#74b9ff; font-weight:700; text-align:right; flex-shrink:0; max-width:45%; min-width: 0; word-break: break-word; overflow-wrap: anywhere;">📍 ${safeAddress}</div>
-          </div>
+          <div class="shop-tile-name">${titleHtml}</div>
           <div class="shop-tile-chevron">Деталі ▾</div>
           <div class="shop-details-dropdown" id="${detailsId}" onclick="event.stopPropagation()">
             <div class="shop-inner-list">
-              <div class="shop-inner-item"><span class="detail-icon">📌</span><div>Категорія: <b>${safeCategory}</b></div></div>
+              <div class="shop-inner-item"><span class="detail-icon">📍</span><div>Адреса:<br><b>${safeAddress}</b></div></div>
               <div class="shop-inner-item"><span class="detail-icon">🕒</span><div><b>Графік роботи:</b><br>${safeSchedule}</div></div>
               <div class="shop-inner-item"><span class="detail-icon">💳</span><div>Термінал: <b>${isContactless ? '✅' : '❌'}</b></div></div>
               <div class="shop-inner-item"><span class="detail-icon">📞</span><div>Телефон(и):<br>${phoneHtml}</div></div>
