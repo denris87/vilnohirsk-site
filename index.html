@@ -1229,9 +1229,23 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень у цій категорії немає</div>'; 
         return; 
     }
+
+    // --- РОЗДІЛЯЄМО НА VIP ТА ЗВИЧАЙНІ ---
+    const vipItems = items.filter(item => {
+        const v = String(item.vip || '').trim().toLowerCase();
+        return v === 'так' || v === '+' || v === 'true';
+    }).reverse(); // Новіші VIP зверху
+
+    const regularItems = items.filter(item => {
+        const v = String(item.vip || '').trim().toLowerCase();
+        return !(v === 'так' || v === '+' || v === 'true');
+    });
+
+    // Об'єднуємо: спочатку VIP, потім звичайні оголошення
+    const sortedItems = [...vipItems, ...regularItems];
     
     let html = '<div class="shops-tile-grid">';
-    items.forEach((item, i) => {
+    sortedItems.forEach((item, i) => {
       const id = 'flea-detail-' + i;
       const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">📦</span>`;
       let priceText = item.price ? String(item.price).trim() : 'Ціна договірна';
@@ -1255,8 +1269,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safeLoc = item.location;
       const safePhone = item.phone;
 
+      // --- ПЕРЕВІРКА НА VIP ДЛЯ КАРТКИ ---
+      const v = String(item.vip || '').trim().toLowerCase();
+      const isVip = v === 'так' || v === '+' || v === 'true';
+      const vipClass = isVip ? 'vip-tile' : '';
+      const vipBadge = isVip ? '<div class="vip-badge">VIP</div>' : '';
+
       html += `
-        <div class="shop-tile" onclick="toggleShop('${id}', this)">
+        <div class="shop-tile ${vipClass}" onclick="toggleShop('${id}', this)">
+          ${vipBadge}
           <div class="shop-tile-photo">${thumb}</div>
           <div class="shop-tile-cat">${safeCat}</div>
           <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width: 100%;">
@@ -1329,7 +1350,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               photos: processedPhotos, 
               category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Різне',
               condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row['condition'] || row[keys[7]] || 'Не вказано',
-              location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row['location'] || row[keys[8]] || 'Вільногірськ'
+              location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row['location'] || row[keys[8]] || 'Вільногірськ',
+              vip: row['VIP'] || row['vip'] || row['Vip'] || '' // Забираємо значення з колонки VIP
             };
           });
 
