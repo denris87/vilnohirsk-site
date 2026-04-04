@@ -17,6 +17,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <title>Smart Вільногірськ</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
@@ -81,7 +82,7 @@
 .custom-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:99999;display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.3s ease}.custom-modal-overlay.active{opacity:1;pointer-events:auto}.custom-modal-box{width:100%;max-width:400px;margin:auto;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:25px 20px;box-shadow:0 20px 50px rgba(0,0,0,0.5);transform:translateY(20px) scale(0.95);transition:transform 0.3s ease;position:relative}.custom-modal-overlay.active .custom-modal-box{transform:translateY(0) scale(1)}.close-modal-btn{position:absolute;top:15px;right:15px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;cursor:pointer}.form-title{margin:0 0 20px 0;font-size:18px;font-weight:800;text-align:center;text-transform:uppercase;color:var(--highlight-color)}.form-group{display:flex;flex-direction:column;margin-bottom:12px}.form-row{display:flex;gap:10px}.form-row .form-group{flex:1}.form-label{font-size:11px;font-weight:700;margin-bottom:5px;color:rgba(255,255,255,0.7);text-transform:uppercase}
 .form-input{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s;width:100%;max-width:100%;box-sizing:border-box;margin:0}
 input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance:none; appearance:none; display:block; width:100%; }
-.form-input:focus{border-color:var(--time-green);background:rgba(0,0,0,0.5)}.form-input::placeholder{color:rgba(255,255,255,0.3)}textarea.form-input{resize:none}select.form-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:20px;padding-right:30px}select.form-input option{background:#0b1d3a;color:#fff}input[type="file"].form-input{padding:8px;font-size:12px}.form-submit-btn{width:100%;padding:14px;margin-top:10px;border:none;border-radius:14px;font-size:15px;font-weight:800;color:#0b1d3a;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.2s}.form-submit-btn.driver{background:linear-gradient(135deg,#00ff9c,#00b8ff);box-shadow:0 4px 15px rgba(0,255,156,0.3)}.form-submit-btn.passenger{background:linear-gradient(135deg,#ffcc00,#ff8800);box-shadow:0 4px 15px rgba(255,204,0,0.3)}.form-submit-btn.flea,.form-submit-btn.lost{background:linear-gradient(135deg,#00ff9c,#00b8ff);box-shadow:0 4px 15px rgba(0,255,156,0.3)}.form-submit-btn:active{transform:translateY(2px)}
+.form-input:focus{border-color:var(--time-green);background:rgba(0,0,0,0.5)}.form-input::placeholder{color:rgba(255,255,255,0.3)}textarea.form-input{resize:none}select.form-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:20px;padding-right:30px}select.form-input option{background:#0b1d3a;color:#fff}input[type="file"].form-input{padding:8px;font-size:12px}.form-submit-btn{width:100%;padding:14px;margin-top:10px;border:none;border-radius:14px;font-size:15px;font-weight:800;color:#0b1d3a;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.2s}.form-submit-btn.driver{background:linear-gradient(135deg,#00ff9c,#00b8ff);box-shadow:0 4px 15px rgba(0,255,156,0.3)}.form-submit-btn.passenger{background:linear-gradient(135deg,#ffcc00,#ff8800);box-shadow:0 4px 15px rgba(255,204,0,0.3)}.form-submit-btn.flea,.form-submit-btn.lost,.form-submit-btn.estate{background:linear-gradient(135deg,#00ff9c,#00b8ff);box-shadow:0 4px 15px rgba(0,255,156,0.3)}.form-submit-btn:active{transform:translateY(2px)}
 .image-modal{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:100000;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:opacity 0.3s ease;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .image-modal.active{opacity:1;pointer-events:auto}
 .image-modal-slider{width:100%;height:100%;overflow:hidden;position:relative}
@@ -129,6 +130,13 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
   color: #0b1d3a;
   border-color: transparent;
   box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3);
+}
+
+#estate-categories .flea-category-tag.active {
+  background: linear-gradient(135deg, #ff9f43, #ff6b6b);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);
 }
 
 /* СТИЛІ ДЛЯ ШТОРКИ БЕТА-ТЕСТУ */
@@ -302,6 +310,54 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
   </div>
 </div>
 
+<div class="custom-modal-overlay" id="estate-modal" onclick="closeEstateForm(event)">
+  <div class="custom-modal-box" onclick="event.stopPropagation()">
+    <div class="close-modal-btn" onclick="closeEstateForm(event)">&times;</div>
+    <h3 class="form-title" style="color: #ff9f43;">🏠 Додати нерухомість</h3>
+    <form id="custom-estate-form" onsubmit="submitEstateForm(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Угода</label>
+          <select class="form-input" name="dealType" required>
+            <option value="Оренда">Оренда</option>
+            <option value="Продаж">Продаж</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Об'єкт</label>
+          <select class="form-input" name="propertyType" required>
+            <option value="Квартира">Квартира</option>
+            <option value="Будинок">Будинок</option>
+            <option value="Кімната">Кімната</option>
+            <option value="Комерція">Комерція</option>
+            <option value="Гараж">Гараж</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Кімнат</label>
+          <select class="form-input" name="rooms">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4+">4+</option>
+            <option value="-">-</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ціна (грн або $)</label>
+          <input type="text" class="form-input" name="price" placeholder="5000 грн" required>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Опис та адреса</label><textarea class="form-input" name="description" rows="3" placeholder="Деталі, район..." required></textarea></div>
+      <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
+      <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+      <button type="submit" class="form-submit-btn estate" id="estate-submit-btn" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">Опублікувати</button>
+    </form>
+  </div>
+</div>
+
 <div id="main-app-content" style="display: none; width: 100%; justify-content: center;">
   <div class="wrapper">
   <div class="container">
@@ -363,6 +419,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
     <div class="market-group">
       <div class="tabs-wrapper">
         <div class="tabs-nav" id="market-tabs">
+          <button class="tab-btn" onclick="openMarketTab('estate-tab', this)">🏠 Нерухомість<span class="notification-dot" id="dot-estate"></span></button>
           <button class="tab-btn" onclick="openMarketTab('shopping-tab', this)">🛍 Шопінг<span class="notification-dot" id="dot-shopping"></span></button>
           <button class="tab-btn" onclick="openMarketTab('flea-market-tab', this)">📦 Барахолка<span class="notification-dot" id="dot-flea"></span></button>
           <button class="tab-btn" onclick="openMarketTab('jobs-tab', this)">💼 Вакансії<span class="notification-dot" id="dot-jobs"></span></button>
@@ -372,18 +429,27 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
         <div class="scroll-hint" id="hint-market"><span>❯</span></div>
       </div>
       <div class="shopping-drawer" id="market-drawer">
+        
+        <div id="estate-tab" class="content-section">
+          <div style="padding: 10px; text-align: center;"><button onclick="openEstateForm()" style="border:none; background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">➕ Додати оголошення</button></div>
+          <div class="flea-categories-wrapper" id="estate-categories">
+            <div class="flea-category-tag active" onclick="filterEstate('Всі', this)">Всі</div>
+            <div class="flea-category-tag" onclick="filterEstate('Оренда', this)">Оренда</div>
+            <div class="flea-category-tag" onclick="filterEstate('Продаж', this)">Продаж</div>
+          </div>
+          <div id="estate-list-content"></div>
+        </div>
+
         <div id="shopping-tab" class="content-section"><div id="shopping-list-content"></div></div>
         
         <div id="flea-market-tab" class="content-section">
           <div style="padding: 10px; text-align: center;"><button onclick="openFleaForm()" style="border:none; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer;">➕ Додати оголошення</button></div>
-          
           <div class="flea-categories-wrapper" id="flea-categories">
             <div class="flea-category-tag active" onclick="filterFleaMarket('Всі', this)">Всі</div>
             <div class="flea-category-tag" onclick="filterFleaMarket('Електроніка', this)">Електроніка</div>
             <div class="flea-category-tag" onclick="filterFleaMarket('Одяг', this)">Одяг</div>
             <div class="flea-category-tag" onclick="filterFleaMarket('Інше', this)">Інше</div>
           </div>
-          
           <div id="flea-market-list-content"></div>
         </div>
         
@@ -407,6 +473,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
             Вміст оновлюється...
           </div>
         </div>
+
       </div>
     </div>
 
@@ -428,7 +495,12 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 
 <script>
 // ГЛОБАЛЬНА ЄДИНА СИЛКА ДЛЯ ВСІХ ФОРМ
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA2h1-dqdJw-jO--rQUQtIQjgvmEWsLOThpuOwjylwVRH9qyw6-hLUT00Z2tJHvJDa/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztRq8vF3XuEpY3ugrgtOL9V8_o00aMQqkpCIIQcq9K86OFXfPO0IKYfVKaAwCO-qW0/exec';
+
+// ==========================================
+// ВАЖЛИВО! ВСТАВТЕ СЮДИ ПОСИЛАННЯ (CSV) НА ВАШ НОВИЙ ЛИСТ "НЕРУХОМІСТЬ"
+// ==========================================
+const ESTATE_CSV_URL = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=622618191';
 
 const REQUIRE_TELEGRAM = false; 
 
@@ -466,6 +538,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   window.currentDataSignature = {};
   window.allFleaMarketItems = [];
+  window.allEstateItems = []; // Масив для нерухомості
 
   const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -534,6 +607,68 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; });
   }
 
+  // --- ФОРМА НЕРУХОМІСТЬ ---
+  window.openEstateForm = function() {
+    document.getElementById('custom-estate-form').reset();
+    document.getElementById('estate-modal').classList.add('active');
+  };
+
+  window.closeEstateForm = function(event) {
+    if (!event || event.target.classList.contains('close-modal-btn')) {
+      document.getElementById('estate-modal').classList.remove('active');
+    }
+  };
+
+  window.submitEstateForm = async function(event) {
+    event.preventDefault(); 
+    const submitBtn = document.getElementById('estate-submit-btn');
+    const originalBtnText = submitBtn.innerText;
+    submitBtn.innerText = 'Обробка фото...';
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.7';
+
+    try {
+      const form = document.getElementById('custom-estate-form');
+      const formData = new FormData(form);
+      const photos = document.querySelector('#custom-estate-form input[name="photos"]').files;
+      
+      let base64Photos = [];
+      if (photos.length > 5) throw new Error('Можна додати максимум 5 фото!');
+
+      for (let i = 0; i < photos.length; i++) {
+        const b64 = await compressAndGetBase64(photos[i]);
+        base64Photos.push(b64);
+      }
+
+      submitBtn.innerText = 'Збереження...';
+      const sheetData = {
+        formType: 'estate',
+        dealType: formData.get('dealType'),
+        propertyType: formData.get('propertyType'),
+        rooms: formData.get('rooms'),
+        price: formData.get('price'),
+        description: formData.get('description'),
+        phone: formData.get('phone'),
+        photosBase64: base64Photos
+      };
+
+      await fetch(APP_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(sheetData)
+      });
+
+      alert('✅ Ваше оголошення про нерухомість успішно відправлено на модерацію!');
+      closeEstateForm();
+    } catch (error) {
+      alert('❌ Помилка: ' + error.message);
+    } finally {
+      submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1';
+    }
+  };
+
+  // --- ФОРМА БАРАХОЛКА ---
   window.openFleaForm = function() {
     document.getElementById('custom-flea-form').reset();
     document.getElementById('flea-modal').classList.add('active');
@@ -1007,6 +1142,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   window.openMarketTab = function(tabId, btn) {
     try {
+      if (tabId === 'estate-tab') clearNotification('estate');
       if (tabId === 'shopping-tab') clearNotification('shopping');
       if (tabId === 'flea-market-tab') clearNotification('flea');
       if (tabId === 'lost-found-tab') clearNotification('lost');
@@ -1109,7 +1245,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array;
   }
 
-  // Функція для фільтрації об'єктів за містом
   function isVilnohirsk(str) {
     if (!str) return false;
     const lower = String(str).toLowerCase();
@@ -1164,7 +1299,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const vipBadge = isVip ? '<div class="vip-badge">VIP</div>' : '';
       const safePhotoUrl = shop.photo != null && String(shop.photo).trim() !== "" ? String(shop.photo).trim() : null;
       
-      // ГОЛОВНЕ ФОТО БЕЗ ЗУМУ
       const photoHtml = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${displayName}">` : `<span style="font-size:28px;">🛍️</span>`;
       
       const safeInsta = shop.instagram != null ? String(shop.instagram).trim() : "";
@@ -1223,6 +1357,144 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
+  // --- ЛОГІКА ДЛЯ НЕРУХОМОСТІ ---
+  window.renderEstateList = function(items) {
+    const cont = document.getElementById('estate-list-content');
+    if (!items || !items.length) { 
+        cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень у цій категорії немає</div>'; 
+        return; 
+    }
+
+    const vipItems = items.filter(item => item.isVip).reverse();
+    const regularItems = items.filter(item => !item.isVip);
+    const sortedItems = [...vipItems, ...regularItems];
+    
+    let html = '<div class="shops-tile-grid">';
+    sortedItems.forEach((item, i) => {
+      const id = 'estate-detail-' + i;
+      const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🏠</span>`;
+      
+      let allPhotosHtml = '';
+      if (item.photos.length > 0) {
+        const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos));
+        allPhotosHtml = `
+          <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
+            <img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;">
+            <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div>
+          </div>
+        `;
+      }
+
+      const safeDesc = item.description.replace(/\n/g, '<br>');
+      const vipClass = item.isVip ? 'vip-tile' : '';
+      const vipBadge = item.isVip ? '<div class="vip-badge">VIP</div>' : '';
+      const dealColor = item.dealType.toLowerCase() === 'оренда' ? '#00b8ff' : '#ff3366';
+
+      html += `
+        <div class="shop-tile ${vipClass}" onclick="toggleShop('${id}', this)">
+          ${vipBadge}
+          <div class="shop-tile-photo">${thumb}</div>
+          <div class="shop-tile-cat" style="color: ${dealColor};">${item.dealType} • ${item.propertyType}</div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width: 100%;">
+             <span style="color:#00ff9c; font-size:13px; font-weight:800; margin-bottom:0; flex-shrink:0; min-width:0; word-break: break-word;">${item.price}</span>
+             <span style="font-size:11px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0;">Кімнат: ${item.rooms}</span>
+          </div>
+          <div class="shop-tile-chevron">Деталі ▾</div>
+          <div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
+            <div class="shop-inner-list">
+              ${allPhotosHtml}
+              <div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Тип об'єкта:</b><br>${item.propertyType} (${item.dealType})</div></div>
+              <div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис та адреса:</b><br>${safeDesc}</div></div>
+              <div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Телефон:</b><br><a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a></div></div>
+            </div>
+          </div>
+        </div>`;
+    });
+    cont.innerHTML = html + '</div>';
+  };
+
+  window.filterEstate = function(category, element) {
+    document.querySelectorAll('#estate-categories .flea-category-tag').forEach(tag => {
+        tag.classList.remove('active');
+    });
+    if(element) {
+        element.classList.add('active');
+    }
+
+    if (category === 'Всі') {
+      renderEstateList(window.allEstateItems);
+    } else {
+      const filtered = window.allEstateItems.filter(item => item.dealType && item.dealType.includes(category));
+      renderEstateList(filtered);
+    }
+  };
+
+  async function loadEstateData() {
+    // ЯКЩО ПОСИЛАННЯ ЩЕ НЕ ВСТАВЛЕНО
+    if(ESTATE_CSV_URL.includes('ВСТАВТЕ_СЮДИ_ВАШЕ_ПОСИЛАННЯ')) {
+        document.getElementById('estate-list-content').innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Створіть сторінку "Нерухомість" у вашій таблиці та додайте сюди посилання.</div>';
+        return;
+    }
+
+    try {
+      const response = await fetch(ESTATE_CSV_URL);
+      if (!response.ok) throw new Error("Не вдалося завантажити таблицю нерухомості");
+      const csvText = await response.text();
+
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          const approvedItems = results.data.filter(row => {
+            const keys = Object.keys(row);
+            let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]];
+            return status && String(status).trim().toLowerCase() === 'одобрено';
+          }).map(row => {
+            const keys = Object.keys(row);
+            let rawPhoto = row['Фото'] || row['photos'] || row['Photos'] || row[keys[8]] || '';
+            let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
+            
+            let processedPhotos = photoUrls.map(url => {
+                let fileId = '';
+                if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0];
+                else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
+                return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
+            });
+
+            const v = String(row['VIP'] || row['vip'] || row[keys[9]] || '').trim().toLowerCase();
+            const isVip = v === 'так' || v === '+' || v === 'true';
+
+            return {
+              dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда',
+              propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира',
+              rooms: row["Кімнат"] || row[keys[4]] || '-',
+              price: row["Ціна"] || row[keys[5]] || 'Договірна',
+              description: row["Опис"] || row[keys[6]] || 'Без опису',
+              phone: row["Телефон"] || row[keys[7]] || 'Не вказано',
+              photos: processedPhotos, 
+              isVip: isVip
+            };
+          });
+
+          checkNotification('estate', approvedItems);
+          window.allEstateItems = approvedItems;
+          
+          const activeTag = document.querySelector('#estate-categories .flea-category-tag.active');
+          const currentCategory = activeTag ? activeTag.innerText.trim() : 'Всі';
+          
+          if(currentCategory === 'Всі') {
+              renderEstateList(approvedItems);
+          } else {
+              filterEstate(currentCategory, activeTag); 
+          }
+        }
+      });
+    } catch (e) {
+      console.error("Помилка завантаження нерухомості:", e);
+      document.getElementById('estate-list-content').innerHTML = `<div style="text-align:center; padding:20px; color:#ff4d4d; font-size:12px;">Помилка: ${e.message}</div>`;
+    }
+  }
+
   window.renderFleaMarketList = function(items) {
     const cont = document.getElementById('flea-market-list-content');
     if (!items || !items.length) { 
@@ -1230,18 +1502,16 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         return; 
     }
 
-    // --- РОЗДІЛЯЄМО НА VIP ТА ЗВИЧАЙНІ ---
     const vipItems = items.filter(item => {
         const v = String(item.vip || '').trim().toLowerCase();
         return v === 'так' || v === '+' || v === 'true';
-    }).reverse(); // Новіші VIP зверху
+    }).reverse();
 
     const regularItems = items.filter(item => {
         const v = String(item.vip || '').trim().toLowerCase();
         return !(v === 'так' || v === '+' || v === 'true');
     });
 
-    // Об'єднуємо: спочатку VIP, потім звичайні оголошення
     const sortedItems = [...vipItems, ...regularItems];
     
     let html = '<div class="shops-tile-grid">';
@@ -1269,7 +1539,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const safeLoc = item.location;
       const safePhone = item.phone;
 
-      // --- ПЕРЕВІРКА НА VIP ДЛЯ КАРТКИ ---
       const v = String(item.vip || '').trim().toLowerCase();
       const isVip = v === 'так' || v === '+' || v === 'true';
       const vipClass = isVip ? 'vip-tile' : '';
@@ -1301,7 +1570,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   };
 
   window.filterFleaMarket = function(category, element) {
-    document.querySelectorAll('.flea-category-tag').forEach(tag => tag.classList.remove('active'));
+    document.querySelectorAll('#flea-categories .flea-category-tag').forEach(tag => tag.classList.remove('active'));
     if(element) element.classList.add('active');
 
     if (category === 'Всі') {
@@ -1351,18 +1620,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Різне',
               condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row['condition'] || row[keys[7]] || 'Не вказано',
               location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row['location'] || row[keys[8]] || 'Вільногірськ',
-              vip: row['VIP'] || row['vip'] || row['Vip'] || '' // Забираємо значення з колонки VIP
+              vip: row['VIP'] || row['vip'] || row['Vip'] || '' 
             };
           });
 
-          // ФІЛЬТР: Лишаємо тільки ті оголошення, де місто Вільногірськ
           const localItems = approvedItems.filter(item => isVilnohirsk(item.location));
-
           checkNotification('flea', localItems);
-          
           window.allFleaMarketItems = localItems;
           
-          const activeTag = document.querySelector('.flea-category-tag.active');
+          const activeTag = document.querySelector('#flea-categories .flea-category-tag.active');
           const currentCategory = activeTag ? activeTag.innerText.trim() : 'Всі';
           
           if(currentCategory === 'Всі') {
@@ -1415,9 +1681,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             };
           });
 
-          // ФІЛЬТР: Лишаємо тільки ті оголошення, де місто Вільногірськ
           const localItems = approvedItems.filter(item => isVilnohirsk(item.location));
-
           checkNotification('lost', localItems);
           
           const cont = document.getElementById('lost-found-list-content');
@@ -1597,7 +1861,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     const container = document.getElementById('jobs-list-content');
     let allJobs = [];
 
-    // 1. Завантажуємо вакансії з парсера (Railway)
     try {
       const r = await fetch('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs');
       if (r.ok) {
@@ -1606,13 +1869,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           allJobs = allJobs.concat(parsedJobs);
         }
       }
-    } catch(e) {
-      console.log("Парсер вакансій поки недоступний");
-    }
+    } catch(e) {}
 
-    // 2. Завантажуємо користувацькі вакансії з Google Таблиці
     const SHEET_GID = '1809375718'; 
-    
     const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
     
     try {
@@ -1624,7 +1883,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           skipEmptyLines: true,
           complete: function(results) {
             const userJobs = results.data.filter(row => {
-              // Берем только одобренные вакансии
               const keys = Object.keys(row);
               let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]];
               return status && String(status).trim().toLowerCase() === 'одобрено';
@@ -1633,8 +1891,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               const phone = row['Телефон'] || row[keys[6]] || '';
               const gender = row['Стать'] || row['gender'] || row[keys[7]] || '';
               const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || '';
-              
-              // ПЕРЕВІРЯЄМО, ЧИ Є ВІДМІТКА VIP 
               const vipStatus = row['VIP'] || row[keys[9]] || '';
               const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
 
@@ -1648,7 +1904,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
                 gender: gender,
                 employment: employment,
                 url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#',
-                isVip: isVip 
+                isVip: isVip,
+                source: 'User'
               };
             });
             
@@ -1660,7 +1917,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         renderJobs(allJobs); 
       }
     } catch (e) {
-      console.error("Помилка завантаження таблиці вакансій:", e);
       renderJobs(allJobs);
     }
   }
@@ -1675,21 +1931,17 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     
     let html = isDemo ? '<div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; color: #ffcc00; font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 15px;">⚠️ Демонстраційний режим (Бекенд у розробці)</div>' : '';
     
-    // --- СТОП-СЛОВА ДЛЯ ВІЙСЬКОВИХ ВАКАНСІЙ ---
     const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
     
-    // Фільтруємо вакансії (видаляємо військові)
     const safeJobs = jobs.filter(job => {
         const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase();
         return !stopWords.some(word => textToSearch.includes(word));
     });
 
-    // РОЗДІЛЯЄМО МАСИВ НА ТРИ КАТЕГОРІЇ (використовуємо безпечний масив safeJobs)
     const vipJobs = safeJobs.filter(j => j.isVip || j.vip).reverse();
     const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && (j.source === 'Work.ua' || j.date === 'Work.ua'));
     const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source !== 'Work.ua' && j.date !== 'Work.ua');
     
-    // Функція генерації однієї картки (ОНОВЛЕНИЙ ДИЗАЙН)
     function createJobCardHtml(job, extraClass = '') {
       const isTel = job.url && job.url.startsWith('tel:');
       
@@ -1712,22 +1964,18 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const vipBadge = isVip ? '<div class="vip-badge" style="top:-8px; right:-8px; font-size: 12px; padding: 4px 10px;">VIP</div>' : '';
       const vipClass = isVip ? 'vip-job-card' : 'regular-job-card';
       
-      let tagsHtml = '';
       const employment = job.employment || 'Повна / Не вказано';
       const city = 'Вільногірськ';
       
-      // Створюємо картку за новим дизайном
       return `
         <div class="blabla-card ${vipClass} ${extraClass}" style="position: relative; text-align: left; background: ${isVip ? 'linear-gradient(135deg, rgba(255, 170, 0, 0.25), rgba(50, 15, 0, 0.9))' : 'linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.3))'}; border: 1px solid ${isVip ? 'rgba(255, 204, 0, 0.4)' : 'rgba(255, 255, 255, 0.1)'}; border-radius: 16px; padding: 0; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
           ${vipBadge}
           
-          <!-- Шапка картки -->
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 15px;">
             <div style="font-size: 15px; font-weight: 800; color: ${isVip ? '#ffcc00' : '#74b9ff'}; min-width: 0; word-break: break-word; line-height: 1.3;">${job.title}</div>
             <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 10px; font-size: 16px; border: 1px solid rgba(255,255,255,0.05);">💼</div>
           </div>
           
-          <!-- Тіло картки (Деталі + Зарплата) -->
           <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
             <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.8; flex: 1; min-width: 150px;">
               <div><b>Населений пункт:</b> ${city}</div>
@@ -1739,7 +1987,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             </div>
           </div>
           
-          <!-- Підвал картки (Дата + Кнопка) -->
           <div style="background: rgba(0,0,0,0.3); border-radius: 0 0 16px 16px; padding: 12px 15px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; min-width: 0; gap: 10px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05);">
              <div style="font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; margin-right: auto;">Дата: ${job.date}</div>
              <div style="font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #00b8ff, #0055ff); padding: 8px 14px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 184, 255, 0.4); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; flex-shrink: 1; word-wrap: break-word;" onclick="window.open('${job.url}', '${targetAttr}'); event.stopPropagation();">${btnText}</div>
@@ -1748,19 +1995,16 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       `;
     }
 
-    // 1. VIP Вакансії
     if (vipJobs.length > 0) {
         html += '<div class="jobs-grid">';
         vipJobs.forEach(job => { html += createJobCardHtml(job); });
         html += '</div>';
     }
 
-    // Лінія-розділювач 1
     if (vipJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) {
         html += '<div class="section-divider"></div>';
     }
 
-    // 2. Інтернет вакансії (Карусель - тепер тільки Work.ua)
     if (internetJobs.length > 0) {
         html += '<div style="font-size:11px; color:var(--time-green); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌐 Знайдено на Work.ua</div>';
         html += '<div class="jobs-carousel">';
@@ -1768,12 +2012,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         html += '</div>';
     }
 
-    // Лінія-розділювач 2
     if (internetJobs.length > 0 && regularJobs.length > 0) {
         html += '<div class="section-divider"></div>';
     }
 
-    // 3. Звичайні вакансії (Міксер)
     if (regularJobs.length > 0) {
         html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">👥 Від місцевих жителів</div>';
         html += '<div class="jobs-grid">';
@@ -1794,11 +2036,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     loadBusesData(); 
     loadShopsData(); 
     loadFleaMarketData(); 
+    loadEstateData(); 
     loadLostFoundData(); 
     loadBlaBlaCarData(); 
     loadJobsData();
     setInterval(updateDateTime, 1000); 
-    setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadShopsData(); loadFleaMarketData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); }, 30000);
+    setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); }, 30000);
 
     document.querySelectorAll('.form-input').forEach(input => {
       input.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); });
