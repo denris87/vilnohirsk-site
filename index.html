@@ -59,9 +59,9 @@
 }
 .vip-badge{position:absolute;top:-6px;right:-6px;background:linear-gradient(135deg,#ffcc00,#ff8800);color:#000;font-size:10px;font-weight:900;padding:4px 8px;border-radius:12px;box-shadow:0 4px 10px rgba(255,204,0,0.4);z-index:10;text-transform:uppercase;letter-spacing:1px;animation:vipPulse 2s infinite}
 
-/* ОНОВЛЕНІ СТИЛІ ФОТОГРАФІЙ (ПОВНЕ ЗАПОВНЕННЯ ФОТОГРАФІЄЮ) */
+/* ОНОВЛЕНІ СТИЛІ ФОТОГРАФІЙ (ФІКСОВАНИЙ РОЗМІР + БЕЗ ОБРІЗКИ) */
 .shop-tile-photo{width:100%;height:160px;border-radius:10px;background:rgba(0,0,0,0.3);display:flex;justify-content:center;align-items:center;overflow:hidden;margin-bottom:8px;border:1px solid rgba(255,255,255,0.05)}
-.shop-tile.vip-tile .shop-tile-photo{height:190px;}
+.shop-tile.vip-tile .shop-tile-photo{height:190px;} /* Збільшено на 0.5 розміру (було 160) */
 .shop-tile-photo img{width:100%;height:100%;object-fit:cover;display:block;}
 
 .shop-tile-cat{font-size:10px;color:var(--highlight-color);font-weight:800;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;word-break:break-word;overflow-wrap:anywhere;}
@@ -1223,9 +1223,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         <div class="shop-tile" onclick="toggleShop('${id}', this)">
           <div class="shop-tile-photo">${thumb}</div>
           <div class="shop-tile-cat">${safeCat}</div>
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width: 100%;">
-             <span style="color:#00ff9c; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0; flex-shrink:0; max-width:45%; min-width:0; word-break: break-word; overflow-wrap: anywhere;">${priceText}</span>
-             <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0; word-break: break-word; overflow-wrap: anywhere;">📍 ${safeLoc}</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
+             <span style="color:#00ff9c; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${priceText}</span>
+             <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
           </div>
           <div class="shop-tile-name">${safeTitle}</div>
           <div class="shop-tile-chevron">Опис ▾</div>
@@ -1385,9 +1385,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               <div class="shop-tile" onclick="toggleShop('${id}', this)">
                 <div class="shop-tile-photo">${thumb}</div>
                 <div class="shop-tile-cat">${item.category}</div>
-                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width: 100%;">
-                   <span style="color:${badgeColor}; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0; flex-shrink:0; max-width:45%; min-width:0; word-break: break-word; overflow-wrap: anywhere;">${item.type}</span>
-                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0; word-break: break-word; overflow-wrap: anywhere;">📍 ${safeLoc}</span>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
+                   <span style="color:${badgeColor}; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${item.type}</span>
+                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
                 </div>
                 <div class="shop-tile-name">${safeTitle}</div>
                 <div class="shop-tile-chevron">Опис ▾</div>
@@ -1533,7 +1533,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
     // 1. Завантажуємо вакансії з парсера (Railway)
     try {
-      const r = await fetch('https://vilnohirsk-jobs-api-production-ab59.up.railway.app/api/jobs');
+      const r = await fetch('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs');
       if (r.ok) {
         const parsedJobs = await r.json();
         if (Array.isArray(parsedJobs)) {
