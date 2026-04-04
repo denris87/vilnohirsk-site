@@ -143,6 +143,32 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 .jobs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
 @media (max-width: 768px) { .jobs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 550px) { .jobs-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/* СТИЛІ ДЛЯ СЕКЦІЙ ВАКАНСІЙ */
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  margin: 15px 0;
+}
+.jobs-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 12px;
+  padding-bottom: 10px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.jobs-carousel::-webkit-scrollbar { display: none; }
+.jobs-carousel-card {
+  flex: 0 0 85%;
+  max-width: 320px;
+  scroll-snap-align: center;
+}
+@media (min-width: 650px) {
+  .jobs-carousel-card { flex: 0 0 45%; }
+}
 </style>
 </head>
 <body>
@@ -1079,6 +1105,17 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   };
 
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array;
+  }
+
+  // Функція для фільтрації об'єктів за містом
+  function isVilnohirsk(str) {
+    if (!str) return false;
+    const lower = String(str).toLowerCase();
+    return lower.includes('вільногірськ') || lower.includes('вильногорск') || lower.includes('вільно') || lower.includes('вильно') || lower.includes('vilnohirsk');
+  }
+
   async function loadAlerts() {
     try {
       const r = await fetch('https://vilnohirsk-alerts-production.up.railway.app/api/alert'); const d = await r.json();
@@ -1163,10 +1200,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     container.innerHTML = html + '</div>';
   }
 
-  function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array;
-  }
-
   async function loadShopsData() {
     try {
       const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops');
@@ -1223,9 +1256,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         <div class="shop-tile" onclick="toggleShop('${id}', this)">
           <div class="shop-tile-photo">${thumb}</div>
           <div class="shop-tile-cat">${safeCat}</div>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
-             <span style="color:#00ff9c; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${priceText}</span>
-             <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width: 100%;">
+             <span style="color:#00ff9c; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0; flex-shrink:0; max-width:45%; min-width:0; word-break: break-word; overflow-wrap: anywhere;">${priceText}</span>
+             <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0; word-break: break-word; overflow-wrap: anywhere;">📍 ${safeLoc}</span>
           </div>
           <div class="shop-tile-name">${safeTitle}</div>
           <div class="shop-tile-chevron">Опис ▾</div>
@@ -1297,15 +1330,18 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             };
           });
 
-          checkNotification('flea', approvedItems);
+          // ФІЛЬТР: Лишаємо тільки ті оголошення, де місто Вільногірськ
+          const localItems = approvedItems.filter(item => isVilnohirsk(item.location));
+
+          checkNotification('flea', localItems);
           
-          window.allFleaMarketItems = approvedItems;
+          window.allFleaMarketItems = localItems;
           
           const activeTag = document.querySelector('.flea-category-tag.active');
           const currentCategory = activeTag ? activeTag.innerText.trim() : 'Всі';
           
           if(currentCategory === 'Всі') {
-              renderFleaMarketList(approvedItems);
+              renderFleaMarketList(localItems);
           } else {
               filterFleaMarket(currentCategory, activeTag); 
           }
@@ -1354,13 +1390,16 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             };
           });
 
-          checkNotification('lost', approvedItems);
+          // ФІЛЬТР: Лишаємо тільки ті оголошення, де місто Вільногірськ
+          const localItems = approvedItems.filter(item => isVilnohirsk(item.location));
+
+          checkNotification('lost', localItems);
           
           const cont = document.getElementById('lost-found-list-content');
-          if (!approvedItems.length) { cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень немає</div>'; return; }
+          if (!localItems.length) { cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень немає</div>'; return; }
           
           let html = '<div class="shops-tile-grid">';
-          approvedItems.reverse().forEach((item, i) => {
+          localItems.reverse().forEach((item, i) => {
             const id = 'lost-detail-' + i;
             const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`;
             const badgeColor = item.type.toLowerCase().includes('знайдено') ? '#00ff9c' : '#ff4d4d';
@@ -1385,9 +1424,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               <div class="shop-tile" onclick="toggleShop('${id}', this)">
                 <div class="shop-tile-photo">${thumb}</div>
                 <div class="shop-tile-cat">${item.category}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; gap:8px;">
-                   <span style="color:${badgeColor}; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0; white-space:nowrap; flex-shrink:0;">${item.type}</span>
-                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📍 ${safeLoc}</span>
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width: 100%;">
+                   <span style="color:${badgeColor}; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0; flex-shrink:0; max-width:45%; min-width:0; word-break: break-word; overflow-wrap: anywhere;">${item.type}</span>
+                   <span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0; word-break: break-word; overflow-wrap: anywhere;">📍 ${safeLoc}</span>
                 </div>
                 <div class="shop-tile-name">${safeTitle}</div>
                 <div class="shop-tile-chevron">Опис ▾</div>
@@ -1503,7 +1542,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     try {
       const r = await fetch('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides');
       const d = await r.json(); checkNotification('blablacar', d);
-      const dr = d.filter(x => x.type === 'driver'); const ps = d.filter(x => x.type === 'passenger');
+      
+      const dr = d.filter(x => x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
+      const ps = d.filter(x => x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
       
       document.getElementById('blabla-drivers-list').innerHTML = dr.length ? dr.map(x => `
         <div class="blabla-card">
@@ -1609,67 +1650,49 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     
     let html = isDemo ? '<div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; color: #ffcc00; font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 15px;">⚠️ Демонстраційний режим (Бекенд у розробці)</div>' : '';
     
-    html += '<div class="jobs-grid">';
+    // РОЗДІЛЯЄМО МАСИВ НА ТРИ КАТЕГОРІЇ
+    const vipJobs = jobs.filter(j => j.isVip || j.vip).reverse();
+    const internetJobs = jobs.filter(j => !j.isVip && !j.vip && (j.date === 'Work.ua' || j.date === 'Robota.ua'));
+    const regularJobs = jobs.filter(j => !j.isVip && !j.vip && j.date !== 'Work.ua' && j.date !== 'Robota.ua');
     
-    // РОЗДІЛЯЄМО МАСИВ: VIP-вакансії та звичайні.
-    const vipJobs = jobs.filter(j => j.isVip || j.vip).reverse(); // VIP залишаються зверху (новіші вище)
-    const regularJobs = jobs.filter(j => !j.isVip && !j.vip);
-    
-    // З'єднуємо так, щоб VIP ЗАВЖДИ були першими, а звичайні перемішувалися у випадковому порядку
-    const sortedJobs = [...vipJobs, ...shuffleArray(regularJobs)];
-    
-    sortedJobs.forEach(job => {
+    // Функція генерації однієї картки
+    function createJobCardHtml(job, extraClass = '') {
       const isTel = job.url && job.url.startsWith('tel:');
       
-      // Форматуємо номер, щоб він завжди починався з 0 (наприклад: 0971234567)
       let displayPhone = job.phone;
       if (displayPhone) {
-          let cleanPhone = displayPhone.replace(/\D/g, ''); // видаляємо всі не-цифри
-          if (cleanPhone.length >= 10) {
-              displayPhone = '0' + cleanPhone.slice(-9);
-          } else if (cleanPhone.length === 9) {
-              displayPhone = '0' + cleanPhone;
-          }
+          let cleanPhone = displayPhone.replace(/\D/g, ''); 
+          if (cleanPhone.length >= 10) displayPhone = '0' + cleanPhone.slice(-9);
+          else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone;
       }
 
-      // Якщо є номер телефону - показуємо його без емодзі, інакше пишемо "Деталі"
       const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Деталі 🔗');
-      const targetAttr = isTel ? '_self' : '_blank'; // Для телефонів краще _self щоб не відкривало порожню вкладку
+      const targetAttr = isTel ? '_self' : '_blank'; 
       
-      // Додаємо слово "грн" до зарплати, якщо там тільки цифри
       let displaySalary = job.salary;
       if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) {
           displaySalary = displaySalary.trim() + ' грн';
       }
 
-      // СТИЛІЗОВАНЕ ОФОРМЛЕННЯ ДЛЯ VIP
       const isVip = job.isVip || job.vip;
       const vipBadge = isVip ? '<div style="position:absolute; top:-8px; right:-8px; background:linear-gradient(135deg, #ffcc00, #ff8800); color:#000; font-size:10px; font-weight:900; padding:4px 8px; border-radius:12px; box-shadow:0 4px 10px rgba(255,204,0,0.4); text-transform:uppercase; letter-spacing:1px; z-index:10; animation:vipPulse 2s infinite;">VIP</div>' : '';
       const vipClass = isVip ? 'vip-job-card' : '';
       const bgStyle = isVip ? '' : 'background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);';
       
-      // Ліміт символів та обрізка опису (максимум 200 символів)
       let safeDesc = job.description || '';
-      if (safeDesc.length > 200) {
-          safeDesc = safeDesc.substring(0, 200) + '...';
-      }
+      if (safeDesc.length > 200) safeDesc = safeDesc.substring(0, 200) + '...';
       safeDesc = safeDesc.replace(/\n/g, '<br>');
       
-      // Теги для статі та зайнятості
       let tagsHtml = '';
       if (job.employment || (job.gender && job.gender !== 'Не має значення' && job.gender !== 'Будь-яка')) {
         tagsHtml = '<div style="display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap;">';
-        if (job.employment) {
-           tagsHtml += `<span style="background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7);">🕒 ${job.employment}</span>`;
-        }
-        if (job.gender && job.gender !== 'Не має значення' && job.gender !== 'Будь-яка') {
-           tagsHtml += `<span style="background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7);">👤 ${job.gender}</span>`;
-        }
+        if (job.employment) tagsHtml += `<span style="background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7);">🕒 ${job.employment}</span>`;
+        if (job.gender && job.gender !== 'Не має значення' && job.gender !== 'Будь-яка') tagsHtml += `<span style="background: rgba(255,255,255,0.08); padding: 4px 8px; border-radius: 8px; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.7);">👤 ${job.gender}</span>`;
         tagsHtml += '</div>';
       }
 
-      html += `
-        <div class="blabla-card ${vipClass}" style="position: relative; text-align: left; ${bgStyle} border-radius: 16px; padding: 16px; display: flex; flex-direction: column; min-width: 0; overflow: hidden; box-sizing: border-box;">
+      return `
+        <div class="blabla-card ${vipClass} ${extraClass}" style="position: relative; text-align: left; ${bgStyle} border-radius: 16px; padding: 16px; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box;">
           ${vipBadge}
           <div style="font-size: 15px; font-weight: 800; color: #ffffff; margin-bottom: 6px; line-height: 1.3; min-width: 0; word-break: break-word; overflow-wrap: anywhere;">${job.title}</div>
           <div style="font-size: 14px; font-weight: 800; color: #00ff9c; margin-bottom: 12px; min-width: 0; word-break: break-word; overflow-wrap: anywhere;">${displaySalary}</div>
@@ -1682,8 +1705,41 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           </div>
         </div>
       `;
-    });
-    html += '</div>';
+    }
+
+    // 1. VIP Вакансії
+    if (vipJobs.length > 0) {
+        html += '<div class="jobs-grid">';
+        vipJobs.forEach(job => { html += createJobCardHtml(job); });
+        html += '</div>';
+    }
+
+    // Лінія-розділювач 1
+    if (vipJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) {
+        html += '<div class="section-divider"></div>';
+    }
+
+    // 2. Інтернет вакансії (Карусель)
+    if (internetJobs.length > 0) {
+        html += '<div style="font-size:11px; color:var(--time-green); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌐 Знайдено в інтернеті</div>';
+        html += '<div class="jobs-carousel">';
+        internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); });
+        html += '</div>';
+    }
+
+    // Лінія-розділювач 2
+    if (internetJobs.length > 0 && regularJobs.length > 0) {
+        html += '<div class="section-divider"></div>';
+    }
+
+    // 3. Звичайні вакансії (Міксер)
+    if (regularJobs.length > 0) {
+        html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">👥 Від місцевих жителів</div>';
+        html += '<div class="jobs-grid">';
+        shuffleArray(regularJobs).forEach(job => { html += createJobCardHtml(job); });
+        html += '</div>';
+    }
+
     container.innerHTML = html;
   }
 
