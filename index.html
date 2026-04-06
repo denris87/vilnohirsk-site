@@ -503,9 +503,6 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 // ГЛОБАЛЬНА ЄДИНА СИЛКА ДЛЯ ВСІХ ФОРМ
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztRq8vF3XuEpY3ugrgtOL9V8_o00aMQqkpCIIQcq9K86OFXfPO0IKYfVKaAwCO-qW0/exec';
 
-// ==========================================
-// ВАЖЛИВО! ВСТАВТЕ СЮДИ ПОСИЛАННЯ (CSV) НА ВАШ НОВИЙ ЛИСТ "НЕРУХОМІСТЬ"
-// ==========================================
 const ESTATE_CSV_URL = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=622618191';
 
 const REQUIRE_TELEGRAM = false; 
@@ -544,7 +541,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   window.currentDataSignature = {};
   window.allFleaMarketItems = [];
-  window.allEstateItems = []; // Масив для нерухомості
+  window.allEstateItems = []; 
 
   const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -989,10 +986,21 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   let currentGallery = []; let currentGalleryIndex = 0; let touchStartX = 0; let touchEndX = 0;
   window.currentEventImages = [];
 
-  window.openImageModal = function(images, index, event) {
+  // ОПТИМІЗАЦІЯ БЕЗПЕКИ: Парсинг рядка всередині функції (щоб не ламалася верстка)
+  window.openImageModal = function(imagesData, index, event) {
     if (event) event.stopPropagation();
-    if (typeof images === 'string') { currentGallery = [images]; currentGalleryIndex = 0; }
-    else { currentGallery = images; currentGalleryIndex = index || 0; }
+    
+    let parsedImages = imagesData;
+    if (typeof imagesData === 'string') {
+      try {
+        parsedImages = JSON.parse(decodeURIComponent(imagesData));
+      } catch(e) {
+        parsedImages = [imagesData]; // Якщо це звичайне посилання
+      }
+    }
+
+    currentGallery = Array.isArray(parsedImages) ? parsedImages : [parsedImages];
+    currentGalleryIndex = index || 0;
     
     const track = document.getElementById('modal-image-track');
     track.innerHTML = currentGallery.map(src => `<div class="image-modal-slide" onclick="handleSlideClick(event)"><img src="${src}" alt="Фото"></div>`).join('');
@@ -1108,7 +1116,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
       const drawer = document.getElementById('alert-drawer');
       
-      // Очищаємо всі кольорові класи перед зміною
       drawer.classList.remove('drawer-events');
 
       if (btn.classList.contains('active')) { 
@@ -1117,7 +1124,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           return; 
       }
       
-      // Додаємо підсвітку ТІЛЬКИ для Афіш (як ви просили)
       if(tabId === 'alert-events') drawer.classList.add('drawer-events');
       
       document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active'));
@@ -1217,6 +1223,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       if (isEvent) {
         const photoUrl = item.photo || item.image || item.url;
         if(!photoUrl) return '';
+        // ОПТИМІЗАЦІЯ БЕЗПЕКИ: Передаємо тільки індекс
         return `<div class="alert-item" style="padding:0; background:transparent; border:none; display:flex; justify-content:center; align-items:center;">
                   <img src="${photoUrl}" style="max-width:100%; max-height:350px; object-fit:contain; border-radius:12px; box-shadow: 0 4px 15px rgba(224, 86, 253, 0.4); cursor:pointer;" alt="Афіша" onclick="openImageModal(window.currentEventImages, ${index}, event)">
                 </div>`;
@@ -1382,9 +1389,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       
       let allPhotosHtml = '';
       if (item.photos.length > 0) {
+        // ОПТИМІЗАЦІЯ БЕЗПЕКИ: безпечна передача рядка в HTML
         const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos));
         allPhotosHtml = `
-          <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
+          <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${encodedPhotos}', 0, event)">
             <img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;">
             <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div>
           </div>
@@ -1436,7 +1444,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   };
 
   async function loadEstateData() {
-    // ЯКЩО ПОСИЛАННЯ ЩЕ НЕ ВСТАВЛЕНО
     if(ESTATE_CSV_URL.includes('ВСТАВТЕ_СЮДИ_ВАШЕ_ПОСИЛАННЯ')) {
         document.getElementById('estate-list-content').innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Створіть сторінку "Нерухомість" у вашій таблиці та додайте сюди посилання.</div>';
         return;
@@ -1529,9 +1536,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       
       let allPhotosHtml = '';
       if (item.photos.length > 0) {
+        // ОПТИМІЗАЦІЯ БЕЗПЕКИ
         const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos));
         allPhotosHtml = `
-          <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
+          <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${encodedPhotos}', 0, event)">
             <img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;">
             <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div>
           </div>
@@ -1703,7 +1711,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
             if (item.photos.length > 0) {
               const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos));
               allPhotosHtml = `
-                <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)">
+                <div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal('${encodedPhotos}', 0, event)">
                   <img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;">
                   <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div>
                 </div>
@@ -2032,9 +2040,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     container.innerHTML = html;
   }
 
-  // ОПТИМІЗАЦІЯ ЗАВАНТАЖЕННЯ (LAZY LOADING)
+  // ОПТИМІЗАЦІЯ ЗАВАНТАЖЕННЯ (LAZY LOADING ТА РОЗДІЛЕННЯ ПОТОКІВ)
   window.onload = () => {
-    // 1. Негайне завантаження (Інтерфейс, час, погода)
+    // 1. Негайне завантаження
     updateDateTime(); 
     setInterval(updateDateTime, 1000); 
     loadWeather(); 
@@ -2048,7 +2056,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         loadEventsData();
     }, 600);
 
-    // 3. Низький пріоритет (Тяжкі таблиці та CSV завантажуємо через 1.5 секунди)
+    // 3. Низький пріоритет (Тяжкі таблиці завантажуємо останніми)
     setTimeout(() => {
         loadShopsData(); 
         loadFleaMarketData(); 
@@ -2058,13 +2066,27 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         loadJobsData();
     }, 1500);
 
-    // Збільшено інтервал оновлення до 60 секунд, щоб не "вішати" телефон постійними запитами
+    // 4. ОПТИМІЗОВАНІ ІНТЕРВАЛИ ОНОВЛЕННЯ
+    // 4.1 Швидкі дані (Транспорт та BlaBlaCar) - кожну 1 хвилину
     setInterval(() => { 
-        loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); 
-        loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); 
-        loadBlaBlaCarData(); loadJobsData(); 
+        loadTrainsData(); 
+        loadLongTrainsData(); 
+        loadBlaBlaCarData(); 
     }, 60000);
 
+    // 4.2 Важкі дані (Всі CSV-таблиці та Афіші) - кожні 5 хвилин
+    // Це зберігає батарею, трафік і рятує від помилки Google "Too Many Requests"
+    setInterval(() => {
+        loadAlerts();
+        loadEventsData();
+        loadShopsData();
+        loadFleaMarketData();
+        loadEstateData();
+        loadLostFoundData();
+        loadJobsData();
+    }, 300000);
+
+    // Плавний скрол при натисканні на поля вводу
     document.querySelectorAll('.form-input').forEach(input => {
       input.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); });
     });
