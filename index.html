@@ -213,6 +213,8 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 @keyframes eq-5 { 0%, 100% { height: 4px; } 35% { height: 100%; } 65% { height: 30%; } 85% { height: 70%; } }
 
 /* СТИЛІ ДЛЯ СЕКЦІЙ ВАКАНСІЙ */
+.workua-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease; }
+.workua-drawer.open { max-height: 2000px; opacity: 1; margin-top: 10px; }
 .section-divider {
   width: 100%;
   height: 1px;
@@ -1622,10 +1624,21 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
 
     if (internetJobs.length > 0) {
-        html += '<div style="font-size:11px; color:var(--time-green); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌐 Знайдено на Work.ua</div>';
-        html += '<div class="jobs-carousel">';
+        html += `
+        <div style="margin-bottom: 10px;">
+            <button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                <span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span>
+                <span class="arr" style="font-size:16px;">▾</span>
+            </button>
+            <div id="workua-drawer" class="workua-drawer">
+                <div class="jobs-carousel">
+        `;
         internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); });
-        html += '</div>';
+        html += `
+                </div>
+            </div>
+        </div>
+        `;
     }
 
     if (internetJobs.length > 0 && regularJobs.length > 0) {
