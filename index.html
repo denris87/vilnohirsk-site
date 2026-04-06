@@ -595,20 +595,20 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
     </div>
 
     <!-- БЛОК ВІДГУКІВ БЕТА-ТЕСТУ ТА КНОПКА ГАЙДУ -->
-    <div style="display: flex; gap: 10px; align-items: stretch;">
+    <div style="display: flex; gap: 8px; align-items: stretch;">
       <!-- Кнопка виклику Гайду -->
-      <div class="liquid-glass" style="flex: 0 0 auto; display: flex; align-items: center; justify-content: center; padding: 0 15px; cursor: pointer; border: 1px solid rgba(255, 204, 0, 0.3); background: rgba(255, 204, 0, 0.05);" onclick="openGuide()">
-        <div style="text-align: center; color: #ffcc00; font-size: 24px; font-weight: 900; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">❓</div>
+      <div class="liquid-glass" style="flex: 0 0 55px; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; border: 1px solid rgba(255, 204, 0, 0.3); background: rgba(255, 204, 0, 0.05); border-radius: 24px;" onclick="openGuide()">
+        <div style="text-align: center; color: #ffcc00; font-size: 22px; font-weight: 900; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">❓</div>
       </div>
       
       <!-- Блок відгуків -->
-      <div class="liquid-glass" style="flex: 1; padding: 15px; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05);" onclick="document.getElementById('beta-drawer').classList.toggle('open')">
-        <div style="font-size: 13px; font-weight: 600; color: #fff; line-height: 1.4;">
-          Якщо ви бачите це повідомлення, то вітаю, ви потрапили до бета-тестування. Свої перші враження залиште тут. <span style="color: var(--time-green);">▾</span>
+      <div class="liquid-glass" style="flex: 1; padding: 12px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="document.getElementById('beta-drawer').classList.toggle('open')">
+        <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">
+          👋 Бета-версія. Залиште свої враження чи пропозиції тут <span style="color: var(--time-green); font-size: 14px; vertical-align: middle;">▾</span>
         </div>
         <div class="beta-drawer" id="beta-drawer" onclick="event.stopPropagation()">
-          <textarea class="form-input" id="beta-feedback-text" rows="3" placeholder="Напишіть ваші враження чи пропозиції..." style="margin-bottom: 10px;"></textarea>
-          <button class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); margin-top: 0;" onclick="submitBetaFeedback(event)">Відправити відгук</button>
+          <textarea class="form-input" id="beta-feedback-text" rows="2" placeholder="Що можна покращити? Напишіть нам..." style="margin-bottom: 8px; font-size: 12px; padding: 10px;"></textarea>
+          <button class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); margin-top: 0; padding: 10px; font-size: 13px;" onclick="submitBetaFeedback(event)">Відправити</button>
         </div>
       </div>
     </div>
