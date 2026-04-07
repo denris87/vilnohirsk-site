@@ -24,18 +24,21 @@
 
 <title>Smart Вільногірськ</title>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- Додано async, щоб блокування Telegram не ламало весь сайт -->
+<script src="https://telegram.org/js/telegram-web-app.js" async></script>
 <!-- Defer для PapaParse, щоб не блокувати відображення сторінки -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
 
 <style>
 :root{--highlight-color:#ffcc00;--glass-bg:rgba(0,0,0,0.45);--glass-border:rgba(255,255,255,0.08);--glass-border-light:rgba(255,255,255,0.15);--glass-shadow:0 16px 40px rgba(0,0,0,0.3);--time-green:#00ff9c;--time-passed:rgba(255,255,255,0.4)}html,body{margin:0;padding:0;min-height:100vh}*{-webkit-user-select:none;user-select:none;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}body{color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background:linear-gradient(-45deg,#1e3c72,#2a5298,#009ffd,#2af598,#009ffd);background-size:300% 300%;animation:gradientMove 30s ease-in-out infinite alternate}@keyframes gradientMove{0%{background-position:0% 50%}100%{background-position:100% 50%}}.wrapper{width:100%;max-width:900px;padding:15px;padding-bottom:20px}.container{display:flex;flex-direction:column;gap:15px}.liquid-glass{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-border);border-top:1px solid var(--glass-border-light);border-left:1px solid var(--glass-border-light);box-shadow:var(--glass-shadow);border-radius:28px}.alert-main-widget{padding:0;border-radius:28px;position:relative;z-index:100}
 
-/* Адаптивні абсолютні шторки з внутрішньою прокруткою */
-.alert-drawer{position:absolute;top:calc(100% + 10px);left:0;width:100%;max-height:0;overflow-y:auto;opacity:0;pointer-events:none;transition:all 0.5s cubic-bezier(0.25,1,0.5,1);background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 30px 60px rgba(0,0,0,0.8);border-radius:24px;z-index:100}
-.alert-drawer.open{max-height:70vh;opacity:1;padding:15px;pointer-events:auto}
-.main-list-widget{position:absolute;top:calc(100% + 10px);left:0;width:100%;max-height:0;overflow-y:auto;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.5s ease-in-out,opacity 0.3s ease,padding 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 30px 60px rgba(0,0,0,0.8);border-radius:24px;z-index:95}
-.main-list-widget.open{max-height:75vh;opacity:1;visibility:visible;pointer-events:auto;padding:20px 10px}
+/* Відносні шторки (без внутрішньої прокрутки, тягнуть сторінку вниз) */
+.alert-drawer{position:relative;width:100%;max-height:0;overflow:hidden;opacity:0;pointer-events:none;transition:max-height 0.5s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 15px 35px rgba(0,0,0,0.4);border-radius:24px;z-index:90;margin-top:0;box-sizing:border-box}
+.alert-drawer.open{max-height:2500px;opacity:1;padding:15px;margin-top:10px;pointer-events:auto}
+.main-list-widget{position:relative;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.5s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 15px 35px rgba(0,0,0,0.4);border-radius:24px;z-index:90;margin-top:0;box-sizing:border-box}
+.main-list-widget.open{max-height:5000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 10px;margin-top:10px}
+.shopping-drawer{position:relative;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.5s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 15px 35px rgba(0,0,0,0.4);border-radius:24px;z-index:90;margin-top:0;box-sizing:border-box}
+.shopping-drawer.open{max-height:8000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 15px;margin-top:10px}
 
 .tab-alert{padding:14px 8px;border-radius:12px;font-weight:800;font-size:clamp(10px,3.2vw,14px);text-align:center;cursor:pointer;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.05);transition:transform 0.2s,box-shadow 0.2s,background 0.3s;text-transform:uppercase;letter-spacing:0.5px;color:#fff;position:relative;display:flex;justify-content:center;align-items:center;line-height:1.2}
 
@@ -45,7 +48,17 @@
 .tab-alert.events{color:#FF3366;border-bottom:3px solid #FF3366;background:linear-gradient(145deg,rgba(255,51,102,0.15),rgba(10,15,30,0.95));text-shadow:0 0 5px rgba(255,51,102,0.6);animation:neonPulse 2s infinite alternate}.tab-alert.events.active{background:rgba(255,51,102,0.3);box-shadow:0 0 15px rgba(255,51,102,0.8);color:#fff}
 @keyframes neonPulse{0%{box-shadow:0 0 5px rgba(255,51,102,0.1)}100%{box-shadow:0 0 12px rgba(255,51,102,0.5)}}
 
-.notification-dot{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;display:none;z-index:10}.train-alert-dot{position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;z-index:5}.carousel-wrapper{width:100%;position:relative}.carousel-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:15px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding-bottom:5px;align-items:center}.carousel-container::-webkit-scrollbar{display:none}.alert-item{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:15px;flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box}.alert-card-title{font-size:15px;font-weight:800;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px}.alert-card-text{font-size:14px;font-weight:500;line-height:1.5;text-align:left;color:rgba(255,255,255,0.9)}.alert-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.5);padding:15px;font-weight:600}.carousel-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px}.carousel-dot{width:8px;height:8px;border-radius:50%;transition:background 0.3s,transform 0.3s}.carousel-dot.active{transform:scale(1.3)}.top-row{display:flex;flex-direction:row;justify-content:space-between;gap:12px;width:100%}.widget{padding:15px 10px;flex:1;min-height:125px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;position:relative}.widget::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(to bottom,rgba(255,255,255,0.08),transparent);border-radius:28px 28px 0 0;pointer-events:none}.datetime{text-align:center;width:100%}#date{font-size:clamp(18px,4.8vw,24px);font-weight:800;white-space:nowrap;letter-spacing:0.5px}#time{font-size:clamp(16px,4.2vw,20px);font-weight:700;white-space:nowrap;color:#fff;font-variant-numeric:tabular-nums}.weekdays{display:flex;justify-content:center;gap:3px;font-size:clamp(9px,2.3vw,12px);font-weight:700;margin:6px 0;text-transform:uppercase;width:100%;padding:0 5px}.day{color:rgba(255,255,255,0.4);transition:0.3s ease}.day.active{background-color:#ff4d4d !important;color:#fff !important;border-radius:6px;padding:2px 5px;box-shadow:0 0 10px rgba(255,77,77,0.4)}
+.notification-dot{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;display:none;z-index:10}.train-alert-dot{position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;z-index:5}.carousel-wrapper{width:100%;position:relative}.carousel-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:15px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding-bottom:5px;align-items:center}.carousel-container::-webkit-scrollbar{display:none}
+
+/* ОБМЕЖЕННЯ ВИСОТИ ДЛЯ ІНФОРМЕРА З ВНУТРІШНІМ СКРОЛОМ */
+.alert-item{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:15px;flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;max-height:350px;display:flex;flex-direction:column}
+.alert-card-title{font-size:15px;font-weight:800;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px;flex-shrink:0}
+.alert-card-text{font-size:14px;font-weight:500;line-height:1.5;text-align:left;color:rgba(255,255,255,0.9);overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.3) transparent}
+.alert-card-text::-webkit-scrollbar{width:4px}
+.alert-card-text::-webkit-scrollbar-track{background:transparent}
+.alert-card-text::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.3);border-radius:4px}
+
+.alert-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.5);padding:15px;font-weight:600}.carousel-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px}.carousel-dot{width:8px;height:8px;border-radius:50%;transition:background 0.3s,transform 0.3s}.carousel-dot.active{transform:scale(1.3)}.top-row{display:flex;flex-direction:row;justify-content:space-between;gap:12px;width:100%}.widget{padding:15px 10px;flex:1;min-height:125px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;position:relative}.widget::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(to bottom,rgba(255,255,255,0.08),transparent);border-radius:28px 28px 0 0;pointer-events:none}.datetime{text-align:center;width:100%}#date{font-size:clamp(18px,4.8vw,24px);font-weight:800;white-space:nowrap;letter-spacing:0.5px}#time{font-size:clamp(16px,4.2vw,20px);font-weight:700;white-space:nowrap;color:#fff;font-variant-numeric:tabular-nums}.weekdays{display:flex;justify-content:center;gap:3px;font-size:clamp(9px,2.3vw,12px);font-weight:700;margin:6px 0;text-transform:uppercase;width:100%;padding:0 5px}.day{color:rgba(255,255,255,0.4);transition:0.3s ease}.day.active{background-color:#ff4d4d !important;color:#fff !important;border-radius:6px;padding:2px 5px;box-shadow:0 0 10px rgba(255,77,77,0.4)}
 
 /* ОНОВЛЕНІ СТИЛІ ПОГОДИ (ЗГІДНО МАКЕТУ) */
 .weather-box { position:relative; width:100%; display:flex; align-items:center; justify-content:center; flex: 1; }
@@ -59,9 +72,6 @@
 
 .schedule-group,.market-group{display:flex;flex-direction:column;gap:8px;position:relative;z-index:90;width:100%}.market-group{z-index:80}.tabs-wrapper{position:relative;width:100%;border-radius:20px;display:flex;overflow:hidden}.tabs-nav{display:flex;flex-wrap:nowrap;width:100%;padding:6px;gap:8px;background:var(--glass-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;position:relative;z-index:2;box-shadow:inset 0 2px 10px rgba(0,0,0,0.4),0 4px 15px rgba(0,0,0,0.2);border:1px solid var(--glass-border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.tabs-nav::-webkit-scrollbar{display:none}.scroll-hint{position:absolute;right:0;top:0;bottom:0;width:45px;display:flex;align-items:center;justify-content:flex-end;padding-right:12px;background:linear-gradient(to right,rgba(0,0,0,0),rgba(0,0,0,0.9));border-radius:0 20px 20px 0;pointer-events:none;opacity:1;transition:opacity 0.4s ease;z-index:5}.scroll-hint.hidden{opacity:0}.scroll-hint span{color:var(--highlight-color);font-size:16px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,0.8);animation:blinkArrow 1.5s infinite}@keyframes blinkArrow{0%,100%{transform:translateX(0);opacity:0.3}50%{transform:translateX(4px);opacity:1}}.tab-btn{flex:0 0 auto;padding:10px 14px;border:1px solid rgba(255,255,255,0.1);background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.25));box-shadow:2px 4px 8px rgba(0,0,0,0.2),inset 1px 1px 2px rgba(255,255,255,0.15);color:#fff;opacity:0.9;font-weight:700;cursor:pointer;border-radius:12px;transition:all 0.3s ease;font-size:clamp(11px,3.2vw,13px);white-space:nowrap;position:relative}.tab-btn.active{background:linear-gradient(145deg,rgba(255,255,255,0.3),rgba(255,255,255,0.1));color:#fff;opacity:1;border:1px solid rgba(255,255,255,0.3);text-shadow:0 1px 4px rgba(0,0,0,0.8);box-shadow:0 4px 12px rgba(0,0,0,0.4),inset 1px 1px 3px rgba(255,255,255,0.4);transform:translateY(-1px)}.content-section{display:none}.content-section.active{display:block;animation:tabFadeIn 0.3s ease-out forwards}@keyframes tabFadeIn{from{opacity:0}to{opacity:1}}
 .table-head{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.15);padding:0 10px 10px 10px;margin-bottom:12px;font-size:10px;text-transform:uppercase;color:#74b9ff;letter-spacing:0.5px}.train{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;padding:14px 10px;margin-bottom:10px;cursor:pointer;transition:all 0.3s ease;border-radius:16px;min-height:60px;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05)}.train:hover{background:linear-gradient(145deg,rgba(255,255,255,0.08),rgba(0,0,0,0.3));transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3),inset 0 1px 1px rgba(255,255,255,0.15)}.train:active{transform:translateY(1px);box-shadow:0 2px 5px rgba(0,0,0,0.2),inset 0 2px 4px rgba(0,0,0,0.3)}.train:last-child{margin-bottom:0}.train-num-box{position:relative;font-weight:800;display:inline-block;font-size:clamp(10px,2.8vw,12px);background:rgba(255,255,255,0.1);padding:4px 6px;border-radius:8px}.route-text{font-weight:700;color:#fff;text-align:center;font-size:clamp(9px,2.7vw,14px);width:100%;padding:0 5px;text-shadow:0 1px 4px rgba(0,0,0,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.time-val{font-weight:800;font-size:clamp(12px,3.2vw,15px);font-variant-numeric:tabular-nums}.time-val.soon{color:var(--highlight-color)}.time-val.future{color:var(--time-green)}.time-val.passed{color:var(--time-passed)}.details{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;background:rgba(0,0,0,0.25);border-radius:16px}.details.open{max-height:5000px;opacity:1;padding:15px;margin-top:2px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05)}.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.bus-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:600px){.schedule-grid,.bus-grid{grid-template-columns:1fr}}@media (max-width:550px){.top-row{flex-wrap:wrap}.widget{min-width:45%}}.schedule-column{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:10px 8px}.schedule-row{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;align-items:center;gap:10px;text-align:left}.schedule-row:last-child{border-bottom:none}.schedule-left{flex:1;display:flex;align-items:flex-start;text-align:left;line-height:1.2;font-weight:500}.station-number{color:rgba(255,255,255,0.3);font-weight:600;margin-right:6px;font-size:10px;min-width:18px;text-align:right;padding-top:2px}.station-name-text{flex:1;word-wrap:break-word}.row-highlight{background:rgba(255,255,255,0.1) !important;color:var(--highlight-color) !important;font-weight:800;border-radius:6px;box-shadow:inset 0 1px 2px rgba(255,255,255,0.1)}.time-green{color:var(--time-green);font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}.time-passed{color:var(--time-passed);font-weight:500;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}.time-normal{color:#fff;font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}.details-note{text-align:center;font-weight:600;color:#ff6b6b;margin-bottom:10px;font-size:12px;line-height:1.5;background:rgba(255,107,107,0.1);padding:10px;border-radius:10px}.details-divider{width:50%;height:1px;background:rgba(255,255,255,0.1);margin:20px auto 15px}
-
-.shopping-drawer{position:absolute;top:calc(100% + 10px);left:0;width:100%;max-height:0;overflow-y:auto;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.5s ease-in-out,opacity 0.3s ease,padding 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 30px 60px rgba(0,0,0,0.8);border-radius:24px;z-index:100}
-.shopping-drawer.open{max-height:75vh;opacity:1;visibility:visible;pointer-events:auto;padding:20px 15px}
 
 /* ОНОВЛЕНА СІТКА З ЖОРСТКИМ ОБМЕЖЕННЯМ minmax(0, 1fr) - ЦЕ ЗАПОБІГАЄ РОЗРИВУ ЕКРАНУ */
 .shops-tile-grid{display:grid;grid-template-columns:repeat(2,minmax(0, 1fr));gap:12px;align-items:stretch;grid-auto-flow:dense;transition:padding-bottom 0.3s ease}
@@ -115,8 +125,10 @@
 .form-input{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s;width:100%;max-width:100%;box-sizing:border-box;margin:0}
 input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance:none; appearance:none; display:block; width:100%; }
 .form-input:focus{border-color:var(--time-green);background:rgba(0,0,0,0.5)}.form-input::placeholder{color:rgba(255,255,255,0.3)}textarea.form-input{resize:none}select.form-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:20px;padding-right:30px}select.form-input option{background:#0b1d3a;color:#fff}input[type="file"].form-input{padding:8px;font-size:12px}.form-submit-btn{width:100%;padding:14px;margin-top:10px;border:none;border-radius:14px;font-size:15px;font-weight:800;color:#0b1d3a;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.2s}.form-submit-btn.driver{background:linear-gradient(135deg,#00ff9c,#00b8ff);box-shadow:0 4px 15px rgba(0,255,156,0.3)}.form-submit-btn.passenger{background:linear-gradient(135deg,#ffcc00,#ff8800);box-shadow:0 4px 15px rgba(255,204,0,0.3)}.form-submit-btn.flea,.form-submit-btn.lost,.form-submit-btn.estate{background:linear-gradient(135deg,#00ff9c,#00b8ff);box-shadow:0 4px 15px rgba(0,255,156,0.3)}.form-submit-btn:active{transform:translateY(2px)}
-.image-modal{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:100000;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:opacity 0.3s ease;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.image-modal.active{opacity:1;pointer-events:auto}
+
+/* Оптимізована модалка для фото: без backdrop-filter для плавності */
+.image-modal{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.98);z-index:100000;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:opacity 0.3s ease}
+.image-modal.active{opacity:1;pointer-events:auto;touch-action:none}
 .image-modal-slider{width:100%;height:100%;overflow:hidden;position:relative}
 .image-modal-track{display:flex;width:100%;height:100%;transition:transform 0.3s cubic-bezier(0.25,1,0.5,1);will-change:transform}
 .image-modal-slide{flex:0 0 100%;width:100%;height:100%;display:flex;justify-content:center;align-items:center;position:relative}
@@ -473,19 +485,22 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
   </div>
 </div>
 
-<div id="main-app-content" style="display: none; width: 100%; justify-content: center;">
+<!-- Виправив display:none на display:flex для миттєвої відмальовки при повільному JS -->
+<div id="main-app-content" style="display: flex; width: 100%; justify-content: center;">
   <div class="wrapper">
   <div class="container">
 
-    <div class="alert-main-widget liquid-glass" style="padding: 15px;">
-        <div id="alert-tabs" style="display: flex; flex-direction: column; gap: 8px;">
-            <div class="tab-alert news" onclick="openAlertTab('alert-news', this)" style="width: 100%;">Міські новини<span class="notification-dot" id="dot-news"></span></div>
-            <div style="display: flex; gap: 8px; width: 100%;">
-                <div class="tab-alert communal" onclick="openAlertTab('alert-communal', this)" style="flex: 1;">Комунальний інформер<span class="notification-dot" id="dot-communal"></span></div>
-                <div class="tab-alert events" onclick="openAlertTab('alert-events', this)" style="flex: 1;">АФІШІ<span class="notification-dot" id="dot-events"></span></div>
+    <div class="alert-group" style="display: flex; flex-direction: column; width: 100%;">
+        <div class="alert-main-widget liquid-glass" style="padding: 15px;">
+            <div id="alert-tabs" style="display: flex; flex-direction: column; gap: 8px;">
+                <div class="tab-alert news" onclick="openAlertTab('alert-news', this)" style="width: 100%;">Міські новини<span class="notification-dot" id="dot-news"></span></div>
+                <div style="display: flex; gap: 8px; width: 100%;">
+                    <div class="tab-alert communal" onclick="openAlertTab('alert-communal', this)" style="flex: 1;">Комунальний інформер<span class="notification-dot" id="dot-communal"></span></div>
+                    <div class="tab-alert events" onclick="openAlertTab('alert-events', this)" style="flex: 1;">АФІШІ<span class="notification-dot" id="dot-events"></span></div>
+                </div>
             </div>
         </div>
-        <div class="alert-drawer" id="alert-drawer" style="margin-top: 10px;">
+        <div class="alert-drawer" id="alert-drawer">
             <div id="alert-communal" class="content-section"><div id="alert-communal-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
             <div id="alert-news" class="content-section"><div id="alert-news-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
             <div id="alert-events" class="content-section"><div id="alert-events-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
@@ -526,7 +541,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 
     <div class="top-row">
       <div class="widget liquid-glass" style="justify-content: center;">
-        <div class="datetime"><div id="date"></div><div class="weekdays"><div class="day">пн</div><div class="day">вт</div><div class="day">ср</div><div class="day">чт</div><div class="day">пт</div><div class="day">сб</div><div class="day">нд</div></div><div id="time"></div></div>
+        <div class="datetime"><div id="date"></div><div class="weekdays"><div class="day">пн</div><div class="day">вт</div><div class="day">ср</div><div class="day">нд</div><div class="day">нд</div><div class="day">нд</div><div class="day">нд</div></div><div id="time"></div></div>
       </div>
       <div class="widget liquid-glass" style="padding: 15px 12px; justify-content: space-between; display: flex; flex-direction: column;">
         <div class="weather-box" id="weather-container" style="flex: 1; display: flex; align-items: center; min-height: 85px;"></div>
@@ -676,8 +691,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-app-content').style.display = 'none';
 } else {
+  // Видалено display: none -> flex, оскільки flex тепер задано в HTML по замовчуванню
   document.getElementById('auth-screen').style.display = 'none';
-  document.getElementById('main-app-content').style.display = 'flex'; 
 
   if (tg && tg.expand) { tg.expand(); }
 
@@ -981,7 +996,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     setTimeout(() => { track.style.transition = 'transform 0.3s cubic-bezier(0.25,1,0.5,1)'; }, 50);
   };
   window.updateModalImage = function() {
-     const track = document.getElementById('modal-image-track'); if (track) track.style.transform = `translateX(-${currentGalleryIndex * 100}%)`;
+     const track = document.getElementById('modal-image-track'); if (track) track.style.transform = `translate3d(-${currentGalleryIndex * 100}%, 0, 0)`;
      const counter = document.getElementById('modal-image-counter');
      if (currentGallery.length > 1) { counter.style.display = 'block'; counter.innerText = `${currentGalleryIndex + 1} з ${currentGallery.length}`; } else { counter.style.display = 'none'; }
   };
@@ -989,7 +1004,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   window.prevModalImage = function() { if (currentGallery.length <= 1 || currentGalleryIndex === 0) return; currentGalleryIndex--; updateModalImage(); };
   window.nextModalImage = function() { if (currentGallery.length <= 1 || currentGalleryIndex === currentGallery.length - 1) return; currentGalleryIndex++; updateModalImage(); };
   window.handleTouchStart = function(e) { touchStartX = e.touches[0].clientX; const track = document.getElementById('modal-image-track'); if(track) track.style.transition = 'none'; };
-  window.handleTouchMove = function(e) { if (currentGallery.length <= 1) return; const diffX = e.touches[0].clientX - touchStartX; const track = document.getElementById('modal-image-track'); if(track) track.style.transform = `translateX(calc(-${currentGalleryIndex * 100}% + ${diffX}px))`; };
+  window.handleTouchMove = function(e) { if (currentGallery.length <= 1) return; const diffX = e.touches[0].clientX - touchStartX; const track = document.getElementById('modal-image-track'); if(track) track.style.transform = `translate3d(calc(-${currentGalleryIndex * 100}% + ${diffX}px), 0, 0)`; };
   window.handleTouchEnd = function(e) {
     touchEndX = e.changedTouches[0].clientX; const track = document.getElementById('modal-image-track'); if(track) track.style.transition = 'transform 0.3s cubic-bezier(0.25,1,0.5,1)';
     if (currentGallery.length <= 1) return;
@@ -999,7 +1014,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   document.addEventListener('click', function(e) {
     if (e.target.closest('.image-modal') || e.target.closest('.custom-modal-box')) return;
-    if (!e.target.closest('.alert-main-widget')) { const alertDrawer = document.getElementById('alert-drawer'); if (alertDrawer) { alertDrawer.classList.remove('open'); document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active')); } }
+    
+    if (!e.target.closest('.alert-group')) { const alertDrawer = document.getElementById('alert-drawer'); if (alertDrawer) { alertDrawer.classList.remove('open'); document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active')); } }
     if (!e.target.closest('.train') && !e.target.closest('.details') && !e.target.closest('.pb-category')) { document.querySelectorAll('.details.open').forEach(el => el.classList.remove('open')); document.querySelectorAll('.pb-category.open').forEach(el => el.classList.remove('open')); }
     if (!e.target.closest('.shop-tile')) { closeAllShopDropdowns(); }
     if (!e.target.closest('.schedule-group')) { const transportWidget = document.getElementById('main-list-widget'); if (transportWidget) transportWidget.classList.remove('open'); document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active')); }
@@ -1753,23 +1769,29 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       }
   };
 
-  // ОПТИМІЗАЦІЯ ЗАВАНТАЖЕННЯ (LAZY LOADING)
-  window.onload = () => {
+  // ОПТИМІЗОВАНЕ ЗАВАНТАЖЕННЯ (не залежить від window.onload)
+  const initApp = () => {
+    if (REQUIRE_TELEGRAM && !isInsideTelegram) {
+       document.getElementById('auth-screen').style.display = 'flex';
+       document.getElementById('main-app-content').style.display = 'none';
+       return;
+    }
+
     // 1. Негайне завантаження (Інтерфейс, час, погода)
     updateDateTime(); 
     setInterval(updateDateTime, 1000); 
     loadWeather(); 
     loadAlerts(); 
 
-    // 2. Середній пріоритет (Завантажуємо транспорт через півсекунди)
+    // 2. Середній пріоритет (Завантажуємо транспорт через мілісекунди, щоб інтерфейс не підвисав)
     setTimeout(() => {
         loadTrainsData(); 
         loadLongTrainsData(); 
         loadBusesData(); 
         loadEventsData();
-    }, 600);
+    }, 100);
 
-    // 3. Низький пріоритет (Тяжкі таблиці та CSV завантажуємо через 1.5 секунди)
+    // 3. Низький пріоритет (Тяжкі таблиці та CSV)
     setTimeout(() => {
         loadShopsData(); 
         loadFleaMarketData(); 
@@ -1777,8 +1799,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         loadLostFoundData(); 
         loadBlaBlaCarData(); 
         loadJobsData();
-        loadPhonebookData(); // ЗАВАНТАЖЕННЯ ДОВІДНИКА
-    }, 1500);
+        loadPhonebookData();
+    }, 600);
 
     // ПЕРЕВІРКА І ПОКАЗ НАВЧАЛЬНОГО ГАЙДУ
     checkGuideOnLoad();
@@ -1793,6 +1815,13 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       input.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); });
     });
   };
+
+  // Запуск ініціалізації щойно DOM готовий, не чекаючи підвантаження зовнішніх картинок чи повільних скриптів
+  if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+      initApp();
+  }
 }
 </script>
 </body>
