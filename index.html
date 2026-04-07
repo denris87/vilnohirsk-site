@@ -1054,9 +1054,32 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   }
 
   async function loadWeather(){
-    const coords = [{name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {name: 'Дніпро', lat: 48.45, lon: 34.98}]; let results = [];
-    for(let c of coords){ try { const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current_weather=true&timezone=Europe%2FKyiv`); const d = await r.json(); results.push({name: c.name, w: d.current_weather}); } catch(e) {} }
-    const container = document.getElementById("weather-container"); if(results.length === 0) return;
+    const coords = [{name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {name: 'Дніпро', lat: 48.45, lon: 34.98}]; 
+    let results = [];
+    
+    for(let c of coords){ 
+      try { 
+        // Використовуємо новий сучасний формат Open-Meteo API
+        const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FKyiv`); 
+        if (!r.ok) throw new Error('Помилка API');
+        const d = await r.json(); 
+        
+        if (d && d.current) {
+          results.push({
+            name: c.name, 
+            w: { temperature: d.current.temperature_2m, weathercode: d.current.weather_code, windspeed: d.current.wind_speed_10m }
+          });
+        } else if (d && d.current_weather) {
+          results.push({name: c.name, w: d.current_weather});
+        }
+      } catch(e) { console.error("Weather error:", e); } 
+    }
+    
+    const container = document.getElementById("weather-container"); 
+    if(results.length === 0) {
+      container.innerHTML = '<div style="font-size:11px; opacity:0.5; font-weight:600;">Дані погоди тимчасово недоступні ☁️</div>';
+      return;
+    }
     
     container.innerHTML = results.map((item, index) => `
       <div class="weather-content ${index === 0 ? 'active' : ''}" style="width: 100%;">
@@ -1069,8 +1092,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       </div>
     `).join("");
     
+    if (window.weatherInterval) clearInterval(window.weatherInterval);
     let currentIndex = 0;
-    setInterval(() => { const slides = document.querySelectorAll('.weather-content'); if(slides.length < 2) return; slides[currentIndex].classList.remove('active'); currentIndex = (currentIndex + 1) % slides.length; slides[currentIndex].classList.add('active'); }, 7000); 
+    window.weatherInterval = setInterval(() => { 
+      const slides = container.querySelectorAll('.weather-content'); 
+      if(slides.length < 2) return; 
+      slides[currentIndex].classList.remove('active'); 
+      currentIndex = (currentIndex + 1) % slides.length; 
+      slides[currentIndex].classList.add('active'); 
+    }, 7000); 
   }
 
   function updateDateTime(){
