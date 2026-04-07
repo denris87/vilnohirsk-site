@@ -588,15 +588,15 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
           <div style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto;"></div>
           
           <!-- КУРС ВАЛЮТ -->
-          <div id="exchange-rates" style="display:flex; flex-direction:column; align-items:center; gap:6px; font-size:clamp(10px, 3.5vw, 12px); font-weight:700; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.2); padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);">
-            <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px;">
+          <div id="exchange-rates" style="display:flex; flex-direction:column; width:100%; box-sizing:border-box; gap:6px; font-size:clamp(9px, 3vw, 12px); font-weight:700; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.2); padding:8px 6px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);">
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
               <span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇺🇸</span> USD</span>
-              <span style="white-space:nowrap;"><span id="usd-buy" style="color:#00ff9c;">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="usd-sell" style="color:#ffcc00;">--</span></span>
+              <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="usd-buy" style="color:#00ff9c;">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="usd-sell" style="color:#ffcc00;">--</span></span>
             </div>
             <div style="width:100%; height:1px; background:rgba(255,255,255,0.1);"></div>
-            <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px;">
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
               <span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇪🇺</span> EUR</span>
-              <span style="white-space:nowrap;"><span id="eur-buy" style="color:#00ff9c;">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="eur-sell" style="color:#ffcc00;">--</span></span>
+              <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="eur-buy" style="color:#00ff9c;">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="eur-sell" style="color:#ffcc00;">--</span></span>
             </div>
           </div>
         </div>
@@ -1217,60 +1217,73 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   async function loadExchangeRates() {
     try {
-      // Монобанк API (підтримує CORS, але має ліміти, тому кешуємо на 5 хвилин)
-      const cacheKey = 'currency_cache';
-      const cacheTimeKey = 'currency_cache_time';
+      const cacheKey = 'currency_cache_v2';
+      const cacheTimeKey = 'currency_cache_time_v2';
       const now = new Date().getTime();
-      let d = null;
+      let rates = null;
 
+      // 1. Спробуємо взяти з кешу (діє 10 хвилин)
       if (localStorage.getItem(cacheKey) && localStorage.getItem(cacheTimeKey)) {
-         if (now - parseInt(localStorage.getItem(cacheTimeKey)) < 300000) { 
-            d = JSON.parse(localStorage.getItem(cacheKey));
+         if (now - parseInt(localStorage.getItem(cacheTimeKey)) < 600000) { 
+            rates = JSON.parse(localStorage.getItem(cacheKey));
          }
       }
 
-      if (!d) {
-         const r = await fetch('https://api.monobank.ua/bank/currency');
-         if (!r.ok) throw new Error('Mono API Error');
-         d = await r.json();
-         localStorage.setItem(cacheKey, JSON.stringify(d));
-         localStorage.setItem(cacheTimeKey, now.toString());
+      // 2. Якщо кешу немає, пробуємо Монобанк
+      if (!rates) {
+         try {
+           const r = await fetch('https://api.monobank.ua/bank/currency');
+           if (r.ok) {
+             const data = await r.json();
+             const usd = data.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980);
+             const eur = data.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
+             if (usd && eur) rates = { usdBuy: usd.rateBuy, usdSell: usd.rateSell, eurBuy: eur.rateBuy, eurSell: eur.rateSell };
+           }
+         } catch(e) { console.warn("Mono API failed"); }
       }
 
-      const usd = d.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980);
-      const eur = d.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
-
-      if (usd) {
-        document.getElementById('usd-buy').textContent = Number(usd.rateBuy).toFixed(2);
-        document.getElementById('usd-sell').textContent = Number(usd.rateSell).toFixed(2);
+      // 3. Якщо Монобанк заблокував, пробуємо ПриватБанк через проксі
+      if (!rates) {
+         try {
+           const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5'));
+           if (r.ok) {
+             const proxyData = await r.json();
+             const data = JSON.parse(proxyData.contents);
+             const usd = data.find(c => c.ccy === 'USD');
+             const eur = data.find(c => c.ccy === 'EUR');
+             if (usd && eur) rates = { usdBuy: usd.buy, usdSell: usd.sale, eurBuy: eur.buy, eurSell: eur.sale };
+           }
+         } catch(e) { console.warn("Privat API failed"); }
       }
-      if (eur) {
-        document.getElementById('eur-buy').textContent = Number(eur.rateBuy).toFixed(2);
-        document.getElementById('eur-sell').textContent = Number(eur.rateSell).toFixed(2);
+
+      // 4. Надійний резерв: НБУ (офіційний курс, ніколи не блокує)
+      if (!rates) {
+         try {
+           const r = await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json');
+           if (r.ok) {
+             const data = await r.json();
+             const usd = data.find(c => c.cc === 'USD');
+             const eur = data.find(c => c.cc === 'EUR');
+             // НБУ дає лише один курс, тому продаж=купівля
+             if (usd && eur) rates = { usdBuy: usd.rate, usdSell: usd.rate, eurBuy: eur.rate, eurSell: eur.rate };
+           }
+         } catch(e) { console.error("All Currency APIs failed"); }
+      }
+
+      // Відображаємо і кешуємо
+      if (rates) {
+        document.getElementById('usd-buy').textContent = Number(rates.usdBuy).toFixed(2);
+        document.getElementById('usd-sell').textContent = Number(rates.usdSell).toFixed(2);
+        document.getElementById('eur-buy').textContent = Number(rates.eurBuy).toFixed(2);
+        document.getElementById('eur-sell').textContent = Number(rates.eurSell).toFixed(2);
+        
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify(rates));
+          localStorage.setItem(cacheTimeKey, now.toString());
+        } catch(e) {} // Захист для приватного режиму браузера
       }
     } catch (e) {
-      console.error("Монобанк не відповів, пробуємо ПриватБанк:", e);
-      try {
-        // Фоллбек на ПриватБанк через безкоштовний CORS-проксі
-        const r2 = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5'));
-        const data2 = await r2.json();
-        const d2 = JSON.parse(data2.contents);
-        
-        const usd2 = d2.find(c => c.ccy === 'USD');
-        const eur2 = d2.find(c => c.ccy === 'EUR');
-        
-        if (usd2) {
-          document.getElementById('usd-buy').textContent = Number(usd2.buy).toFixed(2);
-          document.getElementById('usd-sell').textContent = Number(usd2.sale).toFixed(2);
-        }
-        if (eur2) {
-          document.getElementById('eur-buy').textContent = Number(eur2.buy).toFixed(2);
-          document.getElementById('eur-sell').textContent = Number(eur2.sale).toFixed(2);
-        }
-      } catch(e2) {
-         console.error("Обидва API недоступні");
-         // Виджет залишиться з прочерками (-- / --)
-      }
+      console.error("Помилка завантаження курсів", e);
     }
   }
 
