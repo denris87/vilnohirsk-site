@@ -541,7 +541,11 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 
     <div class="top-row">
       <div class="widget liquid-glass" style="justify-content: center;">
-        <div class="datetime"><div id="date"></div><div class="weekdays"><div class="day">пн</div><div class="day">вт</div><div class="day">ср</div><div class="day">нд</div><div class="day">нд</div><div class="day">нд</div><div class="day">нд</div></div><div id="time"></div></div>
+        <div class="datetime">
+          <div id="date"></div>
+          <div class="weekdays"><div class="day">пн</div><div class="day">вт</div><div class="day">ср</div><div class="day">нд</div><div class="day">нд</div><div class="day">нд</div><div class="day">нд</div></div>
+          <div id="time"></div>
+        </div>
       </div>
       <div class="widget liquid-glass" style="padding: 15px 12px; justify-content: space-between; display: flex; flex-direction: column;">
         <div class="weather-box" id="weather-container" style="flex: 1; display: flex; align-items: center; min-height: 85px;"></div>
@@ -1652,6 +1656,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const employment = job.employment || 'Повна / Не вказано';
       const city = 'Вільногірськ';
       
+      const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : '';
+      
       return `
         <div class="blabla-card ${vipClass} ${extraClass}" style="position: relative; text-align: left; background: ${isVip ? 'linear-gradient(135deg, rgba(255, 170, 0, 0.25), rgba(50, 15, 0, 0.9))' : 'linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.3))'}; border: 1px solid ${isVip ? 'rgba(255, 204, 0, 0.4)' : 'rgba(255, 255, 255, 0.1)'}; border-radius: 16px; padding: 0; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
           ${vipBadge}
@@ -1671,6 +1677,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
               ${displaySalary}
             </div>
           </div>
+          
+          ${safeDesc ? `<div style="padding: 0 15px 15px 15px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.4; word-break: break-word; overflow-wrap: anywhere;">📝 ${safeDesc}</div>` : ''}
           
           <div style="background: rgba(0,0,0,0.3); border-radius: 0 0 16px 16px; padding: 12px 15px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; min-width: 0; gap: 10px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05);">
              <div style="font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; margin-right: auto;">Дата: ${job.date}</div>
