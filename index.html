@@ -584,6 +584,21 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
           <div id="date"></div>
           <div class="weekdays"><div class="day">пн</div><div class="day">вт</div><div class="day">ср</div><div class="day">нд</div><div class="day">нд</div><div class="day">нд</div><div class="day">нд</div></div>
           <div id="time"></div>
+          
+          <div style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto;"></div>
+          
+          <!-- КУРС ВАЛЮТ -->
+          <div id="exchange-rates" style="display:flex; flex-direction:column; align-items:center; gap:6px; font-size:12px; font-weight:700; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.2); padding:8px 15px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);">
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:15px;">
+              <span style="display:flex; align-items:center; gap:4px;"><span>🇺🇸</span> USD</span>
+              <span><span id="usd-buy" style="color:#00ff9c;">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="usd-sell" style="color:#ffcc00;">--</span></span>
+            </div>
+            <div style="width:100%; height:1px; background:rgba(255,255,255,0.1);"></div>
+            <div style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:15px;">
+              <span style="display:flex; align-items:center; gap:4px;"><span>🇪🇺</span> EUR</span>
+              <span><span id="eur-buy" style="color:#00ff9c;">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="eur-sell" style="color:#ffcc00;">--</span></span>
+            </div>
+          </div>
         </div>
       </div>
       <div class="widget liquid-glass" style="padding: 15px 12px; justify-content: space-between; display: flex; flex-direction: column;">
@@ -1198,6 +1213,65 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       currentIndex = (currentIndex + 1) % slides.length; 
       slides[currentIndex].classList.add('active'); 
     }, 7000); 
+  }
+
+  async function loadExchangeRates() {
+    try {
+      // Монобанк API (підтримує CORS, але має ліміти, тому кешуємо на 5 хвилин)
+      const cacheKey = 'currency_cache';
+      const cacheTimeKey = 'currency_cache_time';
+      const now = new Date().getTime();
+      let d = null;
+
+      if (localStorage.getItem(cacheKey) && localStorage.getItem(cacheTimeKey)) {
+         if (now - parseInt(localStorage.getItem(cacheTimeKey)) < 300000) { 
+            d = JSON.parse(localStorage.getItem(cacheKey));
+         }
+      }
+
+      if (!d) {
+         const r = await fetch('https://api.monobank.ua/bank/currency');
+         if (!r.ok) throw new Error('Mono API Error');
+         d = await r.json();
+         localStorage.setItem(cacheKey, JSON.stringify(d));
+         localStorage.setItem(cacheTimeKey, now.toString());
+      }
+
+      const usd = d.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980);
+      const eur = d.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
+
+      if (usd) {
+        document.getElementById('usd-buy').textContent = Number(usd.rateBuy).toFixed(2);
+        document.getElementById('usd-sell').textContent = Number(usd.rateSell).toFixed(2);
+      }
+      if (eur) {
+        document.getElementById('eur-buy').textContent = Number(eur.rateBuy).toFixed(2);
+        document.getElementById('eur-sell').textContent = Number(eur.rateSell).toFixed(2);
+      }
+    } catch (e) {
+      console.error("Монобанк не відповів, пробуємо ПриватБанк:", e);
+      try {
+        // Фоллбек на ПриватБанк через безкоштовний CORS-проксі
+        const r2 = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5'));
+        const data2 = await r2.json();
+        const d2 = JSON.parse(data2.contents);
+        
+        const usd2 = d2.find(c => c.ccy === 'USD');
+        const eur2 = d2.find(c => c.ccy === 'EUR');
+        
+        if (usd2) {
+          document.getElementById('usd-buy').textContent = Number(usd2.buy).toFixed(2);
+          document.getElementById('usd-sell').textContent = Number(usd2.sale).toFixed(2);
+        }
+        if (eur2) {
+          document.getElementById('eur-buy').textContent = Number(eur2.buy).toFixed(2);
+          document.getElementById('eur-sell').textContent = Number(eur2.sale).toFixed(2);
+        }
+      } catch(e2) {
+         console.error("Обидва API недоступні");
+         // Виджет залишиться з прочерками (-- / --)
+      }
+    }
   }
 
   function updateDateTime(){
@@ -1867,6 +1941,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     setInterval(updateDateTime, 1000); 
     loadWeather(); 
     loadAlerts(); 
+    loadExchangeRates();
 
     // 2. Середній пріоритет (Завантажуємо транспорт через мілісекунди, щоб інтерфейс не підвисав)
     setTimeout(() => {
@@ -1894,6 +1969,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); 
         loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); 
         loadBlaBlaCarData(); loadJobsData(); 
+        loadExchangeRates();
     }, 60000);
 
     document.querySelectorAll('.form-input').forEach(input => {
