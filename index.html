@@ -26,22 +26,19 @@
 
 <!-- Додано async, щоб блокування Telegram не ламало весь сайт -->
 <script src="https://telegram.org/js/telegram-web-app.js" async></script>
-<!-- Defer для PapaParse, щоб не блокувати відображення сторінки -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
+<!-- PapaParse для читання CSV з Google Sheets (прибрано defer для гарантованого завантаження) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <style>
 :root{--highlight-color:#ffcc00;--glass-bg:rgba(0,0,0,0.45);--glass-border:rgba(255,255,255,0.08);--glass-border-light:rgba(255,255,255,0.15);--glass-shadow:0 16px 40px rgba(0,0,0,0.3);--time-green:#00ff9c;--time-passed:rgba(255,255,255,0.4)}html,body{margin:0;padding:0;min-height:100vh}*{-webkit-user-select:none;user-select:none;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}body{color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background:linear-gradient(-45deg,#1e3c72,#2a5298,#009ffd,#2af598,#009ffd);background-size:300% 300%;animation:gradientMove 30s ease-in-out infinite alternate}@keyframes gradientMove{0%{background-position:0% 50%}100%{background-position:100% 50%}}.wrapper{width:100%;max-width:900px;padding:15px;padding-bottom:20px}.container{display:flex;flex-direction:column;gap:15px}.liquid-glass{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-border);border-top:1px solid var(--glass-border-light);border-left:1px solid var(--glass-border-light);box-shadow:var(--glass-shadow);border-radius:28px}.alert-main-widget{padding:0;border-radius:28px;position:relative;z-index:100}
 
-/* Абсолютні шторки (відкриваються поверх контенту, мають внутрішній скрол) */
-.alert-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;pointer-events:none;transition:max-height 0.4s cubic-bezier(0.25,1,0.5,1),opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:100;margin-top:0;box-sizing:border-box}
-.alert-drawer.open{max-height:75vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;opacity:1;padding:15px;margin-top:10px;pointer-events:auto}
-.main-list-widget{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.4s cubic-bezier(0.25,1,0.5,1),opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:100;margin-top:0;box-sizing:border-box}
-.main-list-widget.open{max-height:75vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;opacity:1;visibility:visible;pointer-events:auto;padding:20px 10px;margin-top:10px}
-.shopping-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.4s cubic-bezier(0.25,1,0.5,1),opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:100;margin-top:0;box-sizing:border-box}
-.shopping-drawer.open{max-height:75vh;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;opacity:1;visibility:visible;pointer-events:auto;padding:20px 15px;margin-top:10px}
-.alert-drawer::-webkit-scrollbar, .main-list-widget::-webkit-scrollbar, .shopping-drawer::-webkit-scrollbar { width: 4px; }
-.alert-drawer::-webkit-scrollbar-track, .main-list-widget::-webkit-scrollbar-track, .shopping-drawer::-webkit-scrollbar-track { background: transparent; }
-.alert-drawer::-webkit-scrollbar-thumb, .main-list-widget::-webkit-scrollbar-thumb, .shopping-drawer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
+/* Абсолютні шторки (відкриваються ПОВЕРХ вкладок, БЕЗ внутрішнього скролу) */
+.alert-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;pointer-events:none;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
+.alert-drawer.open{max-height:2500px;opacity:1;padding:15px;margin-top:10px;pointer-events:auto}
+.main-list-widget{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
+.main-list-widget.open{max-height:5000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 10px;margin-top:10px}
+.shopping-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
+.shopping-drawer.open{max-height:8000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 15px;margin-top:10px}
 
 .tab-alert{padding:14px 8px;border-radius:12px;font-weight:800;font-size:clamp(10px,3.2vw,14px);text-align:center;cursor:pointer;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.05);transition:transform 0.2s,box-shadow 0.2s,background 0.3s;text-transform:uppercase;letter-spacing:0.5px;color:#fff;position:relative;display:flex;justify-content:center;align-items:center;line-height:1.2}
 
@@ -351,6 +348,14 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Номер телефону</label><input type="tel" class="form-input" id="input-phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
       <div class="form-group"><label class="form-label">Коментар</label><textarea class="form-input" id="input-comment" rows="2"></textarea></div>
       <input type="hidden" id="input-type" value="">
+      
+      <!-- КАПЧА -->
+      <div class="form-group captcha-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px;">
+        <label class="form-label" style="text-transform: none;">🤖 Анти-спам: скільки буде <b class="captcha-expression" style="color: var(--time-green); font-size: 14px;"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" style="text-align: center; font-weight: bold; font-size: 15px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <input type="hidden" class="captcha-answer">
+      </div>
+
       <button type="submit" class="form-submit-btn driver" id="form-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -380,6 +385,14 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Опис товару</label><textarea class="form-input" name="description" rows="3" required></textarea></div>
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+      
+      <!-- КАПЧА -->
+      <div class="form-group captcha-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px;">
+        <label class="form-label" style="text-transform: none;">🤖 Анти-спам: скільки буде <b class="captcha-expression" style="color: var(--time-green); font-size: 14px;"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" style="text-align: center; font-weight: bold; font-size: 15px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <input type="hidden" class="captcha-answer">
+      </div>
+
       <button type="submit" class="form-submit-btn flea" id="flea-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -398,6 +411,14 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Локація</label><input type="text" class="form-input" name="location" value="Вільногірськ" required></div>
       <div class="form-group"><label class="form-label">Додати фото (якщо є)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple></div>
       <div class="form-group"><label class="form-label">Ваш телефон (не обов'язково)</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" placeholder="0971234567" maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+      
+      <!-- КАПЧА -->
+      <div class="form-group captcha-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px;">
+        <label class="form-label" style="text-transform: none;">🤖 Анти-спам: скільки буде <b class="captcha-expression" style="color: var(--time-green); font-size: 14px;"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" style="text-align: center; font-weight: bold; font-size: 15px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <input type="hidden" class="captcha-answer">
+      </div>
+
       <button type="submit" class="form-submit-btn lost" id="lost-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -434,6 +455,14 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       </div>
       <div class="form-group"><label class="form-label">Опис</label><textarea class="form-input" name="description" rows="4" required></textarea></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+      
+      <!-- КАПЧА -->
+      <div class="form-group captcha-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px;">
+        <label class="form-label" style="text-transform: none;">🤖 Анти-спам: скільки буде <b class="captcha-expression" style="color: var(--time-green); font-size: 14px;"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" style="text-align: center; font-weight: bold; font-size: 15px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <input type="hidden" class="captcha-answer">
+      </div>
+
       <button type="submit" class="form-submit-btn" style="background: linear-gradient(135deg, #00b8ff, #0055ff); color: #fff;" id="job-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -483,12 +512,19 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Опис та адреса</label><textarea class="form-input" name="description" rows="3" placeholder="Деталі, район..." required></textarea></div>
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^0[0-9]{9}$" placeholder="0971234567" required maxlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+      
+      <!-- КАПЧА -->
+      <div class="form-group captcha-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px;">
+        <label class="form-label" style="text-transform: none;">🤖 Анти-спам: скільки буде <b class="captcha-expression" style="color: var(--time-green); font-size: 14px;"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" style="text-align: center; font-weight: bold; font-size: 15px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <input type="hidden" class="captcha-answer">
+      </div>
+
       <button type="submit" class="form-submit-btn estate" id="estate-submit-btn" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">Опублікувати</button>
     </form>
   </div>
 </div>
 
-<!-- Виправив display:none на display:flex для миттєвої відмальовки при повільному JS -->
 <div id="main-app-content" style="display: flex; width: 100%; justify-content: center;">
   <div class="wrapper">
   <div class="container">
@@ -708,6 +744,38 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   window.allEstateItems = [];
 
   // ==========================================
+  // ЛОГІКА КАПЧІ (АНТИ-СПАМ)
+  // ==========================================
+  window.setupCaptcha = function(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    const num1 = Math.floor(Math.random() * 10) + 1;
+    const num2 = Math.floor(Math.random() * 10) + 1;
+    const exprSpan = form.querySelector('.captcha-expression');
+    const answerInput = form.querySelector('.captcha-answer');
+    const userInput = form.querySelector('.captcha-input');
+    
+    if (exprSpan) exprSpan.innerText = `${num1} + ${num2}`;
+    if (answerInput) answerInput.value = num1 + num2;
+    if (userInput) userInput.value = '';
+  };
+
+  window.validateCaptcha = function(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return false;
+    const userInput = form.querySelector('.captcha-input');
+    const answerInput = form.querySelector('.captcha-answer');
+    if (userInput && answerInput) {
+      if (userInput.value.trim() !== answerInput.value) {
+        alert('🤖 Невірна відповідь у перевірці на анти-спам! Спробуйте ще раз.');
+        setupCaptcha(formId); // Оновлюємо цифри для нової спроби
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // ==========================================
   // ЛОГІКА НАВЧАЛЬНОГО ГАЙДУ (ONBOARDING)
   // ==========================================
   const guideSteps = [
@@ -724,7 +792,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     {
       icon: "🚌",
       title: "Транспорт та BlaBlaCar",
-      text: "Тут ти знайдеш розклад електричок, потягів та автобусів. Дані оновлюються автоматично.<br><br>🚗 <b>BlaBlaCar:</b> Це наша спільна дошка. Шукаєш попутників або авто? Тисни <b>«Ти водій»</b> або <b>«Ти пасажир»</b>, заповнюй форму — і твоє оголошення миттєво з'явиться для всіх!"
+      text: "Тут ти знайдеш розклад електричок, потягів та автобусів. Дані оновлюються автоматично.<br><br>🚗 <b>BlaBlaCar:</b> Це Це наша спільна дошка. Шукаєш попутників або авто? Тисни <b>«Ти водій»</b> або <b>«Ти пасажир»</b>, заповнюй форму — і твоє оголошення миттєво з'явиться для всіх!"
     },
     {
       icon: "🛒",
@@ -880,10 +948,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; });
   }
 
-  window.openEstateForm = function() { document.getElementById('custom-estate-form').reset(); document.getElementById('estate-modal').classList.add('active'); };
+  window.openEstateForm = function() { document.getElementById('custom-estate-form').reset(); setupCaptcha('custom-estate-form'); document.getElementById('estate-modal').classList.add('active'); };
   window.closeEstateForm = function(event) { if (!event || event.target.classList.contains('close-modal-btn')) { document.getElementById('estate-modal').classList.remove('active'); } };
   window.submitEstateForm = async function(event) {
     event.preventDefault(); 
+    if (!validateCaptcha('custom-estate-form')) return;
     const submitBtn = document.getElementById('estate-submit-btn');
     const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Обробка фото...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
     try {
@@ -898,10 +967,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     } catch (error) { alert('❌ Помилка: ' + error.message); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
   };
 
-  window.openFleaForm = function() { document.getElementById('custom-flea-form').reset(); document.getElementById('flea-modal').classList.add('active'); };
+  window.openFleaForm = function() { document.getElementById('custom-flea-form').reset(); setupCaptcha('custom-flea-form'); document.getElementById('flea-modal').classList.add('active'); };
   window.closeFleaForm = function(event) { if (!event || event.target.classList.contains('close-modal-btn')) { document.getElementById('flea-modal').classList.remove('active'); } };
   window.submitFleaForm = async function(event) {
     event.preventDefault(); 
+    if (!validateCaptcha('custom-flea-form')) return;
     const submitBtn = document.getElementById('flea-submit-btn');
     const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Обробка фото...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
     try {
@@ -916,10 +986,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     } catch (error) { alert('❌ Помилка: ' + error.message); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
   };
 
-  window.openLostForm = function() { document.getElementById('custom-lost-form').reset(); document.getElementById('lost-modal').classList.add('active'); };
+  window.openLostForm = function() { document.getElementById('custom-lost-form').reset(); setupCaptcha('custom-lost-form'); document.getElementById('lost-modal').classList.add('active'); };
   window.closeLostForm = function(event) { if (!event || event.target.classList.contains('close-modal-btn')) { document.getElementById('lost-modal').classList.remove('active'); } };
   window.submitLostForm = async function(event) {
     event.preventDefault(); 
+    if (!validateCaptcha('custom-lost-form')) return;
     const submitBtn = document.getElementById('lost-submit-btn');
     const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Обробка фото...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
     try {
@@ -933,10 +1004,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     } catch (error) { alert('❌ Помилка: ' + error.message); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
   };
 
-  window.openJobForm = function() { document.getElementById('custom-job-form').reset(); document.getElementById('job-modal').classList.add('active'); };
+  window.openJobForm = function() { document.getElementById('custom-job-form').reset(); setupCaptcha('custom-job-form'); document.getElementById('job-modal').classList.add('active'); };
   window.closeJobForm = function(event) { if (!event || event.target.classList.contains('close-modal-btn')) { document.getElementById('job-modal').classList.remove('active'); } };
   window.submitJobForm = async function(event) {
     event.preventDefault(); 
+    if (!validateCaptcha('custom-job-form')) return;
     const submitBtn = document.getElementById('job-submit-btn');
     const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Відправка...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
     try {
@@ -960,6 +1032,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   window.openBlaBlaForm = function(type) {
     const modal = document.getElementById('blabla-modal'); const title = document.getElementById('form-modal-title'); const timeLabel = document.getElementById('label-time'); const seatsLabel = document.getElementById('label-seats'); const priceGroup = document.getElementById('group-price'); const priceInput = document.getElementById('input-price'); const submitBtn = document.getElementById('form-submit-btn'); const typeInput = document.getElementById('input-type'); const nameLabel = document.getElementById('label-name');
     document.getElementById('custom-blabla-form').reset();
+    setupCaptcha('custom-blabla-form');
     const today = new Date().toISOString().split('T')[0]; document.getElementById('input-date').setAttribute('min', today); document.getElementById('input-date').value = today;
     if (type === 'driver') { title.innerText = '🚘 Запропонувати поїздку'; title.style.color = '#00ff9c'; nameLabel.innerText = 'Ім\'я водія'; timeLabel.innerText = 'Час відправлення'; seatsLabel.innerText = 'Вільних місць'; priceGroup.style.display = 'flex'; priceInput.required = true; submitBtn.className = 'form-submit-btn driver'; typeInput.value = 'driver'; } 
     else { title.innerText = '🙋‍♂️ Знайти авто'; title.style.color = '#ffcc00'; nameLabel.innerText = 'Ваше ім\'я'; timeLabel.innerText = 'Бажаний час'; seatsLabel.innerText = 'Потрібно місць'; priceGroup.style.display = 'none'; priceInput.required = false; submitBtn.className = 'form-submit-btn passenger'; typeInput.value = 'passenger'; }
@@ -969,6 +1042,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   window.closeBlaBlaForm = function(event) { if (!event || event.target.classList.contains('close-modal-btn')) { document.getElementById('blabla-modal').classList.remove('active'); } };
   window.submitBlaBlaForm = async function(event) {
     event.preventDefault(); 
+    if (!validateCaptcha('custom-blabla-form')) return;
     const submitBtn = document.getElementById('form-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Відправка...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
     const formData = { type: document.getElementById('input-type').value, name: document.getElementById('input-name').value, from: document.getElementById('input-from').value, to: document.getElementById('input-to').value, date: document.getElementById('input-date').value, time: document.getElementById('input-time-to').value ? `${document.getElementById('input-time-from').value} - ${document.getElementById('input-time-to').value}` : document.getElementById('input-time-from').value, seats: parseInt(document.getElementById('input-seats').value, 10), price: document.getElementById('input-price').value ? parseInt(document.getElementById('input-price').value, 10) : 0, phone: document.getElementById('input-phone').value, comment: document.getElementById('input-comment').value };
     try {
