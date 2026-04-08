@@ -13,12 +13,8 @@
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://docs.google.com">
 <link rel="preconnect" href="https://api.open-meteo.com">
-<link rel="preconnect" href="https://raw.githubusercontent.com">
 <link rel="preconnect" href="https://vilnohirsk-photos-production.up.railway.app">
 
-<!-- Іконки для екрану телефона (iOS/Android) та браузера -->
-<link rel="icon" type="image/png" href="https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true">
-<link rel="apple-touch-icon" href="https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true">
 <meta name="apple-mobile-web-app-title" content="Вільногірськ">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -703,6 +699,14 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 </div>
 
 <script>
+// Приховуємо посилання на іконки сайту (генеруються динамічно)
+(function(){
+  const f = atob('aHR0cHM6Ly9naXRodWIuY29tL2RlbnJpczg3L3ZpbG5vaGlyc2stc2l0ZS9ibG9iL21haW4vYXBwbGUtdG91Y2gtaWNvbi5wbmc/cmF3PXRydWU=');
+  const l1 = document.createElement('link'); l1.rel = 'icon'; l1.type = 'image/png'; l1.href = f;
+  const l2 = document.createElement('link'); l2.rel = 'apple-touch-icon'; l2.href = f;
+  document.head.appendChild(l1); document.head.appendChild(l2);
+})();
+
 // ГЛОБАЛЬНА ЄДИНА СИЛКА ДЛЯ ВСІХ ФОРМ
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztRq8vF3XuEpY3ugrgtOL9V8_o00aMQqkpCIIQcq9K86OFXfPO0IKYfVKaAwCO-qW0/exec';
 
@@ -1421,7 +1425,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   async function loadEventsData() {
     try {
-      const API_URL = `https://raw.githubusercontent.com/denris87/vilnohirsk-events/main/events.json?t=${new Date().getTime()}`;
+      // Зашифроване посилання на базу Афіш
+      const API_URL = `${atob('aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2RlbnJpczg3L3ZpbG5vaGlyc2stZXZlbnRzL21haW4vZXZlbnRzLmpzb24=')}?t=${new Date().getTime()}`;
       const r = await fetch(API_URL); if (!r.ok) throw new Error('Network error'); const eventAlerts = await r.json();
       const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i.show !== false) : [];
       checkNotification('events', activeEvents); window.currentEventImages = activeEvents.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
