@@ -765,7 +765,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
       window.currentVilnohirskPhotos = photos; 
 
-      let html = '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding: 5px;">';
+      // Текст тепер знаходиться ЗВЕРХУ
+      let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Маєте круті фото нашого міста? Надсилайте: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div>';
+      
+      html += '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding: 5px;">';
       photos.forEach((item, i) => {
           const url = typeof item === 'string' ? item : item.url;
           const author = typeof item === 'object' && item.author ? item.author : '';
@@ -775,7 +778,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           </div>`;
       });
       html += '</div>';
-      html += '<div style="text-align: center; margin-top: 15px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Маєте круті фото нашого міста? Надсилайте: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div>';
+      
       container.innerHTML = html;
   };
 
