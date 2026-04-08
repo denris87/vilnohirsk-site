@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://docs.google.com">
 <link rel="preconnect" href="https://api.open-meteo.com">
 <link rel="preconnect" href="https://raw.githubusercontent.com">
+<link rel="preconnect" href="https://vilnohirsk-photos-production.up.railway.app">
 
 <!-- Іконки для екрану телефона (iOS/Android) та браузера -->
 <link rel="icon" type="image/png" href="https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true">
@@ -32,13 +33,18 @@
 <style>
 :root{--highlight-color:#ffcc00;--glass-bg:rgba(0,0,0,0.45);--glass-border:rgba(255,255,255,0.08);--glass-border-light:rgba(255,255,255,0.15);--glass-shadow:0 16px 40px rgba(0,0,0,0.3);--time-green:#00ff9c;--time-passed:rgba(255,255,255,0.4)}html,body{margin:0;padding:0;min-height:100vh}*{-webkit-user-select:none;user-select:none;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}body{color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background:linear-gradient(-45deg,#1e3c72,#2a5298,#009ffd,#2af598,#009ffd);background-size:300% 300%;animation:gradientMove 30s ease-in-out infinite alternate}@keyframes gradientMove{0%{background-position:0% 50%}100%{background-position:100% 50%}}.wrapper{width:100%;max-width:900px;padding:15px;padding-bottom:20px}.container{display:flex;flex-direction:column;gap:15px}.liquid-glass{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-border);border-top:1px solid var(--glass-border-light);border-left:1px solid var(--glass-border-light);box-shadow:var(--glass-shadow);border-radius:28px}.alert-main-widget{padding:0;border-radius:28px;position:relative;z-index:100}
 
-/* Абсолютні шторки (відкриваються ПОВЕРХ вкладок, БЕЗ внутрішнього скролу) */
+/* Абсолютні шторки (відкриваються ПОВЕРХ вкладок) */
 .alert-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;pointer-events:none;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
-.alert-drawer.open{max-height:2500px;opacity:1;padding:15px;margin-top:10px;pointer-events:auto}
+.alert-drawer.open{max-height:70vh;overflow-y:auto;opacity:1;padding:15px;margin-top:10px;pointer-events:auto}
 .main-list-widget{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
-.main-list-widget.open{max-height:5000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 10px;margin-top:10px}
+.main-list-widget.open{max-height:70vh;overflow-y:auto;opacity:1;visibility:visible;pointer-events:auto;padding:20px 10px;margin-top:10px}
 .shopping-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
-.shopping-drawer.open{max-height:8000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 15px;margin-top:10px}
+.shopping-drawer.open{max-height:70vh;overflow-y:auto;opacity:1;visibility:visible;pointer-events:auto;padding:20px 15px;margin-top:10px}
+
+/* Кастомний скролбар для шторок */
+.alert-drawer::-webkit-scrollbar, .main-list-widget::-webkit-scrollbar, .shopping-drawer::-webkit-scrollbar { width: 6px; }
+.alert-drawer::-webkit-scrollbar-track, .main-list-widget::-webkit-scrollbar-track, .shopping-drawer::-webkit-scrollbar-track { background: transparent; }
+.alert-drawer::-webkit-scrollbar-thumb, .main-list-widget::-webkit-scrollbar-thumb, .shopping-drawer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 6px; }
 
 .tab-alert{padding:14px 8px;border-radius:12px;font-weight:800;font-size:clamp(10px,3.2vw,14px);text-align:center;cursor:pointer;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.05);transition:transform 0.2s,box-shadow 0.2s,background 0.3s;text-transform:uppercase;letter-spacing:0.5px;color:#fff;position:relative;display:flex;justify-content:center;align-items:center;line-height:1.2}
 
@@ -46,17 +52,14 @@
 .tab-alert.communal{color:#FFD700;border-bottom:3px solid #FFD700;background:linear-gradient(145deg,rgba(255,215,0,0.15),rgba(10,15,30,0.95))}.tab-alert.communal.active{background:rgba(255,215,0,0.3);box-shadow:0 0 15px rgba(255,215,0,0.6);color:#fff}
 .tab-alert.news{color:#00FF9D;border-bottom:3px solid #00FF9D;background:linear-gradient(145deg,rgba(0,255,157,0.15),rgba(10,15,30,0.95))}.tab-alert.news.active{background:rgba(0,255,157,0.3);box-shadow:0 0 15px rgba(0,255,157,0.6);color:#fff}
 .tab-alert.events{color:#FF3366;border-bottom:3px solid #FF3366;background:linear-gradient(145deg,rgba(255,51,102,0.15),rgba(10,15,30,0.95));text-shadow:0 0 5px rgba(255,51,102,0.6);animation:neonPulse 2s infinite alternate}.tab-alert.events.active{background:rgba(255,51,102,0.3);box-shadow:0 0 15px rgba(255,51,102,0.8);color:#fff}
+.tab-alert.gallery{color:#a18cd1;border-bottom:3px solid #a18cd1;background:linear-gradient(145deg,rgba(161,140,209,0.15),rgba(10,15,30,0.95))}.tab-alert.gallery.active{background:rgba(161,140,209,0.3);box-shadow:0 0 15px rgba(161,140,209,0.6);color:#fff}
 @keyframes neonPulse{0%{box-shadow:0 0 5px rgba(255,51,102,0.1)}100%{box-shadow:0 0 12px rgba(255,51,102,0.5)}}
 
 .notification-dot{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;display:none;z-index:10}.train-alert-dot{position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;z-index:5}.carousel-wrapper{width:100%;position:relative}.carousel-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:15px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding-bottom:5px;align-items:center}.carousel-container::-webkit-scrollbar{display:none}
 
-/* ОБМЕЖЕННЯ ВИСОТИ ДЛЯ ІНФОРМЕРА З ВНУТРІШНІМ СКРОЛОМ */
-.alert-item{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:15px;flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;max-height:350px;display:flex;flex-direction:column}
-.alert-card-title{font-size:15px;font-weight:800;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px;flex-shrink:0}
-.alert-card-text{font-size:14px;font-weight:500;line-height:1.5;text-align:left;color:rgba(255,255,255,0.9);overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.3) transparent}
-.alert-card-text::-webkit-scrollbar{width:4px}
-.alert-card-text::-webkit-scrollbar-track{background:transparent}
-.alert-card-text::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.3);border-radius:4px}
+.alert-item{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:15px;flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box}
+.alert-card-title{font-size:15px;font-weight:800;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px}
+.alert-card-text{font-size:14px;font-weight:500;line-height:1.5;text-align:left;color:rgba(255,255,255,0.9)}
 
 .alert-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.5);padding:15px;font-weight:600}.carousel-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px}.carousel-dot{width:8px;height:8px;border-radius:50%;transition:background 0.3s,transform 0.3s}.carousel-dot.active{transform:scale(1.3)}.top-row{display:flex;flex-direction:row;justify-content:space-between;gap:12px;width:100%}.widget{padding:15px 10px;flex:1;min-height:125px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;position:relative}.widget::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(to bottom,rgba(255,255,255,0.08),transparent);border-radius:28px 28px 0 0;pointer-events:none}.datetime{text-align:center;width:100%}#date{font-size:clamp(18px,4.8vw,24px);font-weight:800;white-space:nowrap;letter-spacing:0.5px}#time{font-size:clamp(16px,4.2vw,20px);font-weight:700;white-space:nowrap;color:#fff;font-variant-numeric:tabular-nums}.weekdays{display:flex;justify-content:center;gap:3px;font-size:clamp(9px,2.3vw,12px);font-weight:700;margin:6px 0;text-transform:uppercase;width:100%;padding:0 5px}.day{color:rgba(255,255,255,0.4);transition:0.3s ease}.day.active{background-color:#ff4d4d !important;color:#fff !important;border-radius:6px;padding:2px 5px;box-shadow:0 0 10px rgba(255,77,77,0.4)}
 
@@ -102,9 +105,9 @@
 }
 .vip-badge{position:absolute;top:-6px;right:-6px;background:linear-gradient(135deg,#ffcc00,#ff8800);color:#000;font-size:10px;font-weight:900;padding:4px 8px;border-radius:12px;box-shadow:0 4px 10px rgba(255,204,0,0.4);z-index:10;text-transform:uppercase;letter-spacing:1px;animation:vipPulse 2s infinite}
 
-/* ОНОВЛЕНІ СТИЛІ ФОТОГРАФІЙ (ФІКСОВАНИЙ РОЗМІР + БЕЗ ОБРІЗКИ) */
+/* ОНОВЛЕНІ СТИЛІ ФОТОГРАФІЙ */
 .shop-tile-photo{width:100%;height:160px;border-radius:10px;background:rgba(0,0,0,0.3);display:flex;justify-content:center;align-items:center;overflow:hidden;margin-bottom:8px;border:1px solid rgba(255,255,255,0.05)}
-.shop-tile.vip-tile .shop-tile-photo{height:190px;} /* Збільшено на 0.5 розміру (було 160) */
+.shop-tile.vip-tile .shop-tile-photo{height:190px;}
 .shop-tile-photo img{width:100%;height:100%;object-fit:cover;display:block;}
 
 .shop-tile-cat{font-size:10px;color:var(--highlight-color);font-weight:800;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;word-break:break-word;overflow-wrap:anywhere;}
@@ -143,11 +146,11 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
   overflow-x: auto;
   gap: 8px;
   padding: 5px 15px 15px 15px;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* IE 10+ */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 .flea-categories-wrapper::-webkit-scrollbar {
-  display: none; /* Chrome, Safari */
+  display: none;
 }
 .flea-category-tag {
   padding: 6px 14px;
@@ -192,7 +195,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 .guide-item-row:last-child { border-bottom: none; padding-bottom: 0; }
 .guide-item-title { font-weight: 600; color: rgba(255,255,255,0.85); font-size: 12px; }
 
-/* СУЧАСНИЙ СТИЛЬ ДОВІДНИКА (DARK GRID ЗІ СКРІНШОТА) */
+/* СУЧАСНИЙ СТИЛЬ ДОВІДНИКА */
 .pb-search-container { position: sticky; top: -15px; z-index: 10; padding: 10px 0; margin-bottom: 5px; background: linear-gradient(to bottom, rgba(11,29,58,1) 80%, rgba(11,29,58,0)); }
 .pb-category-section { margin-bottom: 24px; }
 .pb-category-header { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; padding-left: 4px; }
@@ -215,14 +218,14 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 @media (max-width: 768px) { .jobs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 550px) { .jobs-grid { grid-template-columns: minmax(0, 1fr); } }
 
-/* РЕТРО-ЕКВАЛАЙЗЕР (ЗЕЛЕНИЙ З ЧЕРВОНИМ) */
+/* РЕТРО-ЕКВАЛАЙЗЕР */
 .equalizer { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-left: auto; opacity: 0.2; transition: opacity 0.3s; margin-right: 5px; }
 .equalizer.playing { opacity: 1; }
 .eq-bar { 
   width: 4px; 
   height: 4px; 
   background: linear-gradient(to top, #00ff9c 0%, #00ff9c 75%, #ff3b3b 75%, #ff3b3b 100%);
-  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); /* Ефект сегментів */
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5);
   transition: height 0.15s ease;
 }
 .equalizer.playing .eq-bar:nth-child(1) { animation: eq-1 1.2s infinite ease-in-out; }
@@ -239,30 +242,11 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 /* СТИЛІ ДЛЯ СЕКЦІЙ ВАКАНСІЙ */
 .workua-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease; }
 .workua-drawer.open { max-height: 5000px; opacity: 1; margin-top: 10px; }
-.section-divider {
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  margin: 15px 0;
-}
-.jobs-carousel {
-  display: flex;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  gap: 12px;
-  padding-bottom: 10px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
+.section-divider { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); margin: 15px 0; }
+.jobs-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 10px; scrollbar-width: none; -ms-overflow-style: none; }
 .jobs-carousel::-webkit-scrollbar { display: none; }
-.jobs-carousel-card {
-  flex: 0 0 90%;
-  max-width: 350px;
-  scroll-snap-align: center;
-}
-@media (min-width: 650px) {
-  .jobs-carousel-card { flex: 0 0 45%; }
-}
+.jobs-carousel-card { flex: 0 0 90%; max-width: 350px; scroll-snap-align: center; }
+@media (min-width: 650px) { .jobs-carousel-card { flex: 0 0 45%; } }
 
 /* СТИЛІ ДЛЯ ОНБОРДИНГ ГАЙДУ */
 .guide-slide { display: none; flex-direction: column; align-items: center; text-align: center; animation: tabFadeIn 0.4s ease; }
@@ -297,9 +281,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
   <div class="custom-modal-box" style="padding: 30px 20px;" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeGuide()">&times;</div>
     
-    <div id="guide-content">
-      <!-- Слайди будуть додані через JS -->
-    </div>
+    <div id="guide-content"></div>
 
     <div class="guide-dots" id="guide-dots"></div>
     
@@ -532,10 +514,15 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
     <div class="alert-group" style="display: flex; flex-direction: column; width: 100%; position: relative; z-index: 100;">
         <div class="alert-main-widget liquid-glass" style="padding: 15px;">
             <div id="alert-tabs" style="display: flex; flex-direction: column; gap: 8px;">
-                <div class="tab-alert news" onclick="openAlertTab('alert-news', this)" style="width: 100%;">Міські новини<span class="notification-dot" id="dot-news"></span></div>
+                <!-- Верхній ряд -->
                 <div style="display: flex; gap: 8px; width: 100%;">
-                    <div class="tab-alert communal" onclick="openAlertTab('alert-communal', this)" style="flex: 1;">Комунальний інформер<span class="notification-dot" id="dot-communal"></span></div>
-                    <div class="tab-alert events" onclick="openAlertTab('alert-events', this)" style="flex: 1;">АФІШІ<span class="notification-dot" id="dot-events"></span></div>
+                    <div class="tab-alert communal" onclick="openAlertTab('alert-communal', this)" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Комунальний інформер<span class="notification-dot" id="dot-communal"></span></div>
+                    <div class="tab-alert news" onclick="openAlertTab('alert-news', this)" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Новини<span class="notification-dot" id="dot-news"></span></div>
+                </div>
+                <!-- Нижній ряд -->
+                <div style="display: flex; gap: 8px; width: 100%;">
+                    <div class="tab-alert events" onclick="openAlertTab('alert-events', this)" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Афіші<span class="notification-dot" id="dot-events"></span></div>
+                    <div class="tab-alert gallery" onclick="openAlertTab('alert-gallery', this)" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Фото міста</div>
                 </div>
             </div>
         </div>
@@ -543,6 +530,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
             <div id="alert-communal" class="content-section"><div id="alert-communal-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
             <div id="alert-news" class="content-section"><div id="alert-news-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
             <div id="alert-events" class="content-section"><div id="alert-events-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
+            <div id="alert-gallery" class="content-section"><div id="gallery-list-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження фото...</div></div>
         </div>
     </div>
 
@@ -599,6 +587,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
               <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="eur-buy" style="color:#00ff9c;">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="eur-sell" style="color:#ffcc00;">--</span></span>
             </div>
           </div>
+          
         </div>
       </div>
       <div class="widget liquid-glass" style="padding: 15px 12px; justify-content: space-between; display: flex; flex-direction: column;">
@@ -749,7 +738,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-app-content').style.display = 'none';
 } else {
-  // Видалено display: none -> flex, оскільки flex тепер задано в HTML по замовчуванню
   document.getElementById('auth-screen').style.display = 'none';
 
   if (tg && tg.expand) { tg.expand(); }
@@ -757,6 +745,47 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   window.currentDataSignature = {};
   window.allFleaMarketItems = [];
   window.allEstateItems = [];
+
+  // ==========================================
+  // ЗАВАНТАЖЕННЯ ФОТОГАЛЕРЕЇ З RAILWAY
+  // ==========================================
+  window.currentVilnohirskPhotos = []; 
+
+  window.renderGallery = function(photos) {
+      const container = document.getElementById('gallery-list-content');
+      if (!container) return;
+      if (!photos || photos.length === 0) {
+          container.innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Фотографій поки немає</div>';
+          return;
+      }
+
+      window.currentVilnohirskPhotos = photos; 
+
+      let html = '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding: 5px;">';
+      photos.forEach((url, i) => {
+          html += `<div style="aspect-ratio:1/1; border-radius:14px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.2); cursor:pointer; border:1px solid rgba(255,255,255,0.1);" onclick="openImageModal(window.currentVilnohirskPhotos, ${i}, event)">
+              <img src="${url}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">
+          </div>`;
+      });
+      html += '</div>';
+      html += '<div style="text-align: center; margin-top: 15px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Маєте круті фото нашого міста? Надсилайте: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div>';
+      container.innerHTML = html;
+  };
+
+  async function loadGalleryData() {
+    try {
+      const API_URL = `https://vilnohirsk-photos-production.up.railway.app/api/photos?t=${new Date().getTime()}`;
+      
+      const response = await fetch(API_URL);
+      if (!response.ok) throw new Error('Помилка завантаження');
+      
+      const photos = await response.json();
+      renderGallery(photos);
+    } catch(e) {
+      console.error("Gallery Error:", e);
+      document.getElementById('gallery-list-content').innerHTML = '<div style="text-align: center; padding: 20px; color: #ff4d4d; font-size: 12px;">Помилка завантаження фотографій</div>';
+    }
+  }
 
   // ==========================================
   // ЛОГІКА КАПЧІ (АНТИ-СПАМ)
@@ -783,7 +812,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     if (userInput && answerInput) {
       if (userInput.value.trim() !== answerInput.value) {
         alert('🤖 Невірна відповідь у перевірці на анти-спам! Спробуйте ще раз.');
-        setupCaptcha(formId); // Оновлюємо цифри для нової спроби
+        setupCaptcha(formId); 
         return false;
       }
     }
@@ -802,12 +831,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     {
       icon: "📢",
       title: "Сповіщення та Афіша",
-      text: "<b>Верхні три вкладки</b> — це місце для важливої інформації від адміністрації.<br><br>• <b>Міські новини:</b> головні події міста.<br>• <b>Комунальний інформер:</b> відключення світла, води тощо.<br>• <b>Афіші:</b> культурні події, кіно, заходи."
+      text: "<b>Верхні чотири вкладки</b> — це місце для важливої інформації від адміністрації та фотографій міста.<br><br>• <b>Міські новини:</b> головні події міста.<br>• <b>Комунальний інформер:</b> відключення світла, води тощо.<br>• <b>Афіші:</b> культурні події, кіно, заходи.<br>• <b>Фото міста:</b> галерея нашого міста."
     },
     {
       icon: "🚌",
       title: "Транспорт та BlaBlaCar",
-      text: "Тут ти знайдеш розклад електричок, потягів та автобусів. Дані оновлюються автоматично.<br><br>🚗 <b>BlaBlaCar:</b> Це Це наша спільна дошка. Шукаєш попутників або авто? Тисни <b>«Ти водій»</b> або <b>«Ти пасажир»</b>, заповнюй форму — і твоє оголошення миттєво з'явиться для всіх!"
+      text: "Тут ти знайдеш розклад електричок, потягів та автобусів. Дані оновлюються автоматично.<br><br>🚗 <b>BlaBlaCar:</b> Це наша спільна дошка. Шукаєш попутників або авто? Тисни <b>«Ти водій»</b> або <b>«Ти пасажир»</b>, заповнюй форму — і твоє оголошення миттєво з'явиться для всіх!"
     },
     {
       icon: "🛒",
@@ -829,7 +858,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     const prevBtn = document.getElementById('guide-prev');
     const nextBtn = document.getElementById('guide-next');
 
-    // Рендер контенту
     contentDiv.innerHTML = guideSteps.map((step, index) => `
       <div class="guide-slide ${index === currentGuideStep ? 'active' : ''}">
         <div class="guide-icon">${step.icon}</div>
@@ -838,12 +866,10 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       </div>
     `).join('');
 
-    // Рендер крапок
     dotsDiv.innerHTML = guideSteps.map((_, index) => `
       <div class="guide-dot ${index === currentGuideStep ? 'active' : ''}"></div>
     `).join('');
 
-    // Керування кнопками
     if (currentGuideStep === 0) {
       prevBtn.style.display = 'none';
     } else {
@@ -875,7 +901,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
 
   window.closeGuide = function() {
     document.getElementById('guide-modal').classList.remove('active');
-    localStorage.setItem('vilnohirsk_guide_seen', 'true'); // Запам'ятовуємо, що користувач бачив гайд
+    localStorage.setItem('vilnohirsk_guide_seen', 'true');
   };
 
   window.openGuide = function() {
@@ -884,17 +910,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     document.getElementById('guide-modal').classList.add('active');
   };
 
-  // Перевірка при завантаженні: чи показувати гайд?
   function checkGuideOnLoad() {
     if (!localStorage.getItem('vilnohirsk_guide_seen')) {
-      // Затримка перед показом гайду, щоб інтерфейс встиг провантажитись
-      setTimeout(() => {
-        openGuide();
-      }, 1000);
+      setTimeout(() => { openGuide(); }, 1000);
     }
   }
-  // ==========================================
-
 
   const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -1171,7 +1191,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     
     for(let c of coords){ 
       try { 
-        // Використовуємо новий сучасний формат Open-Meteo API
         const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FKyiv`); 
         if (!r.ok) throw new Error('Помилка API');
         const d = await r.json(); 
@@ -1222,14 +1241,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       const now = new Date().getTime();
       let rates = null;
 
-      // 1. Спробуємо взяти з кешу (діє 10 хвилин)
       if (localStorage.getItem(cacheKey) && localStorage.getItem(cacheTimeKey)) {
          if (now - parseInt(localStorage.getItem(cacheTimeKey)) < 600000) { 
             rates = JSON.parse(localStorage.getItem(cacheKey));
          }
       }
 
-      // 2. Якщо кешу немає, пробуємо Монобанк
       if (!rates) {
          try {
            const r = await fetch('https://api.monobank.ua/bank/currency');
@@ -1242,7 +1259,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
          } catch(e) { console.warn("Mono API failed"); }
       }
 
-      // 3. Якщо Монобанк заблокував, пробуємо ПриватБанк через проксі
       if (!rates) {
          try {
            const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5'));
@@ -1256,7 +1272,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
          } catch(e) { console.warn("Privat API failed"); }
       }
 
-      // 4. Надійний резерв: НБУ (офіційний курс, ніколи не блокує)
       if (!rates) {
          try {
            const r = await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json');
@@ -1264,13 +1279,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
              const data = await r.json();
              const usd = data.find(c => c.cc === 'USD');
              const eur = data.find(c => c.cc === 'EUR');
-             // НБУ дає лише один курс, тому продаж=купівля
              if (usd && eur) rates = { usdBuy: usd.rate, usdSell: usd.rate, eurBuy: eur.rate, eurSell: eur.rate };
            }
          } catch(e) { console.error("All Currency APIs failed"); }
       }
 
-      // Відображаємо і кешуємо
       if (rates) {
         document.getElementById('usd-buy').textContent = Number(rates.usdBuy).toFixed(2);
         document.getElementById('usd-sell').textContent = Number(rates.usdSell).toFixed(2);
@@ -1280,7 +1293,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         try {
           localStorage.setItem(cacheKey, JSON.stringify(rates));
           localStorage.setItem(cacheTimeKey, now.toString());
-        } catch(e) {} // Захист для приватного режиму браузера
+        } catch(e) {} 
       }
     } catch (e) {
       console.error("Помилка завантаження курсів", e);
@@ -1344,8 +1357,7 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="alert-empty" style="margin-bottom:15px;">Афіш поки немає</div>`; }
   }
 
-  // --- ЗАВАНТАЖЕННЯ ДОВІДНИКА З НОВОГО СЕРВЕРА RAILWAY ---
-  window.phonebookRawData = []; // Зберігаємо сирі дані для пошуку
+  window.phonebookRawData = [];
 
   async function loadPhonebookData() {
     const container = document.getElementById('city-guide-list-content');
@@ -1354,8 +1366,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       if (!response.ok) throw new Error('Network error');
       
       const data = await response.json();
-      
-      // Підтримка різних форматів JSON (якщо API повертає одразу масив або об'єкт {categories: [...]})
       const categoriesData = data.categories || data;
       if (!categoriesData || !Array.isArray(categoriesData)) throw new Error('Invalid format');
       
@@ -1367,7 +1377,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   }
 
-  // Функція для відмальовки (з підтримкою пошуку та різних форматів номерів) - DARK GRID
   window.renderPhonebook = function(categories, searchQuery = '') {
     const container = document.getElementById('city-guide-list-content');
     let html = '';
@@ -1388,7 +1397,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           const safeTitle = (item.title || item.name || '').toString();
           const titleMatch = safeTitle.toLowerCase().includes(query);
           
-          // Універсальна обробка телефонів (може прийти як рядок або масив)
           let phonesArray = [];
           if (Array.isArray(item.phones)) {
               phonesArray = item.phones;
@@ -1437,7 +1445,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     }
   };
 
-  // Викликається під час вводу тексту в пошук
   window.filterPhonebook = function() {
       const input = document.getElementById('pb-search');
       if (window.phonebookRawData && input) {
@@ -1906,19 +1913,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           status.style.color = '#38bdf8';
           eq.classList.add('playing');
           
-          // Додаємо timestamp до URL, щоб уникнути кешування і взяти прямий ефір
           audio.src = "https://myradio24.org/muzdance?t=" + new Date().getTime();
           audio.load();
           
           const playPromise = audio.play();
           if (playPromise !== undefined) {
               playPromise.then(() => {
-                  // Іконка паузи (SVG)
                   icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
                   status.innerText = 'PLAY';
                   status.style.color = '#00ff9c';
-                  
-                  // Скидаємо трансформ (щоб пауза була по центру)
                   icon.style.transform = 'none';
               }).catch(error => {
                   status.innerText = 'ПОМИЛКА';
@@ -1929,19 +1932,15 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
           }
       } else {
           audio.pause();
-          audio.src = ""; // Вимикаємо потік, щоб не витрачав трафік в фоні
-          // Іконка плей (SVG)
+          audio.src = ""; 
           icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg>';
           status.innerText = 'PAUSED';
           status.style.color = 'rgba(255,255,255,0.5)';
           eq.classList.remove('playing');
-          
-          // Повертаємо зміщення для трикутника play
           icon.style.transform = 'translateX(1px)';
       }
   };
 
-  // ОПТИМІЗОВАНЕ ЗАВАНТАЖЕННЯ (не залежить від window.onload)
   const initApp = () => {
     if (REQUIRE_TELEGRAM && !isInsideTelegram) {
        document.getElementById('auth-screen').style.display = 'flex';
@@ -1949,14 +1948,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
        return;
     }
 
-    // 1. Негайне завантаження (Інтерфейс, час, погода)
     updateDateTime(); 
     setInterval(updateDateTime, 1000); 
     loadWeather(); 
     loadAlerts(); 
     loadExchangeRates();
 
-    // 2. Середній пріоритет (Завантажуємо транспорт через мілісекунди, щоб інтерфейс не підвисав)
     setTimeout(() => {
         loadTrainsData(); 
         loadLongTrainsData(); 
@@ -1964,7 +1961,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         loadEventsData();
     }, 100);
 
-    // 3. Низький пріоритет (Тяжкі таблиці та CSV)
     setTimeout(() => {
         loadShopsData(); 
         loadFleaMarketData(); 
@@ -1973,9 +1969,9 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
         loadBlaBlaCarData(); 
         loadJobsData();
         loadPhonebookData();
+        loadGalleryData();
     }, 600);
 
-    // ПЕРЕВІРКА І ПОКАЗ НАВЧАЛЬНОГО ГАЙДУ
     checkGuideOnLoad();
 
     setInterval(() => { 
@@ -1990,7 +1986,6 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     });
   };
 
-  // Запуск ініціалізації щойно DOM готовий, не чекаючи підвантаження зовнішніх картинок чи повільних скриптів
   if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initApp);
   } else {
