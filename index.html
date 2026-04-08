@@ -762,9 +762,12 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
       window.currentVilnohirskPhotos = photos; 
 
       let html = '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding: 5px;">';
-      photos.forEach((url, i) => {
-          html += `<div style="aspect-ratio:1/1; border-radius:14px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.2); cursor:pointer; border:1px solid rgba(255,255,255,0.1);" onclick="openImageModal(window.currentVilnohirskPhotos, ${i}, event)">
+      photos.forEach((item, i) => {
+          const url = typeof item === 'string' ? item : item.url;
+          const author = typeof item === 'object' && item.author ? item.author : '';
+          html += `<div style="aspect-ratio:1/1; border-radius:14px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.2); cursor:pointer; border:1px solid rgba(255,255,255,0.1); position:relative;" onclick="openImageModal(window.currentVilnohirskPhotos, ${i}, event)">
               <img src="${url}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">
+              ${author ? `<div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 8px 8px 8px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.9); text-align:left; text-shadow:0 1px 2px rgba(0,0,0,0.8); pointer-events:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📸 ${author}</div>` : ''}
           </div>`;
       });
       html += '</div>';
@@ -1106,8 +1109,11 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   let currentGallery = []; let currentGalleryIndex = 0; let touchStartX = 0; let touchEndX = 0; window.currentEventImages = [];
   window.openImageModal = function(images, index, event) {
     if (event) event.stopPropagation();
-    if (typeof images === 'string') { currentGallery = [images]; currentGalleryIndex = 0; } else { currentGallery = images; currentGalleryIndex = index || 0; }
-    const track = document.getElementById('modal-image-track'); track.innerHTML = currentGallery.map(src => `<div class="image-modal-slide" onclick="handleSlideClick(event)"><img src="${src}" alt="Фото"></div>`).join('');
+    let normalizedImages = [];
+    if (typeof images === 'string') { normalizedImages = [{url: images}]; } else { normalizedImages = images.map(img => typeof img === 'string' ? {url: img} : img); }
+    currentGallery = normalizedImages; currentGalleryIndex = index || 0;
+    const track = document.getElementById('modal-image-track'); 
+    track.innerHTML = currentGallery.map(img => `<div class="image-modal-slide" onclick="handleSlideClick(event)"><img src="${img.url}" alt="Фото">${img.author ? `<div style="position:absolute; bottom:60px; left:50%; transform:translateX(-50%); color:#fff; font-weight:700; font-size:12px; background:rgba(0,0,0,0.6); padding:6px 14px; border-radius:14px; z-index:100002; pointer-events:none; white-space:nowrap;">📸 Фото: ${img.author}</div>` : ''}</div>`).join('');
     track.style.transition = 'none'; updateModalImage(); document.getElementById('image-modal').classList.add('active');
     setTimeout(() => { track.style.transition = 'transform 0.3s cubic-bezier(0.25,1,0.5,1)'; }, 50);
   };
