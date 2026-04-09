@@ -765,22 +765,19 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
   window.toggleTransportDetails = function(id, el) {
       const target = document.getElementById(id);
       if (!target) return;
-      const container = el.closest('.content-section');
       const isOpening = !target.classList.contains('open');
 
-      if (container) {
-          container.querySelectorAll('.details.open').forEach(detail => {
-              if (detail.id !== id) detail.classList.remove('open');
-          });
-      }
+      // Закриваємо абсолютно всі відкриті розклади (щоб працювало як єдиний акордеон)
+      document.querySelectorAll('.schedule-group .details.open').forEach(detail => {
+          detail.classList.remove('open');
+      });
 
       if (isOpening) {
           target.classList.add('open');
+          // Даємо трохи часу на CSS-анімацію закриття інших, а потім плавно центруємо
           setTimeout(() => {
-              el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }, 300);
-      } else {
-          target.classList.remove('open');
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 350);
       }
   };
 
@@ -1332,8 +1329,8 @@ if (REQUIRE_TELEGRAM && !isInsideTelegram) {
     fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>{
       if(d&&d.trains) {
         let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div><div id="trains-content">`;
-        d.trains.forEach(x => {
-          if (!x) return; const id = "d-" + x.number; const now = getKyivNow(); let sc = "future", dt = x.time;
+        d.trains.forEach((x, i) => {
+          if (!x) return; const id = "train-" + i; const now = getKyivNow(); let sc = "future", dt = x.time;
           if (x.time && x.time.includes(':')) {
             const [hh, mm] = x.time.split(':').map(Number); const tt = new Date(now); tt.setHours(hh, mm, 0, 0);
             const diff = Math.floor((tt - now) / 60000);
