@@ -9,11 +9,13 @@
 <meta property="og:url" content="https://vilnohirsk.online">
 <meta property="og:type" content="website">
 
-<!-- Попереднє підключення до серверів для прискорення завантаження -->
+<!-- Базовий PWA Manifest -->
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU21hcnQg0JLRltC70YzQvdC+0LPRltGA0YHRjNC6Iiwic2hvcnRfbmFtZSI6ItCS0ZbQu9GM0L3QvtCz0ZbRgNGB0YzQuiIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMWUzYzcyIiwidGhlbWVfY29sb3IiOiIjMWUzYzcyIn0=">
+
+<!-- Попереднє підключення до серверів -->
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://docs.google.com">
 <link rel="preconnect" href="https://api.open-meteo.com">
-<link rel="preconnect" href="https://vilnohirsk-photos-production.up.railway.app">
 
 <meta name="apple-mobile-web-app-title" content="Вільногірськ">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,42 +23,66 @@
 
 <title>Smart Вільногірськ</title>
 
-<!-- PapaParse для читання CSV з Google Sheets -->
+<!-- PapaParse -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <style>
-:root{--highlight-color:#ffcc00;--glass-bg:rgba(0,0,0,0.45);--glass-border:rgba(255,255,255,0.08);--glass-border-light:rgba(255,255,255,0.15);--glass-shadow:0 16px 40px rgba(0,0,0,0.3);--time-green:#00ff9c;--time-passed:rgba(255,255,255,0.4)}html,body{margin:0;padding:0;min-height:100vh}*{-webkit-user-select:none;user-select:none;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}body{color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background:linear-gradient(-45deg,#1e3c72,#2a5298,#009ffd,#2af598,#009ffd);background-size:300% 300%;animation:gradientMove 30s ease-in-out infinite alternate}@keyframes gradientMove{0%{background-position:0% 50%}100%{background-position:100% 50%}}.wrapper{width:100%;max-width:900px;padding:15px;padding-bottom:20px}.container{display:flex;flex-direction:column;gap:15px}.liquid-glass{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-border);border-top:1px solid var(--glass-border-light);border-left:1px solid var(--glass-border-light);box-shadow:var(--glass-shadow);border-radius:28px}.alert-main-widget{padding:0;border-radius:28px;position:relative;z-index:100}
+:root{--highlight-color:#ffcc00;--glass-bg:rgba(0,0,0,0.45);--glass-border:rgba(255,255,255,0.08);--glass-border-light:rgba(255,255,255,0.15);--glass-shadow:0 16px 40px rgba(0,0,0,0.3);--time-green:#00ff9c;--time-passed:rgba(255,255,255,0.4);--text-main:#fff;--bg-grad-1:#1e3c72;--bg-grad-2:#2a5298;--bg-grad-3:#009ffd;--bg-grad-4:#2af598}
+html,body{margin:0;padding:0;min-height:100vh;background-color:#1e3c72}
+*{-webkit-user-select:none;user-select:none;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background:linear-gradient(-45deg,var(--bg-grad-1),var(--bg-grad-2),var(--bg-grad-3),var(--bg-grad-4),var(--bg-grad-3));background-size:300% 300%;animation:gradientMove 30s ease-in-out infinite alternate; transition: color 0.3s ease;}
 
-/* Абсолютні шторки (відкриваються ПОВЕРХ вкладок) БЕЗ СКРОЛУ */
-.alert-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;pointer-events:none;transition:max-height 0.6s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
+@keyframes gradientMove{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+.wrapper{width:100%;max-width:900px;padding:15px;padding-bottom:90px}.container{display:flex;flex-direction:column;gap:15px}
+.liquid-glass{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-border);border-top:1px solid var(--glass-border-light);border-left:1px solid var(--glass-border-light);box-shadow:var(--glass-shadow);border-radius:28px}
+.alert-main-widget{padding:0;border-radius:28px;position:relative;z-index:100}
+
+.alert-drawer, .main-list-widget, .shopping-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.6s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
+.alert-drawer{visibility:visible;}
 .alert-drawer.open{max-height:4000px;opacity:1;padding:15px;margin-top:10px;pointer-events:auto}
-
-/* ПОВЕРТАЄМО ПОВЗУНОК ТІЛЬКИ ДЛЯ КОМУНАЛЬНОГО ІНФОРМЕРА */
 .alert-drawer.open.drawer-communal { max-height: 65vh; overflow-y: auto; }
 .alert-drawer.drawer-communal::-webkit-scrollbar { width: 6px; }
 .alert-drawer.drawer-communal::-webkit-scrollbar-track { background: transparent; }
 .alert-drawer.drawer-communal::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 6px; }
 
-.main-list-widget{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.6s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
 .main-list-widget.open{max-height:6000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 10px;margin-top:10px}
-.shopping-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.6s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
 .shopping-drawer.open{max-height:10000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 15px;margin-top:10px}
 
 .tab-alert{padding:14px 8px;border-radius:12px;font-weight:800;font-size:clamp(10px,3.2vw,14px);text-align:center;cursor:pointer;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.05);transition:transform 0.2s,box-shadow 0.2s,background 0.3s;text-transform:uppercase;letter-spacing:0.5px;color:#fff;position:relative;display:flex;justify-content:center;align-items:center;line-height:1.2}
-
-.tab-alert.communal{color:#FFD700;border-bottom:3px solid #FFD700;background:linear-gradient(145deg,rgba(255,215,0,0.15),rgba(10,15,30,0.95))}.tab-alert.communal.active{background:rgba(255,215,0,0.3);box-shadow:0 0 15px rgba(255,215,0,0.6);color:#fff}
-.tab-alert.news{color:#00FF9D;border-bottom:3px solid #00FF9D;background:linear-gradient(145deg,rgba(0,255,157,0.15),rgba(10,15,30,0.95))}.tab-alert.news.active{background:rgba(0,255,157,0.3);box-shadow:0 0 15px rgba(0,255,157,0.6);color:#fff}
-.tab-alert.events{color:#FF3366;border-bottom:3px solid #FF3366;background:linear-gradient(145deg,rgba(255,51,102,0.15),rgba(10,15,30,0.95));text-shadow:0 0 5px rgba(255,51,102,0.6);animation:neonPulse 2s infinite alternate}.tab-alert.events.active{background:rgba(255,51,102,0.3);box-shadow:0 0 15px rgba(255,51,102,0.8);color:#fff}
-.tab-alert.gallery{color:#a18cd1;border-bottom:3px solid #a18cd1;background:linear-gradient(145deg,rgba(161,140,209,0.15),rgba(10,15,30,0.95))}.tab-alert.gallery.active{background:rgba(161,140,209,0.3);box-shadow:0 0 15px rgba(161,140,209,0.6);color:#fff}
+.tab-alert.communal{color:#FFD700;border-bottom:3px solid #FFD700;background:linear-gradient(145deg,rgba(255,215,0,0.15),rgba(10,15,30,0.95))}
+.tab-alert.communal.active{background:rgba(255,215,0,0.3);box-shadow:0 0 15px rgba(255,215,0,0.6);color:#fff}
+.tab-alert.news{color:#00FF9D;border-bottom:3px solid #00FF9D;background:linear-gradient(145deg,rgba(0,255,157,0.15),rgba(10,15,30,0.95))}
+.tab-alert.news.active{background:rgba(0,255,157,0.3);box-shadow:0 0 15px rgba(0,255,157,0.6);color:#fff}
+.tab-alert.events{color:#FF3366;border-bottom:3px solid #FF3366;background:linear-gradient(145deg,rgba(255,51,102,0.15),rgba(10,15,30,0.95));text-shadow:0 0 5px rgba(255,51,102,0.6);animation:neonPulse 2s infinite alternate}
+.tab-alert.events.active{background:rgba(255,51,102,0.3);box-shadow:0 0 15px rgba(255,51,102,0.8);color:#fff}
+.tab-alert.gallery{color:#a18cd1;border-bottom:3px solid #a18cd1;background:linear-gradient(145deg,rgba(161,140,209,0.15),rgba(10,15,30,0.95))}
+.tab-alert.gallery.active{background:rgba(161,140,209,0.3);box-shadow:0 0 15px rgba(161,140,209,0.6);color:#fff}
+.tab-alert.volunteers{color:#38bdf8;border-bottom:3px solid #38bdf8;background:linear-gradient(145deg,rgba(56,189,248,0.15),rgba(10,15,30,0.95))}
+.tab-alert.volunteers.active{background:rgba(56,189,248,0.3);box-shadow:0 0 15px rgba(56,189,248,0.6);color:#fff}
 @keyframes neonPulse{0%{box-shadow:0 0 5px rgba(255,51,102,0.1)}100%{box-shadow:0 0 12px rgba(255,51,102,0.5)}}
 
-.notification-dot{position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;display:none;z-index:10}.train-alert-dot{position:absolute;top:-4px;right:-4px;width:8px;height:8px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;z-index:5}.carousel-wrapper{width:100%;position:relative}.carousel-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:15px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding-bottom:5px;align-items:center}.carousel-container::-webkit-scrollbar{display:none}
+.notification-dot, .train-alert-dot{position:absolute;top:-4px;right:-4px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;z-index:10}
+.notification-dot{width:10px;height:10px;display:none;} .train-alert-dot{width:8px;height:8px;z-index:5}
+.carousel-wrapper{width:100%;position:relative}.carousel-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:15px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding-bottom:5px;align-items:center}.carousel-container::-webkit-scrollbar{display:none}
 
 .alert-item{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:15px;flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box}
 .alert-card-title{font-size:15px;font-weight:800;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px}
-.alert-card-text{font-size:14px;font-weight:500;line-height:1.5;text-align:left;color:rgba(255,255,255,0.9)}
+.alert-card-text{font-size:14px;font-weight:500;line-height:1.5;text-align:left;color:rgba(255,255,255,0.9);}
 
-.alert-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.5);padding:15px;font-weight:600}.carousel-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px}.carousel-dot{width:8px;height:8px;border-radius:50%;transition:background 0.3s,transform 0.3s}.carousel-dot.active{transform:scale(1.3)}.top-row{display:flex;flex-direction:row;justify-content:space-between;gap:12px;width:100%}.widget{padding:15px 10px;flex:1;min-height:125px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;position:relative}.widget::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(to bottom,rgba(255,255,255,0.08),transparent);border-radius:28px 28px 0 0;pointer-events:none}.datetime{text-align:center;width:100%}#date{font-size:clamp(18px,4.8vw,24px);font-weight:800;white-space:nowrap;letter-spacing:0.5px}#time{font-size:clamp(16px,4.2vw,20px);font-weight:700;white-space:nowrap;color:#fff;font-variant-numeric:tabular-nums}.weekdays{display:flex;justify-content:center;gap:3px;font-size:clamp(9px,2.3vw,12px);font-weight:700;margin:6px 0;text-transform:uppercase;width:100%;padding:0 5px}.day{color:rgba(255,255,255,0.4);transition:0.3s ease}.day.active{background-color:#ff4d4d !important;color:#fff !important;border-radius:6px;padding:2px 5px;box-shadow:0 0 10px rgba(255,77,77,0.4)}
+.alert-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.5);padding:15px;font-weight:600}
+.carousel-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px}
+.carousel-dot{width:8px;height:8px;border-radius:50%;transition:background 0.3s,transform 0.3s}
+.carousel-dot.active{transform:scale(1.3)}
+
+.top-row{display:flex;flex-direction:row;justify-content:space-between;gap:12px;width:100%}
+.widget{padding:15px 10px;flex:1;min-height:125px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;position:relative}
+.widget::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(to bottom,rgba(255,255,255,0.08),transparent);border-radius:28px 28px 0 0;pointer-events:none}
+.datetime{text-align:center;width:100%}
+#date{font-size:clamp(18px,4.8vw,24px);font-weight:800;white-space:nowrap;letter-spacing:0.5px;color:#fff;}
+#time{font-size:clamp(16px,4.2vw,20px);font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;}
+.weekdays{display:flex;justify-content:center;gap:3px;font-size:clamp(9px,2.3vw,12px);font-weight:700;margin:6px 0;text-transform:uppercase;width:100%;padding:0 5px}
+.day{color:rgba(255,255,255,0.4);transition:0.3s ease}
+.day.active{background-color:#ff4d4d !important;color:#fff !important;border-radius:6px;padding:2px 5px;box-shadow:0 0 10px rgba(255,77,77,0.4);}
 
 .weather-box { position:relative; width:100%; display:flex; align-items:center; justify-content:center; flex: 1; }
 .weather-content { position:absolute; width:100%; transition:all 0.8s cubic-bezier(0.25,1,0.5,1); opacity:0; transform:translateY(10px) scale(0.95); text-align:center; pointer-events:none; display:flex; flex-direction:column; justify-content:center; align-items:center; }
@@ -64,17 +90,57 @@
 .weather-city { font-weight:800; font-size:11px; color:rgba(255,255,255,0.6); margin-bottom:4px; text-transform:uppercase; letter-spacing:1.5px; }
 .weather-temp-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 2px 0; }
 .weather-icon { font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-.weather-temp { font-size:clamp(28px,7vw,36px); font-weight:900; white-space:nowrap; text-shadow:0 2px 10px rgba(0,0,0,0.4); line-height:1; }
+.weather-temp { font-size:clamp(28px,7vw,36px); font-weight:900; white-space:nowrap; text-shadow:0 2px 10px rgba(0,0,0,0.4); line-height:1; color:#fff;}
 .weather-wind { font-size:12px; color:rgba(255,255,255,0.7); margin-top:2px; font-weight:500; display: flex; align-items: center; justify-content: center; gap: 4px; }
 
-.schedule-group,.market-group{display:flex;flex-direction:column;gap:8px;position:relative;z-index:90;width:100%}.market-group{z-index:80}.tabs-wrapper{position:relative;width:100%;border-radius:20px;display:flex;overflow:hidden}.tabs-nav{display:flex;flex-wrap:nowrap;width:100%;padding:6px;gap:8px;background:var(--glass-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;position:relative;z-index:2;box-shadow:inset 0 2px 10px rgba(0,0,0,0.4),0 4px 15px rgba(0,0,0,0.2);border:1px solid var(--glass-border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.tabs-nav::-webkit-scrollbar{display:none}.scroll-hint{position:absolute;right:0;top:0;bottom:0;width:45px;display:flex;align-items:center;justify-content:flex-end;padding-right:12px;background:linear-gradient(to right,rgba(0,0,0,0),rgba(0,0,0,0.9));border-radius:0 20px 20px 0;pointer-events:none;opacity:1;transition:opacity 0.4s ease;z-index:5}.scroll-hint.hidden{opacity:0}.scroll-hint span{color:var(--highlight-color);font-size:16px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,0.8);animation:blinkArrow 1.5s infinite}@keyframes blinkArrow{0%,100%{transform:translateX(0);opacity:0.3}50%{transform:translateX(4px);opacity:1}}.tab-btn{flex:0 0 auto;padding:10px 14px;border:1px solid rgba(255,255,255,0.1);background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.25));box-shadow:2px 4px 8px rgba(0,0,0,0.2),inset 1px 1px 2px rgba(255,255,255,0.15);color:#fff;opacity:0.9;font-weight:700;cursor:pointer;border-radius:12px;transition:all 0.3s ease;font-size:clamp(11px,3.2vw,13px);white-space:nowrap;position:relative}.tab-btn.active{background:linear-gradient(145deg,rgba(255,255,255,0.3),rgba(255,255,255,0.1));color:#fff;opacity:1;border:1px solid rgba(255,255,255,0.3);text-shadow:0 1px 4px rgba(0,0,0,0.8);box-shadow:0 4px 12px rgba(0,0,0,0.4),inset 1px 1px 3px rgba(255,255,255,0.4);transform:translateY(-1px)}.content-section{display:none}.content-section.active{display:block;animation:tabFadeIn 0.3s ease-out forwards}@keyframes tabFadeIn{from{opacity:0}to{opacity:1}}
-.table-head{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.15);padding:0 10px 10px 10px;margin-bottom:12px;font-size:10px;text-transform:uppercase;color:#74b9ff;letter-spacing:0.5px}.train{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;padding:14px 10px;margin-bottom:10px;cursor:pointer;transition:all 0.3s ease;border-radius:16px;min-height:60px;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05)}.train:hover{background:linear-gradient(145deg,rgba(255,255,255,0.08),rgba(0,0,0,0.3));transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3),inset 0 1px 1px rgba(255,255,255,0.15)}.train:active{transform:translateY(1px);box-shadow:0 2px 5px rgba(0,0,0,0.2),inset 0 2px 4px rgba(0,0,0,0.3)}.train:last-child{margin-bottom:0}.train-num-box{position:relative;font-weight:800;display:inline-block;font-size:clamp(10px,2.8vw,12px);background:rgba(255,255,255,0.1);padding:4px 6px;border-radius:8px}.route-text{font-weight:700;color:#fff;text-align:center;font-size:clamp(9px,2.7vw,14px);width:100%;padding:0 5px;text-shadow:0 1px 4px rgba(0,0,0,0.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.time-val{font-weight:800;font-size:clamp(12px,3.2vw,15px);font-variant-numeric:tabular-nums}.time-val.soon{color:var(--highlight-color)}.time-val.future{color:var(--time-green)}.time-val.passed{color:var(--time-passed)}.details{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;background:rgba(0,0,0,0.25);border-radius:16px}.details.open{max-height:5000px;opacity:1;padding:15px;margin-top:2px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05)}.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.bus-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:600px){.schedule-grid,.bus-grid{grid-template-columns:1fr}}@media (max-width:550px){.top-row{flex-wrap:wrap}.widget{min-width:45%}}.schedule-column{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:10px 8px}.schedule-row{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;align-items:center;gap:10px;text-align:left}.schedule-row:last-child{border-bottom:none}.schedule-left{flex:1;display:flex;align-items:flex-start;text-align:left;line-height:1.2;font-weight:500}.station-number{color:rgba(255,255,255,0.3);font-weight:600;margin-right:6px;font-size:10px;min-width:18px;text-align:right;padding-top:2px}.station-name-text{flex:1;word-wrap:break-word}.row-highlight{background:rgba(255,255,255,0.1) !important;color:var(--highlight-color) !important;font-weight:800;border-radius:6px;box-shadow:inset 0 1px 2px rgba(255,255,255,0.1)}.time-green{color:var(--time-green);font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}.time-passed{color:var(--time-passed);font-weight:500;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}.time-normal{color:#fff;font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}.details-note{text-align:center;font-weight:600;color:#ff6b6b;margin-bottom:10px;font-size:12px;line-height:1.5;background:rgba(255,107,107,0.1);padding:10px;border-radius:10px}.details-divider{width:50%;height:1px;background:rgba(255,255,255,0.1);margin:20px auto 15px}
+.schedule-group,.market-group{display:flex;flex-direction:column;gap:8px;position:relative;z-index:90;width:100%}
+.market-group{z-index:80}
+.tabs-wrapper{position:relative;width:100%;border-radius:20px;display:flex;overflow:hidden}
+.tabs-nav{display:flex;flex-wrap:nowrap;width:100%;padding:6px;gap:8px;background:var(--glass-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;position:relative;z-index:2;box-shadow:inset 0 2px 10px rgba(0,0,0,0.4),0 4px 15px rgba(0,0,0,0.2);border:1px solid var(--glass-border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs-nav::-webkit-scrollbar{display:none}
+.scroll-hint{position:absolute;right:0;top:0;bottom:0;width:45px;display:flex;align-items:center;justify-content:flex-end;padding-right:12px;background:linear-gradient(to right,rgba(0,0,0,0),rgba(0,0,0,0.9));border-radius:0 20px 20px 0;pointer-events:none;opacity:1;transition:opacity 0.4s ease;z-index:5}
+.scroll-hint.hidden{opacity:0}
+.scroll-hint span{color:var(--highlight-color);font-size:16px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,0.8);animation:blinkArrow 1.5s infinite}
+@keyframes blinkArrow{0%,100%{transform:translateX(0);opacity:0.3}50%{transform:translateX(4px);opacity:1}}
+.tab-btn{flex:0 0 auto;padding:10px 14px;border:1px solid rgba(255,255,255,0.1);background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.25));box-shadow:2px 4px 8px rgba(0,0,0,0.2),inset 1px 1px 2px rgba(255,255,255,0.15);color:#fff;font-weight:700;cursor:pointer;border-radius:12px;transition:all 0.3s ease;font-size:clamp(11px,3.2vw,13px);white-space:nowrap;position:relative; color:rgba(255,255,255,0.9);}
+.tab-btn.active{background:linear-gradient(145deg,rgba(255,255,255,0.3),rgba(255,255,255,0.1));color:#fff;border:1px solid rgba(255,255,255,0.3);text-shadow:0 1px 4px rgba(0,0,0,0.8);box-shadow:0 4px 12px rgba(0,0,0,0.4),inset 1px 1px 3px rgba(255,255,255,0.4);transform:translateY(-1px)}
+.content-section{display:none}
+.content-section.active{display:block;animation:tabFadeIn 0.3s ease-out forwards}
+@keyframes tabFadeIn{from{opacity:0}to{opacity:1}}
+
+.table-head{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.15);padding:0 10px 10px 10px;margin-bottom:12px;font-size:10px;text-transform:uppercase;color:#74b9ff;letter-spacing:0.5px}
+.train{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;padding:14px 10px;margin-bottom:10px;cursor:pointer;transition:all 0.3s ease;border-radius:16px;min-height:60px;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05)}
+.train:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3)}
+.train-num-box{position:relative;font-weight:800;display:inline-block;font-size:clamp(10px,2.8vw,12px);background:rgba(255,255,255,0.1);color:#fff;padding:4px 6px;border-radius:8px}
+.route-text{font-weight:700;color:#fff;text-align:center;font-size:clamp(9px,2.7vw,14px);width:100%;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.time-val{font-weight:800;font-size:clamp(12px,3.2vw,15px);font-variant-numeric:tabular-nums}
+.time-val.soon{color:var(--highlight-color)}.time-val.future{color:var(--time-green)}.time-val.passed{color:var(--time-passed)}
+
+.details{max-height:0;overflow:hidden;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;background:rgba(0,0,0,0.25);border-radius:16px; opacity:0;}
+.details.open{max-height:5000px;opacity:1;padding:15px;margin-top:2px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05)}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.bus-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:600px){.schedule-grid,.bus-grid{grid-template-columns:1fr}}
+@media (max-width:550px){.top-row{flex-wrap:wrap}.widget{min-width:45%}}
+.schedule-column{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:10px 8px}
+.schedule-row{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;align-items:center;gap:10px;text-align:left}
+.schedule-row:last-child{border-bottom:none}
+.schedule-left{flex:1;display:flex;align-items:flex-start;text-align:left;line-height:1.2;font-weight:500}
+.station-number{color:rgba(255,255,255,0.4);font-weight:600;margin-right:6px;font-size:10px;min-width:18px;text-align:right;padding-top:2px}
+.station-name-text{flex:1;word-wrap:break-word;color:#fff;}
+.row-highlight{background:rgba(255,255,255,0.1) !important;color:var(--highlight-color) !important;font-weight:800;border-radius:6px;}
+.row-highlight .station-name-text, .row-highlight .time-green, .row-highlight .time-passed, .row-highlight .time-normal { color: var(--highlight-color) !important; }
+.time-green{color:var(--time-green);font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}
+.time-passed{color:var(--time-passed);font-weight:500;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}
+.time-normal{color:#fff;font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}
+.details-note{text-align:center;font-weight:600;color:#ff6b6b;margin-bottom:10px;font-size:12px;line-height:1.5;background:rgba(255,107,107,0.1);padding:10px;border-radius:10px}
+.details-divider{width:50%;height:1px;background:rgba(255,255,255,0.1);margin:20px auto 15px}
 
 .shops-tile-grid{display:grid;grid-template-columns:repeat(2,minmax(0, 1fr));gap:12px;align-items:stretch;grid-auto-flow:dense;transition:padding-bottom 0.3s ease}
 @media (min-width:650px){.shops-tile-grid{grid-template-columns:repeat(3,minmax(0, 1fr))}}
 
 .shop-tile{display:flex;flex-direction:column;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:10px;cursor:pointer;transition:transform 0.3s ease,box-shadow 0.3s ease;position:relative;z-index:1;min-width:0;box-sizing:border-box;}
-.shop-tile:hover{background:linear-gradient(145deg,rgba(255,255,255,0.08),rgba(0,0,0,0.3));transform:translateY(-2px)}.shop-tile:active{transform:translateY(1px)}.shop-tile.tile-active{background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.3));box-shadow:0 8px 24px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.2);z-index:50 !important}
+.shop-tile:hover{background:linear-gradient(145deg,rgba(255,255,255,0.08),rgba(0,0,0,0.3));transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3),inset 0 1px 1px rgba(255,255,255,0.15)}
+.shop-tile.tile-active{background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.3));box-shadow:0 8px 24px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.2);z-index:50 !important}
 
 .shop-tile.vip-tile, .vip-job-card {
   grid-column: 1 / -1; width: 85%; max-width: 480px; margin: 0 auto;
@@ -90,7 +156,7 @@
 .shop-tile.vip-tile .shop-inner-list {
   background: linear-gradient(145deg, rgba(35, 25, 5, 0.98), rgba(15, 10, 0, 0.98)) !important; border: 1px solid rgba(255, 204, 0, 0.3) !important;
 }
-.vip-badge{position:absolute;top:-6px;right:-6px;background:linear-gradient(135deg,#ffcc00,#ff8800);color:#000;font-size:10px;font-weight:900;padding:4px 8px;border-radius:12px;box-shadow:0 4px 10px rgba(255,204,0,0.4);z-index:10;text-transform:uppercase;letter-spacing:1px;animation:vipPulse 2s infinite}
+.vip-badge{position:absolute;top:-6px;right:-6px;background:linear-gradient(135deg,#ffcc00,#ff8800);color:#000;font-size:10px;font-weight:900;padding:4px 8px;border-radius:12px;box-shadow:0 4px 10px rgba(255,204,0,0.4);z-index:10;text-transform:uppercase;letter-spacing:1px;}
 
 .shop-tile-photo{width:100%;height:160px;border-radius:10px;background:rgba(0,0,0,0.3);display:flex;justify-content:center;align-items:center;overflow:hidden;margin-bottom:8px;border:1px solid rgba(255,255,255,0.05)}
 .shop-tile.vip-tile .shop-tile-photo{height:190px;}
@@ -100,21 +166,72 @@
 .shop-tile-name{font-weight:800;font-size:13px;color:#fff;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;}
 .shop-tile-chevron{font-size:11px;color:var(--time-green);font-weight:800;margin-top:auto;text-align:center;background:rgba(0,255,156,0.1);padding:4px;border-radius:8px}
 
-.shop-details-dropdown{position:absolute;top:calc(100% + 5px);left:0;width:100%;max-height:0;opacity:0;overflow:hidden;margin-top:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;pointer-events:none;box-sizing:border-box;z-index:50}.shop-details-dropdown.open{max-height:3000px;opacity:1;pointer-events:auto}.shop-inner-list{display:flex;flex-direction:column;gap:8px;font-size:11px;text-align:left;color:rgba(255,255,255,0.85);background:rgba(11,29,58,0.98);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 15px 35px rgba(0,0,0,0.8)}.shop-inner-item{display:flex;gap:6px;align-items:flex-start;line-height:1.3}.detail-icon{flex-shrink:0;font-size:12px}.shop-phone-link{color:#2af598;text-decoration:none;font-weight:800;letter-spacing:0.5px}.blabla-actions{display:flex;gap:10px;margin-bottom:15px;padding:0 5px}.blabla-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px 5px;border-radius:14px;text-decoration:none;font-weight:800;font-size:14px;font-family:inherit;color:#0b1d3a;cursor:pointer;border:none;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3)}.blabla-btn:hover{transform:translateY(-2px)}.blabla-btn:active{transform:translateY(1px)}.btn-driver{background:linear-gradient(135deg,#00ff9c,#00b8ff)}.btn-passenger{background:linear-gradient(135deg,#ffcc00,#ff8800)}.blabla-subtext{font-size:10px;font-weight:600;opacity:0.8;margin-top:3px;text-transform:uppercase}.blabla-toggle-container{display:flex;background:rgba(0,0,0,0.3);border-radius:12px;padding:4px;margin-bottom:15px;border:1px solid rgba(255,255,255,0.05)}.blabla-tab-btn{flex:1;padding:8px;border:none;background:transparent;color:rgba(255,255,255,0.5);font-weight:700;font-size:12px;border-radius:8px;cursor:pointer;transition:0.3s}.blabla-tab-btn.active{background:rgba(255,255,255,0.15);color:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.2)}
+.shop-details-dropdown{position:absolute;top:calc(100% + 5px);left:0;width:100%;max-height:0;opacity:0;overflow:hidden;margin-top:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;pointer-events:none;box-sizing:border-box;z-index:50; opacity:0;}
+.shop-details-dropdown.open{max-height:3000px;opacity:1;pointer-events:auto}
+.shop-inner-list{display:flex;flex-direction:column;gap:8px;font-size:11px;text-align:left;color:rgba(255,255,255,0.85);background:rgba(11,29,58,0.98);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 15px 35px rgba(0,0,0,0.8)}
+.shop-inner-item{display:flex;gap:6px;align-items:flex-start;line-height:1.3}
+.detail-icon{flex-shrink:0;font-size:12px}
+.shop-phone-link{color:#2af598;text-decoration:none;font-weight:800;letter-spacing:0.5px}
+
+.blabla-actions{display:flex;gap:10px;margin-bottom:15px;padding:0 5px}
+.blabla-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px 5px;border-radius:14px;text-decoration:none;font-weight:800;font-size:14px;font-family:inherit;color:#0b1d3a;cursor:pointer;border:none;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3)}
+.blabla-btn:active{transform:translateY(1px)}
+.btn-driver{background:linear-gradient(135deg,#00ff9c,#00b8ff)}.btn-passenger{background:linear-gradient(135deg,#ffcc00,#ff8800)}
+.blabla-subtext{font-size:10px;color:rgba(0,0,0,0.8);font-weight:600;margin-top:3px;text-transform:uppercase}
+.blabla-toggle-container{display:flex;background:rgba(0,0,0,0.3);border-radius:12px;padding:4px;margin-bottom:15px;border:1px solid rgba(255,255,255,0.05)}
+.blabla-tab-btn{flex:1;padding:8px;border:none;background:transparent;color:rgba(255,255,255,0.5);font-weight:700;font-size:12px;border-radius:8px;cursor:pointer;transition:0.3s;}
+.blabla-tab-btn.active{background:rgba(255,255,255,0.15);color:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.2)}
 
 .cards-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start;}@media (min-width:650px){.cards-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ОПТИМІЗАЦІЯ КАРТОЧЕК */
+.card-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width:100%; }
+.card-price { color:var(--time-green); font-size:13px; font-weight:800; flex-shrink:0; min-width:0; word-break:break-word; text-transform:uppercase; margin:0;}
+.card-info { font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0; word-break:break-word; }
+.gallery-preview { text-align:center; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer; }
+.gallery-preview img { width:100%; max-height:250px; object-fit:contain; border-radius:6px; }
+.gallery-text { font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700; }
+.empty-msg { text-align:center; padding:20px; color:rgba(255,255,255,0.5); font-weight:600; font-size:13px;}
+.card-desc { font-size:11px; color:rgba(255,255,255,0.8); line-height:1.4; word-break:break-word; overflow-wrap:anywhere; }
+
 .blabla-card{background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:10px;box-shadow:0 4px 10px rgba(0,0,0,0.2);display:flex;flex-direction:column;gap:6px;font-size:11px;min-width:0;box-sizing:border-box;}
 .blabla-route{font-size:12px;font-weight:800;color:#fff;display:flex;flex-direction:column;align-items:flex-start;gap:2px;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;}
 .blabla-date{font-size:10px;color:var(--highlight-color);font-weight:700;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;}
 .blabla-info-row{display:flex;flex-direction:column;font-size:10px;color:rgba(255,255,255,0.8);background:rgba(0,0,0,0.2);padding:6px 8px;border-radius:8px;align-items:flex-start;gap:4px;word-break:break-word;overflow-wrap:anywhere;}
 .blabla-phone{font-size:12px;font-weight:800;color:var(--time-green);text-decoration:none}
 
-.custom-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:99999;display:flex;justify-content:center;align-items:center;overflow-y:auto;padding:20px;opacity:0;pointer-events:none;transition:opacity 0.3s ease}.custom-modal-overlay.active{opacity:1;pointer-events:auto}.custom-modal-box{width:100%;max-width:400px;margin:auto;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:25px 20px;box-shadow:0 20px 50px rgba(0,0,0,0.5);transform:translateY(20px) scale(0.95);transition:transform 0.3s ease;position:relative}.custom-modal-overlay.active .custom-modal-box{transform:translateY(0) scale(1)}.close-modal-btn{position:absolute;top:15px;right:15px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;cursor:pointer}.form-title{margin:0 0 20px 0;font-size:18px;font-weight:800;text-align:center;text-transform:uppercase;color:var(--highlight-color)}.form-group{display:flex;flex-direction:column;margin-bottom:12px}.form-row{display:flex;gap:10px}.form-row .form-group{flex:1}.form-label{font-size:11px;font-weight:700;margin-bottom:5px;color:rgba(255,255,255,0.7);text-transform:uppercase}
+.custom-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:99999;display:flex;justify-content:center;align-items:center;overflow-y:auto;padding:20px;pointer-events:none;transition:opacity 0.3s ease; opacity:0;}
+.custom-modal-overlay.active{opacity:1;pointer-events:auto}
+.custom-modal-box{width:100%;max-width:400px;margin:auto;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:25px 20px;box-shadow:0 20px 50px rgba(0,0,0,0.5);transform:translateY(20px) scale(0.95);transition:transform 0.3s ease;position:relative}
+.custom-modal-overlay.active .custom-modal-box{transform:translateY(0) scale(1)}
+.close-modal-btn{position:absolute;top:15px;right:15px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#fff;}
+.form-title{margin:0 0 20px 0;font-size:18px;font-weight:800;text-align:center;text-transform:uppercase;color:var(--highlight-color)}
+.form-group{display:flex;flex-direction:column;margin-bottom:12px}
+.form-row{display:flex;gap:10px}
+.form-row .form-group{flex:1}
+.form-label{font-size:11px;font-weight:700;margin-bottom:5px;color:rgba(255,255,255,0.7);text-transform:uppercase}
 .form-input{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s;width:100%;max-width:100%;box-sizing:border-box;margin:0}
 input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance:none; appearance:none; display:block; width:100%; }
-.form-input:focus{border-color:var(--time-green);background:rgba(0,0,0,0.5)}.form-input::placeholder{color:rgba(255,255,255,0.3)}textarea.form-input{resize:none}select.form-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:20px;padding-right:30px}select.form-input option{background:#0b1d3a;color:#fff}input[type="file"].form-input{padding:8px;font-size:12px}.form-submit-btn{width:100%;padding:14px;margin-top:10px;border:none;border-radius:14px;font-size:15px;font-weight:800;color:#0b1d3a;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.2s}.form-submit-btn.driver{background:linear-gradient(135deg,#00ff9c,#00b8ff);box-shadow:0 4px 15px rgba(0,255,156,0.3)}.form-submit-btn.passenger{background:linear-gradient(135deg,#ffcc00,#ff8800);box-shadow:0 4px 15px rgba(255,204,0,0.3)}.form-submit-btn.flea,.form-submit-btn.lost,.form-submit-btn.estate{background:linear-gradient(135deg,#00ff9c,#00b8ff);box-shadow:0 4px 15px rgba(0,255,156,0.3)}.form-submit-btn:active{transform:translateY(2px)}
+.form-input:focus{border-color:var(--time-green);background:rgba(0,0,0,0.5)}
+.form-input::placeholder{color:rgba(255,255,255,0.4)}
+textarea.form-input{resize:none}
+select.form-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:20px;padding-right:30px}
+select.form-input option{background:#0b1d3a;color:#fff}
+input[type="file"].form-input{padding:8px;font-size:12px}
 
-.image-modal{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.98);z-index:100000;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;pointer-events:none;transition:opacity 0.3s ease}
+/* ОПТИМІЗАЦІЯ КАПЧІ ТА ФОРМ */
+.captcha-group { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px; }
+.captcha-label { text-transform: none; color: #fff; }
+.captcha-expr { color: var(--time-green); font-size: 14px; }
+.captcha-input { text-align: center; font-weight: bold; font-size: 15px; }
+
+.form-submit-btn{width:100%;padding:14px;margin-top:10px;border:none;border-radius:14px;font-size:15px;font-weight:800;color:#0b1d3a;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.2s}
+.form-submit-btn.driver{background:linear-gradient(135deg,#00ff9c,#00b8ff)}
+.form-submit-btn.passenger{background:linear-gradient(135deg,#ffcc00,#ff8800)}
+.form-submit-btn.flea,.form-submit-btn.lost,.form-submit-btn.estate{background:linear-gradient(135deg,#00ff9c,#00b8ff)}
+.form-submit-btn:active{transform:translateY(2px)}
+
+.image-modal{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.98);z-index:100000;display:flex;flex-direction:column;justify-content:center;align-items:center;pointer-events:none;transition:opacity 0.3s ease; opacity:0;}
 .image-modal.active{opacity:1;pointer-events:auto;touch-action:none}
 .image-modal-slider{width:100%;height:100%;overflow:hidden;position:relative}
 .image-modal-track{display:flex;width:100%;height:100%;transition:transform 0.3s cubic-bezier(0.25,1,0.5,1);will-change:transform}
@@ -123,39 +240,20 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 .image-modal-close{position:absolute;top:20px;right:20px;color:#fff;font-size:36px;font-weight:300;cursor:pointer;background:rgba(0,0,0,0.5);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:100001}
 #modal-image-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font-weight:700;font-size:14px;background:rgba(0,0,0,0.5);padding:6px 14px;border-radius:14px;z-index:100001;display:none}
 
-.flea-categories-wrapper { display: flex; overflow-x: auto; gap: 8px; padding: 5px 15px 15px 15px; scrollbar-width: none; -ms-overflow-style: none; }
+.flea-categories-wrapper { display: flex; overflow-x: auto; gap: 8px; padding: 5px 15px 15px 15px; scrollbar-width: none; -ms-overflow-style: none; align-items: center; }
 .flea-categories-wrapper::-webkit-scrollbar { display: none; }
-.flea-category-tag { padding: 6px 14px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; font-size: 11px; font-weight: 700; color: rgba(255, 255, 255, 0.7); white-space: nowrap; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
-.flea-category-tag:hover { background: rgba(255, 255, 255, 0.15); color: #fff; transform: translateY(-2px); }
+.flea-category-tag { padding: 6px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; cursor: pointer; transition: all 0.3s ease; }
 .flea-category-tag.active { background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; border-color: transparent; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); }
 #estate-categories .flea-category-tag.active { background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff; border-color: transparent; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3); }
 
 .beta-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease; cursor: default; }
 .beta-drawer.open { max-height: 500px; opacity: 1; padding-top: 15px; }
 
-.guide-item-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0; }
-.guide-item-row:last-child { border-bottom: none; padding-bottom: 0; }
-.guide-item-title { font-weight: 600; color: rgba(255,255,255,0.85); font-size: 12px; }
-
-.pb-search-container { position: sticky; top: -15px; z-index: 10; padding: 10px 0; margin-bottom: 5px; background: linear-gradient(to bottom, rgba(11,29,58,1) 80%, rgba(11,29,58,0)); }
-.pb-category-section { margin-bottom: 24px; }
-.pb-category-header { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; padding-left: 4px; }
-.pb-category-header span { font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
-.pb-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
-@media (min-width: 650px) { .pb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.pb-tile { background: rgba(10, 20, 40, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-width: 0; box-sizing: border-box; }
-.pb-tile:active { transform: scale(0.98); }
-.pb-tile-title { font-size: 13px; font-weight: 700; color: #f8fafc; line-height: 1.4; word-break: break-word; flex: 1; min-width: 0; }
-.pb-tile-phones { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; align-items: flex-end; }
-.pb-phone-btn { background: transparent; color: #00ff9c; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; border: 1px solid rgba(0, 255, 156, 0.5); transition: background 0.2s, border-color 0.2s; text-align: center; white-space: nowrap; letter-spacing: 0.5px; }
-.pb-phone-btn:hover { border-color: #00ff9c; background: rgba(0, 255, 156, 0.05); }
-.pb-phone-btn:active { background: rgba(0, 255, 156, 0.15); }
-
 .jobs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
 @media (max-width: 768px) { .jobs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 550px) { .jobs-grid { grid-template-columns: minmax(0, 1fr); } }
 
-.equalizer { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-left: auto; opacity: 0.2; transition: opacity 0.3s; margin-right: 5px; }
+.equalizer { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-left: auto; transition: opacity 0.3s; margin-right: 5px; opacity:0.2;}
 .equalizer.playing { opacity: 1; }
 .eq-bar { width: 4px; height: 4px; background: linear-gradient(to top, #00ff9c 0%, #00ff9c 75%, #ff3b3b 75%, #ff3b3b 100%); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); transition: height 0.15s ease; }
 .equalizer.playing .eq-bar:nth-child(1) { animation: eq-1 1.2s infinite ease-in-out; }
@@ -177,36 +275,31 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 .jobs-carousel-card { flex: 0 0 90%; max-width: 350px; scroll-snap-align: center; }
 @media (min-width: 650px) { .jobs-carousel-card { flex: 0 0 45%; } }
 
-.guide-slide { display: none; flex-direction: column; align-items: center; text-align: center; animation: tabFadeIn 0.4s ease; }
-.guide-slide.active { display: flex; }
-.guide-icon { font-size: 48px; margin-bottom: 15px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)); }
-.guide-title { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 10px; }
-.guide-text { font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 20px; text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
-.guide-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 20px; }
-.guide-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: 0.3s; }
-.guide-dot.active { background: var(--time-green); transform: scale(1.2); }
-.guide-nav { display: flex; gap: 10px; width: 100%; }
-.guide-btn { flex: 1; padding: 12px; border-radius: 12px; font-weight: 800; border: none; cursor: pointer; transition: 0.2s; }
-.guide-btn-next { background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); }
-.guide-btn-prev { background: rgba(255,255,255,0.1); color: #fff; }
+.modal-mini-guide { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px 12px; font-size: 11px; opacity: 0.9; margin-bottom: 15px; text-align: left; line-height: 1.4; }
 
-.modal-mini-guide { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px 12px; font-size: 11px; color: rgba(255, 255, 255, 0.8); margin-bottom: 15px; text-align: left; line-height: 1.4; }
-.modal-mini-guide b { color: #fff; }
+/* Кнопка поділитися */
+.share-btn-corner { position:absolute; top:12px; right:12px; width:30px; height:30px; background:rgba(255,255,255,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:5; border:1px solid rgba(255,255,255,0.2); transition:0.2s; font-size: 14px; color: #fff; }
+.share-btn-corner:hover { background:rgba(255,255,255,0.2); transform:scale(1.1); }
+.load-more-btn { width:100%; padding:14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:12px; color:#fff; font-weight:800; margin-top:15px; cursor:pointer; transition:0.2s; }
+.load-more-btn:active { background:rgba(255,255,255,0.2); }
+
+/* Довідник */
+.pb-search-container { position: sticky; top: -15px; z-index: 10; padding: 10px 0; margin-bottom: 5px; background: linear-gradient(to bottom, rgba(11,29,58,1) 80%, rgba(11,29,58,0)); }
+.pb-category-section { margin-bottom: 24px; }
+.pb-category-header { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; padding-left: 4px; }
+.pb-category-header span { font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+.pb-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+@media (min-width: 650px) { .pb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pb-tile { background: rgba(10, 20, 40, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-width: 0; box-sizing: border-box; }
+.pb-tile:active { transform: scale(0.98); }
+.pb-tile-title { font-size: 13px; font-weight: 700; color: #f8fafc; line-height: 1.4; word-break: break-word; flex: 1; min-width: 0; }
+.pb-tile-phones { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; align-items: flex-end; }
+.pb-phone-btn { background: transparent; color: #00ff9c; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; border: 1px solid rgba(0, 255, 156, 0.5); transition: background 0.2s, border-color 0.2s; text-align: center; white-space: nowrap; letter-spacing: 0.5px; }
+.pb-phone-btn:hover { border-color: #00ff9c; background: rgba(0, 255, 156, 0.05); }
+.pb-phone-btn:active { background: rgba(0, 255, 156, 0.15); }
 </style>
 </head>
 <body>
-
-<div class="custom-modal-overlay" id="guide-modal" style="z-index: 100002;" onclick="closeGuide()">
-  <div class="custom-modal-box" style="padding: 30px 20px;" onclick="event.stopPropagation()">
-    <div class="close-modal-btn" onclick="closeGuide()">&times;</div>
-    <div id="guide-content"></div>
-    <div class="guide-dots" id="guide-dots"></div>
-    <div class="guide-nav" id="guide-nav">
-      <button class="guide-btn guide-btn-prev" id="guide-prev" onclick="prevGuideStep()">Назад</button>
-      <button class="guide-btn guide-btn-next" id="guide-next" onclick="nextGuideStep()">Далі</button>
-    </div>
-  </div>
-</div>
 
 <div class="image-modal" id="image-modal" onclick="closeImageModal(event)">
   <div class="image-modal-close" onclick="closeImageModal(event)">&times;</div>
@@ -216,9 +309,10 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
   <div id="modal-image-counter"></div>
 </div>
 
-<div class="custom-modal-overlay" id="blabla-modal" onclick="closeBlaBlaForm(event)">
+<!-- БЛАБЛАКАР МОДАЛКА -->
+<div class="custom-modal-overlay" id="blabla-modal" onclick="closeModalForm(event, 'blabla-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
-    <div class="close-modal-btn" onclick="closeBlaBlaForm(event)">&times;</div>
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'blabla-modal')">&times;</div>
     <h3 class="form-title" id="form-modal-title">Додати поїздку</h3>
     <div class="modal-mini-guide">💡 Ваше оголошення з'явиться <b>одразу</b> після відправки. Щоб видалити його пізніше, напишіть у наш Telegram <b style="color:var(--time-green)">@vilnohirsk</b>.</div>
     <form id="custom-blabla-form" onsubmit="submitBlaBlaForm(event)">
@@ -247,30 +341,28 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Коментар</label><textarea class="form-input" id="input-comment" rows="2"></textarea></div>
       <input type="hidden" id="input-type" value="">
       
-      <div class="form-group captcha-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px;">
-        <label class="form-label" style="text-transform: none;">🤖 Анти-спам: скільки буде <b class="captcha-expression" style="color: var(--time-green); font-size: 14px;"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" style="text-align: center; font-weight: bold; font-size: 15px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+      <div class="form-group captcha-group">
+        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         <input type="hidden" class="captcha-answer">
       </div>
-
       <button type="submit" class="form-submit-btn driver" id="form-submit-btn">Опублікувати</button>
     </form>
   </div>
 </div>
 
-<div class="custom-modal-overlay" id="flea-modal" onclick="closeFleaForm(event)">
+<!-- БАРАХОЛКА МОДАЛКА -->
+<div class="custom-modal-overlay" id="flea-modal" onclick="closeModalForm(event, 'flea-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
-    <div class="close-modal-btn" onclick="closeFleaForm(event)">&times;</div>
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'flea-modal')">&times;</div>
     <h3 class="form-title" style="color: #00ff9c;">📦 Додати оголошення</h3>
     <div class="modal-mini-guide">💡 Після заповнення форми оголошення проходить <b>швидку модерацію</b>. Будь ласка, додавайте реальні фото товару.</div>
-    <form id="custom-flea-form" onsubmit="submitFleaForm(event)">
+    <form id="custom-flea-form" onsubmit="submitGenericForm(event, 'custom-flea-form', 'flea-modal', 'flea-submit-btn', 'flea', 5)">
       <div class="form-group"><label class="form-label">Назва товару</label><input type="text" class="form-input" name="title" required></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Категорія</label>
           <select class="form-input" name="category" required>
-            <option value="Інше">Інше</option>
-            <option value="Електроніка">Електроніка</option>
-            <option value="Одяг">Одяг</option>
+            <option value="Інше">Інше</option><option value="Електроніка">Електроніка</option><option value="Одяг">Одяг</option>
           </select>
         </div>
         <div class="form-group"><label class="form-label">Стан</label><select class="form-input" name="condition" required><option value="Вживане">Вживане</option><option value="Нове">Нове</option></select></div>
@@ -283,23 +375,23 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
       
-      <div class="form-group captcha-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px;">
-        <label class="form-label" style="text-transform: none;">🤖 Анти-спам: скільки буде <b class="captcha-expression" style="color: var(--time-green); font-size: 14px;"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" style="text-align: center; font-weight: bold; font-size: 15px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+      <div class="form-group captcha-group">
+        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         <input type="hidden" class="captcha-answer">
       </div>
-
       <button type="submit" class="form-submit-btn flea" id="flea-submit-btn">Опублікувати</button>
     </form>
   </div>
 </div>
 
-<div class="custom-modal-overlay" id="lost-modal" onclick="closeLostForm(event)">
+<!-- ЗНАХІДКИ МОДАЛКА -->
+<div class="custom-modal-overlay" id="lost-modal" onclick="closeModalForm(event, 'lost-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
-    <div class="close-modal-btn" onclick="closeLostForm(event)">&times;</div>
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'lost-modal')">&times;</div>
     <h3 class="form-title" style="color: #e056fd;">🔍 Бюро знахідок</h3>
-    <div class="modal-mini-guide">💡 Опишіть обставини якомога детальніше. Повідомлення публікується після <b>швидкої перевірки</b> модератором.</div>
-    <form id="custom-lost-form" onsubmit="submitLostForm(event)">
+    <div class="modal-mini-guide">💡 Опишіть обставини якомога детальніше. Повідомлення публікується після <b>швидкої перевірки</b>.</div>
+    <form id="custom-lost-form" onsubmit="submitGenericForm(event, 'custom-lost-form', 'lost-modal', 'lost-submit-btn', 'lost', 5)">
       <div class="form-group"><label class="form-label">Що сталося?</label><select class="form-input" name="type" required><option value="Знайдено">🔍 Я знайшов річ</option><option value="Втрачено">❗ Я загубив річ</option></select></div>
       <div class="form-group"><label class="form-label">Назва речі</label><input type="text" class="form-input" name="title" placeholder="Наприклад: Ключі від авто" required></div>
       <div class="form-group"><label class="form-label">Категорія</label><select class="form-input" name="category" required><option value="Ключі">Ключі</option><option value="Тварини">Тварини</option><option value="Документи">Документи</option><option value="Електроніка">Електроніка</option><option value="Інше">Інше</option></select></div>
@@ -308,23 +400,23 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Додати фото (якщо є)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple></div>
       <div class="form-group"><label class="form-label">Ваш телефон (не обов'язково)</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" oninput="formatUAPhone(this)"></div>
       
-      <div class="form-group captcha-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px;">
-        <label class="form-label" style="text-transform: none;">🤖 Анти-спам: скільки буде <b class="captcha-expression" style="color: var(--time-green); font-size: 14px;"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" style="text-align: center; font-weight: bold; font-size: 15px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+      <div class="form-group captcha-group">
+        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         <input type="hidden" class="captcha-answer">
       </div>
-
       <button type="submit" class="form-submit-btn lost" id="lost-submit-btn">Опублікувати</button>
     </form>
   </div>
 </div>
 
-<div class="custom-modal-overlay" id="job-modal" onclick="closeJobForm(event)">
+<!-- ВАКАНСІЇ МОДАЛКА -->
+<div class="custom-modal-overlay" id="job-modal" onclick="closeModalForm(event, 'job-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
-    <div class="close-modal-btn" onclick="closeJobForm(event)">&times;</div>
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'job-modal')">&times;</div>
     <h3 class="form-title" style="color: #00b8ff;">💼 Додати вакансію</h3>
     <div class="modal-mini-guide">💡 Вказуйте чіткі умови та зарплату — це привертає більше уваги. Вакансія з'явиться після <b>швидкої модерації</b>.</div>
-    <form id="custom-job-form" onsubmit="submitJobForm(event)">
+    <form id="custom-job-form" onsubmit="submitGenericForm(event, 'custom-job-form', 'job-modal', 'job-submit-btn', 'job', 0)">
       <div class="form-group"><label class="form-label">Посада</label><input type="text" class="form-input" name="title" placeholder="Наприклад: Продавець" required></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Зарплата</label><input type="tel" class="form-input" name="salary" placeholder="15000" required maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
@@ -333,70 +425,47 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Кого шукають</label>
-          <select class="form-input" name="gender" required>
-            <option value="Не має значення">Не має значення</option>
-            <option value="Чоловік">Чоловік</option>
-            <option value="Жінка">Жінка</option>
-          </select>
+          <select class="form-input" name="gender" required><option value="Не має значення">Не має значення</option><option value="Чоловік">Чоловік</option><option value="Жінка">Жінка</option></select>
         </div>
         <div class="form-group">
           <label class="form-label">Зайнятість</label>
-          <select class="form-input" name="employment" required>
-            <option value="Повна">Повна</option>
-            <option value="Неповна">Неповна</option>
-            <option value="Віддалена">Віддалена</option>
-          </select>
+          <select class="form-input" name="employment" required><option value="Повна">Повна</option><option value="Неповна">Неповна</option><option value="Віддалена">Віддалена</option></select>
         </div>
       </div>
       <div class="form-group"><label class="form-label">Опис</label><textarea class="form-input" name="description" rows="4" required></textarea></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
       
-      <div class="form-group captcha-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px;">
-        <label class="form-label" style="text-transform: none;">🤖 Анти-спам: скільки буде <b class="captcha-expression" style="color: var(--time-green); font-size: 14px;"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" style="text-align: center; font-weight: bold; font-size: 15px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+      <div class="form-group captcha-group">
+        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         <input type="hidden" class="captcha-answer">
       </div>
-
       <button type="submit" class="form-submit-btn" style="background: linear-gradient(135deg, #00b8ff, #0055ff); color: #fff;" id="job-submit-btn">Опублікувати</button>
     </form>
   </div>
 </div>
 
-<div class="custom-modal-overlay" id="estate-modal" onclick="closeEstateForm(event)">
+<!-- НЕРУХОМІСТЬ МОДАЛКА -->
+<div class="custom-modal-overlay" id="estate-modal" onclick="closeModalForm(event, 'estate-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
-    <div class="close-modal-btn" onclick="closeEstateForm(event)">&times;</div>
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'estate-modal')">&times;</div>
     <h3 class="form-title" style="color: #ff9f43;">🏠 Додати нерухомість</h3>
     <div class="modal-mini-guide">💡 Якісні фотографії значно підвищують шанси на успіх. Оголошення публікується після <b>швидкої перевірки</b>.</div>
-    <form id="custom-estate-form" onsubmit="submitEstateForm(event)">
+    <form id="custom-estate-form" onsubmit="submitGenericForm(event, 'custom-estate-form', 'estate-modal', 'estate-submit-btn', 'estate', 5)">
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Угода</label>
-          <select class="form-input" name="dealType" required>
-            <option value="Оренда">Оренда</option>
-            <option value="Продаж">Продаж</option>
-          </select>
+          <select class="form-input" name="dealType" required><option value="Оренда">Оренда</option><option value="Продаж">Продаж</option></select>
         </div>
         <div class="form-group">
           <label class="form-label">Об'єкт</label>
-          <select class="form-input" name="propertyType" required>
-            <option value="Квартира">Квартира</option>
-            <option value="Будинок">Будинок</option>
-            <option value="Кімната">Кімната</option>
-            <option value="Комерція">Комерція</option>
-            <option value="Гараж">Гараж</option>
-          </select>
+          <select class="form-input" name="propertyType" required><option value="Квартира">Квартира</option><option value="Будинок">Будинок</option><option value="Кімната">Кімната</option><option value="Комерція">Комерція</option><option value="Гараж">Гараж</option></select>
         </div>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Кімнат</label>
-          <select class="form-input" name="rooms">
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4+">4+</option>
-            <option value="-">-</option>
-          </select>
+          <select class="form-input" name="rooms"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4+</option><option value="-">-</option></select>
         </div>
         <div class="form-group">
           <label class="form-label">Ціна (грн або $)</label>
@@ -407,12 +476,11 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
       
-      <div class="form-group captcha-group" style="background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px;">
-        <label class="form-label" style="text-transform: none;">🤖 Анти-спам: скільки буде <b class="captcha-expression" style="color: var(--time-green); font-size: 14px;"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" style="text-align: center; font-weight: bold; font-size: 15px;" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+      <div class="form-group captcha-group">
+        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         <input type="hidden" class="captcha-answer">
       </div>
-
       <button type="submit" class="form-submit-btn estate" id="estate-submit-btn" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">Опублікувати</button>
     </form>
   </div>
@@ -426,41 +494,48 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
         <div class="alert-main-widget liquid-glass" style="padding: 15px;">
             <div id="alert-tabs" style="display: flex; flex-direction: column; gap: 8px;">
                 <div style="display: flex; gap: 8px; width: 100%;">
-                    <div class="tab-alert communal" onclick="openAlertTab('alert-communal', this)" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Комунальний інформер<span class="notification-dot" id="dot-communal"></span></div>
-                    <div class="tab-alert news" onclick="openAlertTab('alert-news', this)" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Новини<span class="notification-dot" id="dot-news"></span></div>
+                    <div class="tab-alert communal" onclick="switchAppTab('alert-communal', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Комунальний інформер<span class="notification-dot" id="dot-communal"></span></div>
+                    <div class="tab-alert news" onclick="switchAppTab('alert-news', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Новини<span class="notification-dot" id="dot-news"></span></div>
                 </div>
                 <div style="display: flex; gap: 8px; width: 100%;">
-                    <div class="tab-alert events" onclick="openAlertTab('alert-events', this)" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Афіші<span class="notification-dot" id="dot-events"></span></div>
-                    <div class="tab-alert gallery" onclick="openAlertTab('alert-gallery', this)" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Фото міста</div>
+                    <div class="tab-alert events" onclick="switchAppTab('alert-events', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Афіші<span class="notification-dot" id="dot-events"></span></div>
+                    <div class="tab-alert gallery" onclick="switchAppTab('alert-gallery', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Фото міста</div>
+                </div>
+                <div style="display: flex; gap: 8px; width: 100%;">
+                    <div class="tab-alert volunteers" onclick="switchAppTab('alert-volunteers', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">💙💛 Допомога ЗСУ</div>
                 </div>
             </div>
         </div>
         <div class="alert-drawer" id="alert-drawer">
-            <div id="alert-communal" class="content-section"><div id="alert-communal-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
-            <div id="alert-news" class="content-section"><div id="alert-news-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
-            <div id="alert-events" class="content-section"><div id="alert-events-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
-            <div id="alert-gallery" class="content-section"><div id="gallery-list-content" style="text-align: center; color: rgba(255,255,255,0.5);">Завантаження фото...</div></div>
+            <div id="alert-communal" class="content-section"><div class="empty-msg" id="alert-communal-content">Завантаження...</div></div>
+            <div id="alert-news" class="content-section"><div class="empty-msg" id="alert-news-content">Завантаження...</div></div>
+            <div id="alert-events" class="content-section"><div class="empty-msg" id="alert-events-content">Завантаження...</div></div>
+            <div id="alert-gallery" class="content-section"><div class="empty-msg" id="gallery-list-content">Завантаження фото...</div></div>
+            <div id="alert-volunteers" class="content-section">
+              <div style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; opacity:0.8;">Тут публікуються перевірені збори від місцевих волонтерів. Підтримуйте ЗСУ! 🇺🇦</div>
+              <div id="volunteers-list-content" class="empty-msg">Завантаження зборів...</div>
+            </div>
         </div>
     </div>
 
     <div class="schedule-group">
       <div class="tabs-wrapper">
         <div class="tabs-nav" id="schedule-tabs">
-          <button class="tab-btn" onclick="openScheduleTab('blablacar', this)">🚗 Bla Bla Car<span class="notification-dot" id="dot-blablacar"></span></button>
-          <button class="tab-btn" onclick="openScheduleTab('trains', this)">🚆 Електрички<span class="notification-dot" id="dot-trains"></span></button>
-          <button class="tab-btn" onclick="openScheduleTab('buses', this)">🚌 Автобуси</button>
-          <button class="tab-btn" onclick="openScheduleTab('long-trains', this)">🛤️ Потяги</button>
+          <button class="tab-btn" onclick="switchAppTab('blablacar', this, 'schedule')">🚗 Bla Bla Car<span class="notification-dot" id="dot-blablacar"></span></button>
+          <button class="tab-btn" onclick="switchAppTab('trains', this, 'schedule')">🚆 Електрички<span class="notification-dot" id="dot-trains"></span></button>
+          <button class="tab-btn" onclick="switchAppTab('buses', this, 'schedule')">🚌 Автобуси</button>
+          <button class="tab-btn" onclick="switchAppTab('long-trains', this, 'schedule')">🛤️ Потяги</button>
         </div>
         <div class="scroll-hint" id="hint-schedule"><span>❯</span></div>
       </div>
       <div id="main-list-widget" class="main-list-widget">
-        <div id="trains" class="content-section"><div id="list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
-        <div id="long-trains" class="content-section"><div id="long-trains-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
-        <div id="buses" class="content-section"><div id="buses-list" style="text-align: center; padding: 20px; font-weight: 600; color: rgba(255,255,255,0.5);">Завантаження...</div></div>
+        <div id="trains" class="content-section"><div id="list" class="empty-msg">Завантаження...</div></div>
+        <div id="long-trains" class="content-section"><div id="long-trains-list" class="empty-msg">Завантаження...</div></div>
+        <div id="buses" class="content-section"><div id="buses-list" class="empty-msg">Завантаження...</div></div>
         <div id="blablacar" class="content-section">
           <div class="blabla-actions">
-            <button class="blabla-btn btn-driver" onclick="openBlaBlaForm('driver')">🚗 Ти водій<span class="blabla-subtext">Запропонувати</span></button>
-            <button class="blabla-btn btn-passenger" onclick="openBlaBlaForm('passenger')">🧍 Ти пасажир<span class="blabla-subtext">Знайти місце</span></button>
+            <button class="blabla-btn btn-driver" onclick="openModalForm('custom-blabla-form', 'blabla-modal'); document.getElementById('input-type').value='driver';">🚗 Ти водій<span class="blabla-subtext">Запропонувати</span></button>
+            <button class="blabla-btn btn-passenger" onclick="openModalForm('custom-blabla-form', 'blabla-modal'); document.getElementById('input-type').value='passenger';">🧍 Ти пасажир<span class="blabla-subtext">Знайти місце</span></button>
           </div>
           <div class="blabla-toggle-container">
             <button class="blabla-tab-btn active" id="btn-show-drivers" onclick="switchBlaBlaList('drivers')">🚘 Пропозиції водіїв</button>
@@ -468,9 +543,7 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
           </div>
           <div id="blabla-drivers-list"></div>
           <div id="blabla-passengers-list" style="display: none;"></div>
-          <div style="text-align: center; padding: 15px 10px 5px 10px; font-size: 11px; opacity: 0.6; color: #fff;">
-            Для видалення неактуального оголошення пишіть: <b style="color:var(--time-green)">@vilnohirsk</b>
-          </div>
+          <div style="text-align: center; padding: 15px 10px 5px 10px; font-size: 11px; opacity: 0.6;">Для видалення оголошення пишіть: <b style="color:var(--time-green)">@vilnohirsk</b></div>
         </div>
       </div>
     </div>
@@ -481,35 +554,30 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
           <div id="date"></div>
           <div class="weekdays"><div class="day">пн</div><div class="day">вт</div><div class="day">ср</div><div class="day">чт</div><div class="day">пт</div><div class="day">сб</div><div class="day">нд</div></div>
           <div id="time"></div>
-          
           <div style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto;"></div>
-          
-          <div id="exchange-rates" style="display:flex; flex-direction:column; width:100%; box-sizing:border-box; gap:6px; font-size:clamp(9px, 3vw, 12px); font-weight:700; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.2); padding:8px 6px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);">
+          <div id="exchange-rates" style="display:flex; flex-direction:column; width:100%; box-sizing:border-box; gap:6px; font-size:clamp(9px, 3vw, 12px); font-weight:700; opacity:0.8; background:rgba(0,0,0,0.2); padding:8px 6px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);">
             <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
               <span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇺🇸</span> USD</span>
-              <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="usd-buy" style="color:#00ff9c;">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="usd-sell" style="color:#ffcc00;">--</span></span>
+              <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="usd-buy" style="color:var(--time-green);">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="usd-sell" style="color:var(--highlight-color);">--</span></span>
             </div>
             <div style="width:100%; height:1px; background:rgba(255,255,255,0.1);"></div>
             <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
               <span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇪🇺</span> EUR</span>
-              <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="eur-buy" style="color:#00ff9c;">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="eur-sell" style="color:#ffcc00;">--</span></span>
+              <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="eur-buy" style="color:var(--time-green);">--</span> <span style="opacity:0.5; margin:0 2px;">/</span> <span id="eur-sell" style="color:var(--highlight-color);">--</span></span>
             </div>
           </div>
-          
         </div>
       </div>
       <div class="widget liquid-glass" style="padding: 15px 12px; justify-content: space-between; display: flex; flex-direction: column;">
         <div class="weather-box" id="weather-container" style="flex: 1; display: flex; align-items: center; min-height: 85px;"></div>
-        
         <div style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto;"></div>
-        
         <div class="radio-container" style="display: flex; align-items: center; gap: 12px; width: 100%; padding: 0 5px;">
           <button id="radio-btn" onclick="toggleRadio()" style="width: 40px; height: 40px; border-radius: 50%; border: none; background: #88dec6; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); flex-shrink: 0; padding: 0; outline: none; transition: transform 0.2s;">
             <span id="radio-icon" style="display: flex; align-items: center; justify-content: center; transform: translateX(1px);"><svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg></span>
           </button>
           <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; line-height: 1.3; flex: 1; min-width: 0;">
             <div style="font-size: 13px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">muzdance.com.ua</div>
-            <div id="radio-status" style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px;">PAUSED</div>
+            <div id="radio-status" style="font-size: 11px; font-weight: 800; opacity:0.5; text-transform: uppercase; letter-spacing: 0.5px;">PAUSED</div>
           </div>
           <div class="equalizer" id="equalizer" style="margin-left: 0; margin-right: 0;">
             <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
@@ -522,23 +590,28 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
     <div class="market-group">
       <div class="tabs-wrapper">
         <div class="tabs-nav" id="market-tabs">
-          <button class="tab-btn" onclick="openMarketTab('estate-tab', this)">🏠 Нерухомість<span class="notification-dot" id="dot-estate"></span></button>
-          <button class="tab-btn" onclick="openMarketTab('shopping-tab', this)">🛍 Шопінг<span class="notification-dot" id="dot-shopping"></span></button>
-          <button class="tab-btn" onclick="openMarketTab('flea-market-tab', this)">📦 Барахолка<span class="notification-dot" id="dot-flea"></span></button>
-          <button class="tab-btn" onclick="openMarketTab('jobs-tab', this)">💼 Вакансії<span class="notification-dot" id="dot-jobs"></span></button>
-          <button class="tab-btn" onclick="openMarketTab('lost-found-tab', this)">🔍 Знахідки<span class="notification-dot" id="dot-lost"></span></button>
-          <button class="tab-btn" onclick="openMarketTab('city-guide-tab', this)">📖 Міський довідник</button>
+          <button class="tab-btn" onclick="switchAppTab('estate-tab', this, 'market')">🏠 Нерухомість<span class="notification-dot" id="dot-estate"></span></button>
+          <button class="tab-btn" onclick="switchAppTab('shopping-tab', this, 'market')">🛍 Шопінг<span class="notification-dot" id="dot-shopping"></span></button>
+          <button class="tab-btn" onclick="switchAppTab('flea-market-tab', this, 'market')">📦 Барахолка<span class="notification-dot" id="dot-flea"></span></button>
+          <button class="tab-btn" onclick="switchAppTab('jobs-tab', this, 'market')">💼 Вакансії<span class="notification-dot" id="dot-jobs"></span></button>
+          <button class="tab-btn" onclick="switchAppTab('lost-found-tab', this, 'market')">🔍 Знахідки<span class="notification-dot" id="dot-lost"></span></button>
+          <button class="tab-btn" onclick="switchAppTab('city-guide-tab', this, 'market')">📖 Міський довідник</button>
         </div>
         <div class="scroll-hint" id="hint-market"><span>❯</span></div>
       </div>
       <div class="shopping-drawer" id="market-drawer">
         
         <div id="estate-tab" class="content-section">
-          <div style="padding: 10px; text-align: center;"><button onclick="openEstateForm()" style="border:none; background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">➕ Додати оголошення</button></div>
+          <div style="padding: 10px; text-align: center;"><button onclick="openModalForm('custom-estate-form', 'estate-modal')" style="border:none; background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">➕ Додати оголошення</button></div>
           <div class="flea-categories-wrapper" id="estate-categories">
             <div class="flea-category-tag active" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff;" onclick="filterEstate('Всі', this)">Всі</div>
             <div class="flea-category-tag" onclick="filterEstate('Оренда', this)">Оренда</div>
             <div class="flea-category-tag" onclick="filterEstate('Продаж', this)">Продаж</div>
+            <select id="estate-sort" class="form-input" style="padding:4px 10px; font-size:11px; border-radius:20px; margin-left:auto; width:auto; min-width:110px; background-color:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff;" onchange="window.currentEstateSort = this.value; window.estateRenderLimit = 20; const a = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(a?a.innerText:'Всі', a);">
+              <option value="new">Спочатку нові</option>
+              <option value="cheap">Дешевші</option>
+              <option value="expensive">Дорожчі</option>
+            </select>
           </div>
           <div id="estate-list-content"></div>
         </div>
@@ -546,52 +619,49 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
         <div id="shopping-tab" class="content-section"><div id="shopping-list-content"></div></div>
         
         <div id="flea-market-tab" class="content-section">
-          <div style="padding: 10px; text-align: center;"><button onclick="openFleaForm()" style="border:none; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer;">➕ Додати оголошення</button></div>
+          <div style="padding: 10px; text-align: center;"><button onclick="openModalForm('custom-flea-form', 'flea-modal')" style="border:none; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer;">➕ Додати оголошення</button></div>
           <div class="flea-categories-wrapper" id="flea-categories">
             <div class="flea-category-tag active" onclick="filterFleaMarket('Всі', this)">Всі</div>
             <div class="flea-category-tag" onclick="filterFleaMarket('Електроніка', this)">Електроніка</div>
             <div class="flea-category-tag" onclick="filterFleaMarket('Одяг', this)">Одяг</div>
             <div class="flea-category-tag" onclick="filterFleaMarket('Інше', this)">Інше</div>
+            <select id="flea-sort" class="form-input" style="padding:4px 10px; font-size:11px; border-radius:20px; margin-left:auto; width:auto; min-width:110px; background-color:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff;" onchange="window.currentFleaSort = this.value; window.fleaRenderLimit = 20; const a = document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(a?a.innerText:'Всі', a);">
+              <option value="new">Спочатку нові</option>
+              <option value="cheap">Дешевші</option>
+              <option value="expensive">Дорожчі</option>
+            </select>
           </div>
           <div id="flea-market-list-content"></div>
         </div>
         
         <div id="lost-found-tab" class="content-section">
-          <div style="padding: 10px; text-align: center;"><button onclick="openLostForm()" style="border:none; background: linear-gradient(135deg, #e056fd, #8c7ae6); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer;">➕ Повідомити про знахідку/втрату</button></div>
+          <div style="padding: 10px; text-align: center;"><button onclick="openModalForm('custom-lost-form', 'lost-modal')" style="border:none; background: linear-gradient(135deg, #e056fd, #8c7ae6); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer;">➕ Повідомити про знахідку/втрату</button></div>
           <div id="lost-found-list-content"></div>
         </div>
 
         <div id="jobs-tab" class="content-section">
-          <div style="padding: 10px; text-align: center;"><button onclick="openJobForm()" style="border:none; background: linear-gradient(135deg, #00b8ff, #0055ff); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 184, 255, 0.3);">➕ Додати вакансію</button></div>
-          <div style="padding: 10px; text-align: center; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 5px;">
-            Актуальні вакансії у Вільногірську
-          </div>
-          <div id="jobs-list-content" style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">
-            Завантаження вакансій...
-          </div>
+          <div style="padding: 10px; text-align: center;"><button onclick="openModalForm('custom-job-form', 'job-modal')" style="border:none; background: linear-gradient(135deg, #00b8ff, #0055ff); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 184, 255, 0.3);">➕ Додати вакансію</button></div>
+          <div style="padding: 10px; text-align: center; font-size: 11px; font-weight: 600; opacity:0.6; margin-bottom: 5px;">Актуальні вакансії у Вільногірську</div>
+          <div id="jobs-list-content" class="empty-msg">Завантаження вакансій...</div>
         </div>
 
         <div id="city-guide-tab" class="content-section">
-          <div style="text-align: center; margin-bottom: 10px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; padding: 0 5px;">
+          <div style="text-align: center; margin-bottom: 10px; font-size: 11px; opacity:0.7; font-weight: 600; padding: 0 5px;">
             Знайшли помилку, не знайшли номер або хочете додати новий? Пишіть у тг: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a>
           </div>
           <div class="pb-search-container">
             <input type="text" id="pb-search" placeholder="🔍 Пошук за назвою або номером..." class="form-input" style="border-radius: 20px; font-weight: 600; padding: 14px 20px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);" onkeyup="filterPhonebook()">
           </div>
           <div id="city-guide-list-content" style="padding-top: 5px;">
-             <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Завантаження довідника...</div>
+             <div class="empty-msg">Завантаження довідника...</div>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- БЛОК ВІДГУКІВ БЕТА-ТЕСТУ ТА КНОПКА ГАЙДУ (ПЛАВАЮЧА ПАНЕЛЬ) -->
+    <!-- БЛОК ВІДГУКІВ БЕТА-ТЕСТУ -->
     <div style="display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 15px; z-index: 50;">
-      <div class="liquid-glass" style="flex: 0 0 55px; height: 56px; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; border: 1px solid rgba(255, 204, 0, 0.3); background: rgba(255, 204, 0, 0.05); border-radius: 24px;" onclick="openGuide()">
-        <div style="text-align: center; color: #ffcc00; font-size: 22px; font-weight: 900; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">❓</div>
-      </div>
-      
       <div class="liquid-glass" style="flex: 1; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="document.getElementById('beta-drawer').classList.toggle('open')">
         <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">
           👋 Бета-версія. Залиште свої враження чи пропозиції тут <span style="color: var(--time-green); font-size: 14px; vertical-align: middle;">▾</span>
@@ -608,7 +678,6 @@ input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance
 </div>
 
 <script>
-// Приховуємо посилання на іконки сайту
 (function(){
   const f = atob('aHR0cHM6Ly9naXRodWIuY29tL2RlbnJpczg3L3ZpbG5vaGlyc2stc2l0ZS9ibG9iL21haW4vYXBwbGUtdG91Y2gtaWNvbi5wbmc/cmF3PXRydWU=');
   const l1 = document.createElement('link'); l1.rel = 'icon'; l1.type = 'image/png'; l1.href = f;
@@ -620,33 +689,46 @@ const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztRq8vF3XuEpY3u
 const ESTATE_CSV_URL = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=622618191';
 
 window.currentDataSignature = {};
-window.allFleaMarketItems = [];
-window.allEstateItems = [];
+window.allFleaMarketItems = []; window.fleaRenderLimit = 20; window.currentFleaSort = 'new';
+window.allEstateItems = []; window.estateRenderLimit = 20; window.currentEstateSort = 'new';
 
-// ==========================================
-// РОЗУМНЕ ФОРМАТУВАННЯ ТЕЛЕФОНУ (+380...)
-// ==========================================
+window.shareContent = function(title, text, url, e) {
+    if(e) e.stopPropagation();
+    const finalUrl = url || window.location.href;
+    if (navigator.share) navigator.share({ title: title, text: text, url: finalUrl }).catch(err => console.log(err));
+    else navigator.clipboard.writeText(`${title}\n${text}\n${finalUrl}`).then(() => alert('✅ Скопійовано в буфер обміну!')).catch(() => alert('Помилка копіювання.'));
+};
+
+async function fetchCachedText(url, key, ttlMinutes = 5) {
+    const cached = localStorage.getItem('cache_' + key);
+    const cachedTime = localStorage.getItem('cache_time_' + key);
+    const now = Date.now();
+    if (cached && cachedTime && (now - parseInt(cachedTime)) < (ttlMinutes * 60000)) {
+        fetch(url).then(r=>r.text()).then(t => { localStorage.setItem('cache_' + key, t); localStorage.setItem('cache_time_' + key, now.toString()); }).catch(e=>{});
+        return cached;
+    }
+    try {
+        const r = await fetch(url); if (!r.ok) throw new Error('HTTP Error');
+        const text = await r.text(); localStorage.setItem('cache_' + key, text); localStorage.setItem('cache_time_' + key, now.toString()); return text;
+    } catch (e) { if (cached) return cached; throw e; }
+}
+
+async function fetchCachedJson(url, key, ttlMinutes = 5) { return JSON.parse(await fetchCachedText(url, key, ttlMinutes)); }
+
 window.formatUAPhone = function(input) {
     let d = input.value.replace(/\D/g, '');
     if (d === '38' || d === '3' || d === '') { input.value = '+380'; return; }
-    if (d.startsWith('0') && !d.startsWith('380')) { d = '38' + d; } 
-    else if (!d.startsWith('380')) { d = '380' + d; }
-    let body = d.substring(3);
-    if (body.startsWith('0')) body = body.substring(1);
-    if (body.startsWith('380')) body = body.substring(3);
+    if (d.startsWith('0') && !d.startsWith('380')) d = '38' + d; else if (!d.startsWith('380')) d = '380' + d;
+    let body = d.substring(3); if (body.startsWith('0')) body = body.substring(1); if (body.startsWith('380')) body = body.substring(3);
     input.value = '+380' + body.substring(0, 9);
 };
 
-// ==========================================
-// ЗАВАНТАЖЕННЯ ФОТОГАЛЕРЕЇ
-// ==========================================
 window.currentVilnohirskPhotos = []; 
 window.renderGallery = function(photos) {
-    const container = document.getElementById('gallery-list-content');
-    if (!container) return;
-    if (!photos || photos.length === 0) { container.innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">Фотографій поки немає</div>'; return; }
+    const container = document.getElementById('gallery-list-content'); if (!container) return;
+    if (!photos || photos.length === 0) { container.innerHTML = '<div class="empty-msg">Фотографій поки немає</div>'; return; }
     window.currentVilnohirskPhotos = photos; 
-    let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Маєте круті фото нашого міста? Надсилайте: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div>';
+    let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; opacity:0.7; font-weight: 600;">Маєте круті фото нашого міста? Надсилайте: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div>';
     html += '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding: 5px;">';
     photos.forEach((item, i) => {
         const url = typeof item === 'string' ? item : item.url;
@@ -656,17 +738,12 @@ window.renderGallery = function(photos) {
             ${author ? `<div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 8px 8px 8px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.9); text-align:left; text-shadow:0 1px 2px rgba(0,0,0,0.8); pointer-events:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📸 ${author}</div>` : ''}
         </div>`;
     });
-    html += '</div>';
-    container.innerHTML = html;
+    container.innerHTML = html + '</div>';
 };
 
 async function loadGalleryData() {
-  try {
-    const API_URL = `https://vilnohirsk-photos-production.up.railway.app/api/photos?t=${new Date().getTime()}`;
-    const response = await fetch(API_URL);
-    if (!response.ok) throw new Error('Помилка завантаження');
-    const photos = await response.json(); renderGallery(photos);
-  } catch(e) { document.getElementById('gallery-list-content').innerHTML = '<div style="text-align: center; padding: 20px; color: #ff4d4d; font-size: 12px;">Помилка завантаження фотографій</div>'; }
+  try { renderGallery(await fetchCachedJson(`https://vilnohirsk-photos-production.up.railway.app/api/photos`, 'gallery_api', 30)); } 
+  catch(e) { document.getElementById('gallery-list-content').innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження фотографій</div>'; }
 }
 
 window.setupCaptcha = function(formId) {
@@ -684,27 +761,33 @@ window.validateCaptcha = function(formId) {
   } return true;
 };
 
-const guideSteps = [
-  { icon: "👋", title: "Вітаємо у Smart Вільногірськ!", text: "Це твій новий міський помічник. Ми зібрали тут все необхідне: від розкладу транспорту до міської барахолки та вакансій. <br><br>Давай коротко покажемо, де що знаходиться і як ти можеш додавати власні оголошення." },
-  { icon: "📢", title: "Сповіщення та Афіша", text: "<b>Верхні чотири вкладки</b> — це місце для важливої інформації від адміністрації та фотографій міста.<br><br>• <b>Міські новини:</b> головні події міста.<br>• <b>Комунальний інформер:</b> відключення світла, води тощо.<br>• <b>Афіші:</b> культурні події, кіно, заходи.<br>• <b>Фото міста:</b> галерея нашого міста." },
-  { icon: "🚌", title: "Транспорт та BlaBlaCar", text: "Тут ти знайдеш розклад електричок, потягів та автобусів. Дані оновлюються автоматично.<br><br>🚗 <b>BlaBlaCar:</b> Це наша спільна дошка. Шукаєш попутників або авто? Тисни <b>«Ти водій»</b> або <b>«Ти пасажир»</b>, заповнюй форму — і твоє оголошення миттєво з'явиться для всіх!" },
-  { icon: "🛒", title: "Міський Ринок (Як додати своє?)", text: "Нижній блок — це ринок міста. Нерухомість, Барахолка, Вакансії та Знахідки.<br><br>✨ <b>Тут кожен може додати оголошення!</b><br>Відкрий потрібну вкладку (наприклад, Вакансії) і натисни яскраву кнопку з плюсиком <b>«➕ Додати...»</b>. Заповни форму, додай фото. Після швидкої модерації твоє оголошення з'явиться на сайті." },
-  { icon: "📖", title: "Довідник та Радіо", text: "• <b>Міський довідник:</b> Шукай потрібні номери телефонів магазинів, служб або майстрів за ключовими словами.<br><br>• <b>Радіо 📻:</b> Біля блоку погоди є зелена кнопка. Вмикай її, щоб слухати наше місцеве радіо <i>muzdance.com.ua</i> прямо під час перегляду сайту!<br><br><b>Приємного користування!</b>" }
-];
-let currentGuideStep = 0;
-function renderGuideStep() {
-  const contentDiv = document.getElementById('guide-content'); const dotsDiv = document.getElementById('guide-dots');
-  const prevBtn = document.getElementById('guide-prev'); const nextBtn = document.getElementById('guide-next');
-  contentDiv.innerHTML = guideSteps.map((step, index) => `<div class="guide-slide ${index === currentGuideStep ? 'active' : ''}"><div class="guide-icon">${step.icon}</div><div class="guide-title">${step.title}</div><div class="guide-text">${step.text}</div></div>`).join('');
-  dotsDiv.innerHTML = guideSteps.map((_, index) => `<div class="guide-dot ${index === currentGuideStep ? 'active' : ''}"></div>`).join('');
-  if (currentGuideStep === 0) prevBtn.style.display = 'none'; else prevBtn.style.display = 'block';
-  if (currentGuideStep === guideSteps.length - 1) { nextBtn.innerText = "Зрозуміло!"; nextBtn.onclick = closeGuide; } else { nextBtn.innerText = "Далі"; nextBtn.onclick = nextGuideStep; }
-}
-window.nextGuideStep = function() { if (currentGuideStep < guideSteps.length - 1) { currentGuideStep++; renderGuideStep(); } };
-window.prevGuideStep = function() { if (currentGuideStep > 0) { currentGuideStep--; renderGuideStep(); } };
-window.closeGuide = function() { document.getElementById('guide-modal').classList.remove('active'); localStorage.setItem('vilnohirsk_guide_seen', 'true'); };
-window.openGuide = function() { currentGuideStep = 0; renderGuideStep(); document.getElementById('guide-modal').classList.add('active'); };
-function checkGuideOnLoad() { if (!localStorage.getItem('vilnohirsk_guide_seen')) { setTimeout(() => { openGuide(); }, 1000); } }
+// --- ЄДИНА ФУНКЦІЯ ДЛЯ УСІХ ФОРМ ---
+window.submitGenericForm = async function(event, formId, modalId, btnId, type, maxPhotos) {
+  event.preventDefault(); if (!validateCaptcha(formId)) return;
+  const btn = document.getElementById(btnId); const origText = btn.innerText;
+  btn.innerText = maxPhotos ? 'Обробка фото...' : 'Відправка...'; btn.disabled = true; btn.style.opacity = '0.7';
+  try {
+    const form = document.getElementById(formId); const formData = new FormData(form);
+    const sheetData = { formType: type };
+    for (let [key, val] of formData.entries()) {
+      if (key !== 'photos') sheetData[key] = (key === 'phone' && val !== '+380') ? ("'" + val) : val;
+    }
+    if (maxPhotos > 0) {
+      const photos = form.querySelector('input[name="photos"]').files;
+      if (photos.length > maxPhotos) throw new Error(`Максимум ${maxPhotos} фото!`);
+      let b64 = []; for (let i = 0; i < photos.length; i++) b64.push(await compressAndGetBase64(photos[i]));
+      sheetData.photosBase64 = b64;
+    }
+    btn.innerText = 'Збереження...';
+    await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
+    alert('✅ Успішно відправлено на модерацію!'); document.getElementById(modalId).classList.remove('active');
+    form.reset(); setupCaptcha(formId);
+  } catch (e) { alert('❌ Помилка: ' + e.message); }
+  finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
+};
+
+window.openModalForm = function(formId, modalId) { document.getElementById(formId).reset(); setupCaptcha(formId); document.getElementById(modalId).classList.add('active'); };
+window.closeModalForm = function(event, modalId) { if (!event || event.target.classList.contains('close-modal-btn') || event.target.id === modalId) document.getElementById(modalId).classList.remove('active'); };
 
 const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
     const reader = new FileReader(); reader.readAsDataURL(file);
@@ -733,26 +816,11 @@ function clearNotification(key) {
   if (window.currentDataSignature[key]) { localStorage.setItem('seen_' + key, window.currentDataSignature[key]); }
 }
 
-// ==========================================
-// АККОРДЕОН ДЛЯ ТРАНСПОРТА
-// ==========================================
 window.toggleTransportDetails = function(id, el) {
-    const target = document.getElementById(id);
-    if (!target) return;
+    const target = document.getElementById(id); if (!target) return;
     const isOpening = !target.classList.contains('open');
-
-    // Закриваємо абсолютно всі відкриті розклади (щоб працювало як єдиний акордеон)
-    document.querySelectorAll('.schedule-group .details.open').forEach(detail => {
-        detail.classList.remove('open');
-    });
-
-    if (isOpening) {
-        target.classList.add('open');
-        // Даємо трохи часу на CSS-анімацію закриття інших, а потім плавно центруємо
-        setTimeout(() => {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 350);
-    }
+    document.querySelectorAll('.schedule-group .details.open').forEach(detail => detail.classList.remove('open'));
+    if (isOpening) { target.classList.add('open'); setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 350); }
 };
 
 window.toggleShop = function(detailsId, tileElement) {
@@ -766,71 +834,6 @@ function closeAllShopDropdowns() {
   document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; });
 }
 
-// ================= ФОРМИ =================
-window.openEstateForm = function() { document.getElementById('custom-estate-form').reset(); setupCaptcha('custom-estate-form'); document.getElementById('estate-modal').classList.add('active'); };
-window.closeEstateForm = function(event) { if (!event || event.target.classList.contains('close-modal-btn')) { document.getElementById('estate-modal').classList.remove('active'); } };
-window.submitEstateForm = async function(event) {
-  event.preventDefault(); if (!validateCaptcha('custom-estate-form')) return;
-  const submitBtn = document.getElementById('estate-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Обробка фото...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
-  try {
-    const form = document.getElementById('custom-estate-form'); const formData = new FormData(form);
-    const photos = document.querySelector('#custom-estate-form input[name="photos"]').files;
-    let base64Photos = []; if (photos.length > 5) throw new Error('Можна додати максимум 5 фото!');
-    for (let i = 0; i < photos.length; i++) { const b64 = await compressAndGetBase64(photos[i]); base64Photos.push(b64); }
-    submitBtn.innerText = 'Збереження...';
-    const sheetData = { formType: 'estate', dealType: formData.get('dealType'), propertyType: formData.get('propertyType'), rooms: formData.get('rooms'), price: formData.get('price'), description: formData.get('description'), phone: "'" + formData.get('phone'), photosBase64: base64Photos };
-    await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
-    alert('✅ Ваше оголошення про нерухомість успішно відправлено на модерацію!'); closeEstateForm();
-  } catch (error) { alert('❌ Помилка: ' + error.message); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
-};
-
-window.openFleaForm = function() { document.getElementById('custom-flea-form').reset(); setupCaptcha('custom-flea-form'); document.getElementById('flea-modal').classList.add('active'); };
-window.closeFleaForm = function(event) { if (!event || event.target.classList.contains('close-modal-btn')) { document.getElementById('flea-modal').classList.remove('active'); } };
-window.submitFleaForm = async function(event) {
-  event.preventDefault(); if (!validateCaptcha('custom-flea-form')) return;
-  const submitBtn = document.getElementById('flea-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Обробка фото...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
-  try {
-    const form = document.getElementById('custom-flea-form'); const formData = new FormData(form);
-    const photos = document.querySelector('#custom-flea-form input[name="photos"]').files;
-    let base64Photos = []; if (photos.length > 5) throw new Error('Можна додати максимум 5 фото!');
-    for (let i = 0; i < photos.length; i++) { const b64 = await compressAndGetBase64(photos[i]); base64Photos.push(b64); }
-    submitBtn.innerText = 'Збереження...';
-    const sheetData = { formType: 'flea', title: formData.get('title'), category: formData.get('category'), condition: formData.get('condition'), price: formData.get('price'), location: formData.get('location'), description: formData.get('description'), phone: "'" + formData.get('phone'), photosBase64: base64Photos };
-    await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
-    alert('✅ Ваше оголошення успішно відправлено на модерацію!'); closeFleaForm();
-  } catch (error) { alert('❌ Помилка: ' + error.message); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
-};
-
-window.openLostForm = function() { document.getElementById('custom-lost-form').reset(); setupCaptcha('custom-lost-form'); document.getElementById('lost-modal').classList.add('active'); };
-window.closeLostForm = function(event) { if (!event || event.target.classList.contains('close-modal-btn')) { document.getElementById('lost-modal').classList.remove('active'); } };
-window.submitLostForm = async function(event) {
-  event.preventDefault(); if (!validateCaptcha('custom-lost-form')) return;
-  const submitBtn = document.getElementById('lost-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Обробка фото...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
-  try {
-    const form = document.getElementById('custom-lost-form'); const formData = new FormData(form);
-    const photos = document.querySelector('#custom-lost-form input[name="photos"]').files;
-    let base64Photos = []; if (photos.length > 0) { if (photos.length > 5) throw new Error('Можна додати максимум 5 фото!'); for (let i = 0; i < photos.length; i++) { const b64 = await compressAndGetBase64(photos[i]); base64Photos.push(b64); } }
-    submitBtn.innerText = 'Збереження...';
-    const phoneVal = formData.get('phone'); const finalPhone = phoneVal === '+380' ? '' : "'" + phoneVal;
-    const sheetData = { formType: 'lost', title: formData.get('title'), type: formData.get('type'), category: formData.get('category'), location: formData.get('location'), description: formData.get('description'), phone: finalPhone, photosBase64: base64Photos };
-    await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
-    alert('✅ Ваше повідомлення успішно відправлено!'); closeLostForm();
-  } catch (error) { alert('❌ Помилка: ' + error.message); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
-};
-
-window.openJobForm = function() { document.getElementById('custom-job-form').reset(); setupCaptcha('custom-job-form'); document.getElementById('job-modal').classList.add('active'); };
-window.closeJobForm = function(event) { if (!event || event.target.classList.contains('close-modal-btn')) { document.getElementById('job-modal').classList.remove('active'); } };
-window.submitJobForm = async function(event) {
-  event.preventDefault(); if (!validateCaptcha('custom-job-form')) return;
-  const submitBtn = document.getElementById('job-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Відправка...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
-  try {
-    const form = document.getElementById('custom-job-form'); const formData = new FormData(form);
-    const sheetData = { formType: 'job', title: formData.get('title'), salary: formData.get('salary'), company: formData.get('company'), gender: formData.get('gender'), employment: formData.get('employment'), description: formData.get('description'), phone: "'" + formData.get('phone') };
-    await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
-    alert('✅ Вакансія успішно відправлена на модерацію!'); closeJobForm();
-  } catch (error) { alert('❌ Помилка: ' + error.message); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
-};
-
 window.submitBetaFeedback = async function(event) {
   event.preventDefault(); const textEl = document.getElementById('beta-feedback-text'); const text = textEl.value.trim();
   if (!text) { alert('Будь ласка, напишіть текст відгуку.'); return; }
@@ -841,16 +844,6 @@ window.submitBetaFeedback = async function(event) {
   } catch(e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = originalText; btn.disabled = false; }
 };
 
-window.openBlaBlaForm = function(type) {
-  const modal = document.getElementById('blabla-modal'); const title = document.getElementById('form-modal-title'); const timeLabel = document.getElementById('label-time'); const seatsLabel = document.getElementById('label-seats'); const priceGroup = document.getElementById('group-price'); const priceInput = document.getElementById('input-price'); const submitBtn = document.getElementById('form-submit-btn'); const typeInput = document.getElementById('input-type'); const nameLabel = document.getElementById('label-name');
-  document.getElementById('custom-blabla-form').reset(); setupCaptcha('custom-blabla-form');
-  const today = new Date().toISOString().split('T')[0]; document.getElementById('input-date').setAttribute('min', today); document.getElementById('input-date').value = today;
-  if (type === 'driver') { title.innerText = '🚘 Запропонувати поїздку'; title.style.color = '#00ff9c'; nameLabel.innerText = 'Ім\'я водія'; timeLabel.innerText = 'Час відправлення'; seatsLabel.innerText = 'Вільних місць'; priceGroup.style.display = 'flex'; priceInput.required = true; submitBtn.className = 'form-submit-btn driver'; typeInput.value = 'driver'; } 
-  else { title.innerText = '🙋‍♂️ Знайти авто'; title.style.color = '#ffcc00'; nameLabel.innerText = 'Ваше ім\'я'; timeLabel.innerText = 'Бажаний час'; seatsLabel.innerText = 'Потрібно місць'; priceGroup.style.display = 'none'; priceInput.required = false; submitBtn.className = 'form-submit-btn passenger'; typeInput.value = 'passenger'; }
-  modal.classList.add('active');
-};
-
-window.closeBlaBlaForm = function(event) { if (!event || event.target.classList.contains('close-modal-btn')) { document.getElementById('blabla-modal').classList.remove('active'); } };
 window.submitBlaBlaForm = async function(event) {
   event.preventDefault(); if (!validateCaptcha('custom-blabla-form')) return;
   const submitBtn = document.getElementById('form-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Відправка...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
@@ -859,7 +852,7 @@ window.submitBlaBlaForm = async function(event) {
     const API_URL = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides'; 
     const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
     if (!response.ok) throw new Error('Помилка сервера при збереженні');
-    alert('✅ Ваше оголошення успішно додано!'); closeBlaBlaForm(); switchBlaBlaList(formData.type === 'driver' ? 'drivers' : 'passengers'); loadBlaBlaCarData(); 
+    alert('✅ Ваше оголошення успішно додано!'); closeModalForm(null, 'blabla-modal'); switchBlaBlaList(formData.type === 'driver' ? 'drivers' : 'passengers'); loadBlaBlaCarData(); 
   } catch (error) { alert('❌ Помилка при відправці: ' + error.message); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
 };
 
@@ -974,40 +967,33 @@ window.recalcDropdownHeight = function(imgEl) {
   if (dropdown && dropdown.classList.contains('open') && grid) { grid.style.paddingBottom = (dropdown.scrollHeight + 15) + 'px'; }
 };
 
-window.openAlertTab = function(tabId, btn) {
-  try {
-    closeAllShopDropdowns(); 
-    if (tabId === 'alert-communal') clearNotification('communal'); if (tabId === 'alert-news') clearNotification('news'); if (tabId === 'alert-events') clearNotification('events');
-    document.getElementById('main-list-widget').classList.remove('open'); document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('market-drawer').classList.remove('open'); document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active'));
-    const drawer = document.getElementById('alert-drawer'); drawer.classList.remove('drawer-events'); drawer.classList.remove('drawer-communal');
-    if (btn.classList.contains('active')) { btn.classList.remove('active'); drawer.classList.remove('open'); return; }
-    if(tabId === 'alert-events') drawer.classList.add('drawer-events');
-    if(tabId === 'alert-communal') drawer.classList.add('drawer-communal');
-    document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active')); document.querySelectorAll('#alert-drawer .content-section').forEach(s => s.classList.remove('active'));
-    btn.classList.add('active'); document.getElementById(tabId).classList.add('active'); drawer.classList.add('open');
-  } catch (e) {}
-};
+// --- ЄДИНА ФУНКЦІЯ ДЛЯ УСІХ ВКЛАДОК ---
+window.switchAppTab = function(tabId, btn, group) {
+  closeAllShopDropdowns();
+  const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs'};
+  if (notifs[tabId]) clearNotification(notifs[tabId]);
 
-window.openScheduleTab = function(tabId, btn) {
-  try {
-    if (tabId === 'blablacar') clearNotification('blablacar'); if (tabId === 'trains') clearNotification('trains');
-    closeAllShopDropdowns(); document.getElementById('market-drawer').classList.remove('open'); document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('alert-drawer').classList.remove('open'); document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active'));
-    const widget = document.getElementById('main-list-widget');
-    if (btn.classList.contains('active')) { btn.classList.remove('active'); widget.classList.remove('open'); return; }
-    document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('#main-list-widget .content-section').forEach(s => s.classList.remove('active'));
-    btn.classList.add('active'); document.getElementById(tabId).classList.add('active'); widget.classList.add('open');
-  } catch (e) {}
-};
+  const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
+  
+  if (btn.classList.contains('active')) {
+      btn.classList.remove('active');
+      document.getElementById(drawers[group]).classList.remove('open');
+      return;
+  }
 
-window.openMarketTab = function(tabId, btn) {
-  try {
-    if (tabId === 'estate-tab') clearNotification('estate'); if (tabId === 'shopping-tab') clearNotification('shopping'); if (tabId === 'flea-market-tab') clearNotification('flea'); if (tabId === 'lost-found-tab') clearNotification('lost'); if (tabId === 'jobs-tab') clearNotification('jobs');
-    closeAllShopDropdowns(); document.getElementById('main-list-widget').classList.remove('open'); document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active')); document.getElementById('alert-drawer').classList.remove('open'); document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active'));
-    const widget = document.getElementById('market-drawer');
-    if (btn.classList.contains('active')) { btn.classList.remove('active'); widget.classList.remove('open'); return; }
-    document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('#market-drawer .content-section').forEach(s => s.classList.remove('active'));
-    btn.classList.add('active'); document.getElementById(tabId).classList.add('active'); widget.classList.add('open');
-  } catch(e) {}
+  document.querySelectorAll('.main-list-widget, .shopping-drawer, .alert-drawer').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.tab-btn, .tab-alert').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+
+  const drawer = document.getElementById(drawers[group]);
+  drawer.classList.remove('drawer-events', 'drawer-communal');
+  
+  if(tabId === 'alert-events') drawer.classList.add('drawer-events');
+  if(tabId === 'alert-communal') drawer.classList.add('drawer-communal');
+
+  btn.classList.add('active'); 
+  document.getElementById(tabId).classList.add('active'); 
+  drawer.classList.add('open');
 };
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
@@ -1017,14 +1003,13 @@ async function loadWeather(){
   const coords = [{name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {name: 'Дніпро', lat: 48.45, lon: 34.98}]; let results = [];
   for(let c of coords){ 
     try { 
-      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FKyiv`); 
-      if (!r.ok) throw new Error('Помилка API'); const d = await r.json(); 
+      const d = await fetchCachedJson(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FKyiv`, 'weather_'+c.name, 30);
       if (d && d.current) { results.push({ name: c.name, w: { temperature: d.current.temperature_2m, weathercode: d.current.weather_code, windspeed: d.current.wind_speed_10m } }); } 
       else if (d && d.current_weather) { results.push({name: c.name, w: d.current_weather}); }
-    } catch(e) { console.error("Weather error:", e); } 
+    } catch(e) {} 
   }
   const container = document.getElementById("weather-container"); 
-  if(results.length === 0) { container.innerHTML = '<div style="font-size:11px; opacity:0.5; font-weight:600;">Дані погоди тимчасово недоступні ☁️</div>'; return; }
+  if(results.length === 0) { container.innerHTML = '<div class="empty-msg" style="font-size:11px;">Дані погоди тимчасово недоступні ☁️</div>'; return; }
   container.innerHTML = results.map((item, index) => `
     <div class="weather-content ${index === 0 ? 'active' : ''}" style="width: 100%;">
       <div class="weather-city">${item.name}</div>
@@ -1037,13 +1022,32 @@ async function loadWeather(){
 
 async function loadExchangeRates() {
   try {
-    const cacheKey = 'currency_cache_v2'; const cacheTimeKey = 'currency_cache_time_v2'; const now = new Date().getTime(); let rates = null;
-    if (localStorage.getItem(cacheKey) && localStorage.getItem(cacheTimeKey)) { if (now - parseInt(localStorage.getItem(cacheTimeKey)) < 600000) { rates = JSON.parse(localStorage.getItem(cacheKey)); } }
-    if (!rates) { try { const r = await fetch('https://api.monobank.ua/bank/currency'); if (r.ok) { const data = await r.json(); const usd = data.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980); const eur = data.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980); if (usd && eur) rates = { usdBuy: usd.rateBuy, usdSell: usd.rateSell, eurBuy: eur.rateBuy, eurSell: eur.rateSell }; } } catch(e) {} }
-    if (!rates) { try { const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.privatbank.ua/p24api/pubinfo?json&exchange&coursid=5')); if (r.ok) { const proxyData = await r.json(); const data = JSON.parse(proxyData.contents); const usd = data.find(c => c.ccy === 'USD'); const eur = data.find(c => c.ccy === 'EUR'); if (usd && eur) rates = { usdBuy: usd.buy, usdSell: usd.sale, eurBuy: eur.buy, eurSell: eur.sale }; } } catch(e) {} }
-    if (!rates) { try { const r = await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json'); if (r.ok) { const data = await r.json(); const usd = data.find(c => c.cc === 'USD'); const eur = data.find(c => c.cc === 'EUR'); if (usd && eur) rates = { usdBuy: usd.rate, usdSell: usd.rate, eurBuy: eur.rate, eurSell: eur.rate }; } } catch(e) {} }
-    if (rates) { document.getElementById('usd-buy').textContent = Number(rates.usdBuy).toFixed(2); document.getElementById('usd-sell').textContent = Number(rates.usdSell).toFixed(2); document.getElementById('eur-buy').textContent = Number(rates.eurBuy).toFixed(2); document.getElementById('eur-sell').textContent = Number(rates.eurSell).toFixed(2); try { localStorage.setItem(cacheKey, JSON.stringify(rates)); localStorage.setItem(cacheTimeKey, now.toString()); } catch(e) {} }
-  } catch (e) { console.error("Помилка завантаження курсів", e); }
+    // Спочатку пробуємо ПриватБанк (напряму, він дозволяє CORS)
+    const pbData = await fetchCachedJson('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11', 'privat_rates_direct', 60);
+    const usd = pbData.find(c => c.ccy === 'USD'); 
+    const eur = pbData.find(c => c.ccy === 'EUR');
+    if(usd && eur) {
+      document.getElementById('usd-buy').textContent = Number(usd.buy).toFixed(2);
+      document.getElementById('usd-sell').textContent = Number(usd.sale).toFixed(2);
+      document.getElementById('eur-buy').textContent = Number(eur.buy).toFixed(2);
+      document.getElementById('eur-sell').textContent = Number(eur.sale).toFixed(2);
+      return;
+    }
+  } catch (e) {
+      try {
+        // Якщо помилка, безпечно тягнемо Монобанк через сирий проксі
+        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent('https://api.monobank.ua/bank/currency');
+        const monoData = await fetchCachedJson(proxyUrl, 'mono_rates_proxy', 60);
+        const usd = monoData.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980); 
+        const eur = monoData.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
+        if(usd && eur) {
+           document.getElementById('usd-buy').textContent = Number(usd.rateBuy).toFixed(2);
+           document.getElementById('usd-sell').textContent = Number(usd.rateSell).toFixed(2);
+           document.getElementById('eur-buy').textContent = Number(eur.rateBuy).toFixed(2);
+           document.getElementById('eur-sell').textContent = Number(eur.rateSell).toFixed(2);
+        }
+      } catch(e2){ console.error('Курс валют недоступний', e2); }
+  }
 }
 
 function updateDateTime(){
@@ -1077,31 +1081,31 @@ function isVilnohirsk(str) { if (!str) return false; const lower = String(str).t
 
 async function loadAlerts() {
   try {
-    const r = await fetch('https://vilnohirsk-alerts-production.up.railway.app/api/alert'); const d = await r.json();
+    const d = await fetchCachedJson('https://vilnohirsk-alerts-production.up.railway.app/api/alert', 'alerts_api', 5);
     const communalAlerts = (d && Array.isArray(d.communal)) ? d.communal.filter(i => i && i.show) : []; const newsAlerts = (d && Array.isArray(d.news)) ? d.news.filter(i => i && i.show) : [];
     checkNotification('communal', communalAlerts); checkNotification('news', newsAlerts);
     document.getElementById("alert-communal-content").innerHTML = buildCarouselHtml(communalAlerts, '#ffcc00', 'communal'); document.getElementById("alert-news-content").innerHTML = buildCarouselHtml(newsAlerts, '#00ff9c', 'news');
-  } catch(e) { document.getElementById("alert-communal-content").innerHTML = `<div class="alert-empty">Помилка завантаження</div>`; document.getElementById("alert-news-content").innerHTML = `<div class="alert-empty">Помилка завантаження</div>`; }
+  } catch(e) { document.getElementById("alert-communal-content").innerHTML = `<div class="empty-msg">Помилка завантаження</div>`; document.getElementById("alert-news-content").innerHTML = `<div class="empty-msg">Помилка завантаження</div>`; }
 }
 
 async function loadEventsData() {
   try {
     const API_URL = `${atob('aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2RlbnJpczg3L3ZpbG5vaGlyc2stZXZlbnRzL21haW4vZXZlbnRzLmpzb24=')}?t=${new Date().getTime()}`;
-    const r = await fetch(API_URL); if (!r.ok) throw new Error('Network error'); const eventAlerts = await r.json();
+    const eventAlerts = await fetchCachedJson(API_URL, 'events_api', 5);
     const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i.show !== false) : [];
     checkNotification('events', activeEvents); window.currentEventImages = activeEvents.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
     document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#FF3366', 'events', true);
-  } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="alert-empty" style="margin-bottom:15px;">Афіш поки немає</div>`; }
+  } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
 }
 
 window.phonebookRawData = [];
 async function loadPhonebookData() {
   const container = document.getElementById('city-guide-list-content');
   try {
-    const response = await fetch('https://vilnohirsk-phonebook-production.up.railway.app/api/phonebook'); if (!response.ok) throw new Error('Network error');
-    const data = await response.json(); const categoriesData = data.categories || data; if (!categoriesData || !Array.isArray(categoriesData)) throw new Error('Invalid format');
+    const data = await fetchCachedJson('https://vilnohirsk-phonebook-production.up.railway.app/api/phonebook', 'phonebook_api', 30);
+    const categoriesData = data.categories || data; if (!categoriesData || !Array.isArray(categoriesData)) throw new Error('Invalid format');
     window.phonebookRawData = categoriesData; renderPhonebook(window.phonebookRawData);
-  } catch (e) { container.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5; color:#ff4d4d;">Помилка завантаження довідника</div>'; }
+  } catch (e) { container.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження довідника</div>'; }
 }
 
 window.renderPhonebook = function(categories, searchQuery = '') {
@@ -1122,114 +1126,157 @@ window.renderPhonebook = function(categories, searchQuery = '') {
      });
      if (categoryHasMatch) { const safeCatName = cat.name || cat.category || 'Різне'; const safeCatIcon = cat.icon || '📌'; html += `<div class="pb-category-section"><div class="pb-category-header"><span>${safeCatIcon}</span> ${safeCatName}</div><div class="pb-grid">${itemsHtml}</div></div>`; }
   });
-  if (!hasResults) { container.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.5; font-weight: 600; font-size: 14px;">За вашим запитом нічого не знайдено 😔</div>'; } else { container.innerHTML = html; }
+  if (!hasResults) { container.innerHTML = '<div class="empty-msg" style="font-size: 14px;">За вашим запитом нічого не знайдено 😔</div>'; } else { container.innerHTML = html; }
 };
 window.filterPhonebook = function() { const input = document.getElementById('pb-search'); if (window.phonebookRawData && input) { renderPhonebook(window.phonebookRawData, input.value); } };
 
+// --- ГЕНЕРАЦІЯ ВИПАДАЮЧОГО СПИСКУ ДЛЯ КАРТОЧОК ---
+window.buildDropdown = function(id, photosHtml, details) {
+  const items = details.map(d => `<div class="shop-inner-item"><span class="detail-icon">${d.icon}</span><div><b>${d.label}:</b><br>${d.value}</div></div>`).join('');
+  return `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()"><div class="shop-inner-list">${photosHtml}${items}</div></div>`;
+};
+
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
-  if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) { container.innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>'; return; }
-  let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Якщо теж бажаєте тут з’явитися, пишіть нам у тг <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div>';
-  html += '<div class="shops-tile-grid">';
+  if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) { container.innerHTML = '<div class="empty-msg">Оголошень поки немає</div>'; return; }
+  let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color:rgba(255,255,255,0.7); font-weight: 600;">Якщо теж бажаєте тут з’явитися, пишіть нам у тг <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div class="shops-tile-grid">';
+  
   shopsData.forEach((shop, index) => {
     if(!shop) return;
     const safeName = shop.name != null ? String(shop.name).trim() : ""; const displayName = safeName !== "" ? safeName : "Оголошення " + (index + 1);
     const detailsId = 'shop-detail-' + index; const isVip = shop.vip === true || shop.vip === 'true'; const vipClass = isVip ? 'vip-tile' : ''; const vipBadge = isVip ? '<div class="vip-badge">VIP</div>' : '';
-    const safePhotoUrl = shop.photo != null && String(shop.photo).trim() !== "" ? String(shop.photo).trim() : null;
-    const photoHtml = safePhotoUrl ? `<img src="${safePhotoUrl}" alt="${displayName}">` : `<span style="font-size:28px;">🛍️</span>`;
-    const safeInsta = shop.instagram != null ? String(shop.instagram).trim() : ""; const titleHtml = safeInsta !== "" ? `<a href="${safeInsta}" target="_blank" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${displayName} 🔗</a>` : displayName;
-    const safeSchedule = shop.schedule != null ? String(shop.schedule).replace(/\n/g, '<br>') : 'Не вказано';
+    const photoHtml = (shop.photo && String(shop.photo).trim() !== "") ? `<img src="${String(shop.photo).trim()}" alt="${displayName}">` : `<span style="font-size:28px;">🛍️</span>`;
+    const titleHtml = (shop.instagram && String(shop.instagram).trim() !== "") ? `<a href="${String(shop.instagram).trim()}" target="_blank" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${displayName} 🔗</a>` : displayName;
+    
     let phoneHtml = 'Не вказано';
-    if (shop.phone != null && String(shop.phone).trim() !== "") {
-      const phonesArray = String(shop.phone).split(',').map(p => p.trim());
-      phoneHtml = phonesArray.map(p => { const cleanNumber = p.replace(/[^0-9+]/g, ''); return `<a href="tel:${cleanNumber}" class="shop-phone-link" onclick="event.stopPropagation();">${p}</a>`; }).join('<br>'); 
+    if (shop.phone && String(shop.phone).trim() !== "") {
+      phoneHtml = String(shop.phone).split(',').map(p => `<a href="tel:${p.replace(/[^0-9+]/g, '')}" class="shop-phone-link" onclick="event.stopPropagation();">${p.trim()}</a>`).join('<br>'); 
     }
-    const safeCategory = shop.category != null && String(shop.category).trim() !== "" ? String(shop.category).trim() : "Магазин"; const safeAddress = shop.address != null && String(shop.address).trim() !== "" ? String(shop.address).trim() : "Не вказано"; const isContactless = shop.contactless === true || shop.contactless === 'true' || shop.contactless === '✅';
-    html += `<div class="shop-tile ${vipClass}" onclick="toggleShop('${detailsId}', this)">${vipBadge}<div class="shop-tile-photo">${photoHtml}</div><div class="shop-tile-cat">${safeCategory}</div><div class="shop-tile-name">${titleHtml}</div><div class="shop-tile-chevron">Деталі ▾</div><div class="shop-details-dropdown" id="${detailsId}" onclick="event.stopPropagation()"><div class="shop-inner-list"><div class="shop-inner-item"><span class="detail-icon">📍</span><div>Адреса:<br><b>${safeAddress}</b></div></div><div class="shop-inner-item"><span class="detail-icon">🕒</span><div><b>Графік роботи:</b><br>${safeSchedule}</div></div><div class="shop-inner-item"><span class="detail-icon">💳</span><div>Термінал: <b>${isContactless ? '✅' : '❌'}</b></div></div><div class="shop-inner-item"><span class="detail-icon">📞</span><div>Телефон(и):<br>${phoneHtml}</div></div></div></div></div>`;
+    
+    const isContactless = shop.contactless === true || shop.contactless === 'true' || shop.contactless === '✅';
+    const dropdownHtml = buildDropdown(detailsId, '', [
+        {icon: '📍', label: 'Адреса', value: shop.address || "Не вказано"},
+        {icon: '🕒', label: 'Графік роботи', value: shop.schedule ? String(shop.schedule).replace(/\n/g, '<br>') : 'Не вказано'},
+        {icon: '💳', label: 'Термінал', value: isContactless ? '✅' : '❌'},
+        {icon: '📞', label: 'Телефон(и)', value: phoneHtml}
+    ]);
+
+    html += `<div class="shop-tile ${vipClass}" onclick="toggleShop('${detailsId}', this)">${vipBadge}<div class="shop-tile-photo">${photoHtml}</div><div class="shop-tile-cat">${shop.category || "Магазин"}</div><div class="shop-tile-name">${titleHtml}</div><div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
   });
   container.innerHTML = html + '</div>';
 }
 
 async function loadShopsData() {
   try {
-    const r = await fetch('https://vilnohirsk-shops-production.up.railway.app/api/shops'); if (!r.ok) throw new Error('Помилка HTTP'); const d = await r.json();
+    const d = await fetchCachedJson('https://vilnohirsk-shops-production.up.railway.app/api/shops', 'shops_api', 5);
     let itemsArray = d.shops || d.items || (Array.isArray(d) ? d : []); checkNotification('shopping', itemsArray);
-    if (!itemsArray || itemsArray.length === 0) { document.getElementById('shopping-list-content').innerHTML = '<div style="text-align:center; padding: 20px; color: rgba(255,255,255,0.5);">Оголошень поки немає</div>'; return; }
+    if (!itemsArray || itemsArray.length === 0) { document.getElementById('shopping-list-content').innerHTML = '<div class="empty-msg">Оголошень поки немає</div>'; return; }
     const activeShops = itemsArray.filter(shop => shop && shop.name && String(shop.name).trim() !== ""); const vipShops = activeShops.filter(shop => shop.vip === true || shop.vip === 'true'); const regularShops = activeShops.filter(shop => shop.vip !== true && shop.vip !== 'true');
     renderShops([...vipShops, ...shuffleArray([...regularShops])]);
-  } catch(e) { document.getElementById('shopping-list-content').innerHTML = `<div style="text-align:center; padding: 20px; color: #ff6b6b; font-weight:600; font-size: 13px;">Помилка завантаження магазинів: ${e.message}</div>`; }
+  } catch(e) { document.getElementById('shopping-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження магазинів: ${e.message}</div>`; }
 }
 
-window.renderEstateList = function(items) {
+window.renderEstateList = function(items, hasMore = false) {
   const cont = document.getElementById('estate-list-content');
-  if (!items || !items.length) { cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень у цій категорії немає</div>'; return; }
-  const vipItems = items.filter(item => item.isVip).reverse(); const regularItems = items.filter(item => !item.isVip); const sortedItems = [...vipItems, ...regularItems];
+  if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
+  const sortedItems = [...items.filter(item => item.isVip).reverse(), ...items.filter(item => !item.isVip)];
   let html = '<div class="shops-tile-grid">';
   sortedItems.forEach((item, i) => {
     const id = 'estate-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🏠</span>`;
-    let allPhotosHtml = '';
-    if (item.photos.length > 0) { const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos)); allPhotosHtml = `<div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;"><div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
-    const safeDesc = item.description.replace(/\n/g, '<br>'); const vipClass = item.isVip ? 'vip-tile' : ''; const vipBadge = item.isVip ? '<div class="vip-badge">VIP</div>' : ''; const dealColor = item.dealType.toLowerCase() === 'оренда' ? '#00b8ff' : '#ff3366';
-    html += `<div class="shop-tile ${vipClass}" onclick="toggleShop('${id}', this)">${vipBadge}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${item.dealType} • ${item.propertyType}</div><div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width: 100%;"><span style="color:#00ff9c; font-size:13px; font-weight:800; margin-bottom:0; flex-shrink:0; min-width:0; word-break: break-word;">${item.price}</span><span style="font-size:11px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0;">Кімнат: ${item.rooms}</span></div><div class="shop-tile-chevron">Деталі ▾</div><div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()"><div class="shop-inner-list">${allPhotosHtml}<div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Тип об'єкта:</b><br>${item.propertyType} (${item.dealType})</div></div><div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис та адреса:</b><br>${safeDesc}</div></div><div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Телефон:</b><br><a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a></div></div></div></div></div>`;
+    let photosHtml = '';
+    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+    const dealColor = item.dealType.toLowerCase() === 'оренда' ? '#00b8ff' : '#ff3366';
+    
+    const dropdownHtml = buildDropdown(id, photosHtml, [
+        {icon: '📌', label: 'Тип об\'єкта', value: `${item.propertyType} (${item.dealType})`},
+        {icon: '📝', label: 'Опис та адреса', value: item.description.replace(/\n/g, '<br>')},
+        {icon: '📞', label: 'Телефон', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a>`}
+    ]);
+
+    html += `<div class="shop-tile ${item.isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${item.isVip ? '<div class="vip-badge">VIP</div>' : ''}
+        <div class="share-btn-corner" onclick="shareContent('${item.dealType} ${item.propertyType}','Ціна: ${item.price}','', event)">↗️</div>
+        <div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${item.dealType} • ${item.propertyType}</div>
+        <div class="card-row"><span class="card-price">${item.price}</span><span class="card-info">Кімнат: ${item.rooms}</span></div>
+        <div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
   });
-  cont.innerHTML = html + '</div>';
+  html += '</div>';
+  if (hasMore) { html += `<button class="load-more-btn" onclick="window.estateRenderLimit+=20; const a=document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(a?a.innerText:'Всі',a);">Показати ще ▾</button>`; }
+  cont.innerHTML = html;
 };
 
 window.filterEstate = function(category, element) {
   document.querySelectorAll('#estate-categories .flea-category-tag').forEach(tag => { tag.classList.remove('active'); });
   if(element) { element.classList.add('active'); }
-  if (category === 'Всі') { renderEstateList(window.allEstateItems); } else { const filtered = window.allEstateItems.filter(item => item.dealType && item.dealType.includes(category)); renderEstateList(filtered); }
+  let filtered = window.allEstateItems.filter(item => category === 'Всі' || (item.dealType && item.dealType.includes(category)));
+  if (window.currentEstateSort === 'cheap') filtered.sort((a,b) => (parseInt(a.price.replace(/\D/g,''))||0) - (parseInt(b.price.replace(/\D/g,''))||0));
+  else if (window.currentEstateSort === 'expensive') filtered.sort((a,b) => (parseInt(b.price.replace(/\D/g,''))||0) - (parseInt(a.price.replace(/\D/g,''))||0));
+  renderEstateList(filtered.slice(0, window.estateRenderLimit), filtered.length > window.estateRenderLimit);
 };
 
 async function loadEstateData() {
-  if(ESTATE_CSV_URL.includes('ВСТАВТЕ_СЮДИ_ВАШЕ_ПОСИЛАННЯ')) { document.getElementById('estate-list-content').innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Створіть сторінку "Нерухомість" у вашій таблиці та додайте сюди посилання.</div>'; return; }
+  if(ESTATE_CSV_URL.includes('ВСТАВТЕ_СЮДИ_ВАШЕ_ПОСИЛАННЯ')) return;
   try {
-    const response = await fetch(ESTATE_CSV_URL); if (!response.ok) throw new Error("Не вдалося завантажити таблицю нерухомості"); const csvText = await response.text();
+    const csvText = await fetchCachedText(ESTATE_CSV_URL, 'estate_csv', 5);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
         const approvedItems = results.data.filter(row => { const keys = Object.keys(row); let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]]; return status && String(status).trim().toLowerCase() === 'одобрено'; }).map(row => {
           const keys = Object.keys(row); let rawPhoto = row['Фото'] || row['photos'] || row['Photos'] || row[keys[8]] || ''; let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
           let processedPhotos = photoUrls.map(url => { let fileId = ''; if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0]; else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; } return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url; });
-          const v = String(row['VIP'] || row['vip'] || row[keys[9]] || '').trim().toLowerCase(); const isVip = v === 'так' || v === '+' || v === 'true';
-          return { dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда', propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира', rooms: row["Кімнат"] || row[keys[4]] || '-', price: row["Ціна"] || row[keys[5]] || 'Договірна', description: row["Опис"] || row[keys[6]] || 'Без опису', phone: row["Телефон"] || row[keys[7]] || 'Не вказано', photos: processedPhotos, isVip: isVip };
+          const v = String(row['VIP'] || row['vip'] || row[keys[9]] || '').trim().toLowerCase();
+          return { dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда', propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира', rooms: row["Кімнат"] || row[keys[4]] || '-', price: row["Ціна"] || row[keys[5]] || 'Договірна', description: row["Опис"] || row[keys[6]] || 'Без опису', phone: row["Телефон"] || row[keys[7]] || 'Не вказано', photos: processedPhotos, isVip: (v === 'так' || v === '+' || v === 'true') };
         });
-        checkNotification('estate', approvedItems); window.allEstateItems = approvedItems;
-        const activeTag = document.querySelector('#estate-categories .flea-category-tag.active'); const currentCategory = activeTag ? activeTag.innerText.trim() : 'Всі';
-        if(currentCategory === 'Всі') { renderEstateList(approvedItems); } else { filterEstate(currentCategory, activeTag); }
+        checkNotification('estate', approvedItems); window.allEstateItems = approvedItems.reverse();
+        const activeTag = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
       }
     });
-  } catch (e) { document.getElementById('estate-list-content').innerHTML = `<div style="text-align:center; padding:20px; color:#ff4d4d; font-size:12px;">Помилка: ${e.message}</div>`; }
+  } catch (e) { document.getElementById('estate-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка: ${e.message}</div>`; }
 }
 
-window.renderFleaMarketList = function(items) {
+window.renderFleaMarketList = function(items, hasMore = false) {
   const cont = document.getElementById('flea-market-list-content');
-  if (!items || !items.length) { cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень у цій категорії немає</div>'; return; }
-  const vipItems = items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return v === 'так' || v === '+' || v === 'true'; }).reverse();
-  const regularItems = items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return !(v === 'так' || v === '+' || v === 'true'); });
-  const sortedItems = [...vipItems, ...regularItems];
+  if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
+  const sortedItems = [...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return v === 'так' || v === '+' || v === 'true'; }).reverse(), ...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return !(v === 'так' || v === '+' || v === 'true'); })];
+  
   let html = '<div class="shops-tile-grid">';
   sortedItems.forEach((item, i) => {
     const id = 'flea-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">📦</span>`;
     let priceText = item.price ? String(item.price).trim() : 'Ціна договірна'; if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
-    let allPhotosHtml = '';
-    if (item.photos.length > 0) { const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos)); allPhotosHtml = `<div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;"><div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
-    const safeTitle = item.title; const safeCat = item.category; const safeCond = item.condition; const safeDesc = item.description.replace(/\n/g, '<br>'); const safeLoc = item.location; const safePhone = item.phone;
-    const v = String(item.vip || '').trim().toLowerCase(); const isVip = v === 'так' || v === '+' || v === 'true'; const vipClass = isVip ? 'vip-tile' : ''; const vipBadge = isVip ? '<div class="vip-badge">VIP</div>' : '';
-    html += `<div class="shop-tile ${vipClass}" onclick="toggleShop('${id}', this)">${vipBadge}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${safeCat}</div><div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width: 100%;"><span style="color:#00ff9c; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0; flex-shrink:0; max-width:45%; min-width:0; word-break: break-word; overflow-wrap: anywhere;">${priceText}</span><span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0; word-break: break-word; overflow-wrap: anywhere;">📍 ${safeLoc}</span></div><div class="shop-tile-name">${safeTitle}</div><div class="shop-tile-chevron">Опис ▾</div><div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()"><div class="shop-inner-list">${allPhotosHtml}<div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${safeCat}</div></div><div class="shop-inner-item"><span class="detail-icon">✨</span><div><b>Стан:</b><br>${safeCond}</div></div><div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${safeDesc}</div></div><div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${safePhone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${safePhone}</a></div></div></div></div></div>`;
+    
+    let photosHtml = '';
+    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+    
+    const v = String(item.vip || '').trim().toLowerCase(); const isVip = v === 'так' || v === '+' || v === 'true';
+    const dropdownHtml = buildDropdown(id, photosHtml, [
+        {icon: '📌', label: 'Категорія', value: item.category},
+        {icon: '✨', label: 'Стан', value: item.condition},
+        {icon: '📝', label: 'Опис', value: item.description.replace(/\n/g, '<br>')},
+        {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a>`}
+    ]);
+
+    html += `<div class="shop-tile ${isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${isVip ? '<div class="vip-badge">VIP</div>' : ''}
+        <div class="share-btn-corner" onclick="shareContent('${item.title.replace(/'/g, "\\'")}','Ціна: ${priceText}','', event)">↗️</div>
+        <div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${item.category}</div>
+        <div class="card-row"><span class="card-price">${priceText}</span><span class="card-info">📍 ${item.location}</span></div>
+        <div class="shop-tile-name">${item.title}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
   });
-  cont.innerHTML = html + '</div>';
+  html += '</div>';
+  if (hasMore) { html += `<button class="load-more-btn" onclick="window.fleaRenderLimit+=20; const a=document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(a?a.innerText:'Всі',a);">Показати ще ▾</button>`; }
+  cont.innerHTML = html;
 };
 
 window.filterFleaMarket = function(category, element) {
   document.querySelectorAll('#flea-categories .flea-category-tag').forEach(tag => tag.classList.remove('active')); if(element) element.classList.add('active');
-  if (category === 'Всі') { renderFleaMarketList(window.allFleaMarketItems); } else { const filtered = window.allFleaMarketItems.filter(item => { return item.category && (item.category === category || item.category.includes(category)); }); renderFleaMarketList(filtered); }
+  let filtered = window.allFleaMarketItems.filter(item => category === 'Всі' || (item.category && item.category.includes(category)));
+  if (window.currentFleaSort === 'cheap') filtered.sort((a,b) => (parseInt(a.price.replace(/\D/g,''))||0) - (parseInt(b.price.replace(/\D/g,''))||0));
+  else if (window.currentFleaSort === 'expensive') filtered.sort((a,b) => (parseInt(b.price.replace(/\D/g,''))||0) - (parseInt(a.price.replace(/\D/g,''))||0));
+  renderFleaMarketList(filtered.slice(0, window.fleaRenderLimit), filtered.length > window.fleaRenderLimit);
 };
 
 async function loadFleaMarketData() {
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=111977759';
-    const response = await fetch(csvUrl); if (!response.ok) throw new Error("Не вдалося завантажити таблицю барахолки"); const csvText = await response.text();
+    const csvText = await fetchCachedText(csvUrl, 'flea_csv', 5);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
@@ -1238,18 +1285,17 @@ async function loadFleaMarketData() {
           let processedPhotos = photoUrls.map(url => { let fileId = ''; if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0]; else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; } return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url; });
           return { title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви', price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['Price'] || row['price'] || row[keys[2]] || '', description: row['Опис (Абзац)'] || row['Опис'] || row['Description'] || row[keys[3]] || 'Без опису', phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['Phone'] || row[keys[4]] || 'Не вказано', photos: processedPhotos, category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Різне', condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row['condition'] || row[keys[7]] || 'Не вказано', location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row['location'] || row[keys[8]] || 'Вільногірськ', vip: row['VIP'] || row['vip'] || row['Vip'] || '' };
         });
-        const localItems = approvedItems.filter(item => isVilnohirsk(item.location)); checkNotification('flea', localItems); window.allFleaMarketItems = localItems;
-        const activeTag = document.querySelector('#flea-categories .flea-category-tag.active'); const currentCategory = activeTag ? activeTag.innerText.trim() : 'Всі';
-        if(currentCategory === 'Всі') { renderFleaMarketList(localItems); } else { filterFleaMarket(currentCategory, activeTag); }
+        const localItems = approvedItems.filter(item => isVilnohirsk(item.location)).reverse(); checkNotification('flea', localItems); window.allFleaMarketItems = localItems;
+        const activeTag = document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
       }
     });
-  } catch (e) { document.getElementById('flea-market-list-content').innerHTML = `<div style="text-align:center; padding:20px; color:#ff4d4d; font-size:12px;">Помилка: ${e.message}</div>`; }
+  } catch (e) { document.getElementById('flea-market-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка: ${e.message}</div>`; }
 }
 
 async function loadLostFoundData() {
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=624471689';
-    const response = await fetch(csvUrl); if (!response.ok) throw new Error("Не вдалося завантажити таблицю знахідок"); const csvText = await response.text();
+    const csvText = await fetchCachedText(csvUrl, 'lost_csv', 5);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
@@ -1258,18 +1304,27 @@ async function loadLostFoundData() {
           return { title: row['Назва речі'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви', type: row['Що сталося?'] || row['Type'] || row['Тип'] || row['type'] || row[keys[2]] || 'Знайдено', description: row['Опис та обставини'] || row['Description'] || row['Опис'] || row['description'] || row[keys[3]] || 'Без опису', phone: row['Ваш телефон'] || row['Phone'] || row['Телефон'] || row[keys[4]] || 'Не вказано', photos: processedPhotos, category: row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Інше', location: row['Локація'] || row['Location'] || row[keys[7]] || 'Вільногірськ' };
         });
         const localItems = approvedItems.filter(item => isVilnohirsk(item.location)); checkNotification('lost', localItems);
-        const cont = document.getElementById('lost-found-list-content'); if (!localItems.length) { cont.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Оголошень немає</div>'; return; }
+        const cont = document.getElementById('lost-found-list-content'); if (!localItems.length) { cont.innerHTML = '<div class="empty-msg">Оголошень немає</div>'; return; }
+        
         let html = '<div class="shops-tile-grid">';
         localItems.reverse().forEach((item, i) => {
           const id = 'lost-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`; const badgeColor = item.type.toLowerCase().includes('знайдено') ? '#00ff9c' : '#ff4d4d';
-          let allPhotosHtml = ''; if (item.photos.length > 0) { const encodedPhotos = encodeURIComponent(JSON.stringify(item.photos)); allPhotosHtml = `<div style="text-align:center; background:rgba(0,0,0,0.3); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer;" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodedPhotos}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)" style="width:100%; max-height:250px; object-fit:contain; border-radius:6px;"><div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700;">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
-          const safeTitle = item.title; const safeDesc = item.description.replace(/\n/g, '<br>'); const safeLoc = item.location; const safePhone = item.phone;
-          html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${item.category}</div><div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width: 100%;"><span style="color:${badgeColor}; font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:0; flex-shrink:0; max-width:45%; min-width:0; word-break: break-word; overflow-wrap: anywhere;">${item.type}</span><span style="font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0; word-break: break-word; overflow-wrap: anywhere;">📍 ${safeLoc}</span></div><div class="shop-tile-name">${safeTitle}</div><div class="shop-tile-chevron">Опис ▾</div><div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()"><div class="shop-inner-list">${allPhotosHtml}<div class="shop-inner-item"><span class="detail-icon">📌</span><div><b>Категорія:</b><br>${item.category}</div></div><div class="shop-inner-item"><span class="detail-icon">📝</span><div><b>Опис:</b><br>${safeDesc}</div></div><div class="shop-inner-item"><span class="detail-icon">📞</span><div><b>Контакти:</b><br><a href="tel:${safePhone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${safePhone}</a></div></div></div></div></div>`;
+          let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+          
+          const dropdownHtml = buildDropdown(id, photosHtml, [
+            {icon: '📌', label: 'Категорія', value: item.category},
+            {icon: '📝', label: 'Опис', value: item.description.replace(/\n/g, '<br>')},
+            {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a>`}
+          ]);
+
+          html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${item.category}</div>
+            <div class="card-row"><span class="card-price" style="color:${badgeColor}; max-width:45%;">${item.type}</span><span class="card-info">📍 ${item.location}</span></div>
+            <div class="shop-tile-name">${item.title}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
         });
         cont.innerHTML = html + '</div>';
       }
     });
-  } catch (e) { document.getElementById('lost-found-list-content').innerHTML = `<div style="text-align:center; padding:20px; color:#ff4d4d; font-size:12px;">Помилка: ${e.message}</div>`; }
+  } catch (e) { document.getElementById('lost-found-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка: ${e.message}</div>`; }
 }
 
 function isPast(timeStr) {
@@ -1299,8 +1354,9 @@ function renderGrid(data, isChanges = false, alwaysWhite = false) {
   return html + '</div>';
 }
 
-function loadTrainsData(){ 
-  fetch("https://vilnohirsk-trains-production.up.railway.app/api/trains").then(r=>r.json()).then(d=>{
+async function loadTrainsData(){ 
+  try {
+    const d = await fetchCachedJson("https://vilnohirsk-trains-production.up.railway.app/api/trains", 'trains_api', 10);
     if(d&&d.trains) {
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div><div id="trains-content">`;
       d.trains.forEach((x, i) => {
@@ -1317,11 +1373,12 @@ function loadTrainsData(){
       const changed = d.trains.filter(x => x && x.note && x.note !== "змін немає...");
       if (changed.length > 0) checkNotification('trains', changed); else { const dot = document.getElementById('dot-trains'); if (dot) dot.style.display = 'none'; }
     }
-  }).catch(e=>document.getElementById("list").innerHTML="<div style='text-align:center; padding: 20px;'>Помилка завантаження</div>"); 
+  } catch(e){ document.getElementById("list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
 }
  
-function loadLongTrainsData() { 
-  fetch("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule").then(r=>r.json()).then(d=>{
+async function loadLongTrainsData() { 
+  try {
+    const d = await fetchCachedJson("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule", 'long_trains_api', 30);
     if(d&&d.trains) {
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div>`;
       d.trains.forEach((x,i) => {
@@ -1329,18 +1386,19 @@ function loadLongTrainsData() {
         const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
         const hasChanges = x.changes && Array.isArray(x.changes) && x.changes.length > 0;
         let infoHtml = "";
-        if (x.periodicityText) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність:</b><br><span style="color:rgba(255,255,255,0.7); font-weight:500;">${x.periodicityText}</span></div>`;
-        if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500; color: rgba(255,255,255,0.8);">${x.changes.map(c => `<li>${c}</li>`).join('')}</ul></div>`;
+        if (x.periodicityText) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність:</b><br><span style="color:inherit; font-weight:500;">${x.periodicityText}</span></div>`;
+        if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500;">${x.changes.map(c => `<li>${c}</li>`).join('')}</ul></div>`;
 
-        h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${x.number}</div><div class="route-text">${x.route}</div><div class="time-val" style="color:#fff;">${x.time}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
+        h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${x.number}</div><div class="route-text">${x.route}</div><div class="time-val">${x.time}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
       });
       document.getElementById("long-trains-list").innerHTML = h;
     }
-  }).catch(e=>{}); 
+  }catch(e){ document.getElementById("long-trains-list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
 }
 
-function loadBusesData(){ 
-  fetch("https://vilnohirskbuses-production.up.railway.app/api/buses").then(r=>r.json()).then(d=>{
+async function loadBusesData(){ 
+  try {
+    const d = await fetchCachedJson("https://vilnohirskbuses-production.up.railway.app/api/buses", 'buses_api', 30);
     if(d&&d.buses) {
       let h = `<div class="table-head"><div>Тип</div><div>Маршрут</div><div>Статус</div></div>`;
       d.buses.forEach((b,i) => {
@@ -1358,112 +1416,110 @@ function loadBusesData(){
       });
       document.getElementById("buses-list").innerHTML = h;
     }
-  }).catch(e=>{}); 
+  }catch(e){ document.getElementById("buses-list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
 }
 
 async function loadBlaBlaCarData() {
   try {
-    const r = await fetch('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides');
-    const d = await r.json(); checkNotification('blablacar', d);
+    const d = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 5);
+    checkNotification('blablacar', d);
     
     const dr = d.filter(x => x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
     const ps = d.filter(x => x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
     
     document.getElementById('blabla-drivers-list').innerHTML = dr.length ? dr.map(x => `
       <div class="blabla-card">
+        <div class="share-btn-corner" onclick="shareContent('Поїздка: ${x.from} - ${x.to}','${x.date} ${x.time}. Водій: ${x.name}','', event)">↗️</div>
         <div class="blabla-route">📍 ${x.from} - ${x.to}</div>
         <div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div>
         <div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div>
         <div class="blabla-info-row"><span>💺 Місць: <b>${x.seats}</b></span><span>💵 <b>${x.price > 0 ? x.price + ' грн' : 'Договірна'}</b></span></div>
-        ${x.comment ? `<div style="font-size:11px; opacity:0.8; margin-top:5px; min-width:0; word-break:break-word; overflow-wrap:anywhere;">💬 ${x.comment}</div>` : ''}
+        ${x.comment ? `<div class="card-desc">💬 ${x.comment}</div>` : ''}
         <div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div>
-      </div>`).join('') : '<div style="text-align:center; padding:20px; opacity:0.5;">Пропозицій немає</div>';
+      </div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
       
     document.getElementById('blabla-passengers-list').innerHTML = ps.length ? ps.map(x => `
       <div class="blabla-card">
+        <div class="share-btn-corner" onclick="shareContent('Шукаю авто: ${x.from} - ${x.to}','${x.date} ${x.time}. Пасажир: ${x.name}','', event)">↗️</div>
         <div class="blabla-route">📍 ${x.from} - ${x.to}</div>
         <div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div>
         <div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div>
         <div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${x.seats}</b></span></div>
-        ${x.comment ? `<div style="font-size:11px; opacity:0.8; margin-top:5px; min-width:0; word-break:break-word; overflow-wrap:anywhere;">💬 ${x.comment}</div>` : ''}
+        ${x.comment ? `<div class="card-desc">💬 ${x.comment}</div>` : ''}
         <div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div>
-      </div>`).join('') : '<div style="text-align:center; padding:20px; opacity:0.5;">Запитів немає</div>';
+      </div>`).join('') : '<div class="empty-msg">Запитів немає</div>';
   } catch(e) {}
 }
 
-async function loadJobsData() {
-  const container = document.getElementById('jobs-list-content');
-  let allJobs = [];
-
+async function loadVolunteersData() {
+  const container = document.getElementById('volunteers-list-content');
+  if (!container) return;
   try {
-    const r = await fetch('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs');
-    if (r.ok) {
-      const parsedJobs = await r.json();
-      if (Array.isArray(parsedJobs)) {
-        allJobs = allJobs.concat(parsedJobs);
-      }
+    const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
+    const data = await fetchCachedJson(API_URL, 'volunteers_api', 5);
+    
+    const activeItems = (data || []).filter(item => item.active !== false);
+
+    if (!activeItems || activeItems.length === 0) {
+        container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>';
+        return;
     }
-  } catch(e) {}
 
-  const SHEET_GID = '1809375718'; 
-  const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
-  
-  try {
-    const response = await fetch(csvUrl);
-    if (response.ok) {
-      const csvText = await response.text();
-      Papa.parse(csvText, {
-        header: true,
-        skipEmptyLines: true,
-        complete: function(results) {
-          const userJobs = results.data.filter(row => {
-            const keys = Object.keys(row);
-            let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]];
-            return status && String(status).trim().toLowerCase() === 'одобрено';
-          }).map(row => {
-            const keys = Object.keys(row);
-            const phone = row['Телефон'] || row[keys[6]] || '';
-            const gender = row['Стать'] || row['gender'] || row[keys[7]] || '';
-            const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || '';
-            const vipStatus = row['VIP'] || row[keys[9]] || '';
-            const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
+    let html = '';
+    activeItems.forEach((item, i) => {
+        const title = item.title || 'ЗБІР НА ЗСУ';
+        const desc = item.description ? item.description.replace(/\n/g, '<br>') : 'Підтримайте наших захисників!';
+        const jarUrl = item.jar_url || '';
+        const cardNumber = item.card_number || '';
+        const safeShareText = encodeURIComponent(`${title}\n${item.description || ''}\nДолучитися: ${jarUrl}`);
 
-            return {
-              title: row['Посада'] || row[keys[2]] || 'Без назви',
-              salary: row['Зарплата'] || row[keys[3]] || '-',
-              company: row['Компанія'] || row[keys[4]] || 'Не вказано',
-              description: row['Опис'] || row[keys[5]] || '',
-              date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно',
-              phone: phone,
-              gender: gender,
-              employment: employment,
-              url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#',
-              isVip: isVip,
-              source: 'User'
-            };
-          });
-          
-          allJobs = allJobs.concat(userJobs);
-          renderJobs(allJobs);
+        let cardHtml = '';
+        if (cardNumber) {
+            const id = 'card-' + i + '-' + Math.random().toString(36).substr(2, 5);
+            cardHtml = `
+            <div style="margin-top: 5px; z-index: 1; width: 100%;">
+                <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; text-align: left;">Або за номером картки:</div>
+                <div style="display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.3); padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); justify-content: space-between;">
+                    <span style="font-size: 14px; font-weight: 800; font-family: monospace; letter-spacing: 1px; color: #fff;" id="${id}">${cardNumber}</span>
+                    <button onclick="navigator.clipboard.writeText(document.getElementById('${id}').innerText.replace(/\\s/g, '')); this.innerText='✔️'; setTimeout(()=>this.innerText='📋', 2000);" style="background: transparent; border: none; color: var(--time-green); cursor: pointer; font-size: 16px; padding: 0;">📋</button>
+                </div>
+            </div>`;
         }
-      });
-    } else {
-      renderJobs(allJobs); 
-    }
-  } catch (e) {
-    renderJobs(allJobs);
-  }
+
+        html += `
+        <div style="margin-bottom: 25px;">
+            <div style="font-size: 13px; color: #fff; line-height: 1.5; margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); text-align: left;">
+                <b>Мета збору:</b><br>${desc}
+            </div>
+
+            <div style="background: linear-gradient(145deg, #1f2937, #111827); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; padding: 25px 20px; max-width: 350px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; align-items: center; gap: 15px; position: relative; overflow: hidden;">
+                <div class="share-btn-corner" style="z-index: 10; border-color: rgba(255,255,255,0.1);" onclick="shareContent('${title.replace(/'/g, "\\'")}','${decodeURIComponent(safeShareText).replace(/'/g, "\\'")}','${jarUrl}', event)">↗️</div>
+                
+                <div style="position: absolute; top: -50px; left: -50px; width: 100px; height: 100px; background: rgba(56, 189, 248, 0.2); filter: blur(30px); border-radius: 50%;"></div>
+                <div style="position: absolute; bottom: -50px; right: -50px; width: 100px; height: 100px; background: rgba(255, 204, 0, 0.2); filter: blur(30px); border-radius: 50%;"></div>
+                
+                <div style="width: 70px; height: 70px; background: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 35px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.1); z-index: 1;">🐈‍⬛</div>
+                
+                <div style="text-align: center; z-index: 1;">
+                    <div style="font-size: 16px; font-weight: 900; color: #fff; margin-bottom: 8px; letter-spacing: 0.5px;">${title}</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.5;">Підтримайте наших захисників. Кожна гривня наближає перемогу!</div>
+                </div>
+                
+                ${jarUrl ? `<a href="${jarUrl}" target="_blank" style="background: #fff; color: #000; text-decoration: none; padding: 14px 20px; border-radius: 16px; font-weight: 800; font-size: 15px; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 4px 15px rgba(255,255,255,0.2); z-index: 1;"><span style="font-size: 20px;">💳</span> Поповнити банку</a>` : ''}
+                ${cardHtml}
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+  } catch (e) { container.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження зборів</div>'; }
 }
 
 function renderJobs(jobs, isDemo = false) {
   const container = document.getElementById('jobs-list-content');
   if (!container) return;
-  if (!jobs || jobs.length === 0) {
-    container.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.5;">Актуальних вакансій немає</div>';
-    return;
-  }
+  if (!jobs || jobs.length === 0) { container.innerHTML = '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
   
-  let html = isDemo ? '<div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; color: #ffcc00; font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 15px;">⚠️ Демонстраційний режим (Бекенд у розробці)</div>' : '';
+  let html = isDemo ? '<div style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 10px; color: #ffcc00; font-size: 12px; font-weight: 700; text-align: center; margin-bottom: 15px;">⚠️ Демонстраційний режим</div>' : '';
   
   const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
   
@@ -1478,43 +1534,33 @@ function renderJobs(jobs, isDemo = false) {
   
   function createJobCardHtml(job, extraClass = '') {
     const isTel = job.url && job.url.startsWith('tel:');
-    
     let displayPhone = job.phone;
     if (displayPhone) {
         let cleanPhone = displayPhone.replace(/\D/g, ''); 
         if (cleanPhone.length >= 10) displayPhone = '0' + cleanPhone.slice(-9);
         else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone;
     }
-
     const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Відгукнутися 🔗');
     const targetAttr = isTel ? '_self' : '_blank'; 
-    
     let displaySalary = job.salary;
-    if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) {
-        displaySalary = displaySalary.trim() + ' грн';
-    }
-
+    if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) { displaySalary = displaySalary.trim() + ' грн'; }
     const isVip = job.isVip || job.vip;
     const vipBadge = isVip ? '<div class="vip-badge" style="top:-8px; right:-8px; font-size: 12px; padding: 4px 10px;">VIP</div>' : '';
     const vipClass = isVip ? 'vip-job-card' : 'regular-job-card';
-    
     const employment = job.employment || 'Повна / Не вказано';
-    const city = 'Вільногірськ';
-    
     const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : '';
     
     return `
-      <div class="blabla-card ${vipClass} ${extraClass}" style="position: relative; text-align: left; background: ${isVip ? 'linear-gradient(135deg, rgba(255, 170, 0, 0.25), rgba(50, 15, 0, 0.9))' : 'linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.3))'}; border: 1px solid ${isVip ? 'rgba(255, 204, 0, 0.4)' : 'rgba(255, 255, 255, 0.1)'}; border-radius: 16px; padding: 0; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      <div class="blabla-card ${vipClass} ${extraClass}" style="position: relative; text-align: left; ${!isVip ? 'background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2)); border:1px solid rgba(255,255,255,0.05);' : ''} border-radius: 16px; padding: 0; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
         ${vipBadge}
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 15px;">
+        <div class="share-btn-corner" onclick="shareContent('${job.title.replace(/'/g, "\\'")} в ${job.company.replace(/'/g, "\\'")}','Зарплата: ${displaySalary||'не вказано'}','${job.url}', event)">↗️</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 15px; padding-right: 45px;">
           <div style="font-size: 15px; font-weight: 800; color: ${isVip ? '#ffcc00' : '#74b9ff'}; min-width: 0; word-break: break-word; line-height: 1.3;">${job.title}</div>
           <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 10px; font-size: 16px; border: 1px solid rgba(255,255,255,0.05);">💼</div>
         </div>
         
         <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
           <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.8; flex: 1; min-width: 150px;">
-            <div><b>Населений пункт:</b> ${city}</div>
             <div><b>Роботодавець:</b> ${job.company}</div>
             <div><b>Зайнятість:</b> ${employment}</div>
           </div>
@@ -1523,10 +1569,10 @@ function renderJobs(jobs, isDemo = false) {
           </div>
         </div>
         
-        ${safeDesc ? `<div style="padding: 0 15px 15px 15px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.4; word-break: break-word; overflow-wrap: anywhere;">📝 ${safeDesc}</div>` : ''}
+        ${safeDesc ? `<div class="card-desc" style="padding: 0 15px 15px 15px;">📝 ${safeDesc}</div>` : ''}
         
         <div style="background: rgba(0,0,0,0.3); border-radius: 0 0 16px 16px; padding: 12px 15px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; min-width: 0; gap: 10px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05);">
-           <div style="font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; margin-right: auto;">Дата: ${job.date}</div>
+           <div style="font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; margin-right: auto;">Дата: ${job.date}</div>
            <div style="font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #00b8ff, #0055ff); padding: 8px 14px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 184, 255, 0.4); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; flex-shrink: 1; word-wrap: break-word;" onclick="window.open('${job.url}', '${targetAttr}'); event.stopPropagation();">${btnText}</div>
         </div>
       </div>
@@ -1538,11 +1584,7 @@ function renderJobs(jobs, isDemo = false) {
       vipJobs.forEach(job => { html += createJobCardHtml(job); });
       html += '</div>';
   }
-
-  if (vipJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) {
-      html += '<div class="section-divider"></div>';
-  }
-
+  if (vipJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
   if (internetJobs.length > 0) {
       html += `
       <div style="margin-bottom: 10px;">
@@ -1550,32 +1592,67 @@ function renderJobs(jobs, isDemo = false) {
               <span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span>
               <span class="arr" style="font-size:16px;">▾</span>
           </button>
-          <div id="workua-drawer" class="workua-drawer">
-              <div class="jobs-carousel">
-      `;
+          <div id="workua-drawer" class="workua-drawer"><div class="jobs-carousel">`;
       internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); });
-      html += `
-              </div>
-          </div>
-      </div>
-      `;
+      html += `</div></div></div>`;
   }
-
-  if (internetJobs.length > 0 && regularJobs.length > 0) {
-      html += '<div class="section-divider"></div>';
-  }
-
+  if (internetJobs.length > 0 && regularJobs.length > 0) { html += '<div class="section-divider"></div>'; }
   if (regularJobs.length > 0) {
       html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">👥 Від місцевих жителів</div>';
       html += '<div class="jobs-grid">';
       shuffleArray(regularJobs).forEach(job => { html += createJobCardHtml(job); });
       html += '</div>';
   }
-
   container.innerHTML = html;
 }
 
-// Логіка для радіо
+async function loadJobsData() {
+  const container = document.getElementById('jobs-list-content');
+  let allJobs = [];
+
+  try {
+    const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 60);
+    if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); }
+  } catch(e) {}
+
+  const SHEET_GID = '1809375718'; 
+  const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+  
+  try {
+    const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 5);
+    Papa.parse(csvText, {
+      header: true, skipEmptyLines: true,
+      complete: function(results) {
+        const userJobs = results.data.filter(row => {
+          const keys = Object.keys(row);
+          let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]];
+          return status && String(status).trim().toLowerCase() === 'одобрено';
+        }).map(row => {
+          const keys = Object.keys(row);
+          const phone = row['Телефон'] || row[keys[6]] || '';
+          const gender = row['Стать'] || row['gender'] || row[keys[7]] || '';
+          const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || '';
+          const vipStatus = row['VIP'] || row[keys[9]] || '';
+          const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
+
+          return {
+            title: row['Посада'] || row[keys[2]] || 'Без назви',
+            salary: row['Зарплата'] || row[keys[3]] || '-',
+            company: row['Компанія'] || row[keys[4]] || 'Не вказано',
+            description: row['Опис'] || row[keys[5]] || '',
+            date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно',
+            phone: phone, gender: gender, employment: employment,
+            url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#',
+            isVip: isVip, source: 'User'
+          };
+        });
+        allJobs = allJobs.concat(userJobs);
+        renderJobs(allJobs);
+      }
+    });
+  } catch (e) { renderJobs(allJobs); }
+}
+
 window.toggleRadio = function() {
     const audio = document.getElementById('radio-audio');
     const icon = document.getElementById('radio-icon');
@@ -1601,7 +1678,6 @@ window.toggleRadio = function() {
                 status.innerText = 'ПОМИЛКА';
                 status.style.color = '#ff4d4d';
                 eq.classList.remove('playing');
-                console.error("Помилка відтворення радіо:", error);
             });
         }
     } else {
@@ -1638,14 +1714,13 @@ const initApp = () => {
       loadJobsData();
       loadPhonebookData();
       loadGalleryData();
+      loadVolunteersData();
   }, 600);
-
-  checkGuideOnLoad();
 
   setInterval(() => { 
       loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); 
       loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); 
-      loadBlaBlaCarData(); loadJobsData(); 
+      loadBlaBlaCarData(); loadJobsData(); loadVolunteersData();
       loadExchangeRates();
   }, 60000);
 
