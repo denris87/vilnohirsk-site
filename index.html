@@ -491,6 +491,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
+<!-- ЩОДЕННА МОДАЛКА ЗСУ -->
+<div class="custom-modal-overlay" id="daily-zsu-modal" onclick="closeModalForm(event, 'daily-zsu-modal')" style="z-index: 100005; background: rgba(0,0,0,0.85);">
+  <div class="custom-modal-box" onclick="event.stopPropagation()" style="background: linear-gradient(145deg, #1a2a42, #0d1b2a); border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(56,189,248,0.2);">
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'daily-zsu-modal')">&times;</div>
+    <div id="daily-zsu-content">
+      <!-- Контент завантажиться автоматично -->
+    </div>
+  </div>
+</div>
+
 <div id="main-app-content" style="display: flex; width: 100%; justify-content: center;">
   <div class="wrapper">
   <div class="container">
@@ -1741,6 +1751,63 @@ window.toggleRadio = function() {
     }
 };
 
+window.showDailyVolunteerAlert = async function() {
+    const today = new Date().toDateString();
+    const lastSeen = localStorage.getItem('last_zsu_alert_date');
+
+    if (lastSeen === today) return;
+
+    try {
+        const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
+        const data = await fetchCachedJson(API_URL, 'volunteers_api', 5);
+        const activeItems = (data || []).filter(item => item.active !== false);
+
+        if (activeItems && activeItems.length > 0) {
+            const item = activeItems[0];
+            const title = item.title || 'ЗБІР НА ЗСУ';
+            const desc = item.description ? String(item.description).replace(/\n/g, '<br>') : '';
+            const jarUrl = item.jar_url || '';
+            const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0;
+            const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
+
+            let progressHtml = '';
+            if (goal > 0) {
+                const percent = Math.min(Math.round((collected / goal) * 100), 100);
+                progressHtml = `
+                <div style="width: 100%; margin-top: 15px; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+                        <span style="color: #00ff9c;">Зібрано: ${collected.toLocaleString('uk-UA')} ₴</span>
+                        <span style="color: rgba(255,255,255,0.5);">Ціль: ${goal.toLocaleString('uk-UA')} ₴</span>
+                    </div>
+                    <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);">
+                        <div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, #38bdf8, #ffcc00); border-radius: 10px; transition: width 1s ease-in-out;"></div>
+                    </div>
+                </div>`;
+            }
+
+            let btnHtml = '';
+            if (jarUrl) {
+                btnHtml = `<a href="${jarUrl}" target="_blank" style="display: block; width: 100%; background: #fff; color: #000; text-align: center; padding: 14px; border-radius: 14px; font-weight: 900; text-decoration: none; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 15px rgba(255,255,255,0.2);">💸 Підтримати банку</a>`;
+            }
+
+            const modalContent = document.getElementById('daily-zsu-content');
+            modalContent.innerHTML = `
+                <div style="text-align: center; font-size: 40px; margin-bottom: 5px;">🇺🇦</div>
+                <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 800; text-align: center; color: #fff; line-height: 1.3;">${title}</h3>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: left; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${desc}</div>
+                ${progressHtml}
+                ${btnHtml}
+                <button onclick="closeModalForm(null, 'daily-zsu-modal')" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); padding: 12px; border-radius: 14px; font-weight: 700; margin-top: 10px; font-size: 14px; cursor: pointer; transition: 0.2s;">Повернутися до сайту</button>
+            `;
+
+            document.getElementById('daily-zsu-modal').classList.add('active');
+            localStorage.setItem('last_zsu_alert_date', today);
+        }
+    } catch (e) {
+        console.error("Failed to load daily ZSU alert", e);
+    }
+};
+
 const initApp = () => {
   updateDateTime(); 
   setInterval(updateDateTime, 1000); 
@@ -1765,6 +1832,9 @@ const initApp = () => {
       loadPhonebookData();
       loadGalleryData();
       loadVolunteersData();
+      
+      // Виклик щоденної модалки ЗСУ через 1.5 секунди після старту
+      setTimeout(showDailyVolunteerAlert, 1500);
   }, 600);
 
   setInterval(() => { 
