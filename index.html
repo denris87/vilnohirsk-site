@@ -786,7 +786,7 @@ window.initNotifSettings = function() {
         <div class="notif-row">
             <span style="font-size:14px; font-weight:600; color:#fff;">${c.name}</span>
             <label class="switch">
-              <input type="checkbox" onchange="toggleNotifPref('${c.id}', this.checked)" ${isChecked}>
+              <input type="checkbox" id="toggle-${c.id}" onchange="toggleNotifPref('${c.id}', this.checked)" ${isChecked}>
               <span class="slider"></span>
             </label>
         </div>`;
@@ -795,6 +795,18 @@ window.initNotifSettings = function() {
 };
 
 window.toggleNotifPref = function(id, isChecked) {
+    // 🍏 Перевірка для iPhone (iOS не підтримує пуші в браузері, тільки з робочого столу PWA)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+    if (isChecked && isIOS && !isStandalone) {
+        alert("🍏 Щоб отримувати сповіщення на iPhone, спочатку додайте цей сайт на екран Домой (через кнопку 'Поділитися' ➔ 'На екран Домой'), а потім відкрийте його звідти!");
+        // Повертаємо тумблер назад
+        const toggle = document.getElementById('toggle-' + id);
+        if(toggle) toggle.checked = false;
+        return; 
+    }
+
     let prefs = JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY) || '{}');
     prefs[id] = isChecked;
     localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(prefs));
