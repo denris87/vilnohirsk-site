@@ -793,7 +793,8 @@ window.initNotifSettings = function() {
     let prefs = JSON.parse(localStorage.getItem('notif_prefs'));
     if (!prefs) {
         prefs = {};
-        window.notifCategories.forEach(c => prefs[c.id] = true);
+        // За замовчуванням всі сповіщення ВИМКНЕНІ (людина сама має їх включити)
+        window.notifCategories.forEach(c => prefs[c.id] = false);
         localStorage.setItem('notif_prefs', JSON.stringify(prefs));
     }
     let html = '';
@@ -974,11 +975,22 @@ function checkNotification(key, dataArray) {
   const dot = document.getElementById('dot-' + key);
   
   let prefs = JSON.parse(localStorage.getItem('notif_prefs') || '{}');
-  const isSubscribed = prefs.hasOwnProperty(key) ? prefs[key] : true;
+  // Якщо уподобання немає, за замовчуванням сповіщення вимкнене (false)
+  const isSubscribed = prefs.hasOwnProperty(key) ? prefs[key] : false;
 
   if (signature !== seenSignature) {
       if (dot && isSubscribed) {
           dot.style.display = 'block';
+          
+          if (seenSignature && "Notification" in window && Notification.permission === "granted" && document.hidden) {
+              const catObj = window.notifCategories.find(c => c.id === key);
+              if (catObj) {
+                  new Notification("Smart Вільногірськ", { 
+                      body: `Оновлення у вкладці: ${catObj.name}`,
+                      icon: "https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true"
+                  });
+              }
+          }
       }
   }
 }
