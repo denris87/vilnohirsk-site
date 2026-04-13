@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-TBDJ9B94');</script>
-<!-- End Google Tag Manager -->
-
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js"></script>
 <script>
@@ -28,7 +24,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       firebase.initializeApp(firebaseConfig);
       messaging = firebase.messaging();
       
-      // Ловимо повідомлення, коли сайт ВІДКРИТИЙ на екрані
       messaging.onMessage((payload) => {
           console.log('Отримано повідомлення (сайт відкритий): ', payload);
           alert(`🔔 ${payload.notification.title}\n${payload.notification.body}`);
@@ -42,9 +37,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
       try {
           const permission = await Notification.requestPermission();
           if (permission === 'granted') {
-              // ⚠️ ВАЖЛИВО: Вставте ваш VAPID Key (Web Push сертифікат) з Firebase
               const token = await messaging.getToken({ vapidKey: "BHmSY-eFLxPx6OkZjEwkHEDXhYriO4G6d-Pl37o-p6qQaCJT88VZlmQiDPOoBTgEn9aRmZHsmw5Y5qhmsQ8y2Ls" });
-              console.log("✅ Успішно підписано на Push-сповіщення! Токен:", token);
+              console.log("✅ Успішно підписано на Push-сповіщення!");
           }
       } catch (error) {
           console.error('Помилка підписки на Push:', error);
@@ -60,10 +54,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta property="og:url" content="https://vilnohirsk.online">
 <meta property="og:type" content="website">
 
-<!-- Базовий PWA Manifest -->
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU21hcnQg0JLRltC70YzQvdC+0LPRltGA0YHRjNC6Iiwic2hvcnRfbmFtZSI6ItCS0ZbQu9GM0L3QvtCz0ZbRgNGB0YzQuiIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMWUzYzcyIiwidGhlbWVfY29sb3IiOiIjMWUzYzcyIn0=">
 
-<!-- Попереднє підключення до серверів -->
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://docs.google.com">
 <link rel="preconnect" href="https://api.open-meteo.com">
@@ -74,7 +66,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <title>Smart Вільногірськ</title>
 
-<!-- PapaParse -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <style>
@@ -360,11 +351,8 @@ input:checked + .slider:before { transform: translateX(18px); }
 </style>
 </head>
 <body>
-<!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBDJ9B94"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-
 <div class="image-modal" id="image-modal" onclick="closeImageModal(event)">
   <div class="image-modal-close" onclick="closeImageModal(event)">&times;</div>
   <div class="image-modal-slider" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)">
@@ -373,7 +361,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div id="modal-image-counter"></div>
 </div>
 
-<!-- ЦЕНТР СПОВІЩЕНЬ МОДАЛКА -->
 <div class="custom-modal-overlay" id="notif-modal" onclick="closeModalForm(event, 'notif-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'notif-modal')">&times;</div>
@@ -385,7 +372,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- БЛАБЛАКАР МОДАЛКА -->
 <div class="custom-modal-overlay" id="blabla-modal" onclick="closeModalForm(event, 'blabla-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'blabla-modal')">&times;</div>
@@ -426,7 +412,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- БАРАХОЛКА МОДАЛКА -->
 <div class="custom-modal-overlay" id="flea-modal" onclick="closeModalForm(event, 'flea-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'flea-modal')">&times;</div>
@@ -459,7 +444,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- ЗНАХІДКИ МОДАЛКА -->
 <div class="custom-modal-overlay" id="lost-modal" onclick="closeModalForm(event, 'lost-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'lost-modal')">&times;</div>
@@ -483,7 +467,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- ВАКАНСІЇ МОДАЛКА -->
 <div class="custom-modal-overlay" id="job-modal" onclick="closeModalForm(event, 'job-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'job-modal')">&times;</div>
@@ -517,7 +500,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- НЕРУХОМІСТЬ МОДАЛКА -->
 <div class="custom-modal-overlay" id="estate-modal" onclick="closeModalForm(event, 'estate-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'estate-modal')">&times;</div>
@@ -557,13 +539,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- ЩОДЕННА МОДАЛКА ЗСУ -->
 <div class="custom-modal-overlay" id="daily-zsu-modal" onclick="closeModalForm(event, 'daily-zsu-modal')" style="z-index: 100005; background: rgba(0,0,0,0.85);">
   <div class="custom-modal-box" onclick="event.stopPropagation()" style="background: linear-gradient(145deg, #1a2a42, #0d1b2a); border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(56,189,248,0.2);">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'daily-zsu-modal')">&times;</div>
     <div id="daily-zsu-content">
-      <!-- Контент завантажиться автоматично -->
-    </div>
+      </div>
   </div>
 </div>
 
@@ -593,7 +573,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div id="alert-events" class="content-section"><div class="empty-msg" id="alert-events-content">Завантаження...</div></div>
             <div id="alert-gallery" class="content-section"><div class="empty-msg" id="gallery-list-content">Завантаження фото...</div></div>
             <div id="alert-volunteers" class="content-section">
-              <div style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8);">Тут публікуються перевірені збори від місцевих волонтерів. Підтримуйте ЗСУ! 🇺🇦</div>
+              <div style="padding: 10px; text-align: center; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8);">Тут публіковуються перевірені збори від місцевих волонтерів. Підтримуйте ЗСУ! 🇺🇦</div>
               <div id="volunteers-list-content" class="empty-msg">Завантаження зборів...</div>
             </div>
         </div>
@@ -741,7 +721,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
-    <!-- БЛОК ВІДГУКІВ БЕТА-ТЕСТУ ТА СПОВІЩЕНЬ -->
     <div style="display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 15px; z-index: 50;">
       <div class="liquid-glass" style="flex: 1; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="document.getElementById('beta-drawer').classList.toggle('open')">
         <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">
@@ -789,13 +768,16 @@ window.notifCategories = [
     { id: 'lost', name: '🔍 Знахідки' }
 ];
 
+// КЛЮЧ ДЛЯ ПРІОРІТЕТІВ (v4 щоб скинути всім у кого був true)
+const NOTIF_PREFS_KEY = 'notif_prefs_v4';
+
 window.initNotifSettings = function() {
-    let prefs = JSON.parse(localStorage.getItem('notif_prefs'));
+    let prefs = JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY));
     if (!prefs) {
         prefs = {};
-        // За замовчуванням всі сповіщення ВИМКНЕНІ (людина сама має їх включити)
+        // ЯВНО СТАВИМО FALSE ДЛЯ ВСЬОГО
         window.notifCategories.forEach(c => prefs[c.id] = false);
-        localStorage.setItem('notif_prefs', JSON.stringify(prefs));
+        localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(prefs));
     }
     let html = '';
     window.notifCategories.forEach(c => {
@@ -813,9 +795,9 @@ window.initNotifSettings = function() {
 };
 
 window.toggleNotifPref = function(id, isChecked) {
-    let prefs = JSON.parse(localStorage.getItem('notif_prefs') || '{}');
+    let prefs = JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY) || '{}');
     prefs[id] = isChecked;
-    localStorage.setItem('notif_prefs', JSON.stringify(prefs));
+    localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(prefs));
     
     if (isChecked) {
         if (window.requestFirebasePermission) {
@@ -831,6 +813,36 @@ window.toggleNotifPref = function(id, isChecked) {
     }
 };
 
+function checkNotification(key, dataArray) {
+  if (!dataArray || dataArray.length === 0) return;
+  const signature = String(dataArray.length); 
+  window.currentDataSignature[key] = signature;
+  const seenSignature = localStorage.getItem('seen_' + key); 
+  const dot = document.getElementById('dot-' + key);
+  
+  let prefs = JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY) || '{}');
+  // Якщо запису в налаштуваннях немає — вважаємо FALSE (вимкнено)
+  const isSubscribed = prefs[key] === true;
+
+  if (signature !== seenSignature) {
+      if (dot && isSubscribed) {
+          dot.style.display = 'block';
+          
+          if (seenSignature && "Notification" in window && Notification.permission === "granted" && document.hidden) {
+              const catObj = window.notifCategories.find(c => c.id === key);
+              if (catObj) {
+                  new Notification("Smart Вільногірськ", { 
+                      body: `Оновлення у вкладці: ${catObj.name}`,
+                      icon: "https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true"
+                  });
+              }
+          }
+      }
+  }
+}
+
+// ... решта коду (допоміжні функції, loadData, ініціалізація) без змін
+// ... (все те саме, що було раніше)
 window.fallbackCopyText = function(text, successCb) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -918,7 +930,6 @@ window.validateCaptcha = function(formId) {
   } return true;
 };
 
-// --- ЄДИНА ФУНКЦІЯ ДЛЯ УСІХ ФОРМ ---
 window.submitGenericForm = async function(event, formId, modalId, btnId, type, maxPhotos) {
   event.preventDefault(); if (!validateCaptcha(formId)) return;
   const btn = document.getElementById(btnId); const origText = btn.innerText;
@@ -966,34 +977,6 @@ const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
         };
     }; reader.onerror = error => reject(error);
 });
-
-function checkNotification(key, dataArray) {
-  if (!dataArray || dataArray.length === 0) return;
-  const signature = String(dataArray.length); 
-  window.currentDataSignature[key] = signature;
-  const seenSignature = localStorage.getItem('seen_' + key); 
-  const dot = document.getElementById('dot-' + key);
-  
-  let prefs = JSON.parse(localStorage.getItem('notif_prefs') || '{}');
-  // Якщо уподобання немає, за замовчуванням сповіщення вимкнене (false)
-  const isSubscribed = prefs.hasOwnProperty(key) ? prefs[key] : false;
-
-  if (signature !== seenSignature) {
-      if (dot && isSubscribed) {
-          dot.style.display = 'block';
-          
-          if (seenSignature && "Notification" in window && Notification.permission === "granted" && document.hidden) {
-              const catObj = window.notifCategories.find(c => c.id === key);
-              if (catObj) {
-                  new Notification("Smart Вільногірськ", { 
-                      body: `Оновлення у вкладці: ${catObj.name}`,
-                      icon: "https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true"
-                  });
-              }
-          }
-      }
-  }
-}
 
 function clearNotification(key) {
   const dot = document.getElementById('dot-' + key); if (dot) dot.style.display = 'none';
@@ -1151,7 +1134,6 @@ window.recalcDropdownHeight = function(imgEl) {
   if (dropdown && dropdown.classList.contains('open') && grid) { grid.style.paddingBottom = (dropdown.scrollHeight + 15) + 'px'; }
 };
 
-// --- ЄДИНА ФУНКЦІЯ ДЛЯ УСІХ ВКЛАДОК ---
 window.switchAppTab = function(tabId, btn, group) {
   closeAllShopDropdowns();
   const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs'};
@@ -1984,7 +1966,6 @@ const initApp = () => {
       loadGalleryData();
       loadVolunteersData();
       
-      // Виклик щоденної модалки ЗСУ через 1.5 секунди після старту
       setTimeout(showDailyVolunteerAlert, 1500);
   }, 600);
 
