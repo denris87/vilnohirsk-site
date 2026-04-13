@@ -8,6 +8,50 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-TBDJ9B94');</script>
 <!-- End Google Tag Manager -->
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js"></script>
+<script>
+  // Конфігурація Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyAG8UbnsZ2DphoF0H7w088vE7pNHMkJs80",
+    authDomain: "smart-vilnohirsk.firebaseapp.com",
+    projectId: "smart-vilnohirsk",
+    storageBucket: "smart-vilnohirsk.firebasestorage.app",
+    messagingSenderId: "676865197841",
+    appId: "1:676865197841:web:5d53065b2bb211bf77eeb0"
+  };
+  
+  let messaging;
+  try {
+      firebase.initializeApp(firebaseConfig);
+      messaging = firebase.messaging();
+      
+      // Ловимо повідомлення, коли сайт ВІДКРИТИЙ на екрані
+      messaging.onMessage((payload) => {
+          console.log('Отримано повідомлення (сайт відкритий): ', payload);
+          alert(`🔔 ${payload.notification.title}\n${payload.notification.body}`);
+      });
+  } catch (e) {
+      console.log("Firebase ще не налаштовано", e);
+  }
+
+  window.requestFirebasePermission = async function() {
+      if (!messaging) return;
+      try {
+          const permission = await Notification.requestPermission();
+          if (permission === 'granted') {
+              // ⚠️ ВАЖЛИВО: Вставте ваш VAPID Key (Web Push сертифікат) з Firebase
+              const token = await messaging.getToken({ vapidKey: "BHmSY-eFLxPx6OkZjEwkHEDXhYriO4G6d-Pl37o-p6qQaCJT88VZlmQiDPOoBTgEn9aRmZHsmw5Y5qhmsQ8y2Ls" });
+              console.log("✅ Успішно підписано на Push-сповіщення! Токен:", token);
+          }
+      } catch (error) {
+          console.error('Помилка підписки на Push:', error);
+      }
+  };
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta property="og:title" content="Smart Вільногірськ — Твій міський помічник">
@@ -303,6 +347,16 @@ input[type="file"].form-input{padding:8px;font-size:12px}
 .pb-phone-btn { background: transparent; color: #00ff9c; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; border: 1px solid rgba(0, 255, 156, 0.5); transition: background 0.2s, border-color 0.2s; text-align: center; white-space: nowrap; letter-spacing: 0.5px; }
 .pb-phone-btn:hover { border-color: #00ff9c; background: rgba(0, 255, 156, 0.05); }
 .pb-phone-btn:active { background: rgba(0, 255, 156, 0.15); }
+
+/* Стилі для Центру Сповіщень */
+.switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.2); transition: .4s; border-radius: 24px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #00ff9c; box-shadow: 0 0 10px rgba(0,255,156,0.5); }
+input:checked + .slider:before { transform: translateX(18px); }
+.notif-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.notif-row:last-child { border-bottom: none; }
 </style>
 </head>
 <body>
@@ -317,6 +371,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="image-modal-track" id="modal-image-track"></div>
   </div>
   <div id="modal-image-counter"></div>
+</div>
+
+<!-- ЦЕНТР СПОВІЩЕНЬ МОДАЛКА -->
+<div class="custom-modal-overlay" id="notif-modal" onclick="closeModalForm(event, 'notif-modal')">
+  <div class="custom-modal-box" onclick="event.stopPropagation()">
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'notif-modal')">&times;</div>
+    <h3 class="form-title" style="color: #fff; margin-bottom: 10px;">🔔 Сповіщення</h3>
+    <p style="font-size:11px; color:rgba(255,255,255,0.6); text-align:center; margin-bottom:15px; line-height:1.4;">Оберіть, про що ви хочете дізнаватися першими. Ми покажемо червону крапку на вкладці або надішлемо повідомлення.</p>
+    <form id="custom-notif-form">
+       <div id="notif-settings-list" style="max-height: 50vh; overflow-y: auto; padding-right: 10px;"></div>
+    </form>
+  </div>
 </div>
 
 <!-- БЛАБЛАКАР МОДАЛКА -->
@@ -675,7 +741,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
-    <!-- БЛОК ВІДГУКІВ БЕТА-ТЕСТУ -->
+    <!-- БЛОК ВІДГУКІВ БЕТА-ТЕСТУ ТА СПОВІЩЕНЬ -->
     <div style="display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 15px; z-index: 50;">
       <div class="liquid-glass" style="flex: 1; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="document.getElementById('beta-drawer').classList.toggle('open')">
         <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">
@@ -685,6 +751,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <textarea class="form-input" id="beta-feedback-text" rows="2" placeholder="Що можна покращити? Напишіть нам..." style="margin-bottom: 8px; font-size: 12px; padding: 10px;"></textarea>
           <button class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); margin-top: 0; padding: 10px; font-size: 13px;" onclick="submitBetaFeedback(event)">Відправити</button>
         </div>
+      </div>
+      <div class="liquid-glass" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.2); flex-shrink: 0;" onclick="openModalForm('custom-notif-form', 'notif-modal'); if(window.initNotifSettings) window.initNotifSettings();">
+        <span style="font-size: 22px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));">🔔</span>
       </div>
     </div>
 
@@ -706,6 +775,60 @@ const ESTATE_CSV_URL = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094
 window.currentDataSignature = {};
 window.allFleaMarketItems = []; window.fleaRenderLimit = 20; window.currentFleaSort = 'new';
 window.allEstateItems = []; window.estateRenderLimit = 20; window.currentEstateSort = 'new';
+
+window.notifCategories = [
+    { id: 'news', name: '📰 Новини' },
+    { id: 'communal', name: '💡 Комунальний інформер' },
+    { id: 'events', name: '🎭 Афіші' },
+    { id: 'blablacar', name: '🚗 BlaBlaCar' },
+    { id: 'trains', name: '🚆 Електрички' },
+    { id: 'estate', name: '🏠 Нерухомість' },
+    { id: 'shopping', name: '🛍 Шопінг' },
+    { id: 'flea', name: '📦 Барахолка' },
+    { id: 'jobs', name: '💼 Вакансії' },
+    { id: 'lost', name: '🔍 Знахідки' }
+];
+
+window.initNotifSettings = function() {
+    let prefs = JSON.parse(localStorage.getItem('notif_prefs'));
+    if (!prefs) {
+        prefs = {};
+        window.notifCategories.forEach(c => prefs[c.id] = true);
+        localStorage.setItem('notif_prefs', JSON.stringify(prefs));
+    }
+    let html = '';
+    window.notifCategories.forEach(c => {
+        const isChecked = prefs[c.id] ? 'checked' : '';
+        html += `
+        <div class="notif-row">
+            <span style="font-size:14px; font-weight:600; color:#fff;">${c.name}</span>
+            <label class="switch">
+              <input type="checkbox" onchange="toggleNotifPref('${c.id}', this.checked)" ${isChecked}>
+              <span class="slider"></span>
+            </label>
+        </div>`;
+    });
+    document.getElementById('notif-settings-list').innerHTML = html;
+};
+
+window.toggleNotifPref = function(id, isChecked) {
+    let prefs = JSON.parse(localStorage.getItem('notif_prefs') || '{}');
+    prefs[id] = isChecked;
+    localStorage.setItem('notif_prefs', JSON.stringify(prefs));
+    
+    if (isChecked) {
+        if (window.requestFirebasePermission) {
+            window.requestFirebasePermission();
+        } else if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+    }
+
+    if (!isChecked) {
+       const dot = document.getElementById('dot-' + id);
+       if (dot) dot.style.display = 'none';
+    }
+};
 
 window.fallbackCopyText = function(text, successCb) {
     const textArea = document.createElement("textarea");
@@ -819,7 +942,12 @@ window.submitGenericForm = async function(event, formId, modalId, btnId, type, m
   finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
 };
 
-window.openModalForm = function(formId, modalId) { document.getElementById(formId).reset(); setupCaptcha(formId); document.getElementById(modalId).classList.add('active'); };
+window.openModalForm = function(formId, modalId) { 
+    const form = document.getElementById(formId);
+    if(form) form.reset(); 
+    setupCaptcha(formId); 
+    document.getElementById(modalId).classList.add('active'); 
+};
 window.closeModalForm = function(event, modalId) { if (!event || event.target.classList.contains('close-modal-btn') || event.target.id === modalId) document.getElementById(modalId).classList.remove('active'); };
 
 const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
@@ -840,10 +968,21 @@ const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
 
 function checkNotification(key, dataArray) {
   if (!dataArray || dataArray.length === 0) return;
-  const signature = String(dataArray.length); window.currentDataSignature[key] = signature;
-  const seenSignature = localStorage.getItem('seen_' + key); const dot = document.getElementById('dot-' + key);
-  if (dot && signature !== seenSignature) { dot.style.display = 'block'; }
+  const signature = String(dataArray.length); 
+  window.currentDataSignature[key] = signature;
+  const seenSignature = localStorage.getItem('seen_' + key); 
+  const dot = document.getElementById('dot-' + key);
+  
+  let prefs = JSON.parse(localStorage.getItem('notif_prefs') || '{}');
+  const isSubscribed = prefs.hasOwnProperty(key) ? prefs[key] : true;
+
+  if (signature !== seenSignature) {
+      if (dot && isSubscribed) {
+          dot.style.display = 'block';
+      }
+  }
 }
+
 function clearNotification(key) {
   const dot = document.getElementById('dot-' + key); if (dot) dot.style.display = 'none';
   if (window.currentDataSignature[key]) { localStorage.setItem('seen_' + key, window.currentDataSignature[key]); }
