@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-TBDJ9B94');</script>
+<!-- End Google Tag Manager -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta property="og:title" content="Smart Вільногірськ — Твій міський помічник">
@@ -299,6 +306,10 @@ input[type="file"].form-input{padding:8px;font-size:12px}
 </style>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBDJ9B94"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
 
 <div class="image-modal" id="image-modal" onclick="closeImageModal(event)">
   <div class="image-modal-close" onclick="closeImageModal(event)">&times;</div>
@@ -1482,7 +1493,6 @@ async function loadVolunteersData() {
         const desc = item.description ? item.description.replace(/\n/g, '<br>') : 'Підтримайте наших захисників!';
         const jarUrl = item.jar_url || '';
         const cardNumber = item.card_number || '';
-        const safeShareText = encodeURIComponent(`${title}\n${item.description || ''}\nДолучитися: ${jarUrl}`);
         const id = Math.random().toString(36).substr(2, 5);
 
         const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0;
