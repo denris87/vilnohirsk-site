@@ -1493,6 +1493,7 @@ async function loadVolunteersData() {
         const desc = item.description ? item.description.replace(/\n/g, '<br>') : 'Підтримайте наших захисників!';
         const jarUrl = item.jar_url || '';
         const cardNumber = item.card_number || '';
+        const safeShareText = encodeURIComponent(`${title}\n${item.description || ''}\nДолучитися: ${jarUrl}`);
         const id = Math.random().toString(36).substr(2, 5);
 
         const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0;
