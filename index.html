@@ -1506,30 +1506,26 @@ async function loadVolunteersData() {
         if (jarUrl) {
             const jarId = 'jar-' + id;
             reqsHtml += `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.25); padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 8px;">
-                <div style="display: flex; align-items: center; gap: 10px; min-width: 0; overflow: hidden;">
-                    <span style="font-size: 20px; flex-shrink: 0;">🏦</span>
-                    <div style="display: flex; flex-direction: column; min-width: 0; overflow: hidden;">
-                        <span style="font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap;">Посилання на Банку</span>
-                        <span style="font-size: 12px; color: #fff; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="${jarId}">${jarUrl}</span>
-                    </div>
+            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                    <span style="font-size: 16px;">🏦</span>
+                    <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Посилання на Банку</span>
                 </div>
-                <button onclick="copyToClipboardBtn('${jarUrl}', this)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; cursor: pointer; padding: 6px 10px; transition: 0.2s; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-left: 10px; white-space: nowrap;">📋 Копіювати</button>
+                <div style="font-size: 13px; color: #fff; font-weight: 600; word-break: break-all; margin-bottom: 12px; line-height: 1.4;" id="${jarId}">${jarUrl}</div>
+                <button onclick="copyToClipboardBtn('${jarUrl}', this)" style="width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">📋 Копіювати посилання</button>
             </div>`;
         }
         
         if (cardNumber) {
             const cardId = 'card-' + id;
             reqsHtml += `
-            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.25); padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                <div style="display: flex; align-items: center; gap: 10px; min-width: 0; overflow: hidden;">
-                    <span style="font-size: 20px; flex-shrink: 0;">💳</span>
-                    <div style="display: flex; flex-direction: column; min-width: 0; overflow: hidden;">
-                        <span style="font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap;">Номер картки</span>
-                        <span style="font-size: clamp(11px, 3.5vw, 14px); font-weight: 800; font-family: monospace; letter-spacing: 0.5px; color: #fff; white-space: nowrap;" id="${cardId}">${cardNumber}</span>
-                    </div>
+            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
+                    <span style="font-size: 16px;">💳</span>
+                    <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Номер картки</span>
                 </div>
-                <button onclick="copyToClipboardBtn('${cardNumber.replace(/\s/g, '')}', this)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; cursor: pointer; padding: 6px 10px; transition: 0.2s; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-left: 10px; white-space: nowrap;">📋 Копіювати</button>
+                <div style="font-size: 18px; font-weight: 800; font-family: monospace; letter-spacing: 1px; color: #fff; margin-bottom: 12px; text-align: center;" id="${cardId}">${cardNumber}</div>
+                <button onclick="copyToClipboardBtn('${cardNumber.replace(/\s/g, '')}', this)" style="width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">📋 Копіювати номер</button>
             </div>`;
         }
 
