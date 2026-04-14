@@ -1,50 +1,13 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
+<!-- Google Tag Manager -->
 <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-TBDJ9B94');</script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js"></script>
-<script>
-  // Конфігурація Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyAG8UbnsZ2DphoF0H7w088vE7pNHMkJs80",
-    authDomain: "smart-vilnohirsk.firebaseapp.com",
-    projectId: "smart-vilnohirsk",
-    storageBucket: "smart-vilnohirsk.firebasestorage.app",
-    messagingSenderId: "676865197841",
-    appId: "1:676865197841:web:5d53065b2bb211bf77eeb0"
-  };
-  
-  let messaging;
-  try {
-      firebase.initializeApp(firebaseConfig);
-      messaging = firebase.messaging();
-      
-      messaging.onMessage((payload) => {
-          console.log('Отримано повідомлення (сайт відкритий): ', payload);
-          alert(`🔔 ${payload.notification.title}\n${payload.notification.body}`);
-      });
-  } catch (e) {
-      console.log("Firebase ще не налаштовано", e);
-  }
-
-  window.requestFirebasePermission = async function() {
-      if (!messaging) return;
-      try {
-          const permission = await Notification.requestPermission();
-          if (permission === 'granted') {
-              const token = await messaging.getToken({ vapidKey: "BHmSY-eFLxPx6OkZjEwkHEDXhYriO4G6d-Pl37o-p6qQaCJT88VZlmQiDPOoBTgEn9aRmZHsmw5Y5qhmsQ8y2Ls" });
-              console.log("✅ Успішно підписано на Push-сповіщення!");
-          }
-      } catch (error) {
-          console.error('Помилка підписки на Push:', error);
-      }
-  };
-</script>
+<!-- End Google Tag Manager -->
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -54,8 +17,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta property="og:url" content="https://vilnohirsk.online">
 <meta property="og:type" content="website">
 
+<!-- Базовий PWA Manifest -->
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU21hcnQg0JLRltC70YzQvdC+0LPRltGA0YHRjNC6Iiwic2hvcnRfbmFtZSI6ItCS0ZbQu9GM0L3QvtCz0ZbRgNGB0YzQuiIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMWUzYzcyIiwidGhlbWVfY29sb3IiOiIjMWUzYzcyIn0=">
 
+<!-- Попереднє підключення до серверів -->
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://docs.google.com">
 <link rel="preconnect" href="https://api.open-meteo.com">
@@ -66,6 +31,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <title>Smart Вільногірськ</title>
 
+<!-- PapaParse -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <style>
@@ -102,8 +68,24 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .tab-alert.volunteers.active{background:rgba(56,189,248,0.3);box-shadow:0 0 15px rgba(56,189,248,0.6);color:#fff}
 @keyframes neonPulse{0%{box-shadow:0 0 5px rgba(255,51,102,0.1)}100%{box-shadow:0 0 12px rgba(255,51,102,0.5)}}
 
-.notification-dot, .train-alert-dot{position:absolute;top:-4px;right:-4px;background:#ff3b3b;border-radius:50%;border:1px solid rgba(0,0,0,0.5);animation:pulseAlert 1.5s infinite;z-index:10}
-.notification-dot{width:10px;height:10px;display:none;} .train-alert-dot{width:8px;height:8px;z-index:5}
+@keyframes pulseAlert {
+  0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.9); }
+  70% { box-shadow: 0 0 0 8px rgba(255, 0, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
+}
+.notification-dot, .train-alert-dot {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ff0000;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  animation: pulseAlert 1.5s infinite;
+  z-index: 10;
+}
+.notification-dot { width: 10px; height: 10px; display: none; }
+.train-alert-dot { width: 8px; height: 8px; z-index: 5; }
+
 .carousel-wrapper{width:100%;position:relative}.carousel-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:15px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding-bottom:5px;align-items:center}.carousel-container::-webkit-scrollbar{display:none}
 
 .alert-item{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:15px;flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;max-height:55vh;overflow-y:auto;}
@@ -338,21 +320,14 @@ input[type="file"].form-input{padding:8px;font-size:12px}
 .pb-phone-btn { background: transparent; color: #00ff9c; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; border: 1px solid rgba(0, 255, 156, 0.5); transition: background 0.2s, border-color 0.2s; text-align: center; white-space: nowrap; letter-spacing: 0.5px; }
 .pb-phone-btn:hover { border-color: #00ff9c; background: rgba(0, 255, 156, 0.05); }
 .pb-phone-btn:active { background: rgba(0, 255, 156, 0.15); }
-
-/* Стилі для Центру Сповіщень */
-.switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.2); transition: .4s; border-radius: 24px; }
-.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-input:checked + .slider { background-color: #00ff9c; box-shadow: 0 0 10px rgba(0,255,156,0.5); }
-input:checked + .slider:before { transform: translateX(18px); }
-.notif-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.notif-row:last-child { border-bottom: none; }
 </style>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBDJ9B94"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
 <div class="image-modal" id="image-modal" onclick="closeImageModal(event)">
   <div class="image-modal-close" onclick="closeImageModal(event)">&times;</div>
   <div class="image-modal-slider" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)">
@@ -361,17 +336,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div id="modal-image-counter"></div>
 </div>
 
-<div class="custom-modal-overlay" id="notif-modal" onclick="closeModalForm(event, 'notif-modal')">
-  <div class="custom-modal-box" onclick="event.stopPropagation()">
-    <div class="close-modal-btn" onclick="closeModalForm(null, 'notif-modal')">&times;</div>
-    <h3 class="form-title" style="color: #fff; margin-bottom: 10px;">🔔 Сповіщення</h3>
-    <p style="font-size:11px; color:rgba(255,255,255,0.6); text-align:center; margin-bottom:15px; line-height:1.4;">Оберіть, про що ви хочете дізнаватися першими. Ми покажемо червону крапку на вкладці або надішлемо повідомлення.</p>
-    <form id="custom-notif-form">
-       <div id="notif-settings-list" style="max-height: 50vh; overflow-y: auto; padding-right: 10px;"></div>
-    </form>
-  </div>
-</div>
-
+<!-- БЛАБЛАКАР МОДАЛКА -->
 <div class="custom-modal-overlay" id="blabla-modal" onclick="closeModalForm(event, 'blabla-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'blabla-modal')">&times;</div>
@@ -412,6 +377,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
+<!-- БАРАХОЛКА МОДАЛКА -->
 <div class="custom-modal-overlay" id="flea-modal" onclick="closeModalForm(event, 'flea-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'flea-modal')">&times;</div>
@@ -444,6 +410,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
+<!-- ЗНАХІДКИ МОДАЛКА -->
 <div class="custom-modal-overlay" id="lost-modal" onclick="closeModalForm(event, 'lost-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'lost-modal')">&times;</div>
@@ -467,6 +434,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
+<!-- ВАКАНСІЇ МОДАЛКА -->
 <div class="custom-modal-overlay" id="job-modal" onclick="closeModalForm(event, 'job-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'job-modal')">&times;</div>
@@ -500,6 +468,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
+<!-- НЕРУХОМІСТЬ МОДАЛКА -->
 <div class="custom-modal-overlay" id="estate-modal" onclick="closeModalForm(event, 'estate-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'estate-modal')">&times;</div>
@@ -539,11 +508,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
+<!-- ЩОДЕННА МОДАЛКА ЗСУ -->
 <div class="custom-modal-overlay" id="daily-zsu-modal" onclick="closeModalForm(event, 'daily-zsu-modal')" style="z-index: 100005; background: rgba(0,0,0,0.85);">
   <div class="custom-modal-box" onclick="event.stopPropagation()" style="background: linear-gradient(145deg, #1a2a42, #0d1b2a); border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(56,189,248,0.2);">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'daily-zsu-modal')">&times;</div>
     <div id="daily-zsu-content">
-      </div>
+      <!-- Контент завантажиться автоматично -->
+    </div>
   </div>
 </div>
 
@@ -721,18 +692,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
+    <!-- БЛОК ВІДГУКІВ БЕТА-ТЕСТУ -->
     <div style="display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 15px; z-index: 50;">
       <div class="liquid-glass" style="flex: 1; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="document.getElementById('beta-drawer').classList.toggle('open')">
         <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">
-          👋 Бета-версія. Залиште свої враження чи пропозиції тут <span style="color: var(--time-green); font-size: 14px; vertical-align: middle;">▾</span>
+          👋 Ваші відгуки, ідеї та пропозиції пишіть нам (Зв'язок з адмінами) <span style="color: var(--time-green); font-size: 14px; vertical-align: middle;">▾</span>
         </div>
         <div class="beta-drawer" id="beta-drawer" onclick="event.stopPropagation()">
           <textarea class="form-input" id="beta-feedback-text" rows="2" placeholder="Що можна покращити? Напишіть нам..." style="margin-bottom: 8px; font-size: 12px; padding: 10px;"></textarea>
           <button class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); margin-top: 0; padding: 10px; font-size: 13px;" onclick="submitBetaFeedback(event)">Відправити</button>
         </div>
-      </div>
-      <div class="liquid-glass" style="width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.2); flex-shrink: 0;" onclick="openModalForm('custom-notif-form', 'notif-modal'); if(window.initNotifSettings) window.initNotifSettings();">
-        <span style="font-size: 22px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));">🔔</span>
       </div>
     </div>
 
@@ -751,99 +720,31 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbztRq8vF3XuEpY3ugrgtOL9V8_o00aMQqkpCIIQcq9K86OFXfPO0IKYfVKaAwCO-qW0/exec';
 const ESTATE_CSV_URL = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=622618191';
 
-window.currentDataSignature = {};
-window.allFleaMarketItems = []; window.fleaRenderLimit = 20; window.currentFleaSort = 'new';
-window.allEstateItems = []; window.estateRenderLimit = 20; window.currentEstateSort = 'new';
-
-window.notifCategories = [
-    { id: 'news', name: '📰 Новини' },
-    { id: 'communal', name: '💡 Комунальний інформер' },
-    { id: 'events', name: '🎭 Афіші' },
-    { id: 'blablacar', name: '🚗 BlaBlaCar' },
-    { id: 'trains', name: '🚆 Електрички' },
-    { id: 'estate', name: '🏠 Нерухомість' },
-    { id: 'shopping', name: '🛍 Шопінг' },
-    { id: 'flea', name: '📦 Барахолка' },
-    { id: 'jobs', name: '💼 Вакансії' },
-    { id: 'lost', name: '🔍 Знахідки' }
-];
-
-// КЛЮЧ ДЛЯ ПРІОРІТЕТІВ (v4 щоб скинути всім у кого був true)
-const NOTIF_PREFS_KEY = 'notif_prefs_v4';
-
-window.initNotifSettings = function() {
-    let prefs = JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY));
-    if (!prefs) {
-        prefs = {};
-        // ЯВНО СТАВИМО FALSE ДЛЯ ВСЬОГО
-        window.notifCategories.forEach(c => prefs[c.id] = false);
-        localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(prefs));
-    }
-    let html = '';
-    window.notifCategories.forEach(c => {
-        const isChecked = prefs[c.id] ? 'checked' : '';
-        html += `
-        <div class="notif-row">
-            <span style="font-size:14px; font-weight:600; color:#fff;">${c.name}</span>
-            <label class="switch">
-              <input type="checkbox" onchange="toggleNotifPref('${c.id}', this.checked)" ${isChecked}>
-              <span class="slider"></span>
-            </label>
-        </div>`;
-    });
-    document.getElementById('notif-settings-list').innerHTML = html;
-};
-
-window.toggleNotifPref = function(id, isChecked) {
-    let prefs = JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY) || '{}');
-    prefs[id] = isChecked;
-    localStorage.setItem(NOTIF_PREFS_KEY, JSON.stringify(prefs));
-    
-    if (isChecked) {
-        if (window.requestFirebasePermission) {
-            window.requestFirebasePermission();
-        } else if ("Notification" in window && Notification.permission !== "granted" && Notification.permission !== "denied") {
-            Notification.requestPermission();
-        }
-    }
-
-    if (!isChecked) {
-       const dot = document.getElementById('dot-' + id);
-       if (dot) dot.style.display = 'none';
-    }
-};
+var currentDataSignature = {};
+var allFleaMarketItems = []; var fleaRenderLimit = 20; var currentFleaSort = 'new';
+var allEstateItems = []; var estateRenderLimit = 20; var currentEstateSort = 'new';
 
 function checkNotification(key, dataArray) {
   if (!dataArray || dataArray.length === 0) return;
   const signature = String(dataArray.length); 
-  window.currentDataSignature[key] = signature;
+  currentDataSignature[key] = signature;
   const seenSignature = localStorage.getItem('seen_' + key); 
   const dot = document.getElementById('dot-' + key);
   
-  let prefs = JSON.parse(localStorage.getItem(NOTIF_PREFS_KEY) || '{}');
-  // Якщо запису в налаштуваннях немає — вважаємо FALSE (вимкнено)
-  const isSubscribed = prefs[key] === true;
-
-  if (signature !== seenSignature) {
-      if (dot && isSubscribed) {
-          dot.style.display = 'block';
-          
-          if (seenSignature && "Notification" in window && Notification.permission === "granted" && document.hidden) {
-              const catObj = window.notifCategories.find(c => c.id === key);
-              if (catObj) {
-                  new Notification("Smart Вільногірськ", { 
-                      body: `Оновлення у вкладці: ${catObj.name}`,
-                      icon: "https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true"
-                  });
-              }
-          }
-      }
+  if (signature !== seenSignature && dot) {
+      dot.style.display = 'block';
   }
 }
 
-// ... решта коду (допоміжні функції, loadData, ініціалізація) без змін
-// ... (все те саме, що було раніше)
-window.fallbackCopyText = function(text, successCb) {
+function clearNotification(key) {
+  const dot = document.getElementById('dot-' + key);
+  if (dot) dot.style.display = 'none';
+  if (currentDataSignature[key]) {
+      localStorage.setItem('seen_' + key, currentDataSignature[key]);
+  }
+}
+
+function fallbackCopyText(text, successCb) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
     textArea.style.position = "fixed";
@@ -854,19 +755,17 @@ window.fallbackCopyText = function(text, successCb) {
     try {
         document.execCommand('copy');
         if(successCb) successCb();
-    } catch (err) {
-        console.error('Fallback copy failed', err);
-    }
+    } catch (err) {}
     document.body.removeChild(textArea);
-};
+}
 
-window.copyToClipboardBtn = function(text, btn) {
-    window.fallbackCopyText(text, () => {
+function copyToClipboardBtn(text, btn) {
+    fallbackCopyText(text, () => {
         const originalHtml = btn.innerHTML;
         btn.innerHTML = '<span style="color:#00ff9c">✔️</span>';
         setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
     });
-};
+}
 
 async function fetchCachedText(url, key, ttlMinutes = 5) {
     const cached = localStorage.getItem('cache_' + key);
@@ -884,53 +783,69 @@ async function fetchCachedText(url, key, ttlMinutes = 5) {
 
 async function fetchCachedJson(url, key, ttlMinutes = 5) { return JSON.parse(await fetchCachedText(url, key, ttlMinutes)); }
 
-window.formatUAPhone = function(input) {
+function formatUAPhone(input) {
     let d = input.value.replace(/\D/g, '');
     if (d === '38' || d === '3' || d === '') { input.value = '+380'; return; }
     if (d.startsWith('0') && !d.startsWith('380')) d = '38' + d; else if (!d.startsWith('380')) d = '380' + d;
     let body = d.substring(3); if (body.startsWith('0')) body = body.substring(1); if (body.startsWith('380')) body = body.substring(3);
     input.value = '+380' + body.substring(0, 9);
-};
+}
 
-window.currentVilnohirskPhotos = []; 
-window.renderGallery = function(photos) {
+var currentVilnohirskPhotos = []; 
+function renderGallery(photos) {
     const container = document.getElementById('gallery-list-content'); if (!container) return;
     if (!photos || photos.length === 0) { container.innerHTML = '<div class="empty-msg">Фотографій поки немає</div>'; return; }
-    window.currentVilnohirskPhotos = photos; 
+    currentVilnohirskPhotos = photos; 
     let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Маєте круті фото нашого міста? Надсилайте: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div>';
     html += '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding: 5px;">';
     photos.forEach((item, i) => {
         const url = typeof item === 'string' ? item : item.url;
         const author = typeof item === 'object' && item.author ? item.author : '';
-        html += `<div style="aspect-ratio:1/1; border-radius:14px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.2); cursor:pointer; border:1px solid rgba(255,255,255,0.1); position:relative;" onclick="openImageModal(window.currentVilnohirskPhotos, ${i}, event)">
+        html += `<div style="aspect-ratio:1/1; border-radius:14px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.2); cursor:pointer; border:1px solid rgba(255,255,255,0.1); position:relative;" onclick="openImageModal(currentVilnohirskPhotos, ${i}, event)">
             <img src="${url}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">
             ${author ? `<div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 8px 8px 8px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.9); text-align:left; text-shadow:0 1px 2px rgba(0,0,0,0.8); pointer-events:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📸 ${author}</div>` : ''}
         </div>`;
     });
     container.innerHTML = html + '</div>';
-};
+}
 
 async function loadGalleryData() {
   try { renderGallery(await fetchCachedJson(`https://vilnohirsk-photos-production.up.railway.app/api/photos`, 'gallery_api', 30)); } 
   catch(e) { document.getElementById('gallery-list-content').innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження фотографій</div>'; }
 }
 
-window.setupCaptcha = function(formId) {
+function setupCaptcha(formId) {
   const form = document.getElementById(formId); if (!form) return;
   const num1 = Math.floor(Math.random() * 10) + 1; const num2 = Math.floor(Math.random() * 10) + 1;
   const exprSpan = form.querySelector('.captcha-expression'); const answerInput = form.querySelector('.captcha-answer'); const userInput = form.querySelector('.captcha-input');
   if (exprSpan) exprSpan.innerText = `${num1} + ${num2}`; if (answerInput) answerInput.value = num1 + num2; if (userInput) userInput.value = '';
-};
+}
 
-window.validateCaptcha = function(formId) {
+function validateCaptcha(formId) {
   const form = document.getElementById(formId); if (!form) return false;
   const userInput = form.querySelector('.captcha-input'); const answerInput = form.querySelector('.captcha-answer');
   if (userInput && answerInput && userInput.value.trim() !== answerInput.value) {
       alert('🤖 Невірна відповідь у перевірці на анти-спам! Спробуйте ще раз.'); setupCaptcha(formId); return false;
   } return true;
-};
+}
 
-window.submitGenericForm = async function(event, formId, modalId, btnId, type, maxPhotos) {
+const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader(); reader.readAsDataURL(file);
+    reader.onload = (event) => {
+        const img = new Image(); img.src = event.target.result;
+        img.onload = () => {
+            const canvas = document.createElement('canvas'); const MAX_WIDTH = 1000; const MAX_HEIGHT = 1000;
+            let width = img.width; let height = img.height;
+            if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
+            else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+            canvas.width = width; canvas.height = height;
+            const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]); 
+        };
+    }; reader.onerror = error => reject(error);
+});
+
+async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos) {
   event.preventDefault(); if (!validateCaptcha(formId)) return;
   const btn = document.getElementById(btnId); const origText = btn.innerText;
   btn.innerText = maxPhotos ? 'Обробка фото...' : 'Відправка...'; btn.disabled = true; btn.style.opacity = '0.7';
@@ -952,173 +867,30 @@ window.submitGenericForm = async function(event, formId, modalId, btnId, type, m
     form.reset(); setupCaptcha(formId);
   } catch (e) { alert('❌ Помилка: ' + e.message); }
   finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
-};
+}
 
-window.openModalForm = function(formId, modalId) { 
+function openModalForm(formId, modalId) { 
     const form = document.getElementById(formId);
     if(form) form.reset(); 
     setupCaptcha(formId); 
     document.getElementById(modalId).classList.add('active'); 
-};
-window.closeModalForm = function(event, modalId) { if (!event || event.target.classList.contains('close-modal-btn') || event.target.id === modalId) document.getElementById(modalId).classList.remove('active'); };
-
-const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
-    const reader = new FileReader(); reader.readAsDataURL(file);
-    reader.onload = (event) => {
-        const img = new Image(); img.src = event.target.result;
-        img.onload = () => {
-            const canvas = document.createElement('canvas'); const MAX_WIDTH = 1000; const MAX_HEIGHT = 1000;
-            let width = img.width; let height = img.height;
-            if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
-            else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
-            canvas.width = width; canvas.height = height;
-            const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]); 
-        };
-    }; reader.onerror = error => reject(error);
-});
-
-function clearNotification(key) {
-  const dot = document.getElementById('dot-' + key); if (dot) dot.style.display = 'none';
-  if (window.currentDataSignature[key]) { localStorage.setItem('seen_' + key, window.currentDataSignature[key]); }
 }
 
-window.toggleTransportDetails = function(id, el) {
-    const target = document.getElementById(id); if (!target) return;
-    const isOpening = !target.classList.contains('open');
-    document.querySelectorAll('.schedule-group .details.open').forEach(detail => detail.classList.remove('open'));
-    if (isOpening) { target.classList.add('open'); setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 350); }
-};
+function closeModalForm(event, modalId) { 
+    if (!event || event.target.classList.contains('close-modal-btn') || event.target.id === modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+}
 
-window.toggleShop = function(detailsId, tileElement) {
-  const dropdown = document.getElementById(detailsId); if (!dropdown) return;
-  const isOpen = dropdown.classList.contains('open'); closeAllShopDropdowns();
-  if (!isOpen) { dropdown.classList.add('open'); tileElement.classList.add('tile-active'); const grid = tileElement.closest('.shops-tile-grid'); if (grid) { setTimeout(() => { grid.style.paddingBottom = (dropdown.scrollHeight + 15) + 'px'; }, 50); } }
-};
+function closeImageModal(event) { 
+    if (event && event.target.id !== 'image-modal' && !event.target.classList.contains('image-modal-close') && !event.target.classList.contains('image-modal-slider') && !event.target.classList.contains('image-modal-slide')) { return; } 
+    document.getElementById('image-modal').classList.remove('active'); 
+}
 
 function closeAllShopDropdowns() {
   document.querySelectorAll('.shop-details-dropdown.open').forEach(el => { el.classList.remove('open'); if (el.parentElement) el.parentElement.classList.remove('tile-active'); });
   document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; });
 }
-
-window.submitBetaFeedback = async function(event) {
-  event.preventDefault(); const textEl = document.getElementById('beta-feedback-text'); const text = textEl.value.trim();
-  if (!text) { alert('Будь ласка, напишіть текст відгуку.'); return; }
-  const btn = event.target; const originalText = btn.innerText; btn.innerText = 'Відправка...'; btn.disabled = true;
-  try {
-    await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ formType: 'feedback', text: text }) });
-    alert('✅ Дякуємо! Ваш відгук успішно відправлено.'); textEl.value = ''; document.getElementById('beta-drawer').classList.remove('open');
-  } catch(e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = originalText; btn.disabled = false; }
-};
-
-window.submitBlaBlaForm = async function(event) {
-  event.preventDefault(); if (!validateCaptcha('custom-blabla-form')) return;
-  const submitBtn = document.getElementById('form-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Відправка...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
-  const formData = { type: document.getElementById('input-type').value, name: document.getElementById('input-name').value, from: document.getElementById('input-from').value, to: document.getElementById('input-to').value, date: document.getElementById('input-date').value, time: document.getElementById('input-time-to').value ? `${document.getElementById('input-time-from').value} - ${document.getElementById('input-time-to').value}` : document.getElementById('input-time-from').value, seats: parseInt(document.getElementById('input-seats').value, 10), price: document.getElementById('input-price').value ? parseInt(document.getElementById('input-price').value, 10) : 0, phone: document.getElementById('input-phone').value, comment: document.getElementById('input-comment').value };
-  try {
-    const API_URL = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides'; 
-    const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
-    if (!response.ok) throw new Error('Помилка сервера при збереженні');
-    alert('✅ Ваше оголошення успішно додано!'); closeModalForm(null, 'blabla-modal'); switchBlaBlaList(formData.type === 'driver' ? 'drivers' : 'passengers'); loadBlaBlaCarData(); 
-  } catch (error) { alert('❌ Помилка при відправці: ' + error.message); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
-};
-
-window.switchBlaBlaList = function(type) {
-  document.querySelectorAll('.blabla-tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('blabla-drivers-list').style.display = 'none'; document.getElementById('blabla-passengers-list').style.display = 'none';
-  if (type === 'drivers') { document.getElementById('btn-show-drivers').classList.add('active'); document.getElementById('blabla-drivers-list').style.display = 'block'; } 
-  else { document.getElementById('btn-show-passengers').classList.add('active'); document.getElementById('blabla-passengers-list').style.display = 'block'; }
-};
-
-function handleScrollHint(navId, hintId) {
-  const nav = document.getElementById(navId); const hint = document.getElementById(hintId);
-  if (!nav || !hint) return;
-  const checkScroll = () => { if (nav.scrollWidth - nav.clientWidth <= nav.scrollLeft + 5) { hint.classList.add('hidden'); } else { hint.classList.remove('hidden'); } };
-  nav.addEventListener('scroll', checkScroll); window.addEventListener('resize', checkScroll); setTimeout(checkScroll, 300);
-}
-handleScrollHint('schedule-tabs', 'hint-schedule'); handleScrollHint('market-tabs', 'hint-market');
-
-let currentGallery = []; let currentGalleryIndex = 0; let windowEventImages = [];
-let touchStartX = 0; let touchStartY = 0; let touchEndX = 0; 
-let currentZoom = 1; let minZoom = 1; let maxZoom = 4;
-let panX = 0; let panY = 0; let startPanX = 0; let startPanY = 0;
-let startDistance = 0; let startZoom = 1; let isPinching = false; let lastTap = 0;
-
-window.openImageModal = function(images, index, event) {
-  if (event) event.stopPropagation(); let normalizedImages = [];
-  if (typeof images === 'string') { normalizedImages = [{url: images}]; } else { normalizedImages = images.map(img => typeof img === 'string' ? {url: img} : img); }
-  currentGallery = normalizedImages; currentGalleryIndex = index || 0;
-  const track = document.getElementById('modal-image-track'); 
-  track.innerHTML = currentGallery.map(img => `<div class="image-modal-slide" onclick="handleSlideClick(event)"><img src="${img.url}" alt="Фото">${img.author ? `<div style="position:absolute; bottom:60px; left:50%; transform:translateX(-50%); color:#fff; font-weight:700; font-size:12px; background:rgba(0,0,0,0.6); padding:6px 14px; border-radius:14px; z-index:100002; pointer-events:none; white-space:nowrap;">📸 Фото: ${img.author}</div>` : ''}</div>`).join('');
-  track.style.transition = 'none'; updateModalImage(); document.getElementById('image-modal').classList.add('active');
-  setTimeout(() => { track.style.transition = 'transform 0.3s cubic-bezier(0.25,1,0.5,1)'; }, 50);
-};
-
-window.updateModalImage = function() {
-    currentZoom = 1; panX = 0; panY = 0;
-    document.querySelectorAll('.image-modal-slide img').forEach(img => { img.style.transform = ''; img.style.transition = 'transform 0.3s ease'; });
-    const track = document.getElementById('modal-image-track'); if (track) track.style.transform = `translate3d(-${currentGalleryIndex * 100}%, 0, 0)`;
-    const counter = document.getElementById('modal-image-counter');
-    if (currentGallery.length > 1) { counter.style.display = 'block'; counter.innerText = `${currentGalleryIndex + 1} з ${currentGallery.length}`; } else { counter.style.display = 'none'; }
-};
-
-window.handleSlideClick = function(e) { 
-  e.stopPropagation(); const currentTime = new Date().getTime(); const tapLength = currentTime - lastTap;
-  if (tapLength < 300 && tapLength > 0) {
-      if (currentZoom > 1) { currentZoom = 1; panX = 0; panY = 0; } else { currentZoom = 2.5; }
-      const activeImg = document.querySelector('.image-modal-track .image-modal-slide:nth-child(' + (currentGalleryIndex + 1) + ') img');
-      if (activeImg) { activeImg.style.transition = 'transform 0.3s ease'; activeImg.style.transform = currentZoom === 1 ? '' : `translate3d(0, 0, 0) scale(${currentZoom})`; }
-      lastTap = 0; return;
-  }
-  lastTap = currentTime; if (currentGallery.length <= 1 || currentZoom > 1) return; 
-  if (e.clientX > window.innerWidth / 2) nextModalImage(); else prevModalImage(); 
-};
-
-window.prevModalImage = function() { if (currentGallery.length <= 1 || currentGalleryIndex === 0) return; currentGalleryIndex--; updateModalImage(); };
-window.nextModalImage = function() { if (currentGallery.length <= 1 || currentGalleryIndex === currentGallery.length - 1) return; currentGalleryIndex++; updateModalImage(); };
-window.getDistance = function(t1, t2) { return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY); };
-
-window.handleTouchStart = function(e) { 
-  if (e.touches.length === 2) {
-      isPinching = true; startDistance = window.getDistance(e.touches[0], e.touches[1]); startZoom = currentZoom;
-      const activeImg = document.querySelector('.image-modal-track .image-modal-slide:nth-child(' + (currentGalleryIndex + 1) + ') img'); if (activeImg) activeImg.style.transition = 'none';
-  } else if (e.touches.length === 1) {
-      touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; startPanX = panX; startPanY = panY;
-      if (currentZoom === 1) { const track = document.getElementById('modal-image-track'); if(track) track.style.transition = 'none'; } 
-      else { const activeImg = document.querySelector('.image-modal-track .image-modal-slide:nth-child(' + (currentGalleryIndex + 1) + ') img'); if (activeImg) activeImg.style.transition = 'none'; }
-  }
-};
-
-window.handleTouchMove = function(e) { 
-  const activeImg = document.querySelector('.image-modal-track .image-modal-slide:nth-child(' + (currentGalleryIndex + 1) + ') img');
-  if (e.touches.length === 2) {
-      e.preventDefault(); currentZoom = Math.min(Math.max(startZoom * (window.getDistance(e.touches[0], e.touches[1]) / startDistance), minZoom), maxZoom);
-      if (activeImg) activeImg.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${currentZoom})`;
-  } else if (e.touches.length === 1) {
-      if (isPinching) return; const diffX = e.touches[0].clientX - touchStartX; const diffY = e.touches[0].clientY - touchStartY;
-      if (currentZoom > 1) {
-          e.preventDefault(); panX = startPanX + diffX; panY = startPanY + diffY;
-          if (activeImg) activeImg.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${currentZoom})`;
-      } else {
-          if (currentGallery.length <= 1) return; const track = document.getElementById('modal-image-track'); if(track) track.style.transform = `translate3d(calc(-${currentGalleryIndex * 100}% + ${diffX}px), 0, 0)`;
-      }
-  }
-};
-
-window.handleTouchEnd = function(e) {
-  if (e.touches.length === 0) isPinching = false;
-  const activeImg = document.querySelector('.image-modal-track .image-modal-slide:nth-child(' + (currentGalleryIndex + 1) + ') img');
-  if (activeImg) activeImg.style.transition = 'transform 0.3s ease';
-  if (currentZoom <= 1) {
-      currentZoom = 1; panX = 0; panY = 0; if (activeImg) activeImg.style.transform = '';
-      if (e.changedTouches.length > 0 && !isPinching) {
-          touchEndX = e.changedTouches[0].clientX; const track = document.getElementById('modal-image-track'); if(track) track.style.transition = 'transform 0.3s cubic-bezier(0.25,1,0.5,1)';
-          if (currentGallery.length > 1) { if (touchEndX < touchStartX - 50) { nextModalImage(); } else if (touchEndX > touchStartX + 50) { prevModalImage(); } else { updateModalImage(); } }
-      }
-  }
-};
-
-window.closeImageModal = function(event) { if (event && event.target.id !== 'image-modal' && !event.target.classList.contains('image-modal-close') && !event.target.classList.contains('image-modal-slider') && !event.target.classList.contains('image-modal-slide')) { return; } document.getElementById('image-modal').classList.remove('active'); };
 
 document.addEventListener('click', function(e) {
   if (e.target.closest('.image-modal') || e.target.closest('.custom-modal-box')) return;
@@ -1129,13 +901,14 @@ document.addEventListener('click', function(e) {
   if (!e.target.closest('.market-group')) { const marketWidget = document.getElementById('market-drawer'); if (marketWidget) marketWidget.classList.remove('open'); document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active')); }
 });
 
-window.recalcDropdownHeight = function(imgEl) {
+function recalcDropdownHeight(imgEl) {
   const dropdown = imgEl.closest('.shop-details-dropdown'); const grid = imgEl.closest('.shops-tile-grid');
   if (dropdown && dropdown.classList.contains('open') && grid) { grid.style.paddingBottom = (dropdown.scrollHeight + 15) + 'px'; }
-};
+}
 
-window.switchAppTab = function(tabId, btn, group) {
+function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
+  
   const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
 
@@ -1143,7 +916,8 @@ window.switchAppTab = function(tabId, btn, group) {
   
   if (btn.classList.contains('active')) {
       btn.classList.remove('active');
-      document.getElementById(drawers[group]).classList.remove('open');
+      const groupDrawer = document.getElementById(drawers[group]);
+      if(groupDrawer) groupDrawer.classList.remove('open');
       return;
   }
 
@@ -1152,15 +926,17 @@ window.switchAppTab = function(tabId, btn, group) {
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
 
   const drawer = document.getElementById(drawers[group]);
-  drawer.classList.remove('drawer-events', 'drawer-communal');
-  
-  if(tabId === 'alert-events') drawer.classList.add('drawer-events');
-  if(tabId === 'alert-communal') drawer.classList.add('drawer-communal');
+  if (drawer) {
+      drawer.classList.remove('drawer-events', 'drawer-communal');
+      if(tabId === 'alert-events') drawer.classList.add('drawer-events');
+      if(tabId === 'alert-communal') drawer.classList.add('drawer-communal');
+      drawer.classList.add('open');
+  }
 
   btn.classList.add('active'); 
-  document.getElementById(tabId).classList.add('active'); 
-  drawer.classList.add('open');
-};
+  const targetSection = document.getElementById(tabId);
+  if (targetSection) targetSection.classList.add('active'); 
+}
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
 function getWeatherEmoji(code){ if(code === 0) return "☀️"; if(code <= 2) return "⛅"; if(code <= 3) return "☁️"; if(code <= 48) return "🌫️"; if(code <= 67) return "🌧️"; if(code <= 77) return "🌨️"; if(code <= 99) return "⛈️"; return "🌡️"; }
@@ -1188,10 +964,9 @@ async function loadWeather(){
 
 async function loadExchangeRates() {
   try {
-    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11');
-    const data = await fetchCachedJson(proxyUrl, 'privat_rates', 60);
-    if (data && data.contents) {
-        const pb = JSON.parse(data.contents);
+    const pbRes = await fetch('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11');
+    if (pbRes.ok) {
+        const pb = await pbRes.json();
         const usd = pb.find(c => c.ccy === 'USD');
         const eur = pb.find(c => c.ccy === 'EUR');
         if (usd && eur) {
@@ -1203,21 +978,23 @@ async function loadExchangeRates() {
         }
     }
   } catch (e) {
-      try {
-          const proxyUrlMono = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.monobank.ua/bank/currency');
-          const dataMono = await fetchCachedJson(proxyUrlMono, 'mono_rates', 60);
-          if (dataMono && dataMono.contents) {
-              const mono = JSON.parse(dataMono.contents);
-              const usd = mono.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980);
-              const eur = mono.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
-              if (usd && eur) {
-                 document.getElementById('usd-buy').textContent = Number(usd.rateBuy).toFixed(2);
-                 document.getElementById('usd-sell').textContent = Number(usd.rateSell).toFixed(2);
-                 document.getElementById('eur-buy').textContent = Number(eur.rateBuy).toFixed(2);
-                 document.getElementById('eur-sell').textContent = Number(eur.rateSell).toFixed(2);
-              }
+  }
+  
+  try {
+      const proxyUrlMono = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.monobank.ua/bank/currency');
+      const dataMono = await fetchCachedJson(proxyUrlMono, 'mono_rates', 60);
+      if (dataMono && dataMono.contents) {
+          const mono = JSON.parse(dataMono.contents);
+          const usd = mono.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980);
+          const eur = mono.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
+          if (usd && eur) {
+             document.getElementById('usd-buy').textContent = Number(usd.rateBuy).toFixed(2);
+             document.getElementById('usd-sell').textContent = Number(usd.rateSell).toFixed(2);
+             document.getElementById('eur-buy').textContent = Number(eur.rateBuy).toFixed(2);
+             document.getElementById('eur-sell').textContent = Number(eur.rateSell).toFixed(2);
           }
-      } catch(e2) { console.error("Exchange rates error"); }
+      }
+  } catch(e2) { 
   }
 }
 
@@ -1233,7 +1010,7 @@ function buildCarouselHtml(items, typeColor, typeId, isEvent = false) {
   if (!items || items.length === 0) { if (isEvent) return `<div class="alert-empty" style="margin-bottom:15px;">Афіш поки немає</div>`; return `<div class="alert-empty">Актуальних повідомлень немає</div>`; }
   const slidesHtml = items.map((item, index) => {
     if(!item) return '';
-    if (isEvent) { const photoUrl = item.photo || item.image || item.url; if(!photoUrl) return ''; return `<div class="alert-item" style="padding:0; background:transparent; border:none; display:flex; justify-content:center; align-items:center;"><img src="${photoUrl}" style="max-width:100%; max-height:350px; object-fit:contain; border-radius:12px; box-shadow: 0 4px 15px rgba(224, 86, 253, 0.4); cursor:pointer;" alt="Афіша" onclick="openImageModal(window.currentEventImages, ${index}, event)"></div>`; } 
+    if (isEvent) { const photoUrl = item.photo || item.image || item.url; if(!photoUrl) return ''; return `<div class="alert-item" style="padding:0; background:transparent; border:none; display:flex; justify-content:center; align-items:center;"><img src="${photoUrl}" style="max-width:100%; max-height:350px; object-fit:contain; border-radius:12px; box-shadow: 0 4px 15px rgba(224, 86, 253, 0.4); cursor:pointer;" alt="Афіша" onclick="openImageModal(windowEventImages, ${index}, event)"></div>`; } 
     else { const textHtml = item.text ? String(item.text).replace(/\n/g, '<br>') : ''; return `<div class="alert-item">${item.title ? `<div class="alert-card-title" style="color: ${typeColor};">${item.title}</div>` : ''}<div class="alert-card-text">${textHtml}</div></div>`; }
   }).join("");
   if (items.length === 1) return `<div class="carousel-wrapper"><div class="carousel-container">${slidesHtml}</div></div>`;
@@ -1241,14 +1018,16 @@ function buildCarouselHtml(items, typeColor, typeId, isEvent = false) {
   return `<div class="carousel-wrapper"><div class="carousel-container" id="carousel-${typeId}" onscroll="updateCarouselDots('carousel-${typeId}', 'dots-${typeId}', '${typeColor}')">${slidesHtml}</div><div class="carousel-dots" id="dots-${typeId}">${dotsHtml}</div></div>`;
 }
 
-window.updateCarouselDots = function(containerId, dotsId, activeColor) {
+function updateCarouselDots(containerId, dotsId, activeColor) {
   const container = document.getElementById(containerId); const dotsContainer = document.getElementById(dotsId); if (!container || !dotsContainer) return;
   const dots = dotsContainer.children; const index = Math.round(container.scrollLeft / container.clientWidth);
   for (let i = 0; i < dots.length; i++) { if (i === index) { dots[i].classList.add('active'); if(activeColor) dots[i].style.background = activeColor; } else { dots[i].classList.remove('active'); dots[i].style.background = 'rgba(255,255,255,0.3)'; } }
-};
+}
 
 function shuffleArray(array) { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; }
 function isVilnohirsk(str) { if (!str) return false; const lower = String(str).toLowerCase(); return lower.includes('вільногірськ') || lower.includes('вильногорск') || lower.includes('вільно') || lower.includes('вильно') || lower.includes('vilnohirsk'); }
+
+var windowEventImages = [];
 
 async function loadAlerts() {
   try {
@@ -1264,22 +1043,23 @@ async function loadEventsData() {
     const API_URL = `${atob('aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2RlbnJpczg3L3ZpbG5vaGlyc2stZXZlbnRzL21haW4vZXZlbnRzLmpzb24=')}?t=${new Date().getTime()}`;
     const eventAlerts = await fetchCachedJson(API_URL, 'events_api', 5);
     const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i.show !== false) : [];
-    checkNotification('events', activeEvents); window.currentEventImages = activeEvents.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
+    checkNotification('events', activeEvents);
+    windowEventImages = activeEvents.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
     document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#FF3366', 'events', true);
   } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
 }
 
-window.phonebookRawData = [];
+var phonebookRawData = [];
 async function loadPhonebookData() {
   const container = document.getElementById('city-guide-list-content');
   try {
     const data = await fetchCachedJson('https://vilnohirsk-phonebook-production.up.railway.app/api/phonebook', 'phonebook_api', 30);
     const categoriesData = data.categories || data; if (!categoriesData || !Array.isArray(categoriesData)) throw new Error('Invalid format');
-    window.phonebookRawData = categoriesData; renderPhonebook(window.phonebookRawData);
+    phonebookRawData = categoriesData; renderPhonebook(phonebookRawData);
   } catch (e) { container.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження довідника</div>'; }
 }
 
-window.renderPhonebook = function(categories, searchQuery = '') {
+function renderPhonebook(categories, searchQuery = '') {
   const container = document.getElementById('city-guide-list-content'); let html = ''; let hasResults = false; const query = searchQuery.toLowerCase().trim();
   if (!Array.isArray(categories)) return;
   categories.forEach((cat) => {
@@ -1298,13 +1078,20 @@ window.renderPhonebook = function(categories, searchQuery = '') {
      if (categoryHasMatch) { const safeCatName = cat.name || cat.category || 'Різне'; const safeCatIcon = cat.icon || '📌'; html += `<div class="pb-category-section"><div class="pb-category-header"><span>${safeCatIcon}</span> ${safeCatName}</div><div class="pb-grid">${itemsHtml}</div></div>`; }
   });
   if (!hasResults) { container.innerHTML = '<div class="empty-msg" style="font-size: 14px;">За вашим запитом нічого не знайдено 😔</div>'; } else { container.innerHTML = html; }
-};
-window.filterPhonebook = function() { const input = document.getElementById('pb-search'); if (window.phonebookRawData && input) { renderPhonebook(window.phonebookRawData, input.value); } };
+}
 
-window.buildDropdown = function(id, photosHtml, details) {
+function filterPhonebook() { const input = document.getElementById('pb-search'); if (phonebookRawData && input) { renderPhonebook(phonebookRawData, input.value); } }
+
+function buildDropdown(id, photosHtml, details) {
   const items = details.map(d => `<div class="shop-inner-item"><span class="detail-icon">${d.icon}</span><div><b>${d.label}:</b><br>${d.value}</div></div>`).join('');
   return `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()"><div class="shop-inner-list">${photosHtml}${items}</div></div>`;
-};
+}
+
+function toggleShop(detailsId, tileElement) {
+  const dropdown = document.getElementById(detailsId); if (!dropdown) return;
+  const isOpen = dropdown.classList.contains('open'); closeAllShopDropdowns();
+  if (!isOpen) { dropdown.classList.add('open'); tileElement.classList.add('tile-active'); const grid = tileElement.closest('.shops-tile-grid'); if (grid) { setTimeout(() => { grid.style.paddingBottom = (dropdown.scrollHeight + 15) + 'px'; }, 50); } }
+}
 
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
@@ -1339,14 +1126,15 @@ function renderShops(shopsData) {
 async function loadShopsData() {
   try {
     const d = await fetchCachedJson('https://vilnohirsk-shops-production.up.railway.app/api/shops', 'shops_api', 5);
-    let itemsArray = d.shops || d.items || (Array.isArray(d) ? d : []); checkNotification('shopping', itemsArray);
+    let itemsArray = d.shops || d.items || (Array.isArray(d) ? d : []);
+    checkNotification('shopping', itemsArray);
     if (!itemsArray || itemsArray.length === 0) { document.getElementById('shopping-list-content').innerHTML = '<div class="empty-msg">Оголошень поки немає</div>'; return; }
     const activeShops = itemsArray.filter(shop => shop && shop.name && String(shop.name).trim() !== ""); const vipShops = activeShops.filter(shop => shop.vip === true || shop.vip === 'true'); const regularShops = activeShops.filter(shop => shop.vip !== true && shop.vip !== 'true');
     renderShops([...vipShops, ...shuffleArray([...regularShops])]);
   } catch(e) { document.getElementById('shopping-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження магазинів: ${e.message}</div>`; }
 }
 
-window.renderEstateList = function(items, hasMore = false) {
+function renderEstateList(items, hasMore = false) {
   const cont = document.getElementById('estate-list-content');
   if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
   const sortedItems = [...items.filter(item => item.isVip).reverse(), ...items.filter(item => !item.isVip)];
@@ -1354,7 +1142,7 @@ window.renderEstateList = function(items, hasMore = false) {
   sortedItems.forEach((item, i) => {
     const id = 'estate-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🏠</span>`;
     let photosHtml = '';
-    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const dealColor = item.dealType.toLowerCase() === 'оренда' ? '#00b8ff' : '#ff3366';
     
     const dropdownHtml = buildDropdown(id, photosHtml, [
@@ -1369,18 +1157,18 @@ window.renderEstateList = function(items, hasMore = false) {
         <div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
-  if (hasMore) { html += `<button class="load-more-btn" onclick="window.estateRenderLimit+=20; const a=document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(a?a.innerText:'Всі',a);">Показати ще ▾</button>`; }
+  if (hasMore) { html += `<button class="load-more-btn" onclick="estateRenderLimit+=20; const a=document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(a?a.innerText:'Всі',a);">Показати ще ▾</button>`; }
   cont.innerHTML = html;
-};
+}
 
-window.filterEstate = function(category, element) {
+function filterEstate(category, element) {
   document.querySelectorAll('#estate-categories .flea-category-tag').forEach(tag => { tag.classList.remove('active'); });
   if(element) { element.classList.add('active'); }
-  let filtered = window.allEstateItems.filter(item => category === 'Всі' || (item.dealType && item.dealType.includes(category)));
-  if (window.currentEstateSort === 'cheap') filtered.sort((a,b) => (parseInt(a.price.replace(/\D/g,''))||0) - (parseInt(b.price.replace(/\D/g,''))||0));
-  else if (window.currentEstateSort === 'expensive') filtered.sort((a,b) => (parseInt(b.price.replace(/\D/g,''))||0) - (parseInt(a.price.replace(/\D/g,''))||0));
-  renderEstateList(filtered.slice(0, window.estateRenderLimit), filtered.length > window.estateRenderLimit);
-};
+  let filtered = allEstateItems.filter(item => category === 'Всі' || (item.dealType && item.dealType.includes(category)));
+  if (currentEstateSort === 'cheap') filtered.sort((a,b) => (parseInt(a.price.replace(/\D/g,''))||0) - (parseInt(b.price.replace(/\D/g,''))||0));
+  else if (currentEstateSort === 'expensive') filtered.sort((a,b) => (parseInt(b.price.replace(/\D/g,''))||0) - (parseInt(a.price.replace(/\D/g,''))||0));
+  renderEstateList(filtered.slice(0, estateRenderLimit), filtered.length > estateRenderLimit);
+}
 
 async function loadEstateData() {
   if(ESTATE_CSV_URL.includes('ВСТАВТЕ_СЮДИ_ВАШЕ_ПОСИЛАННЯ')) return;
@@ -1395,14 +1183,15 @@ async function loadEstateData() {
           const v = String(row['VIP'] || row['vip'] || row[keys[9]] || '').trim().toLowerCase();
           return { dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда', propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира', rooms: row["Кімнат"] || row[keys[4]] || '-', price: row["Ціна"] || row[keys[5]] || 'Договірна', description: row["Опис"] || row[keys[6]] || 'Без опису', phone: row["Телефон"] || row[keys[7]] || 'Не вказано', photos: processedPhotos, isVip: (v === 'так' || v === '+' || v === 'true') };
         });
-        checkNotification('estate', approvedItems); window.allEstateItems = approvedItems.reverse();
+        checkNotification('estate', approvedItems);
+        allEstateItems = approvedItems.reverse();
         const activeTag = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
       }
     });
   } catch (e) { document.getElementById('estate-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка: ${e.message}</div>`; }
 }
 
-window.renderFleaMarketList = function(items, hasMore = false) {
+function renderFleaMarketList(items, hasMore = false) {
   const cont = document.getElementById('flea-market-list-content');
   if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
   const sortedItems = [...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return v === 'так' || v === '+' || v === 'true'; }).reverse(), ...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return !(v === 'так' || v === '+' || v === 'true'); })];
@@ -1413,7 +1202,7 @@ window.renderFleaMarketList = function(items, hasMore = false) {
     let priceText = item.price ? String(item.price).trim() : 'Ціна договірна'; if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
     
     let photosHtml = '';
-    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     
     const v = String(item.vip || '').trim().toLowerCase(); const isVip = v === 'так' || v === '+' || v === 'true';
     const dropdownHtml = buildDropdown(id, photosHtml, [
@@ -1429,17 +1218,17 @@ window.renderFleaMarketList = function(items, hasMore = false) {
         <div class="shop-tile-name">${item.title}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
-  if (hasMore) { html += `<button class="load-more-btn" onclick="window.fleaRenderLimit+=20; const a=document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(a?a.innerText:'Всі',a);">Показати ще ▾</button>`; }
+  if (hasMore) { html += `<button class="load-more-btn" onclick="fleaRenderLimit+=20; const a=document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(a?a.innerText:'Всі',a);">Показати ще ▾</button>`; }
   cont.innerHTML = html;
-};
+}
 
-window.filterFleaMarket = function(category, element) {
+function filterFleaMarket(category, element) {
   document.querySelectorAll('#flea-categories .flea-category-tag').forEach(tag => tag.classList.remove('active')); if(element) element.classList.add('active');
-  let filtered = window.allFleaMarketItems.filter(item => category === 'Всі' || (item.category && item.category.includes(category)));
-  if (window.currentFleaSort === 'cheap') filtered.sort((a,b) => (parseInt(a.price.replace(/\D/g,''))||0) - (parseInt(b.price.replace(/\D/g,''))||0));
-  else if (window.currentFleaSort === 'expensive') filtered.sort((a,b) => (parseInt(b.price.replace(/\D/g,''))||0) - (parseInt(a.price.replace(/\D/g,''))||0));
-  renderFleaMarketList(filtered.slice(0, window.fleaRenderLimit), filtered.length > window.fleaRenderLimit);
-};
+  let filtered = allFleaMarketItems.filter(item => category === 'Всі' || (item.category && item.category.includes(category)));
+  if (currentFleaSort === 'cheap') filtered.sort((a,b) => (parseInt(a.price.replace(/\D/g,''))||0) - (parseInt(b.price.replace(/\D/g,''))||0));
+  else if (currentFleaSort === 'expensive') filtered.sort((a,b) => (parseInt(b.price.replace(/\D/g,''))||0) - (parseInt(a.price.replace(/\D/g,''))||0));
+  renderFleaMarketList(filtered.slice(0, fleaRenderLimit), filtered.length > fleaRenderLimit);
+}
 
 async function loadFleaMarketData() {
   try {
@@ -1453,7 +1242,9 @@ async function loadFleaMarketData() {
           let processedPhotos = photoUrls.map(url => { let fileId = ''; if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0]; else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; } return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url; });
           return { title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви', price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['Price'] || row['price'] || row[keys[2]] || '', description: row['Опис (Абзац)'] || row['Опис'] || row['Description'] || row[keys[3]] || 'Без опису', phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['Phone'] || row[keys[4]] || 'Не вказано', photos: processedPhotos, category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Різне', condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row['condition'] || row[keys[7]] || 'Не вказано', location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row['location'] || row[keys[8]] || 'Вільногірськ', vip: row['VIP'] || row['vip'] || row['Vip'] || '' };
         });
-        const localItems = approvedItems.filter(item => isVilnohirsk(item.location)).reverse(); checkNotification('flea', localItems); window.allFleaMarketItems = localItems;
+        const localItems = approvedItems.filter(item => isVilnohirsk(item.location)).reverse(); 
+        checkNotification('flea', localItems);
+        allFleaMarketItems = localItems;
         const activeTag = document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
       }
     });
@@ -1471,13 +1262,14 @@ async function loadLostFoundData() {
           const keys = Object.keys(row); let rawPhoto = row['Додати фото'] || row['Photos'] || row['Фото'] || row['photos'] || row[keys[5]] || ''; let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p); let processedPhotos = photoUrls.map(url => { let fileId = ''; if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0]; else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; } return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url; });
           return { title: row['Назва речі'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви', type: row['Що сталося?'] || row['Type'] || row['Тип'] || row['type'] || row[keys[2]] || 'Знайдено', description: row['Опис та обставини'] || row['Description'] || row['Опис'] || row['description'] || row[keys[3]] || 'Без опису', phone: row['Ваш телефон'] || row['Phone'] || row['Телефон'] || row[keys[4]] || 'Не вказано', photos: processedPhotos, category: row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Інше', location: row['Локація'] || row['Location'] || row[keys[7]] || 'Вільногірськ' };
         });
-        const localItems = approvedItems.filter(item => isVilnohirsk(item.location)); checkNotification('lost', localItems);
+        const localItems = approvedItems.filter(item => isVilnohirsk(item.location));
+        checkNotification('lost', localItems);
         const cont = document.getElementById('lost-found-list-content'); if (!localItems.length) { cont.innerHTML = '<div class="empty-msg">Оголошень немає</div>'; return; }
         
         let html = '<div class="shops-tile-grid">';
         localItems.reverse().forEach((item, i) => {
           const id = 'lost-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`; const badgeColor = item.type.toLowerCase().includes('знайдено') ? '#00ff9c' : '#ff4d4d';
-          let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(window.recalcDropdownHeight) window.recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+          let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
           
           const dropdownHtml = buildDropdown(id, photosHtml, [
             {icon: '📌', label: 'Категорія', value: item.category},
@@ -1522,6 +1314,13 @@ function renderGrid(data, isChanges = false, alwaysWhite = false) {
   return html + '</div>';
 }
 
+function toggleTransportDetails(id, el) {
+    const target = document.getElementById(id); if (!target) return;
+    const isOpening = !target.classList.contains('open');
+    document.querySelectorAll('.schedule-group .details.open').forEach(detail => detail.classList.remove('open'));
+    if (isOpening) { target.classList.add('open'); setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 350); }
+}
+
 async function loadTrainsData(){ 
   try {
     const d = await fetchCachedJson("https://vilnohirsk-trains-production.up.railway.app/api/trains", 'trains_api', 10);
@@ -1538,6 +1337,7 @@ async function loadTrainsData(){
         h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${x.number}${hc ? '<span class="train-alert-dot"></span>' : ''}</div><div class="route-text">${x.route}</div><div class="time-val ${sc}">${dt}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${x.note}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}</div>`;
       });
       document.getElementById("list").innerHTML = h + `</div>`;
+      
       const changed = d.trains.filter(x => x && x.note && x.note !== "змін немає...");
       if (changed.length > 0) checkNotification('trains', changed); else { const dot = document.getElementById('dot-trains'); if (dot) dot.style.display = 'none'; }
     }
@@ -1585,6 +1385,25 @@ async function loadBusesData(){
       document.getElementById("buses-list").innerHTML = h;
     }
   }catch(e){ document.getElementById("buses-list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
+}
+
+function switchBlaBlaList(type) {
+  document.querySelectorAll('.blabla-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('blabla-drivers-list').style.display = 'none'; document.getElementById('blabla-passengers-list').style.display = 'none';
+  if (type === 'drivers') { document.getElementById('btn-show-drivers').classList.add('active'); document.getElementById('blabla-drivers-list').style.display = 'block'; } 
+  else { document.getElementById('btn-show-passengers').classList.add('active'); document.getElementById('blabla-passengers-list').style.display = 'block'; }
+}
+
+async function submitBlaBlaForm(event) {
+  event.preventDefault(); if (!validateCaptcha('custom-blabla-form')) return;
+  const submitBtn = document.getElementById('form-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Відправка...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
+  const formData = { type: document.getElementById('input-type').value, name: document.getElementById('input-name').value, from: document.getElementById('input-from').value, to: document.getElementById('input-to').value, date: document.getElementById('input-date').value, time: document.getElementById('input-time-to').value ? `${document.getElementById('input-time-from').value} - ${document.getElementById('input-time-to').value}` : document.getElementById('input-time-from').value, seats: parseInt(document.getElementById('input-seats').value, 10), price: document.getElementById('input-price').value ? parseInt(document.getElementById('input-price').value, 10) : 0, phone: document.getElementById('input-phone').value, comment: document.getElementById('input-comment').value };
+  try {
+    const API_URL = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides'; 
+    const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+    if (!response.ok) throw new Error('Помилка сервера при збереженні');
+    alert('✅ Ваше оголошення успішно додано!'); closeModalForm(null, 'blabla-modal'); switchBlaBlaList(formData.type === 'driver' ? 'drivers' : 'passengers'); loadBlaBlaCarData(); 
+  } catch (error) { alert('❌ Помилка при відправці: ' + error.message); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
 }
 
 async function loadBlaBlaCarData() {
@@ -1636,7 +1455,6 @@ async function loadVolunteersData() {
         const desc = item.description ? item.description.replace(/\n/g, '<br>') : 'Підтримайте наших захисників!';
         const jarUrl = item.jar_url || '';
         const cardNumber = item.card_number || '';
-        const safeShareText = encodeURIComponent(`${title}\n${item.description || ''}\nДолучитися: ${jarUrl}`);
         const id = Math.random().toString(36).substr(2, 5);
 
         const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0;
@@ -1706,53 +1524,6 @@ async function loadVolunteersData() {
     });
     container.innerHTML = html;
   } catch (e) { container.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження зборів</div>'; }
-}
-
-async function loadJobsData() {
-  const container = document.getElementById('jobs-list-content');
-  let allJobs = [];
-
-  try {
-    const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 60);
-    if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); }
-  } catch(e) {}
-
-  const SHEET_GID = '1809375718'; 
-  const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
-  
-  try {
-    const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 5);
-    Papa.parse(csvText, {
-      header: true, skipEmptyLines: true,
-      complete: function(results) {
-        const userJobs = results.data.filter(row => {
-          const keys = Object.keys(row);
-          let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]];
-          return status && String(status).trim().toLowerCase() === 'одобрено';
-        }).map(row => {
-          const keys = Object.keys(row);
-          const phone = row['Телефон'] || row[keys[6]] || '';
-          const gender = row['Стать'] || row['gender'] || row[keys[7]] || '';
-          const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || '';
-          const vipStatus = row['VIP'] || row[keys[9]] || '';
-          const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
-
-          return {
-            title: row['Посада'] || row[keys[2]] || 'Без назви',
-            salary: row['Зарплата'] || row[keys[3]] || '-',
-            company: row['Компанія'] || row[keys[4]] || 'Не вказано',
-            description: row['Опис'] || row[keys[5]] || '',
-            date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно',
-            phone: phone, gender: gender, employment: employment,
-            url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#',
-            isVip: isVip, source: 'User'
-          };
-        });
-        allJobs = allJobs.concat(userJobs);
-        renderJobs(allJobs);
-      }
-    });
-  } catch (e) { renderJobs(allJobs); }
 }
 
 function renderJobs(jobs, isDemo = false) {
@@ -1846,7 +1617,57 @@ function renderJobs(jobs, isDemo = false) {
   container.innerHTML = html;
 }
 
-window.toggleRadio = function() {
+async function loadJobsData() {
+  let allJobs = [];
+
+  try {
+    const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 60);
+    if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); }
+  } catch(e) {}
+
+  const SHEET_GID = '1809375718'; 
+  const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
+  
+  try {
+    const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 5);
+    Papa.parse(csvText, {
+      header: true, skipEmptyLines: true,
+      complete: function(results) {
+        const userJobs = results.data.filter(row => {
+          const keys = Object.keys(row);
+          let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]];
+          return status && String(status).trim().toLowerCase() === 'одобрено';
+        }).map(row => {
+          const keys = Object.keys(row);
+          const phone = row['Телефон'] || row[keys[6]] || '';
+          const gender = row['Стать'] || row['gender'] || row[keys[7]] || '';
+          const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || '';
+          const vipStatus = row['VIP'] || row[keys[9]] || '';
+          const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
+
+          return {
+            title: row['Посада'] || row[keys[2]] || 'Без назви',
+            salary: row['Зарплата'] || row[keys[3]] || '-',
+            company: row['Компанія'] || row[keys[4]] || 'Не вказано',
+            description: row['Опис'] || row[keys[5]] || '',
+            date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно',
+            phone: phone, gender: gender, employment: employment,
+            url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#',
+            isVip: isVip, source: 'User'
+          };
+        });
+        allJobs = allJobs.concat(userJobs);
+        checkNotification('jobs', allJobs);
+        renderJobs(allJobs);
+      }
+    });
+  } catch (e) { 
+      checkNotification('jobs', allJobs);
+      renderJobs(allJobs); 
+  }
+}
+
+function toggleRadio() {
     const audio = document.getElementById('radio-audio');
     const icon = document.getElementById('radio-icon');
     const status = document.getElementById('radio-status');
@@ -1882,9 +1703,9 @@ window.toggleRadio = function() {
         eq.classList.remove('playing');
         icon.style.transform = 'translateX(1px)';
     }
-};
+}
 
-window.showDailyVolunteerAlert = async function() {
+async function showDailyVolunteerAlert() {
     const today = new Date().toDateString();
     const lastSeen = localStorage.getItem('last_zsu_alert_date');
 
@@ -1900,6 +1721,7 @@ window.showDailyVolunteerAlert = async function() {
             const title = item.title || 'ЗБІР НА ЗСУ';
             const desc = item.description ? String(item.description).replace(/\n/g, '<br>') : '';
             const jarUrl = item.jar_url || '';
+            const cardNumber = item.card_number || '';
             const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0;
             const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
 
@@ -1939,7 +1761,17 @@ window.showDailyVolunteerAlert = async function() {
     } catch (e) {
         console.error("Failed to load daily ZSU alert", e);
     }
-};
+}
+
+async function submitBetaFeedback(event) {
+  event.preventDefault(); const textEl = document.getElementById('beta-feedback-text'); const text = textEl.value.trim();
+  if (!text) { alert('Будь ласка, напишіть текст відгуку.'); return; }
+  const btn = event.target; const originalText = btn.innerText; btn.innerText = 'Відправка...'; btn.disabled = true;
+  try {
+    await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ formType: 'feedback', text: text }) });
+    alert('✅ Дякуємо! Ваш відгук успішно відправлено.'); textEl.value = ''; document.getElementById('beta-drawer').classList.remove('open');
+  } catch(e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = originalText; btn.disabled = false; }
+}
 
 const initApp = () => {
   updateDateTime(); 
