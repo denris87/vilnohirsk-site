@@ -1350,18 +1350,54 @@ async function loadLostFoundData() {
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
-        const approvedItems = results.data.filter(row => { const keys = Object.keys(row); let status = row['Статус'] || row['Status'] || row['status'] || row[keys[keys.length - 1]]; return status && String(status).trim().toLowerCase() === 'одобрено'; }).map(row => {
-          const keys = Object.keys(row); let rawPhoto = row['Додати фото'] || row['Photos'] || row['Фото'] || row['photos'] || row[keys[5]] || ''; let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p); let processedPhotos = photoUrls.map(url => { let fileId = ''; if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0]; else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; } return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url; });
-          return { title: row['Назва речі'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви', type: row['Що сталося?'] || row['Type'] || row['Тип'] || row['type'] || row[keys[2]] || 'Знайдено', description: row['Опис та обставини'] || row['Description'] || row['Опис'] || row['description'] || row[keys[3]] || 'Без опису', phone: row['Ваш телефон'] || row['Phone'] || row['Телефон'] || row[keys[4]] || 'Не вказано', photos: processedPhotos, category: row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Інше', location: row['Локація'] || row['Location'] || row[keys[7]] || 'Вільногірськ' };
+        // Розумний пошук колонок за назвою (незалежно від порядку)
+        const getValue = (row, possibleNames) => {
+          const key = Object.keys(row).find(k => possibleNames.some(n => k.toLowerCase().includes(n)));
+          return key ? String(row[key]).trim() : '';
+        };
+
+        const approvedItems = results.data.filter(row => {
+          let status = getValue(row, ['статус', 'status']);
+          if (!status) { // Запасний варіант: якщо колонки "Статус" немає, беремо останню колонку
+             const keys = Object.keys(row);
+             status = String(row[keys[keys.length - 1]]).trim();
+          }
+          return status.toLowerCase() === 'одобрено';
+        }).map(row => {
+          let rawPhoto = getValue(row, ['фото', 'photo', 'photos', 'світлина']);
+          let photoUrls = rawPhoto.split(',').map(p => p.trim()).filter(p => p);
+          let processedPhotos = photoUrls.map(url => {
+            let fileId = '';
+            if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0];
+            else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
+            return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
+          });
+
+          return {
+            title: getValue(row, ['назва', 'title', 'речі']) || 'Без назви',
+            type: getValue(row, ['що сталося', 'type', 'тип']) || 'Знайдено',
+            description: getValue(row, ['опис', 'обставини', 'desc']) || 'Без опису',
+            phone: getValue(row, ['телефон', 'phone', 'контакт']) || 'Не вказано',
+            photos: processedPhotos,
+            category: getValue(row, ['категорія', 'category']) || 'Інше',
+            location: getValue(row, ['локація', 'місто', 'location', 'адреса']) || 'Вільногірськ'
+          };
         });
-        const localItems = approvedItems.filter(item => isVilnohirsk(item.location));
+        
+        // Убрали жорсткий фільтр isVilnohirsk(), щоб не губити оголошення з нестандартною локацією
+        const localItems = approvedItems;
         checkNotification('lost', localItems);
-        const cont = document.getElementById('lost-found-list-content'); if (!localItems.length) { cont.innerHTML = '<div class="empty-msg">Оголошень немає</div>'; return; }
+        
+        const cont = document.getElementById('lost-found-list-content'); 
+        if (!localItems.length) { cont.innerHTML = '<div class="empty-msg">Оголошень немає</div>'; return; }
         
         let html = '<div class="shops-tile-grid">';
         localItems.reverse().forEach((item, i) => {
-          const id = 'lost-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`; const badgeColor = item.type.toLowerCase().includes('знайдено') ? '#00ff9c' : '#ff4d4d';
-          let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+          const id = 'lost-detail-' + i; 
+          const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`; 
+          const badgeColor = item.type.toLowerCase().includes('знайд') ? '#00ff9c' : '#ff4d4d';
+          let photosHtml = ''; 
+          if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
           
           const dropdownHtml = buildDropdown(id, photosHtml, [
             {icon: '📌', label: 'Категорія', value: item.category},
