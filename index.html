@@ -763,10 +763,18 @@ async function fetchCachedText(url, key, ttlMinutes = 5) {
     const cached = localStorage.getItem('cache_' + key);
     const cachedTime = localStorage.getItem('cache_time_' + key);
     const now = Date.now();
-    if (cached && cachedTime && (now - parseInt(cachedTime)) < (ttlMinutes * 60000)) {
-        fetch(url).then(r=>r.text()).then(t => { localStorage.setItem('cache_' + key, t); localStorage.setItem('cache_time_' + key, now.toString()); }).catch(e=>{});
-        return cached;
+    
+    if (cached && cachedTime) {
+        // Якщо кеш ще "свіжий" (в межах ttlMinutes), ПРОСТО повертаємо його без фонових запитів
+        if ((now - parseInt(cachedTime)) < (ttlMinutes * 60000)) {
+            return cached;
+        } else {
+            // Кеш протермінувався: робимо фоновий запит на оновлення, але миттєво віддаємо старий кеш
+            fetch(url).then(r=>r.text()).then(t => { localStorage.setItem('cache_' + key, t); localStorage.setItem('cache_time_' + key, now.toString()); }).catch(e=>{});
+            return cached;
+        }
     }
+    
     try {
         const r = await fetch(url); if (!r.ok) throw new Error('HTTP Error');
         const text = await r.text(); localStorage.setItem('cache_' + key, text); localStorage.setItem('cache_time_' + key, now.toString()); return text;
@@ -797,6 +805,7 @@ function openImageModal(images, index, event) {
   const track = document.getElementById('modal-image-track'); 
   track.innerHTML = currentGallery.map(img => `<div class="image-modal-slide" onclick="handleSlideClick(event)"><img src="${img.url}" alt="Фото">${img.author ? `<div style="position:absolute; bottom:60px; left:50%; transform:translateX(-50%); color:#fff; font-weight:700; font-size:12px; background:rgba(0,0,0,0.6); padding:6px 14px; border-radius:14px; z-index:100002; pointer-events:none; white-space:nowrap;">📸 Фото: ${img.author}</div>` : ''}</div>`).join('');
   track.style.transition = 'none'; updateModalImage(); document.getElementById('image-modal').classList.add('active');
+  document.body.style.overflow = 'hidden'; // Блокуємо скрол фону
   setTimeout(() => { track.style.transition = 'transform 0.3s cubic-bezier(0.25,1,0.5,1)'; }, 50);
 }
 
@@ -867,6 +876,7 @@ function handleTouchEnd(e) {
 function closeImageModal(event) { 
     if (event && event.target.id !== 'image-modal' && !event.target.classList.contains('image-modal-close') && !event.target.classList.contains('image-modal-slider') && !event.target.classList.contains('image-modal-slide')) { return; } 
     document.getElementById('image-modal').classList.remove('active'); 
+    document.body.style.overflow = ''; // Розблоковуємо скрол
 }
 // === КІНЕЦЬ ЛОГІКИ ГАЛЕРЕЇ ===
 
@@ -908,6 +918,22 @@ function validateCaptcha(formId) {
   } return true;
 }
 
+const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
+    const reader = new FileReader(); reader.readAsDataURL(file);
+    reader.onload = (event) => {
+        const img = new Image(); img.src = event.target.result;
+        img.onload = () => {
+            const canvas = document.createElement('canvas'); const MAX_WIDTH = 1000; const MAX_HEIGHT = 1000;
+            let width = img.width; let height = img.height;
+            if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
+            else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+            canvas.width = width; canvas.height = height;
+            const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]); 
+        };
+    }; reader.onerror = error => reject(error);
+});
+
 async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos) {
   event.preventDefault(); if (!validateCaptcha(formId)) return;
   const btn = document.getElementById(btnId); const origText = btn.innerText;
@@ -937,11 +963,13 @@ function openModalForm(formId, modalId) {
     if(form) form.reset(); 
     setupCaptcha(formId); 
     document.getElementById(modalId).classList.add('active'); 
+    document.body.style.overflow = 'hidden'; // Блокуємо скрол фону
 }
 
 function closeModalForm(event, modalId) { 
     if (!event || event.target.classList.contains('close-modal-btn') || event.target.id === modalId) {
         document.getElementById(modalId).classList.remove('active');
+        document.body.style.overflow = ''; // Розблоковуємо скрол
     }
 }
 
@@ -1818,19 +1846,20 @@ async function showDailyVolunteerAlert() {
             }
 
             const modalContent = document.getElementById('daily-zsu-content');
-            modalContent.innerHTML = `
-                <div style="text-align: center; font-size: 40px; margin-bottom: 5px;">🇺🇦</div>
-                <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 800; text-align: center; color: #fff; line-height: 1.3;">${title}</h3>
-                <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: left; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${desc}</div>
-                ${progressHtml}
-                ${btnHtml}
-                <button onclick="closeModalForm(null, 'daily-zsu-modal')" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); padding: 12px; border-radius: 14px; font-weight: 700; margin-top: 10px; font-size: 14px; cursor: pointer; transition: 0.2s;">Повернутися до сайту</button>
-            `;
+        modalContent.innerHTML = `
+            <div style="text-align: center; font-size: 40px; margin-bottom: 5px;">🇺🇦</div>
+            <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 800; text-align: center; color: #fff; line-height: 1.3;">${title}</h3>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: left; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${desc}</div>
+            ${progressHtml}
+            ${btnHtml}
+            <button onclick="closeModalForm(null, 'daily-zsu-modal')" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); padding: 12px; border-radius: 14px; font-weight: 700; margin-top: 10px; font-size: 14px; cursor: pointer; transition: 0.2s;">Повернутися до сайту</button>
+        `;
 
-            document.getElementById('daily-zsu-modal').classList.add('active');
-            localStorage.setItem('last_zsu_alert_date', today);
-        }
-    } catch (e) {
+        document.getElementById('daily-zsu-modal').classList.add('active');
+        document.body.style.overflow = 'hidden'; // Блокуємо скрол фону
+        localStorage.setItem('last_zsu_alert_date', today);
+    }
+} catch (e) {
         console.error("Failed to load daily ZSU alert", e);
     }
 }
