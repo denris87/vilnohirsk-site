@@ -1574,7 +1574,8 @@ async function loadVolunteersData() {
   if (!container) return;
   try {
     const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
-    const data = await fetchCachedJson(API_URL, 'volunteers_api', 5);
+    const response = await fetch(API_URL + '?_t=' + Date.now());
+    const data = await response.json();
     const activeItems = (data || []).filter(item => item.active !== false);
 
     if (!activeItems || activeItems.length === 0) {
@@ -1846,7 +1847,8 @@ async function showDailyVolunteerAlert() {
 
     try {
         const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
-        const data = await fetchCachedJson(API_URL, 'volunteers_api', 5);
+        const response = await fetch(API_URL + '?_t=' + Date.now());
+        const data = await response.json();
         const activeItems = (data || []).filter(item => item.active !== false);
 
         if (activeItems && activeItems.length > 0) {
