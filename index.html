@@ -29,7 +29,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<title>Smart Вільногірськ</title>
+<title>Smart Вільногірськ | Усе місто в одному додатку</title>
 
 <!-- PapaParse -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -1350,7 +1350,6 @@ async function loadLostFoundData() {
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
-        // Розумний пошук колонок за назвою (незалежно від порядку)
         const getValue = (row, possibleNames) => {
           const key = Object.keys(row).find(k => possibleNames.some(n => k.toLowerCase().includes(n)));
           return key ? String(row[key]).trim() : '';
@@ -1358,7 +1357,7 @@ async function loadLostFoundData() {
 
         const approvedItems = results.data.filter(row => {
           let status = getValue(row, ['статус', 'status']);
-          if (!status) { // Запасний варіант: якщо колонки "Статус" немає, беремо останню колонку
+          if (!status) { 
              const keys = Object.keys(row);
              status = String(row[keys[keys.length - 1]]).trim();
           }
@@ -1384,7 +1383,6 @@ async function loadLostFoundData() {
           };
         });
         
-        // Убрали жорсткий фільтр isVilnohirsk(), щоб не губити оголошення з нестандартною локацією
         const localItems = approvedItems;
         checkNotification('lost', localItems);
         
@@ -1521,7 +1519,6 @@ function switchBlaBlaList(type) {
   if (type === 'drivers') { document.getElementById('btn-show-drivers').classList.add('active'); document.getElementById('blabla-drivers-list').style.display = 'block'; } 
   else { document.getElementById('btn-show-passengers').classList.add('active'); document.getElementById('blabla-passengers-list').style.display = 'block'; }
   
-  // --- АНАЛИТИКА: Вкладки БлаБлаКар ---
   window.dataLayer = window.dataLayer || [];
   window.dataLayer.push({
       'event': 'tab_view',
@@ -1882,20 +1879,20 @@ async function showDailyVolunteerAlert() {
             }
 
             const modalContent = document.getElementById('daily-zsu-content');
-        modalContent.innerHTML = `
-            <div style="text-align: center; font-size: 40px; margin-bottom: 5px;">🇺🇦</div>
-            <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 800; text-align: center; color: #fff; line-height: 1.3;">${title}</h3>
-            <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: left; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${desc}</div>
-            ${progressHtml}
-            ${btnHtml}
-            <button onclick="closeModalForm(null, 'daily-zsu-modal')" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); padding: 12px; border-radius: 14px; font-weight: 700; margin-top: 10px; font-size: 14px; cursor: pointer; transition: 0.2s;">Повернутися до сайту</button>
-        `;
+            modalContent.innerHTML = `
+                <div style="text-align: center; font-size: 40px; margin-bottom: 5px;">🇺🇦</div>
+                <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 800; text-align: center; color: #fff; line-height: 1.3;">${title}</h3>
+                <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: left; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${desc}</div>
+                ${progressHtml}
+                ${btnHtml}
+                <button onclick="closeModalForm(null, 'daily-zsu-modal')" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); padding: 12px; border-radius: 14px; font-weight: 700; margin-top: 10px; font-size: 14px; cursor: transition: 0.2s;">Повернутися до сайту</button>
+            `;
 
-        document.getElementById('daily-zsu-modal').classList.add('active');
-        document.body.style.overflow = 'hidden'; // Блокуємо скрол фону
-        localStorage.setItem('last_zsu_alert_date', today);
-    }
-} catch (e) {
+            document.getElementById('daily-zsu-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            localStorage.setItem('last_zsu_alert_date', today);
+        }
+    } catch (e) {
         console.error("Failed to load daily ZSU alert", e);
     }
 }
