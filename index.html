@@ -752,33 +752,35 @@ function fallbackCopyText(text, successCb) {
 }
 
 function copyToClipboardBtn(text, btn) {
-    fallbackCopyText(text, () => {
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<span style="color:#00ff9c">✔️</span>';
-        setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
-    });
+    fallbackCopyText(text, () => {
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<span style="color:#00ff9c">✔️</span>';
+        setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
+    });
 }
 
 async function fetchCachedText(url, key, ttlMinutes = 5) {
-    const cached = localStorage.getItem('cache_' + key);
-    const cachedTime = localStorage.getItem('cache_time_' + key);
-    const now = Date.now();
-    
-    if (cached && cachedTime) {
-        // Якщо кеш ще "свіжий" (в межах ttlMinutes), ПРОСТО повертаємо його без фонових запитів
-        if ((now - parseInt(cachedTime)) < (ttlMinutes * 60000)) {
-            return cached;
-        } else {
-            // Кеш протермінувався: робимо фоновий запит на оновлення, але миттєво віддаємо старий кеш
-            fetch(url).then(r=>r.text()).then(t => { localStorage.setItem('cache_' + key, t); localStorage.setItem('cache_time_' + key, now.toString()); }).catch(e=>{});
-            return cached;
-        }
-    }
-    
-    try {
-        const r = await fetch(url); if (!r.ok) throw new Error('HTTP Error');
-        const text = await r.text(); localStorage.setItem('cache_' + key, text); localStorage.setItem('cache_time_' + key, now.toString()); return text;
-    } catch (e) { if (cached) return cached; throw e; }
+    const cached = localStorage.getItem('cache_' + key);
+    
+    try {
+        // МИТТЄВЕ ОНОВЛЕННЯ: Додаємо унікальний параметр, щоб обійти кеш браузера
+        const separator = url.includes('?') ? '&' : '?';
+        const freshUrl = url + separator + '_nocache=' + Date.now();
+        
+        // Прибрали кастомні headers, бо публічні API (погода, банки) блокують їх через CORS-захист
+        const r = await fetch(freshUrl, { 
+            cache: 'no-store'
+        }); 
+        if (!r.ok) throw new Error('HTTP Error');
+        
+        const text = await r.text(); 
+        localStorage.setItem('cache_' + key, text); 
+        return text;
+    } catch (e) { 
+        // Якщо пропав інтернет або API недоступне - віддаємо старі дані з пам'яті
+        if (cached) return cached; 
+        throw e; 
+    }
 }
 
 async function fetchCachedJson(url, key, ttlMinutes = 5) { return JSON.parse(await fetchCachedText(url, key, ttlMinutes)); }
@@ -1570,15 +1572,14 @@ async function loadBlaBlaCarData() {
 }
 
 async function loadVolunteersData() {
-  const container = document.getElementById('volunteers-list-content');
-  if (!container) return;
-  try {
-    const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
-    const response = await fetch(API_URL + '?_t=' + Date.now());
-    const data = await response.json();
-    const activeItems = (data || []).filter(item => item.active !== false);
+  const container = document.getElementById('volunteers-list-content');
+  if (!container) return;
+  try {
+    const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
+    const data = await fetchCachedJson(API_URL, 'volunteers_api', 0);
+    const activeItems = (data || []).filter(item => item.active !== false);
 
-    if (!activeItems || activeItems.length === 0) {
+    if (!activeItems || activeItems.length === 0) {
         container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>';
         return;
     }
@@ -1840,19 +1841,18 @@ function toggleRadio() {
 }
 
 async function showDailyVolunteerAlert() {
-    const today = new Date().toDateString();
-    const lastSeen = localStorage.getItem('last_zsu_alert_date');
+    const today = new Date().toDateString();
+    const lastSeen = localStorage.getItem('last_zsu_alert_date');
 
-    if (lastSeen === today) return;
+    if (lastSeen === today) return;
 
-    try {
-        const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
-        const response = await fetch(API_URL + '?_t=' + Date.now());
-        const data = await response.json();
-        const activeItems = (data || []).filter(item => item.active !== false);
+    try {
+        const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
+        const data = await fetchCachedJson(API_URL, 'volunteers_api', 0);
+        const activeItems = (data || []).filter(item => item.active !== false);
 
-        if (activeItems && activeItems.length > 0) {
-            const item = activeItems[0];
+        if (activeItems && activeItems.length > 0) {
+            const item = activeItems[0];
             const title = item.title || 'ЗБІР НА ЗСУ';
             const desc = item.description ? String(item.description).replace(/\n/g, '<br>') : '';
             const jarUrl = item.jar_url || '';
