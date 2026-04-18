@@ -9,14 +9,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-TBDJ9B94');</script>
 <!-- End Google Tag Manager -->
 
-<script>
-// Глобальний щит для перехоплення будь-яких прихованих помилок (щоб уникнути крашу інтерфейсу)
-window.addEventListener('unhandledrejection', function(event) {
-    console.error("Помилка завантаження даних:", event.reason);
-    event.preventDefault();
-});
-</script>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta property="og:title" content="Smart Вільногірськ | Усе місто в одному додатку">
@@ -337,11 +329,7 @@ input[type="file"].form-input{padding:8px;font-size:12px}
 </style>
 </head>
 <body>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBDJ9B94"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
-
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBDJ9B94" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div class="image-modal" id="image-modal" onclick="closeImageModal(event)">
   <div class="image-modal-close" onclick="closeImageModal(event)">&times;</div>
   <div class="image-modal-slider" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)">
@@ -350,7 +338,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div id="modal-image-counter"></div>
 </div>
 
-<!-- БЛАБЛАКАР МОДАЛКА -->
 <div class="custom-modal-overlay" id="blabla-modal" onclick="closeModalForm(event, 'blabla-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'blabla-modal')">&times;</div>
@@ -380,7 +367,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="form-group"><label class="form-label">Номер телефону</label><input type="tel" class="form-input" id="input-phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
       <div class="form-group"><label class="form-label">Коментар</label><textarea class="form-input" id="input-comment" rows="2"></textarea></div>
       <input type="hidden" id="input-type" value="">
-      
       <div class="form-group captcha-group">
         <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
         <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
@@ -391,7 +377,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- БАРАХОЛКА МОДАЛКА -->
 <div class="custom-modal-overlay" id="flea-modal" onclick="closeModalForm(event, 'flea-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'flea-modal')">&times;</div>
@@ -413,7 +398,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="form-group"><label class="form-label">Опис товару</label><textarea class="form-input" name="description" rows="3" required></textarea></div>
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      
       <div class="form-group captcha-group">
         <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
         <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
@@ -424,7 +408,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- ЗНАХІДКИ МОДАЛКА -->
 <div class="custom-modal-overlay" id="lost-modal" onclick="closeModalForm(event, 'lost-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'lost-modal')">&times;</div>
@@ -437,7 +420,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="form-group"><label class="form-label">Локація</label><input type="text" class="form-input" name="location" value="Вільногірськ" required></div>
       <div class="form-group"><label class="form-label">Додати фото (якщо є)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple></div>
       <div class="form-group"><label class="form-label">Ваш телефон (не обов'язково)</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" oninput="formatUAPhone(this)"></div>
-      
       <div class="form-group captcha-group">
         <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
         <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
@@ -448,7 +430,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- ВАКАНСІЇ МОДАЛКА -->
 <div class="custom-modal-overlay" id="job-modal" onclick="closeModalForm(event, 'job-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'job-modal')">&times;</div>
@@ -471,7 +452,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="form-group"><label class="form-label">Опис</label><textarea class="form-input" name="description" rows="4" required></textarea></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      
       <div class="form-group captcha-group">
         <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
         <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
@@ -482,7 +462,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- НЕРУХОМІСТЬ МОДАЛКА -->
 <div class="custom-modal-overlay" id="estate-modal" onclick="closeModalForm(event, 'estate-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'estate-modal')">&times;</div>
@@ -511,7 +490,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="form-group"><label class="form-label">Опис та адреса</label><textarea class="form-input" name="description" rows="3" placeholder="Деталі, район..." required></textarea></div>
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      
       <div class="form-group captcha-group">
         <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
         <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
@@ -522,13 +500,34 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </div>
 
-<!-- ЩОДЕННА МОДАЛКА ЗСУ -->
+<div class="custom-modal-overlay" id="promo-modal" onclick="closeModalForm(event, 'promo-modal')">
+  <div class="custom-modal-box" onclick="event.stopPropagation()">
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'promo-modal')">&times;</div>
+    <h3 class="form-title" style="color: #ff3366;">🔥 Додати акцію</h3>
+    <form id="custom-promo-form" onsubmit="submitGenericForm(event, 'custom-promo-form', 'promo-modal', 'promo-submit-btn', 'promo', 1)">
+      <div class="form-group"><label class="form-label">Назва вашого магазину/закладу</label><input type="text" class="form-input" name="company" placeholder="Наприклад: Кав'ярня 'Мрія'" required></div>
+      <div class="form-group"><label class="form-label">Заголовок акції</label><input type="text" class="form-input" name="title" placeholder="Наприклад: Знижка -20% на все" required></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Суть знижки</label><input type="text" class="form-input" name="discount" placeholder="-20%, 1+1=3, тощо" required></div>
+        <div class="form-group"><label class="form-label">Діє до (включно)</label><input type="date" class="form-input" name="validUntil" required></div>
+      </div>
+      <div class="form-group"><label class="form-label">Опис умов</label><textarea class="form-input" name="description" rows="3" placeholder="Детальні умови акції..." required></textarea></div>
+      <div class="form-group"><label class="form-label">Рекламне фото (1 шт)</label><input type="file" class="form-input" name="photos" accept="image/*" required></div>
+      <div class="form-group"><label class="form-label">Телефон для довідок</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
+      <div class="form-group captcha-group">
+        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+        <input type="hidden" class="captcha-answer">
+      </div>
+      <button type="submit" class="form-submit-btn promo" id="promo-submit-btn">Опублікувати</button>
+    </form>
+  </div>
+</div>
+
 <div class="custom-modal-overlay" id="daily-zsu-modal" onclick="closeModalForm(event, 'daily-zsu-modal')" style="z-index: 100005; background: rgba(0,0,0,0.85);">
   <div class="custom-modal-box" onclick="event.stopPropagation()" style="background: linear-gradient(145deg, #1a2a42, #0d1b2a); border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(56,189,248,0.2);">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'daily-zsu-modal')">&times;</div>
-    <div id="daily-zsu-content">
-      <!-- Контент завантажиться автоматично -->
-    </div>
+    <div id="daily-zsu-content"></div>
   </div>
 </div>
 
@@ -564,8 +563,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
             <div id="alert-promos" class="content-section">
               <div style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); background: linear-gradient(135deg, rgba(255, 51, 102, 0.15), rgba(255, 159, 67, 0.15)); border: 1px dashed rgba(255, 159, 67, 0.4); border-radius: 14px; margin-bottom: 10px; line-height: 1.4;">
-                🛍️ Бажаєте додати гарячу акцію вашого закладу?<br>
-                Пишіть нам у Telegram: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800; font-size: 13px;">@vilnohirsk</a>
+                🛍️ Бажаєте додати гарячу акцію вашого закладу?<br>Пишіть нам у Telegram: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800; font-size: 13px;">@vilnohirsk</a>
               </div>
               <div style="text-align: center; margin-bottom: 12px; font-size: 11px; color:rgba(255,255,255,0.7); font-weight: 600;">Гарячі знижки та пропозиції нашого міста 🔥</div>
               <div id="promos-list-content"></div>
@@ -715,7 +713,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
-    <!-- БЛОК ВІДГУКІВ БЕТА-ТЕСТУ -->
     <div style="display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 15px; z-index: 50;">
       <div class="liquid-glass" style="flex: 1; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="document.getElementById('beta-drawer').classList.toggle('open')">
         <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">
@@ -786,14 +783,11 @@ function copyToClipboardBtn(text, btn) {
 
 async function fetchCachedText(url, key, ttlMinutes = 5) {
     const cached = localStorage.getItem('cache_' + key);
-    
     try {
         const separator = url.includes('?') ? '&' : '?';
         const freshUrl = url + separator + '_nocache=' + Date.now();
-        
         const r = await fetch(freshUrl, { cache: 'no-store' }); 
         if (!r.ok) throw new Error('HTTP Error');
-        
         const text = await r.text(); 
         localStorage.setItem('cache_' + key, text); 
         return text;
@@ -1014,10 +1008,8 @@ function recalcDropdownHeight(imgEl) {
 
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
-
   const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'alert-promos':'promos', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
-
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
   
   if (btn.classList.contains('active')) {
@@ -1026,7 +1018,6 @@ function switchAppTab(tabId, btn, group) {
       if(groupDrawer) groupDrawer.classList.remove('open');
       return;
   }
-
   document.querySelectorAll('.main-list-widget, .shopping-drawer, .alert-drawer').forEach(d => d.classList.remove('open'));
   document.querySelectorAll('.tab-btn, .tab-alert').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
@@ -1038,17 +1029,11 @@ function switchAppTab(tabId, btn, group) {
       if(tabId === 'alert-communal') drawer.classList.add('drawer-communal');
       drawer.classList.add('open');
   }
-
   btn.classList.add('active'); 
   const targetSection = document.getElementById(tabId);
   if (targetSection) targetSection.classList.add('active'); 
-
   window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({
-      'event': 'tab_view',
-      'tab_name': tabId,
-      'tab_group': group
-  });
+  window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
 }
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
@@ -1077,7 +1062,7 @@ async function loadWeather(){
 
 async function loadExchangeRates() {
   try {
-    const pbRes = await fetch('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=11');
+    const pbRes = await fetch('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=5');
     if (pbRes.ok) {
         const pb = await pbRes.json();
         const usd = pb.find(c => c.ccy === 'USD');
@@ -1090,25 +1075,34 @@ async function loadExchangeRates() {
            return;
         }
     }
-  } catch (e) {
-  }
-  
+  } catch (e) {}
   try {
-      const proxyUrlMono = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://api.monobank.ua/bank/currency');
-      const dataMono = await fetchCachedJson(proxyUrlMono, 'mono_rates', 60);
-      if (dataMono && dataMono.contents) {
-          const mono = JSON.parse(dataMono.contents);
-          const usd = mono.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980);
-          const eur = mono.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
+      const dataMono = await fetchCachedJson('https://api.monobank.ua/bank/currency', 'mono_rates', 60);
+      if (Array.isArray(dataMono)) {
+          const usd = dataMono.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980);
+          const eur = dataMono.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
           if (usd && eur) {
              document.getElementById('usd-buy').textContent = Number(usd.rateBuy).toFixed(2);
              document.getElementById('usd-sell').textContent = Number(usd.rateSell).toFixed(2);
              document.getElementById('eur-buy').textContent = Number(eur.rateBuy).toFixed(2);
              document.getElementById('eur-sell').textContent = Number(eur.rateSell).toFixed(2);
+             return;
           }
       }
-  } catch(e2) { 
-  }
+  } catch(e2) {}
+  try {
+      const dataNbu = await fetchCachedJson('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json', 'nbu_rates', 60);
+      if (Array.isArray(dataNbu)) {
+          const usd = dataNbu.find(c => c.cc === 'USD');
+          const eur = dataNbu.find(c => c.cc === 'EUR');
+          if (usd && eur) {
+             document.getElementById('usd-buy').textContent = Number(usd.rate).toFixed(2);
+             document.getElementById('usd-sell').textContent = Number(usd.rate).toFixed(2);
+             document.getElementById('eur-buy').textContent = Number(eur.rate).toFixed(2);
+             document.getElementById('eur-sell').textContent = Number(eur.rate).toFixed(2);
+          }
+      }
+  } catch(e3) {}
 }
 
 function updateDateTime(){
@@ -1301,21 +1295,23 @@ function renderPromosList(items) {
 async function loadPromosData() {
   try {
     const response = await fetch(PROMOS_API_URL + '?_t=' + Date.now());
-    if (!response.ok) throw new Error('Network response was not ok');
+    if (!response.ok) throw new Error(`Код помилки: ${response.status}`);
     
     const data = await response.json();
-    const activeItems = (data || []).filter(item => item.active !== false);
-    
+    let itemsArray = [];
+    if (Array.isArray(data)) itemsArray = data;
+    else if (data && Array.isArray(data.promos)) itemsArray = data.promos;
+
+    const activeItems = itemsArray.filter(item => item && item.active !== false);
     checkNotification('promos', activeItems);
     
     allPromoItems = [
         ...activeItems.filter(item => item.vip).reverse(),
         ...activeItems.filter(item => !item.vip).reverse()
     ];
-    
     renderPromosList(allPromoItems);
   } catch (e) { 
-    document.getElementById('promos-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження акцій: ${e.message}</div>`; 
+    document.getElementById('promos-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d; line-height: 1.4;">Помилка зв'язку з сервером акцій.<br><b>Деталі: ${e.message}</b><br><br><span style="font-size:10px; color:rgba(255,255,255,0.6);">Перевірте, чи публічний репозиторій на GitHub і чи немає помилок у файлі promos.yaml.</span></div>`; 
   }
 }
 
@@ -1610,13 +1606,8 @@ function switchBlaBlaList(type) {
   document.getElementById('blabla-drivers-list').style.display = 'none'; document.getElementById('blabla-passengers-list').style.display = 'none';
   if (type === 'drivers') { document.getElementById('btn-show-drivers').classList.add('active'); document.getElementById('blabla-drivers-list').style.display = 'block'; } 
   else { document.getElementById('btn-show-passengers').classList.add('active'); document.getElementById('blabla-passengers-list').style.display = 'block'; }
-  
   window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({
-      'event': 'tab_view',
-      'tab_name': 'blablacar_' + type,
-      'tab_group': 'blablacar_sub'
-  });
+  window.dataLayer.push({'event': 'tab_view', 'tab_name': 'blablacar_' + type, 'tab_group': 'blablacar_sub'});
 }
 
 async function submitBlaBlaForm(event) {
@@ -1635,10 +1626,8 @@ async function loadBlaBlaCarData() {
   try {
     const d = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 5);
     checkNotification('blablacar', d);
-    
     const dr = d.filter(x => x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
     const ps = d.filter(x => x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
-    
     document.getElementById('blabla-drivers-list').innerHTML = dr.length ? dr.map(x => `
       <div class="blabla-card">
         <div class="blabla-route">📍 ${x.from} - ${x.to}</div>
@@ -1648,7 +1637,6 @@ async function loadBlaBlaCarData() {
         ${x.comment ? `<div class="card-desc">💬 ${x.comment}</div>` : ''}
         <div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div>
       </div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
-      
     document.getElementById('blabla-passengers-list').innerHTML = ps.length ? ps.map(x => `
       <div class="blabla-card">
         <div class="blabla-route">📍 ${x.from} - ${x.to}</div>
@@ -1668,12 +1656,7 @@ async function loadVolunteersData() {
     const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
     const data = await fetchCachedJson(API_URL, 'volunteers_api', 0);
     const activeItems = (data || []).filter(item => item.active !== false);
-
-    if (!activeItems || activeItems.length === 0) {
-        container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>';
-        return;
-    }
-
+    if (!activeItems || activeItems.length === 0) { container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>'; return; }
     let html = '';
     activeItems.forEach((item, i) => {
         const title = item.title || 'ЗБІР НА ЗСУ';
@@ -1681,7 +1664,6 @@ async function loadVolunteersData() {
         const jarUrl = item.jar_url || '';
         const cardNumber = item.card_number || '';
         const id = Math.random().toString(36).substr(2, 5);
-
         const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0;
         const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
         let progressHtml = '';
@@ -1698,7 +1680,6 @@ async function loadVolunteersData() {
                 </div>
             </div>`;
         }
-
         let reqsHtml = '';
         if (jarUrl) {
             const jarId = 'jar-' + id;
@@ -1711,7 +1692,6 @@ async function loadVolunteersData() {
                 <div style="font-size: 13px; color: var(--time-green); font-weight: 800; word-break: break-all; line-height: 1.4;" id="${jarId}">${jarUrl}</div>
             </a>`;
         }
-        
         if (cardNumber) {
             const cardId = 'card-' + id;
             reqsHtml += `
@@ -1724,23 +1704,14 @@ async function loadVolunteersData() {
                 <button onclick="copyToClipboardBtn('${cardNumber.replace(/\s/g, '')}', this)" style="width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">📋 Копіювати номер</button>
             </div>`;
         }
-
         html += `
         <div style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;">
-            
             <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding-right: 15px;">
                 <div style="width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.6); margin-top: 4px; flex-shrink: 0; animation: pulseAlert 2s infinite;"></div>
-                <div style="font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; text-align: left;">
-                    ${title}
-                </div>
+                <div style="font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; text-align: left;">${title}</div>
             </div>
-
-            <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.6; text-align: left; margin-bottom: 15px; word-break: break-word;">
-                ${desc}
-            </div>
-
+            <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.6; text-align: left; margin-bottom: 15px; word-break: break-word;">${desc}</div>
             ${progressHtml}
-
             <div style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
                 <div style="font-size: 10px; font-weight: 700; color: var(--highlight-color); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: left;">Реквізити для допомоги:</div>
                 ${reqsHtml}
@@ -1758,12 +1729,7 @@ function renderJobs(jobs) {
   
   let html = '';
   const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
-  
-  const safeJobs = jobs.filter(job => {
-      const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase();
-      return !stopWords.some(word => textToSearch.includes(word));
-  });
-
+  const safeJobs = jobs.filter(job => { const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase(); return !stopWords.some(word => textToSearch.includes(word)); });
   const vipJobs = safeJobs.filter(j => j.isVip || j.vip).reverse();
   const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && (j.source === 'Work.ua' || j.date === 'Work.ua'));
   const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source !== 'Work.ua' && j.date !== 'Work.ua');
@@ -1771,11 +1737,7 @@ function renderJobs(jobs) {
   function createJobCardHtml(job, extraClass = '') {
     const isTel = job.url && job.url.startsWith('tel:');
     let displayPhone = job.phone;
-    if (displayPhone) {
-        let cleanPhone = displayPhone.replace(/\D/g, ''); 
-        if (cleanPhone.length >= 10) displayPhone = '0' + cleanPhone.slice(-9);
-        else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone;
-    }
+    if (displayPhone) { let cleanPhone = displayPhone.replace(/\D/g, ''); if (cleanPhone.length >= 10) displayPhone = '0' + cleanPhone.slice(-9); else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone; }
     const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Відгукнутися 🔗');
     const targetAttr = isTel ? '_self' : '_blank'; 
     let displaySalary = job.salary;
@@ -1786,206 +1748,86 @@ function renderJobs(jobs) {
     const employment = job.employment || 'Повна / Не вказано';
     const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : '';
     
-    return `
-      <div class="blabla-card ${vipClass} ${extraClass}" style="position: relative; text-align: left; ${!isVip ? 'background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2)); border:1px solid rgba(255,255,255,0.05);' : ''} border-radius: 16px; padding: 0; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+    return `<div class="blabla-card ${vipClass} ${extraClass}" style="position: relative; text-align: left; ${!isVip ? 'background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2)); border:1px solid rgba(255,255,255,0.05);' : ''} border-radius: 16px; padding: 0; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
         ${vipBadge}
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 15px; padding-right: 15px;">
           <div style="font-size: 15px; font-weight: 800; color: ${isVip ? '#ffcc00' : '#74b9ff'}; min-width: 0; word-break: break-word; line-height: 1.3;">${job.title}</div>
           <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 10px; font-size: 16px; border: 1px solid rgba(255,255,255,0.05);">💼</div>
         </div>
-        
         <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
           <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.8; flex: 1; min-width: 150px;">
             <div><b>Роботодавець:</b> ${job.company}</div>
             <div><b>Зайнятість:</b> ${employment}</div>
           </div>
-          <div style="font-size: 18px; font-weight: 900; color: #00ff9c; white-space: nowrap; text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
-            ${displaySalary}
-          </div>
+          <div style="font-size: 18px; font-weight: 900; color: #00ff9c; white-space: nowrap; text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${displaySalary}</div>
         </div>
-        
         ${safeDesc ? `<div class="card-desc" style="padding: 0 15px 15px 15px;">📝 ${safeDesc}</div>` : ''}
-        
         <div style="background: rgba(0,0,0,0.3); border-radius: 0 0 16px 16px; padding: 12px 15px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; min-width: 0; gap: 10px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05);">
            <div style="font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; margin-right: auto;">Дата: ${job.date}</div>
            <div style="font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #00b8ff, #0055ff); padding: 8px 14px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 184, 255, 0.4); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; flex-shrink: 1; word-wrap: break-word;" onclick="window.open('${job.url}', '${targetAttr}'); event.stopPropagation();">${btnText}</div>
         </div>
-      </div>
-    `;
+      </div>`;
   }
-
-  if (vipJobs.length > 0) {
-      html += '<div class="jobs-grid">';
-      vipJobs.forEach(job => { html += createJobCardHtml(job); });
-      html += '</div>';
-  }
+  if (vipJobs.length > 0) { html += '<div class="jobs-grid">'; vipJobs.forEach(job => { html += createJobCardHtml(job); }); html += '</div>'; }
   if (vipJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
   if (internetJobs.length > 0) {
-      html += `
-      <div style="margin-bottom: 10px;">
-          <button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-              <span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span>
-              <span class="arr" style="font-size:16px;">▾</span>
-          </button>
+      html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button>
           <div id="workua-drawer" class="workua-drawer"><div class="jobs-carousel">`;
-      internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); });
-      html += `</div></div></div>`;
+      internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); html += `</div></div></div>`;
   }
   if (internetJobs.length > 0 && regularJobs.length > 0) { html += '<div class="section-divider"></div>'; }
   if (regularJobs.length > 0) {
-      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">👥 Від місцевих жителів</div>';
-      html += '<div class="jobs-grid">';
-      shuffleArray(regularJobs).forEach(job => { html += createJobCardHtml(job); });
-      html += '</div>';
+      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">👥 Від місцевих жителів</div><div class="jobs-grid">';
+      shuffleArray(regularJobs).forEach(job => { html += createJobCardHtml(job); }); html += '</div>';
   }
   container.innerHTML = html;
 }
 
 async function loadJobsData() {
   let allJobs = [];
-
-  try {
-    const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 60);
-    if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); }
-  } catch(e) {}
-
-  const SHEET_GID = '1809375718'; 
-  const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
-  
+  try { const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 60); if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); } } catch(e) {}
+  const SHEET_GID = '1809375718'; const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
   try {
     const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 5);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
-        const userJobs = results.data.filter(row => {
-          const keys = Object.keys(row);
-          let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]];
-          return status && String(status).trim().toLowerCase() === 'одобрено';
-        }).map(row => {
-          const keys = Object.keys(row);
-          const phone = row['Телефон'] || row[keys[6]] || '';
-          const gender = row['Стать'] || row['gender'] || row[keys[7]] || '';
-          const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || '';
-          const vipStatus = row['VIP'] || row[keys[9]] || '';
-          const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
-
-          return {
-            title: row['Посада'] || row[keys[2]] || 'Без назви',
-            salary: row['Зарплата'] || row[keys[3]] || '-',
-            company: row['Компанія'] || row[keys[4]] || 'Не вказано',
-            description: row['Опис'] || row[keys[5]] || '',
-            date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно',
-            phone: phone, gender: gender, employment: employment,
-            url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#',
-            isVip: isVip, source: 'User'
-          };
+        const userJobs = results.data.filter(row => { const keys = Object.keys(row); let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]]; return status && String(status).trim().toLowerCase() === 'одобрено'; }).map(row => {
+          const keys = Object.keys(row); const phone = row['Телефон'] || row[keys[6]] || ''; const gender = row['Стать'] || row['gender'] || row[keys[7]] || ''; const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || ''; const vipStatus = row['VIP'] || row[keys[9]] || ''; const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
+          return { title: row['Посада'] || row[keys[2]] || 'Без назви', salary: row['Зарплата'] || row[keys[3]] || '-', company: row['Компанія'] || row[keys[4]] || 'Не вказано', description: row['Опис'] || row[keys[5]] || '', date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно', phone: phone, gender: gender, employment: employment, url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#', isVip: isVip, source: 'User' };
         });
-        allJobs = allJobs.concat(userJobs);
-        checkNotification('jobs', allJobs);
-        renderJobs(allJobs);
+        allJobs = allJobs.concat(userJobs); checkNotification('jobs', allJobs); renderJobs(allJobs);
       }
     });
-  } catch (e) { 
-      checkNotification('jobs', allJobs);
-      renderJobs(allJobs); 
-  }
+  } catch (e) { checkNotification('jobs', allJobs); renderJobs(allJobs); }
 }
 
 function toggleRadio() {
-    const audio = document.getElementById('radio-audio');
-    const icon = document.getElementById('radio-icon');
-    const status = document.getElementById('radio-status');
-    const eq = document.getElementById('equalizer');
-    
+    const audio = document.getElementById('radio-audio'); const icon = document.getElementById('radio-icon'); const status = document.getElementById('radio-status'); const eq = document.getElementById('equalizer');
     if (audio.paused) {
-        status.innerText = 'ЗАВАНТАЖЕННЯ...';
-        status.style.color = '#38bdf8';
-        eq.classList.add('playing');
-        
-        audio.src = "https://myradio24.org/muzdance?t=" + new Date().getTime();
-        audio.load();
-        
+        status.innerText = 'ЗАВАНТАЖЕННЯ...'; status.style.color = '#38bdf8'; eq.classList.add('playing');
+        audio.src = "https://myradio24.org/muzdance?t=" + new Date().getTime(); audio.load();
         const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
-                status.innerText = 'PLAY';
-                status.style.color = '#00ff9c';
-                icon.style.transform = 'none';
-            }).catch(error => {
-                status.innerText = 'ПОМИЛКА';
-                status.style.color = '#ff4d4d';
-                eq.classList.remove('playing');
-            });
-        }
+        if (playPromise !== undefined) { playPromise.then(() => { icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'; status.innerText = 'PLAY'; status.style.color = '#00ff9c'; icon.style.transform = 'none'; }).catch(error => { status.innerText = 'ПОМИЛКА'; status.style.color = '#ff4d4d'; eq.classList.remove('playing'); }); }
     } else {
-        audio.pause();
-        audio.src = ""; 
-        icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg>';
-        status.innerText = 'PAUSED';
-        status.style.color = 'rgba(255,255,255,0.5)';
-        eq.classList.remove('playing');
-        icon.style.transform = 'translateX(1px)';
+        audio.pause(); audio.src = ""; icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg>'; status.innerText = 'PAUSED'; status.style.color = 'rgba(255,255,255,0.5)'; eq.classList.remove('playing'); icon.style.transform = 'translateX(1px)';
     }
 }
 
 async function showDailyVolunteerAlert() {
-    const today = new Date().toDateString();
-    const lastSeen = localStorage.getItem('last_zsu_alert_date');
-
-    if (lastSeen === today) return;
-
+    const today = new Date().toDateString(); const lastSeen = localStorage.getItem('last_zsu_alert_date'); if (lastSeen === today) return;
     try {
-        const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
-        const data = await fetchCachedJson(API_URL, 'volunteers_api', 0);
-        const activeItems = (data || []).filter(item => item.active !== false);
-
+        const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers'; const data = await fetchCachedJson(API_URL, 'volunteers_api', 0); const activeItems = (data || []).filter(item => item.active !== false);
         if (activeItems && activeItems.length > 0) {
-            const item = activeItems[0];
-            const title = item.title || 'ЗБІР НА ЗСУ';
-            const desc = item.description ? String(item.description).replace(/\n/g, '<br>') : '';
-            const jarUrl = item.jar_url || '';
-            const cardNumber = item.card_number || '';
-            const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0;
-            const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
-
+            const item = activeItems[0]; const title = item.title || 'ЗБІР НА ЗСУ'; const desc = item.description ? String(item.description).replace(/\n/g, '<br>') : ''; const jarUrl = item.jar_url || ''; const cardNumber = item.card_number || ''; const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0; const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
             let progressHtml = '';
-            if (goal > 0) {
-                const percent = Math.min(Math.round((collected / goal) * 100), 100);
-                progressHtml = `
-                <div style="width: 100%; margin-top: 15px; margin-bottom: 15px;">
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
-                        <span style="color: #00ff9c;">Зібрано: ${collected.toLocaleString('uk-UA')} ₴</span>
-                        <span style="color: rgba(255,255,255,0.5);">Ціль: ${goal.toLocaleString('uk-UA')} ₴</span>
-                    </div>
-                    <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);">
-                        <div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, #38bdf8, #ffcc00); border-radius: 10px; transition: width 1s ease-in-out;"></div>
-                    </div>
-                </div>`;
-            }
-
-            let btnHtml = '';
-            if (jarUrl) {
-                btnHtml = `<a href="${jarUrl}" target="_blank" style="display: block; width: 100%; background: #fff; color: #000; text-align: center; padding: 14px; border-radius: 14px; font-weight: 900; text-decoration: none; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 15px rgba(255,255,255,0.2);">💸 Підтримати банку</a>`;
-            }
-
+            if (goal > 0) { const percent = Math.min(Math.round((collected / goal) * 100), 100); progressHtml = `<div style="width: 100%; margin-top: 15px; margin-bottom: 15px;"><div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;"><span style="color: #00ff9c;">Зібрано: ${collected.toLocaleString('uk-UA')} ₴</span><span style="color: rgba(255,255,255,0.5);">Ціль: ${goal.toLocaleString('uk-UA')} ₴</span></div><div style="width: 100%; height: 8px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);"><div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, #38bdf8, #ffcc00); border-radius: 10px; transition: width 1s ease-in-out;"></div></div></div>`; }
+            let btnHtml = ''; if (jarUrl) { btnHtml = `<a href="${jarUrl}" target="_blank" style="display: block; width: 100%; background: #fff; color: #000; text-align: center; padding: 14px; border-radius: 14px; font-weight: 900; text-decoration: none; font-size: 16px; margin-top: 10px; box-shadow: 0 4px 15px rgba(255,255,255,0.2);">💸 Підтримати банку</a>`; }
             const modalContent = document.getElementById('daily-zsu-content');
-            modalContent.innerHTML = `
-                <div style="text-align: center; font-size: 40px; margin-bottom: 5px;">🇺🇦</div>
-                <h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 800; text-align: center; color: #fff; line-height: 1.3;">${title}</h3>
-                <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: left; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${desc}</div>
-                ${progressHtml}
-                ${btnHtml}
-                <button onclick="closeModalForm(null, 'daily-zsu-modal')" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); padding: 12px; border-radius: 14px; font-weight: 700; margin-top: 10px; font-size: 14px; cursor: pointer; transition: 0.2s;">Повернутися до сайту</button>
-            `;
-
-            document.getElementById('daily-zsu-modal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            localStorage.setItem('last_zsu_alert_date', today);
+            modalContent.innerHTML = `<div style="text-align: center; font-size: 40px; margin-bottom: 5px;">🇺🇦</div><h3 style="margin: 0 0 10px 0; font-size: 18px; font-weight: 800; text-align: center; color: #fff; line-height: 1.3;">${title}</h3><div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: left; margin-bottom: 15px; max-height: 200px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${desc}</div>${progressHtml}${btnHtml}<button onclick="closeModalForm(null, 'daily-zsu-modal')" style="width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); padding: 12px; border-radius: 14px; font-weight: 700; margin-top: 10px; font-size: 14px; cursor: pointer; transition: 0.2s;">Повернутися до сайту</button>`;
+            document.getElementById('daily-zsu-modal').classList.add('active'); document.body.style.overflow = 'hidden'; localStorage.setItem('last_zsu_alert_date', today);
         }
-    } catch (e) {
-        console.error("Failed to load daily ZSU alert", e);
-    }
+    } catch (e) { console.error("Failed to load daily ZSU alert", e); }
 }
 
 async function submitBetaFeedback(event) {
@@ -1999,51 +1841,14 @@ async function submitBetaFeedback(event) {
 }
 
 const initApp = () => {
-  updateDateTime(); 
-  setInterval(updateDateTime, 1000); 
-  loadWeather(); 
-  loadAlerts(); 
-  loadExchangeRates();
-
-  setTimeout(() => {
-      loadTrainsData(); 
-      loadLongTrainsData(); 
-      loadBusesData(); 
-      loadEventsData();
-  }, 100);
-
-  setTimeout(() => {
-      loadPromosData();
-      loadShopsData(); 
-      loadFleaMarketData(); 
-      loadEstateData(); 
-      loadLostFoundData(); 
-      loadBlaBlaCarData(); 
-      loadJobsData();
-      loadPhonebookData();
-      loadGalleryData();
-      loadVolunteersData();
-      
-      setTimeout(showDailyVolunteerAlert, 1500);
-  }, 600);
-
-  setInterval(() => { 
-      loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); 
-      loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); 
-      loadBlaBlaCarData(); loadJobsData(); loadVolunteersData();
-      loadExchangeRates();
-  }, 60000);
-
-  document.querySelectorAll('.form-input').forEach(input => {
-    input.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); });
-  });
+  updateDateTime(); setInterval(updateDateTime, 1000); loadWeather(); loadAlerts(); loadExchangeRates();
+  setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); }, 100);
+  setTimeout(() => { loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGalleryData(); loadVolunteersData(); setTimeout(showDailyVolunteerAlert, 1500); }, 600);
+  setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadVolunteersData(); loadExchangeRates(); }, 60000);
+  document.querySelectorAll('.form-input').forEach(input => { input.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }); });
 };
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
+if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
 </script>
 </body>
 </html>
