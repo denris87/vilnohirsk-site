@@ -9,6 +9,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-TBDJ9B94');</script>
 <!-- End Google Tag Manager -->
 
+<script>
+// Глобальний щит для перехоплення будь-яких прихованих помилок (щоб уникнути крашу інтерфейсу)
+window.addEventListener('unhandledrejection', function(e) {
+console.error("Помилка завантаження даних:", e.reason);
+e.preventDefault();
+});
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta property="og:title" content="Smart Вільногірськ | Усе місто в одному додатку">
@@ -33,6 +41,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 <!-- PapaParse -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js"></script>
 
 <style>
 :root{--highlight-color:#ffcc00;--glass-bg:rgba(0,0,0,0.45);--glass-border:rgba(255,255,255,0.08);--glass-border-light:rgba(255,255,255,0.15);--glass-shadow:0 16px 40px rgba(0,0,0,0.3);--time-green:#00ff9c;--time-passed:rgba(255,255,255,0.4);--text-main:#fff;--bg-grad-1:#1e3c72;--bg-grad-2:#2a5298;--bg-grad-3:#009ffd;--bg-grad-4:#2af598}
@@ -215,7 +227,6 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 
 .cards-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start;}@media (min-width:650px){.cards-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
-/* ОПТИМІЗАЦІЯ КАРТОЧЕК */
 .card-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width:100%; }
 .card-price { color:var(--time-green); font-size:13px; font-weight:800; flex-shrink:0; min-width:0; word-break:break-word; text-transform:uppercase; margin:0;}
 .card-info { font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0; word-break:break-word; }
@@ -262,6 +273,20 @@ input[type="file"].form-input{padding:8px;font-size:12px}
 .form-submit-btn.flea,.form-submit-btn.lost,.form-submit-btn.estate{background:linear-gradient(135deg,#00ff9c,#00b8ff)}
 .form-submit-btn.promo{background:linear-gradient(135deg,#ff3366,#ff9f43); color: #fff;}
 .form-submit-btn:active{transform:translateY(2px)}
+
+/* TOGGLE SWITCH ДЛЯ СПОВІЩЕНЬ */
+.toggle-switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.2); transition: .3s; border-radius: 24px; }
+.toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+input:checked + .toggle-slider { background-color: var(--time-green); }
+input:checked + .toggle-slider:before { transform: translateX(18px); }
+.push-setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.push-setting-row:last-child { border-bottom: none; }
+.push-settings-list { max-height: 60vh; overflow-y: auto; padding-right: 5px; margin-bottom: 15px; }
+.push-settings-list::-webkit-scrollbar { width: 4px; }
+.push-settings-list::-webkit-scrollbar-track { background: transparent; }
+.push-settings-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
 
 .image-modal{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.98);z-index:100000;display:flex;flex-direction:column;justify-content:center;align-items:center;pointer-events:none;transition:opacity 0.3s ease; opacity:0;}
 .image-modal.active{opacity:1;pointer-events:auto;touch-action:none}
@@ -336,6 +361,36 @@ input[type="file"].form-input{padding:8px;font-size:12px}
     <div class="image-modal-track" id="modal-image-track"></div>
   </div>
   <div id="modal-image-counter"></div>
+</div>
+
+<!-- МОДАЛКА НАЛАШТУВАННЯ СПОВІЩЕНЬ -->
+<div class="custom-modal-overlay" id="push-settings-modal" onclick="closeModalForm(event, 'push-settings-modal')">
+  <div class="custom-modal-box" onclick="event.stopPropagation()">
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'push-settings-modal')">&times;</div>
+    <h3 class="form-title" style="color: #ffcc00; margin-bottom: 10px;">🔔 Сповіщення</h3>
+    <p style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 15px; line-height: 1.4;">Оберіть, про що ви хочете отримувати повідомлення на свій телефон:</p>
+    
+    <div class="push-settings-list">
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🚰</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Комунальний інформер</div></div><label class="toggle-switch"><input type="checkbox" id="push-communal"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">📰</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Новини</div></div><label class="toggle-switch"><input type="checkbox" id="push-news"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🎭</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Афіші</div></div><label class="toggle-switch"><input type="checkbox" id="push-events"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">📸</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Фото міста</div></div><label class="toggle-switch"><input type="checkbox" id="push-gallery"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">💙💛</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Допомога ЗСУ</div></div><label class="toggle-switch"><input type="checkbox" id="push-volunteers"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🔥</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Акції</div></div><label class="toggle-switch"><input type="checkbox" id="push-promos"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🚗</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Bla Bla Car</div></div><label class="toggle-switch"><input type="checkbox" id="push-blablacar"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🚆</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Електрички</div></div><label class="toggle-switch"><input type="checkbox" id="push-trains"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🚌</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Автобуси</div></div><label class="toggle-switch"><input type="checkbox" id="push-buses"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🛤️</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Потяги</div></div><label class="toggle-switch"><input type="checkbox" id="push-long_trains"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🏠</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Нерухомість</div></div><label class="toggle-switch"><input type="checkbox" id="push-estate"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🛍</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Шопінг</div></div><label class="toggle-switch"><input type="checkbox" id="push-shopping"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">📦</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Барахолка</div></div><label class="toggle-switch"><input type="checkbox" id="push-flea"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">💼</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Вакансії</div></div><label class="toggle-switch"><input type="checkbox" id="push-jobs"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🔍</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Знахідки</div></div><label class="toggle-switch"><input type="checkbox" id="push-lost"><span class="toggle-slider"></span></label></div>
+        <div class="push-setting-row" style="border-bottom: none;"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">📖</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Міський довідник</div></div><label class="toggle-switch"><input type="checkbox" id="push-guide"><span class="toggle-slider"></span></label></div>
+    </div>
+
+    <button onclick="savePushSettings()" class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff);" id="push-save-btn">Зберегти налаштування</button>
+  </div>
 </div>
 
 <div class="custom-modal-overlay" id="blabla-modal" onclick="closeModalForm(event, 'blabla-modal')">
@@ -713,7 +768,8 @@ input[type="file"].form-input{padding:8px;font-size:12px}
       </div>
     </div>
 
-    <div style="display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 15px; z-index: 50;">
+    <!-- КНОПКА ВІДГУКІВ ТА ДЗВІНОЧОК СПОВІЩЕНЬ -->
+    <div style="display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 15px; z-index: 50; width: 100%;">
       <div class="liquid-glass" style="flex: 1; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="document.getElementById('beta-drawer').classList.toggle('open')">
         <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">
           👋 Ваші відгуки, ідеї та пропозиції пишіть нам (Зв'язок з адмінами) <span style="color: var(--time-green); font-size: 14px; vertical-align: middle;">▾</span>
@@ -722,6 +778,10 @@ input[type="file"].form-input{padding:8px;font-size:12px}
           <textarea class="form-input" id="beta-feedback-text" rows="2" placeholder="Що можна покращити? Напишіть нам..." style="margin-bottom: 8px; font-size: 12px; padding: 10px;"></textarea>
           <button class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); margin-top: 0; padding: 10px; font-size: 13px;" onclick="submitBetaFeedback(event)">Відправити</button>
         </div>
+      </div>
+      <!-- Кнопка налаштування сповіщень -->
+      <div class="liquid-glass" style="width: 56px; height: 56px; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid rgba(255, 204, 0, 0.4); background: linear-gradient(135deg, rgba(255, 204, 0, 0.1), rgba(255, 136, 0, 0.15)); border-radius: 24px; font-size: 24px; flex-shrink: 0; box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2); transition: 0.2s;" onclick="openPushSettingsModal()" onactive="this.style.transform='scale(0.9)'">
+        🔔
       </div>
     </div>
 
@@ -1839,6 +1899,88 @@ async function submitBetaFeedback(event) {
     alert('✅ Дякуємо! Ваш відгук успішно відправлено.'); textEl.value = ''; document.getElementById('beta-drawer').classList.remove('open');
   } catch(e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = originalText; btn.disabled = false; }
 }
+
+// --- FIREBASE PUSH NOTIFICATIONS LOGIC ---
+let messaging;
+try {
+    firebase.initializeApp({
+      apiKey: "AIzaSyAG8UbnsZ2DphoF0H7w088vE7pNHMkJs80",
+      authDomain: "smart-vilnohirsk.firebaseapp.com",
+      projectId: "smart-vilnohirsk",
+      storageBucket: "smart-vilnohirsk.firebasestorage.app",
+      messagingSenderId: "676865197841",
+      appId: "1:676865197841:web:5d53065b2bb211bf77eeb0"
+    });
+    messaging = firebase.messaging();
+
+    messaging.onMessage((payload) => {
+        console.log('Отримано пуш на передньому плані:', payload);
+        alert(`🔔 НОВЕ СПОВІЩЕННЯ:\n${payload.notification.title}\n${payload.notification.body}`);
+    });
+} catch (e) {
+    console.error("Firebase не ініціалізовано:", e);
+}
+
+const TOPIC_KEYS = ['communal', 'news', 'events', 'gallery', 'volunteers', 'promos', 'blablacar', 'trains', 'buses', 'long_trains', 'estate', 'shopping', 'flea', 'jobs', 'lost', 'guide'];
+
+function openPushSettingsModal() {
+    const defaultTopics = {};
+    TOPIC_KEYS.forEach(k => defaultTopics[k] = false); // По умолчанию все выключено
+    
+    const topics = JSON.parse(localStorage.getItem('push_topics')) || defaultTopics;
+    
+    TOPIC_KEYS.forEach(k => {
+        const el = document.getElementById('push-' + k);
+        if(el) el.checked = !!topics[k];
+    });
+    
+    document.getElementById('push-settings-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+async function savePushSettings() {
+    const btn = document.getElementById('push-save-btn');
+    const origText = btn.innerText;
+    btn.innerText = 'Збереження...'; btn.disabled = true;
+
+    const topics = {};
+    TOPIC_KEYS.forEach(k => {
+        const el = document.getElementById('push-' + k);
+        topics[k] = el ? el.checked : false;
+    });
+
+    try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            
+            const token = await messaging.getToken({ 
+                vapidKey: 'BHmSY-eFLxPx60kZjEwkhEDXhYri04G6d-Pl37o-p6qQaCJT88VZImQiDPOoBTgEn9aRmZHsmw5Y5qhmsQ8y2Ls', 
+                serviceWorkerRegistration: registration 
+            });
+
+            if (token) {
+                await fetch(APP_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ formType: 'push_subscription', token: token, topics: topics })
+                });
+                localStorage.setItem('push_topics', JSON.stringify(topics));
+                alert('✅ Налаштування сповіщень успішно збережено!');
+                closeModalForm(null, 'push-settings-modal');
+            }
+        } else {
+            alert('❌ Ви не надали дозвіл на отримання сповіщень у вашому браузері.');
+        }
+    } catch (error) {
+        console.error('Помилка підключення сповіщень:', error);
+        alert('Помилка підключення. Можливо, ваш браузер або пристрій не підтримує сповіщення.');
+    } finally {
+        btn.innerText = origText; btn.disabled = false;
+    }
+}
+// --- END FIREBASE ---
 
 const initApp = () => {
   updateDateTime(); setInterval(updateDateTime, 1000); loadWeather(); loadAlerts(); loadExchangeRates();
