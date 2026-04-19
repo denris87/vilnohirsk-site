@@ -10,7 +10,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 
 <script>
-// Глобальний щит для перехоплення будь-яких прихованих помилок (щоб уникнути крашу інтерфейсу)
 window.addEventListener('unhandledrejection', function(e) {
 console.error("Помилка завантаження даних:", e.reason);
 e.preventDefault();
@@ -28,7 +27,6 @@ e.preventDefault();
 <!-- Базовий PWA Manifest -->
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU21hcnQg0JLRltC70YzQvdC+0LPRltGA0YHRjNC6Iiwic2hvcnRfbmFtZSI6ItCS0ZbQu9GM0L3QvtCz0ZbRgNGB0YzQuiIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMWUzYzcyIiwidGhlbWVfY29sb3IiOiIjMWUzYzcyIn0=">
 
-<!-- Попереднє підключення до серверів -->
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://docs.google.com">
 <link rel="preconnect" href="https://api.open-meteo.com">
@@ -42,355 +40,107 @@ e.preventDefault();
 <!-- PapaParse -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js"></script>
-
 <style>
 :root{--highlight-color:#ffcc00;--glass-bg:rgba(0,0,0,0.45);--glass-border:rgba(255,255,255,0.08);--glass-border-light:rgba(255,255,255,0.15);--glass-shadow:0 16px 40px rgba(0,0,0,0.3);--time-green:#00ff9c;--time-passed:rgba(255,255,255,0.4);--text-main:#fff;--bg-grad-1:#1e3c72;--bg-grad-2:#2a5298;--bg-grad-3:#009ffd;--bg-grad-4:#2af598}
 html,body{margin:0;padding:0;min-height:100vh;background-color:#1e3c72}
 *{-webkit-user-select:none;user-select:none;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background:linear-gradient(-45deg,var(--bg-grad-1),var(--bg-grad-2),var(--bg-grad-3),var(--bg-grad-4),var(--bg-grad-3));background-size:300% 300%;animation:gradientMove 30s ease-in-out infinite alternate; transition: color 0.3s ease;}
-
 @keyframes gradientMove{0%{background-position:0% 50%}100%{background-position:100% 50%}}
 .wrapper{width:100%;max-width:900px;padding:15px;padding-bottom:90px}.container{display:flex;flex-direction:column;gap:15px}
 .liquid-glass{background:var(--glass-bg);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-border);border-top:1px solid var(--glass-border-light);border-left:1px solid var(--glass-border-light);box-shadow:var(--glass-shadow);border-radius:28px}
 .alert-main-widget{padding:0;border-radius:28px;position:relative;z-index:100}
-
 .main-list-widget, .shopping-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.6s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
 .alert-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow-y:auto;overflow-x:hidden;opacity:0;visibility:visible;pointer-events:none;transition:max-height 0.5s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
 .alert-drawer.open{max-height:65vh;opacity:1;padding:15px;margin-top:10px;pointer-events:auto}
-.alert-drawer::-webkit-scrollbar { width: 6px; }
-.alert-drawer::-webkit-scrollbar-track { background: transparent; }
-.alert-drawer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 6px; }
-
+.alert-drawer::-webkit-scrollbar { width: 6px; } .alert-drawer::-webkit-scrollbar-track { background: transparent; } .alert-drawer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 6px; }
 .main-list-widget.open{max-height:6000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 10px;margin-top:10px}
 .shopping-drawer.open{max-height:10000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 15px;margin-top:10px}
-
 .tab-alert{padding:14px 8px;border-radius:12px;font-weight:800;font-size:clamp(10px,3.2vw,14px);text-align:center;cursor:pointer;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.05);transition:transform 0.2s,box-shadow 0.2s,background 0.3s;text-transform:uppercase;letter-spacing:0.5px;color:#fff;position:relative;display:flex;justify-content:center;align-items:center;line-height:1.2}
-.tab-alert.communal{color:#FFD700;border-bottom:3px solid #FFD700;background:linear-gradient(145deg,rgba(255,215,0,0.15),rgba(10,15,30,0.95))}
-.tab-alert.communal.active{background:rgba(255,215,0,0.3);box-shadow:0 0 15px rgba(255,215,0,0.6);color:#fff}
-.tab-alert.news{color:#00FF9D;border-bottom:3px solid #00FF9D;background:linear-gradient(145deg,rgba(0,255,157,0.15),rgba(10,15,30,0.95))}
-.tab-alert.news.active{background:rgba(0,255,157,0.3);box-shadow:0 0 15px rgba(0,255,157,0.6);color:#fff}
-.tab-alert.events{color:#FF3366;border-bottom:3px solid #FF3366;background:linear-gradient(145deg,rgba(255,51,102,0.15),rgba(10,15,30,0.95));text-shadow:0 0 5px rgba(255,51,102,0.6);animation:neonPulse 2s infinite alternate}
-.tab-alert.events.active{background:rgba(255,51,102,0.3);box-shadow:0 0 15px rgba(255,51,102,0.8);color:#fff}
-.tab-alert.gallery{color:#a18cd1;border-bottom:3px solid #a18cd1;background:linear-gradient(145deg,rgba(161,140,209,0.15),rgba(10,15,30,0.95))}
-.tab-alert.gallery.active{background:rgba(161,140,209,0.3);box-shadow:0 0 15px rgba(161,140,209,0.6);color:#fff}
-.tab-alert.volunteers{color:#38bdf8;border-bottom:3px solid #38bdf8;background:linear-gradient(145deg,rgba(56,189,248,0.15),rgba(10,15,30,0.95))}
-.tab-alert.volunteers.active{background:rgba(56,189,248,0.3);box-shadow:0 0 15px rgba(56,189,248,0.6);color:#fff}
-.tab-alert.promos{color:#ff9f43;border-bottom:3px solid #ff9f43;background:linear-gradient(145deg,rgba(255,159,67,0.15),rgba(10,15,30,0.95))}
-.tab-alert.promos.active{background:rgba(255,159,67,0.3);box-shadow:0 0 15px rgba(255,159,67,0.6);color:#fff}
+.tab-alert.communal{color:#FFD700;border-bottom:3px solid #FFD700;background:linear-gradient(145deg,rgba(255,215,0,0.15),rgba(10,15,30,0.95))} .tab-alert.communal.active{background:rgba(255,215,0,0.3);box-shadow:0 0 15px rgba(255,215,0,0.6);color:#fff}
+.tab-alert.news{color:#00FF9D;border-bottom:3px solid #00FF9D;background:linear-gradient(145deg,rgba(0,255,157,0.15),rgba(10,15,30,0.95))} .tab-alert.news.active{background:rgba(0,255,157,0.3);box-shadow:0 0 15px rgba(0,255,157,0.6);color:#fff}
+.tab-alert.events{color:#FF3366;border-bottom:3px solid #FF3366;background:linear-gradient(145deg,rgba(255,51,102,0.15),rgba(10,15,30,0.95));text-shadow:0 0 5px rgba(255,51,102,0.6);animation:neonPulse 2s infinite alternate} .tab-alert.events.active{background:rgba(255,51,102,0.3);box-shadow:0 0 15px rgba(255,51,102,0.8);color:#fff}
+.tab-alert.gallery{color:#a18cd1;border-bottom:3px solid #a18cd1;background:linear-gradient(145deg,rgba(161,140,209,0.15),rgba(10,15,30,0.95))} .tab-alert.gallery.active{background:rgba(161,140,209,0.3);box-shadow:0 0 15px rgba(161,140,209,0.6);color:#fff}
+.tab-alert.volunteers{color:#38bdf8;border-bottom:3px solid #38bdf8;background:linear-gradient(145deg,rgba(56,189,248,0.15),rgba(10,15,30,0.95))} .tab-alert.volunteers.active{background:rgba(56,189,248,0.3);box-shadow:0 0 15px rgba(56,189,248,0.6);color:#fff}
+.tab-alert.promos{color:#ff9f43;border-bottom:3px solid #ff9f43;background:linear-gradient(145deg,rgba(255,159,67,0.15),rgba(10,15,30,0.95))} .tab-alert.promos.active{background:rgba(255,159,67,0.3);box-shadow:0 0 15px rgba(255,159,67,0.6);color:#fff}
 @keyframes neonPulse{0%{box-shadow:0 0 5px rgba(255,51,102,0.1)}100%{box-shadow:0 0 12px rgba(255,51,102,0.5)}}
-
-@keyframes pulseAlert {
-  0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.9); }
-  70% { box-shadow: 0 0 0 8px rgba(255, 0, 0, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
-}
-.notification-dot, .train-alert-dot {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  background: #ff0000;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  animation: pulseAlert 1.5s infinite;
-  z-index: 10;
-}
-.notification-dot { width: 10px; height: 10px; display: none; }
-.train-alert-dot { width: 8px; height: 8px; z-index: 5; }
-
+@keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.9); } 70% { box-shadow: 0 0 0 8px rgba(255, 0, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); } }
+.notification-dot, .train-alert-dot { position: absolute; top: -2px; right: -2px; background: #ff0000; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.2); animation: pulseAlert 1.5s infinite; z-index: 10; }
+.notification-dot { width: 10px; height: 10px; display: none; } .train-alert-dot { width: 8px; height: 8px; z-index: 5; }
 .carousel-wrapper{width:100%;position:relative}.carousel-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:15px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding-bottom:5px;align-items:center}.carousel-container::-webkit-scrollbar{display:none}
-
 .alert-item{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:15px;flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;max-height:55vh;overflow-y:auto;}
-.alert-item::-webkit-scrollbar { width: 4px; }
-.alert-item::-webkit-scrollbar-track { background: transparent; }
-.alert-item::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-.alert-card-title{font-size:15px;font-weight:800;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px}
-.alert-card-text{font-size:14px;font-weight:500;line-height:1.5;text-align:left;color:rgba(255,255,255,0.9);}
-
+.alert-item::-webkit-scrollbar { width: 4px; } .alert-item::-webkit-scrollbar-track { background: transparent; } .alert-item::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+.alert-card-title{font-size:15px;font-weight:800;margin-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:8px} .alert-card-text{font-size:14px;font-weight:500;line-height:1.5;text-align:left;color:rgba(255,255,255,0.9);}
 .alert-empty{text-align:center;font-size:13px;color:rgba(255,255,255,0.5);padding:15px;font-weight:600}
-.carousel-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px}
-.carousel-dot{width:8px;height:8px;border-radius:50%;transition:background 0.3s,transform 0.3s}
-.carousel-dot.active{transform:scale(1.3)}
-
+.carousel-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px} .carousel-dot{width:8px;height:8px;border-radius:50%;transition:background 0.3s,transform 0.3s} .carousel-dot.active{transform:scale(1.3)}
 .top-row{display:flex;flex-direction:row;justify-content:space-between;gap:12px;width:100%}
-.widget{padding:15px 10px;flex:1;min-height:125px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;position:relative}
-.widget::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(to bottom,rgba(255,255,255,0.08),transparent);border-radius:28px 28px 0 0;pointer-events:none}
-.datetime{text-align:center;width:100%}
-#date{font-size:clamp(18px,4.8vw,24px);font-weight:800;white-space:nowrap;letter-spacing:0.5px;color:#fff;}
-#time{font-size:clamp(16px,4.2vw,20px);font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;}
-.weekdays{display:flex;justify-content:center;gap:3px;font-size:clamp(9px,2.3vw,12px);font-weight:700;margin:6px 0;text-transform:uppercase;width:100%;padding:0 5px}
-.day{color:rgba(255,255,255,0.4);transition:0.3s ease}
-.day.active{background-color:#ff4d4d !important;color:#fff !important;border-radius:6px;padding:2px 5px;box-shadow:0 0 10px rgba(255,77,77,0.4);}
-
+.widget{padding:15px 10px;flex:1;min-height:125px;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;position:relative} .widget::before{content:'';position:absolute;top:0;left:0;right:0;height:35%;background:linear-gradient(to bottom,rgba(255,255,255,0.08),transparent);border-radius:28px 28px 0 0;pointer-events:none}
+.datetime{text-align:center;width:100%} #date{font-size:clamp(18px,4.8vw,24px);font-weight:800;white-space:nowrap;letter-spacing:0.5px;color:#fff;} #time{font-size:clamp(16px,4.2vw,20px);font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums;color:#fff;}
+.weekdays{display:flex;justify-content:center;gap:3px;font-size:clamp(9px,2.3vw,12px);font-weight:700;margin:6px 0;text-transform:uppercase;width:100%;padding:0 5px} .day{color:rgba(255,255,255,0.4);transition:0.3s ease} .day.active{background-color:#ff4d4d !important;color:#fff !important;border-radius:6px;padding:2px 5px;box-shadow:0 0 10px rgba(255,77,77,0.4);}
 .weather-box { position:relative; width:100%; display:flex; align-items:center; justify-content:center; flex: 1; }
-.weather-content { position:absolute; width:100%; transition:all 0.8s cubic-bezier(0.25,1,0.5,1); opacity:0; transform:translateY(10px) scale(0.95); text-align:center; pointer-events:none; display:flex; flex-direction:column; justify-content:center; align-items:center; }
-.weather-content.active { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
-.weather-city { font-weight:800; font-size:11px; color:rgba(255,255,255,0.6); margin-bottom:4px; text-transform:uppercase; letter-spacing:1.5px; }
-.weather-temp-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 2px 0; }
-.weather-icon { font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-.weather-temp { font-size:clamp(28px,7vw,36px); font-weight:900; white-space:nowrap; text-shadow:0 2px 10px rgba(0,0,0,0.4); line-height:1; color:#fff;}
-.weather-wind { font-size:12px; color:rgba(255,255,255,0.7); margin-top:2px; font-weight:500; display: flex; align-items: center; justify-content: center; gap: 4px; }
-
-.schedule-group,.market-group{display:flex;flex-direction:column;gap:8px;position:relative;z-index:90;width:100%}
-.market-group{z-index:80}
+.weather-content { position:absolute; width:100%; transition:all 0.8s cubic-bezier(0.25,1,0.5,1); opacity:0; transform:translateY(10px) scale(0.95); text-align:center; pointer-events:none; display:flex; flex-direction:column; justify-content:center; align-items:center; } .weather-content.active { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+.weather-city { font-weight:800; font-size:11px; color:rgba(255,255,255,0.6); margin-bottom:4px; text-transform:uppercase; letter-spacing:1.5px; } .weather-temp-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 2px 0; } .weather-icon { font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); } .weather-temp { font-size:clamp(28px,7vw,36px); font-weight:900; white-space:nowrap; text-shadow:0 2px 10px rgba(0,0,0,0.4); line-height:1; color:#fff;} .weather-wind { font-size:12px; color:rgba(255,255,255,0.7); margin-top:2px; font-weight:500; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.schedule-group,.market-group{display:flex;flex-direction:column;gap:8px;position:relative;z-index:90;width:100%} .market-group{z-index:80}
 .tabs-wrapper{position:relative;width:100%;border-radius:20px;display:flex;overflow:hidden}
-.tabs-nav{display:flex;flex-wrap:nowrap;width:100%;padding:6px;gap:8px;background:var(--glass-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;position:relative;z-index:2;box-shadow:inset 0 2px 10px rgba(0,0,0,0.4),0 4px 15px rgba(0,0,0,0.2);border:1px solid var(--glass-border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-.tabs-nav::-webkit-scrollbar{display:none}
-.scroll-hint{position:absolute;right:0;top:0;bottom:0;width:45px;display:flex;align-items:center;justify-content:flex-end;padding-right:12px;background:linear-gradient(to right,rgba(0,0,0,0),rgba(0,0,0,0.9));border-radius:0 20px 20px 0;pointer-events:none;opacity:1;transition:opacity 0.4s ease;z-index:5}
-.scroll-hint.hidden{opacity:0}
-.scroll-hint span{color:var(--highlight-color);font-size:16px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,0.8);animation:blinkArrow 1.5s infinite}
-@keyframes blinkArrow{0%,100%{transform:translateX(0);opacity:0.3}50%{transform:translateX(4px);opacity:1}}
+.tabs-nav{display:flex;flex-wrap:nowrap;width:100%;padding:6px;gap:8px;background:var(--glass-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-radius:20px;position:relative;z-index:2;box-shadow:inset 0 2px 10px rgba(0,0,0,0.4),0 4px 15px rgba(0,0,0,0.2);border:1px solid var(--glass-border);overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch} .tabs-nav::-webkit-scrollbar{display:none}
+.scroll-hint{position:absolute;right:0;top:0;bottom:0;width:45px;display:flex;align-items:center;justify-content:flex-end;padding-right:12px;background:linear-gradient(to right,rgba(0,0,0,0),rgba(0,0,0,0.9));border-radius:0 20px 20px 0;pointer-events:none;opacity:1;transition:opacity 0.4s ease;z-index:5} .scroll-hint.hidden{opacity:0} .scroll-hint span{color:var(--highlight-color);font-size:16px;font-weight:900;text-shadow:0 2px 4px rgba(0,0,0,0.8);animation:blinkArrow 1.5s infinite} @keyframes blinkArrow{0%,100%{transform:translateX(0);opacity:0.3}50%{transform:translateX(4px);opacity:1}}
 .tab-btn{flex:0 0 auto;padding:10px 14px;border:1px solid rgba(255,255,255,0.1);background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.25));box-shadow:2px 4px 8px rgba(0,0,0,0.2),inset 1px 1px 2px rgba(255,255,255,0.15);color:#fff;font-weight:700;cursor:pointer;border-radius:12px;transition:all 0.3s ease;font-size:clamp(11px,3.2vw,13px);white-space:nowrap;position:relative; color:rgba(255,255,255,0.9);}
 .tab-btn.active{background:linear-gradient(145deg,rgba(255,255,255,0.3),rgba(255,255,255,0.1));color:#fff;border:1px solid rgba(255,255,255,0.3);text-shadow:0 1px 4px rgba(0,0,0,0.8);box-shadow:0 4px 12px rgba(0,0,0,0.4),inset 1px 1px 3px rgba(255,255,255,0.4);transform:translateY(-1px)}
-.content-section{display:none}
-.content-section.active{display:block;animation:tabFadeIn 0.3s ease-out forwards}
-@keyframes tabFadeIn{from{opacity:0}to{opacity:1}}
-
+.content-section{display:none} .content-section.active{display:block;animation:tabFadeIn 0.3s ease-out forwards} @keyframes tabFadeIn{from{opacity:0}to{opacity:1}}
 .table-head{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;font-weight:700;border-bottom:1px solid rgba(255,255,255,0.15);padding:0 10px 10px 10px;margin-bottom:12px;font-size:10px;text-transform:uppercase;color:#74b9ff;letter-spacing:0.5px}
-.train{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;padding:14px 10px;margin-bottom:10px;cursor:pointer;transition:all 0.3s ease;border-radius:16px;min-height:60px;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05)}
-.train:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3)}
+.train{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;padding:14px 10px;margin-bottom:10px;cursor:pointer;transition:all 0.3s ease;border-radius:16px;min-height:60px;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05)} .train:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3)}
 .train-num-box{position:relative;font-weight:800;display:inline-block;font-size:clamp(10px,2.8vw,12px);background:rgba(255,255,255,0.1);color:#fff;padding:4px 6px;border-radius:8px}
 .route-text{font-weight:700;color:#fff;text-align:center;font-size:clamp(9px,2.7vw,14px);width:100%;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.time-val{font-weight:800;font-size:clamp(12px,3.2vw,15px);font-variant-numeric:tabular-nums}
-.time-val.soon{color:var(--highlight-color)}.time-val.future{color:var(--time-green)}.time-val.passed{color:var(--time-passed)}
-
-.details{max-height:0;overflow:hidden;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;background:rgba(0,0,0,0.25);border-radius:16px; opacity:0;}
-.details.open{max-height:5000px;opacity:1;padding:15px;margin-top:2px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05)}
-.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.bus-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media (max-width:600px){.schedule-grid,.bus-grid{grid-template-columns:1fr}}
-@media (max-width:550px){.top-row{flex-wrap:wrap}.widget{min-width:45%}}
+.time-val{font-weight:800;font-size:clamp(12px,3.2vw,15px);font-variant-numeric:tabular-nums} .time-val.soon{color:var(--highlight-color)} .time-val.future{color:var(--time-green)} .time-val.passed{color:var(--time-passed)}
+.details{max-height:0;overflow:hidden;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;background:rgba(0,0,0,0.25);border-radius:16px; opacity:0;} .details.open{max-height:5000px;opacity:1;padding:15px;margin-top:2px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05)}
+.schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px} .bus-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px} @media (max-width:600px){.schedule-grid,.bus-grid{grid-template-columns:1fr}} @media (max-width:550px){.top-row{flex-wrap:wrap}.widget{min-width:45%}}
 .schedule-column{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:10px 8px}
-.schedule-row{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;align-items:center;gap:10px;text-align:left}
-.schedule-row:last-child{border-bottom:none}
-.schedule-left{flex:1;display:flex;align-items:flex-start;text-align:left;line-height:1.2;font-weight:500}
-.station-number{color:rgba(255,255,255,0.4);font-weight:600;margin-right:6px;font-size:10px;min-width:18px;text-align:right;padding-top:2px}
-.station-name-text{flex:1;word-wrap:break-word;color:#fff;}
-.row-highlight{background:rgba(255,255,255,0.1) !important;color:var(--highlight-color) !important;font-weight:800;border-radius:6px;}
-.row-highlight .station-name-text, .row-highlight .time-green, .row-highlight .time-passed, .row-highlight .time-normal { color: var(--highlight-color) !important; }
-.time-green{color:var(--time-green);font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}
-.time-passed{color:var(--time-passed);font-weight:500;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}
-.time-normal{color:#fff;font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}
-.details-note{text-align:center;font-weight:600;color:#ff6b6b;margin-bottom:10px;font-size:12px;line-height:1.5;background:rgba(255,107,107,0.1);padding:10px;border-radius:10px}
-.details-divider{width:50%;height:1px;background:rgba(255,255,255,0.1);margin:20px auto 15px}
-
-.shops-tile-grid{display:grid;grid-template-columns:repeat(2,minmax(0, 1fr));gap:12px;align-items:stretch;grid-auto-flow:dense;transition:padding-bottom 0.3s ease}
-@media (min-width:650px){.shops-tile-grid{grid-template-columns:repeat(3,minmax(0, 1fr))}}
-
-.shop-tile{display:flex;flex-direction:column;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:10px;cursor:pointer;transition:transform 0.3s ease,box-shadow 0.3s ease;position:relative;z-index:1;min-width:0;box-sizing:border-box;}
-.shop-tile:hover{background:linear-gradient(145deg,rgba(255,255,255,0.08),rgba(0,0,0,0.3));transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3),inset 0 1px 1px rgba(255,255,255,0.15)}
-.shop-tile.tile-active{background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.3));box-shadow:0 8px 24px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.2);z-index:50 !important}
-
-.shop-tile.vip-tile, .vip-job-card {
-  grid-column: 1 / -1; width: 85%; max-width: 480px; margin: 0 auto;
-  background: linear-gradient(135deg, rgba(255, 170, 0, 0.25), rgba(50, 15, 0, 0.9)) !important;
-  border: 1px solid rgba(255, 204, 0, 0.4) !important;
-  box-shadow: 0 10px 30px rgba(255, 170, 0, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.15) !important;
-  min-width: 0; box-sizing: border-box;
-}
-.shop-tile.vip-tile:hover, .vip-job-card:hover {
-  background: linear-gradient(135deg, rgba(255, 180, 0, 0.35), rgba(60, 20, 0, 0.95)) !important;
-  box-shadow: 0 12px 35px rgba(255, 180, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.2) !important;
-}
-.shop-tile.vip-tile .shop-inner-list {
-  background: linear-gradient(145deg, rgba(35, 25, 5, 0.98), rgba(15, 10, 0, 0.98)) !important; border: 1px solid rgba(255, 204, 0, 0.3) !important;
-}
+.schedule-row{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px;align-items:center;gap:10px;text-align:left} .schedule-row:last-child{border-bottom:none}
+.schedule-left{flex:1;display:flex;align-items:flex-start;text-align:left;line-height:1.2;font-weight:500} .station-number{color:rgba(255,255,255,0.4);font-weight:600;margin-right:6px;font-size:10px;min-width:18px;text-align:right;padding-top:2px} .station-name-text{flex:1;word-wrap:break-word;color:#fff;}
+.row-highlight{background:rgba(255,255,255,0.1) !important;color:var(--highlight-color) !important;font-weight:800;border-radius:6px;} .row-highlight .station-name-text, .row-highlight .time-green, .row-highlight .time-passed, .row-highlight .time-normal { color: var(--highlight-color) !important; }
+.time-green{color:var(--time-green);font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap} .time-passed{color:var(--time-passed);font-weight:500;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap} .time-normal{color:#fff;font-weight:700;font-family:monospace;font-size:14px;text-align:right;white-space:nowrap}
+.details-note{text-align:center;font-weight:600;color:#ff6b6b;margin-bottom:10px;font-size:12px;line-height:1.5;background:rgba(255,107,107,0.1);padding:10px;border-radius:10px} .details-divider{width:50%;height:1px;background:rgba(255,255,255,0.1);margin:20px auto 15px}
+.shops-tile-grid{display:grid;grid-template-columns:repeat(2,minmax(0, 1fr));gap:12px;align-items:stretch;grid-auto-flow:dense;transition:padding-bottom 0.3s ease} @media (min-width:650px){.shops-tile-grid{grid-template-columns:repeat(3,minmax(0, 1fr))}}
+.shop-tile{display:flex;flex-direction:column;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:10px;cursor:pointer;transition:transform 0.3s ease,box-shadow 0.3s ease;position:relative;z-index:1;min-width:0;box-sizing:border-box;} .shop-tile:hover{background:linear-gradient(145deg,rgba(255,255,255,0.08),rgba(0,0,0,0.3));transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3),inset 0 1px 1px rgba(255,255,255,0.15)} .shop-tile.tile-active{background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.3));box-shadow:0 8px 24px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.2);z-index:50 !important}
+.shop-tile.vip-tile, .vip-job-card { grid-column: 1 / -1; width: 85%; max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, rgba(255, 170, 0, 0.25), rgba(50, 15, 0, 0.9)) !important; border: 1px solid rgba(255, 204, 0, 0.4) !important; box-shadow: 0 10px 30px rgba(255, 170, 0, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.15) !important; min-width: 0; box-sizing: border-box; } .shop-tile.vip-tile:hover, .vip-job-card:hover { background: linear-gradient(135deg, rgba(255, 180, 0, 0.35), rgba(60, 20, 0, 0.95)) !important; box-shadow: 0 12px 35px rgba(255, 180, 0, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.2) !important; } .shop-tile.vip-tile .shop-inner-list { background: linear-gradient(145deg, rgba(35, 25, 5, 0.98), rgba(15, 10, 0, 0.98)) !important; border: 1px solid rgba(255, 204, 0, 0.3) !important; }
 .vip-badge{position:absolute;top:-6px;right:-6px;background:linear-gradient(135deg,#ffcc00,#ff8800);color:#000;font-size:10px;font-weight:900;padding:4px 8px;border-radius:12px;box-shadow:0 4px 10px rgba(255,204,0,0.4);z-index:10;text-transform:uppercase;letter-spacing:1px;}
-
-.promo-tile { border-color: rgba(255, 51, 102, 0.4) !important; }
-.promo-badge { background: linear-gradient(135deg, #ff3366, #ff9f43) !important; color: #fff !important; box-shadow: 0 4px 10px rgba(255,51,102,0.4) !important; }
-
-.shop-tile-photo{width:100%;height:160px;border-radius:10px;background:rgba(0,0,0,0.3);display:flex;justify-content:center;align-items:center;overflow:hidden;margin-bottom:8px;border:1px solid rgba(255,255,255,0.05)}
-.shop-tile.vip-tile .shop-tile-photo, .promo-tile .shop-tile-photo {height:190px;}
-.shop-tile-photo img{width:100%;height:100%;object-fit:cover;display:block;}
-
-.shop-tile-cat{font-size:10px;color:var(--highlight-color);font-weight:800;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;word-break:break-word;overflow-wrap:anywhere;}
-.shop-tile-name{font-weight:800;font-size:13px;color:#fff;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;}
-.shop-tile-chevron{font-size:11px;color:var(--time-green);font-weight:800;margin-top:auto;text-align:center;background:rgba(0,255,156,0.1);padding:4px;border-radius:8px}
-
-.shop-details-dropdown{position:absolute;top:calc(100% + 5px);left:0;width:100%;max-height:0;opacity:0;overflow:hidden;margin-top:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;pointer-events:none;box-sizing:border-box;z-index:50; opacity:0;}
-.shop-details-dropdown.open{max-height:3000px;opacity:1;pointer-events:auto}
-.shop-inner-list{display:flex;flex-direction:column;gap:8px;font-size:11px;text-align:left;color:rgba(255,255,255,0.85);background:rgba(11,29,58,0.98);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 15px 35px rgba(0,0,0,0.8)}
-.shop-inner-item{display:flex;gap:6px;align-items:flex-start;line-height:1.3}
-.detail-icon{flex-shrink:0;font-size:12px}
-.shop-phone-link{color:#2af598;text-decoration:none;font-weight:800;letter-spacing:0.5px}
-
-.blabla-actions{display:flex;gap:10px;margin-bottom:15px;padding:0 5px}
-.blabla-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px 5px;border-radius:14px;text-decoration:none;font-weight:800;font-size:14px;font-family:inherit;color:#0b1d3a;cursor:pointer;border:none;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3)}
-.blabla-btn:active{transform:translateY(1px)}
-.btn-driver{background:linear-gradient(135deg,#00ff9c,#00b8ff)}.btn-passenger{background:linear-gradient(135deg,#ffcc00,#ff8800)}
-.blabla-subtext{font-size:10px;color:rgba(0,0,0,0.8);font-weight:600;margin-top:3px;text-transform:uppercase}
-.blabla-toggle-container{display:flex;background:rgba(0,0,0,0.3);border-radius:12px;padding:4px;margin-bottom:15px;border:1px solid rgba(255,255,255,0.05)}
-.blabla-tab-btn{flex:1;padding:8px;border:none;background:transparent;color:rgba(255,255,255,0.5);font-weight:700;font-size:12px;border-radius:8px;cursor:pointer;transition:0.3s;}
-.blabla-tab-btn.active{background:rgba(255,255,255,0.15);color:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.2)}
-
-.cards-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start;}@media (min-width:650px){.cards-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-
-.card-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width:100%; }
-.card-price { color:var(--time-green); font-size:13px; font-weight:800; flex-shrink:0; min-width:0; word-break:break-word; text-transform:uppercase; margin:0;}
-.card-info { font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0; word-break:break-word; }
-.gallery-preview { text-align:center; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer; }
-.gallery-preview img { width:100%; max-height:250px; object-fit:contain; border-radius:6px; }
-.gallery-text { font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700; }
-.empty-msg { text-align:center; padding:20px; color:rgba(255,255,255,0.5); font-weight:600; font-size:13px;}
-.card-desc { font-size:11px; color:rgba(255,255,255,0.8); line-height:1.4; word-break:break-word; overflow-wrap:anywhere; }
-
-.blabla-card{background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:10px;box-shadow:0 4px 10px rgba(0,0,0,0.2);display:flex;flex-direction:column;gap:6px;font-size:11px;min-width:0;box-sizing:border-box;}
-.blabla-route{font-size:12px;font-weight:800;color:#fff;display:flex;flex-direction:column;align-items:flex-start;gap:2px;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;}
-.blabla-date{font-size:10px;color:var(--highlight-color);font-weight:700;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;}
-.blabla-info-row{display:flex;flex-direction:column;font-size:10px;color:rgba(255,255,255,0.8);background:rgba(0,0,0,0.2);padding:6px 8px;border-radius:8px;align-items:flex-start;gap:4px;word-break:break-word;overflow-wrap:anywhere;}
-.blabla-phone{font-size:12px;font-weight:800;color:var(--time-green);text-decoration:none}
-
-.custom-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:99999;display:flex;justify-content:center;align-items:center;overflow-y:auto;padding:20px;pointer-events:none;transition:opacity 0.3s ease; opacity:0;}
-.custom-modal-overlay.active{opacity:1;pointer-events:auto}
-.custom-modal-box{width:100%;max-width:400px;margin:auto;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:25px 20px;box-shadow:0 20px 50px rgba(0,0,0,0.5);transform:translateY(20px) scale(0.95);transition:transform 0.3s ease;position:relative}
-.custom-modal-overlay.active .custom-modal-box{transform:translateY(0) scale(1)}
+.promo-tile { border-color: rgba(255, 51, 102, 0.4) !important; } .promo-badge { background: linear-gradient(135deg, #ff3366, #ff9f43) !important; color: #fff !important; box-shadow: 0 4px 10px rgba(255,51,102,0.4) !important; }
+.shop-tile-photo{width:100%;height:160px;border-radius:10px;background:rgba(0,0,0,0.3);display:flex;justify-content:center;align-items:center;overflow:hidden;margin-bottom:8px;border:1px solid rgba(255,255,255,0.05)} .shop-tile.vip-tile .shop-tile-photo, .promo-tile .shop-tile-photo {height:190px;} .shop-tile-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.shop-tile-cat{font-size:10px;color:var(--highlight-color);font-weight:800;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;word-break:break-word;overflow-wrap:anywhere;} .shop-tile-name{font-weight:800;font-size:13px;color:#fff;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;} .shop-tile-chevron{font-size:11px;color:var(--time-green);font-weight:800;margin-top:auto;text-align:center;background:rgba(0,255,156,0.1);padding:4px;border-radius:8px}
+.shop-details-dropdown{position:absolute;top:calc(100% + 5px);left:0;width:100%;max-height:0;opacity:0;overflow:hidden;margin-top:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;pointer-events:none;box-sizing:border-box;z-index:50; opacity:0;} .shop-details-dropdown.open{max-height:3000px;opacity:1;pointer-events:auto}
+.shop-inner-list{display:flex;flex-direction:column;gap:8px;font-size:11px;text-align:left;color:rgba(255,255,255,0.85);background:rgba(11,29,58,0.98);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 15px 35px rgba(0,0,0,0.8)} .shop-inner-item{display:flex;gap:6px;align-items:flex-start;line-height:1.3} .detail-icon{flex-shrink:0;font-size:12px} .shop-phone-link{color:#2af598;text-decoration:none;font-weight:800;letter-spacing:0.5px}
+.blabla-actions{display:flex;gap:10px;margin-bottom:15px;padding:0 5px} .blabla-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px 5px;border-radius:14px;text-decoration:none;font-weight:800;font-size:14px;font-family:inherit;color:#0b1d3a;cursor:pointer;border:none;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3)} .blabla-btn:active{transform:translateY(1px)}
+.btn-driver{background:linear-gradient(135deg,#00ff9c,#00b8ff)} .btn-passenger{background:linear-gradient(135deg,#ffcc00,#ff8800)} .blabla-subtext{font-size:10px;color:rgba(0,0,0,0.8);font-weight:600;margin-top:3px;text-transform:uppercase}
+.blabla-toggle-container{display:flex;background:rgba(0,0,0,0.3);border-radius:12px;padding:4px;margin-bottom:15px;border:1px solid rgba(255,255,255,0.05)} .blabla-tab-btn{flex:1;padding:8px;border:none;background:transparent;color:rgba(255,255,255,0.5);font-weight:700;font-size:12px;border-radius:8px;cursor:pointer;transition:0.3s;} .blabla-tab-btn.active{background:rgba(255,255,255,0.15);color:#fff;box-shadow:0 2px 5px rgba(0,0,0,0.2)}
+.cards-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start;} @media (min-width:650px){.cards-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card-row { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:6px; width:100%; } .card-price { color:var(--time-green); font-size:13px; font-weight:800; flex-shrink:0; min-width:0; word-break:break-word; text-transform:uppercase; margin:0;} .card-info { font-size:10px; color:rgba(255,255,255,0.6); font-weight:600; text-align:right; flex:1; min-width:0; word-break:break-word; }
+.gallery-preview { text-align:center; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom:10px; padding:5px; cursor:pointer; } .gallery-preview img { width:100%; max-height:250px; object-fit:contain; border-radius:6px; } .gallery-text { font-size:10px; color:rgba(255,255,255,0.5); margin-top:4px; font-weight:700; }
+.empty-msg { text-align:center; padding:20px; color:rgba(255,255,255,0.5); font-weight:600; font-size:13px;} .card-desc { font-size:11px; color:rgba(255,255,255,0.8); line-height:1.4; word-break:break-word; overflow-wrap:anywhere; }
+.blabla-card{background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));border:1px solid rgba(255,255,255,0.05);border-radius:14px;padding:10px;box-shadow:0 4px 10px rgba(0,0,0,0.2);display:flex;flex-direction:column;gap:6px;font-size:11px;min-width:0;box-sizing:border-box;} .blabla-route{font-size:12px;font-weight:800;color:#fff;display:flex;flex-direction:column;align-items:flex-start;gap:2px;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;} .blabla-date{font-size:10px;color:var(--highlight-color);font-weight:700;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;} .blabla-info-row{display:flex;flex-direction:column;font-size:10px;color:rgba(255,255,255,0.8);background:rgba(0,0,0,0.2);padding:6px 8px;border-radius:8px;align-items:flex-start;gap:4px;word-break:break-word;overflow-wrap:anywhere;} .blabla-phone{font-size:12px;font-weight:800;color:var(--time-green);text-decoration:none}
+.custom-modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:99999;display:flex;justify-content:center;align-items:center;overflow-y:auto;padding:20px;pointer-events:none;transition:opacity 0.3s ease; opacity:0;} .custom-modal-overlay.active{opacity:1;pointer-events:auto}
+.custom-modal-box{width:100%;max-width:400px;margin:auto;background:linear-gradient(145deg,rgba(20,30,50,0.9),rgba(10,15,30,0.95));border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:25px 20px;box-shadow:0 20px 50px rgba(0,0,0,0.5);transform:translateY(20px) scale(0.95);transition:transform 0.3s ease;position:relative} .custom-modal-overlay.active .custom-modal-box{transform:translateY(0) scale(1)}
 .close-modal-btn{position:absolute;top:15px;right:15px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:#fff;}
-.form-title{margin:0 0 20px 0;font-size:18px;font-weight:800;text-align:center;text-transform:uppercase;color:var(--highlight-color)}
-.form-group{display:flex;flex-direction:column;margin-bottom:12px}
-.form-row{display:flex;gap:10px}
-.form-row .form-group{flex:1}
-.form-label{font-size:11px;font-weight:700;margin-bottom:5px;color:rgba(255,255,255,0.7);text-transform:uppercase}
-.form-input{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s;width:100%;max-width:100%;box-sizing:border-box;margin:0}
-input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance:none; appearance:none; display:block; width:100%; }
-.form-input:focus{border-color:var(--time-green);background:rgba(0,0,0,0.5)}
-.form-input::placeholder{color:rgba(255,255,255,0.4)}
-textarea.form-input{resize:none}
-select.form-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:20px;padding-right:30px}
-select.form-input option{background:#0b1d3a;color:#fff}
-input[type="file"].form-input{padding:8px;font-size:12px}
-
-/* ОПТИМІЗАЦІЯ КАПЧІ ТА ФОРМ */
-.captcha-group { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px; }
-.captcha-label { text-transform: none; color: #fff; }
-.captcha-expr { color: var(--time-green); font-size: 14px; }
-.captcha-input { text-align: center; font-weight: bold; font-size: 15px; }
-
-.form-submit-btn{width:100%;padding:14px;margin-top:10px;border:none;border-radius:14px;font-size:15px;font-weight:800;color:#0b1d3a;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.2s}
-.form-submit-btn.driver{background:linear-gradient(135deg,#00ff9c,#00b8ff)}
-.form-submit-btn.passenger{background:linear-gradient(135deg,#ffcc00,#ff8800)}
-.form-submit-btn.flea,.form-submit-btn.lost,.form-submit-btn.estate{background:linear-gradient(135deg,#00ff9c,#00b8ff)}
-.form-submit-btn.promo{background:linear-gradient(135deg,#ff3366,#ff9f43); color: #fff;}
-.form-submit-btn:active{transform:translateY(2px)}
-
-/* TOGGLE SWITCH ДЛЯ СПОВІЩЕНЬ */
-.toggle-switch { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
-.toggle-switch input { opacity: 0; width: 0; height: 0; }
-.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.2); transition: .3s; border-radius: 24px; }
-.toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-input:checked + .toggle-slider { background-color: var(--time-green); }
-input:checked + .toggle-slider:before { transform: translateX(18px); }
-.push-setting-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.push-setting-row:last-child { border-bottom: none; }
-.push-settings-list { max-height: 60vh; overflow-y: auto; padding-right: 5px; margin-bottom: 15px; }
-.push-settings-list::-webkit-scrollbar { width: 4px; }
-.push-settings-list::-webkit-scrollbar-track { background: transparent; }
-.push-settings-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-
-.image-modal{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.98);z-index:100000;display:flex;flex-direction:column;justify-content:center;align-items:center;pointer-events:none;transition:opacity 0.3s ease; opacity:0;}
-.image-modal.active{opacity:1;pointer-events:auto;touch-action:none}
-.image-modal-slider{width:100%;height:100%;overflow:hidden;position:relative}
-.image-modal-track{display:flex;width:100%;height:100%;transition:transform 0.3s cubic-bezier(0.25,1,0.5,1);will-change:transform}
-.image-modal-slide{flex:0 0 100%;width:100%;height:100%;display:flex;justify-content:center;align-items:center;position:relative}
-.image-modal-slide img{max-width:100%;max-height:100%;object-fit:contain;transition:transform 0.3s ease;}
-.image-modal-close{position:absolute;top:20px;right:20px;color:#fff;font-size:36px;font-weight:300;cursor:pointer;background:rgba(0,0,0,0.5);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:100001}
-#modal-image-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font-weight:700;font-size:14px;background:rgba(0,0,0,0.5);padding:6px 14px;border-radius:14px;z-index:100001;display:none}
-
-.flea-categories-wrapper { display: flex; overflow-x: auto; gap: 8px; padding: 5px 15px 15px 15px; scrollbar-width: none; -ms-overflow-style: none; align-items: center; }
-.flea-categories-wrapper::-webkit-scrollbar { display: none; }
-.flea-category-tag { padding: 6px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; cursor: pointer; transition: all 0.3s ease; }
-.flea-category-tag.active { background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; border-color: transparent; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); }
-#estate-categories .flea-category-tag.active { background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff; border-color: transparent; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3); }
-
-.beta-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease; cursor: default; }
-.beta-drawer.open { max-height: 500px; opacity: 1; padding-top: 15px; }
-
-.jobs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
-@media (max-width: 768px) { .jobs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 550px) { .jobs-grid { grid-template-columns: minmax(0, 1fr); } }
-
-.equalizer { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-left: auto; transition: opacity 0.3s; margin-right: 5px; opacity:0.2;}
-.equalizer.playing { opacity: 1; }
-.eq-bar { width: 4px; height: 4px; background: linear-gradient(to top, #00ff9c 0%, #00ff9c 75%, #ff3b3b 75%, #ff3b3b 100%); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); transition: height 0.15s ease; }
-.equalizer.playing .eq-bar:nth-child(1) { animation: eq-1 1.2s infinite ease-in-out; }
-.equalizer.playing .eq-bar:nth-child(2) { animation: eq-2 1.4s infinite ease-in-out; }
-.equalizer.playing .eq-bar:nth-child(3) { animation: eq-3 1.1s infinite ease-in-out; }
-.equalizer.playing .eq-bar:nth-child(4) { animation: eq-4 1.3s infinite ease-in-out; }
-.equalizer.playing .eq-bar:nth-child(5) { animation: eq-5 1.5s infinite ease-in-out; }
-@keyframes eq-1 { 0%, 100% { height: 4px; } 25% { height: 100%; } 50% { height: 30%; } 75% { height: 80%; } }
-@keyframes eq-2 { 0%, 100% { height: 4px; } 20% { height: 60%; } 40% { height: 100%; } 80% { height: 20%; } }
-@keyframes eq-3 { 0%, 100% { height: 4px; } 30% { height: 80%; } 60% { height: 40%; } 90% { height: 100%; } }
-@keyframes eq-4 { 0%, 100% { height: 4px; } 15% { height: 50%; } 45% { height: 100%; } 75% { height: 60%; } }
-@keyframes eq-5 { 0%, 100% { height: 4px; } 35% { height: 100%; } 65% { height: 30%; } 85% { height: 70%; } }
-
-.workua-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease; }
-.workua-drawer.open { max-height: 5000px; opacity: 1; margin-top: 10px; }
-.section-divider { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); margin: 15px 0; }
-.jobs-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 10px; scrollbar-width: none; -ms-overflow-style: none; }
-.jobs-carousel::-webkit-scrollbar { display: none; }
-.jobs-carousel-card { flex: 0 0 90%; max-width: 350px; scroll-snap-align: center; }
-@media (min-width: 650px) { .jobs-carousel-card { flex: 0 0 45%; } }
-
-.modal-mini-guide { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px 12px; font-size: 11px; opacity: 0.9; margin-bottom: 15px; text-align: left; line-height: 1.4; }
-
-.load-more-btn { width:100%; padding:14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:12px; color:#fff; font-weight:800; margin-top:15px; cursor:pointer; transition:0.2s; }
-.load-more-btn:active { background:rgba(255,255,255,0.2); }
-
-/* Довідник */
-.pb-search-container { position: sticky; top: -15px; z-index: 10; padding: 10px 0; margin-bottom: 5px; background: linear-gradient(to bottom, rgba(11,29,58,1) 80%, rgba(11,29,58,0)); }
-.pb-category-section { margin-bottom: 24px; }
-.pb-category-header { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; padding-left: 4px; }
-.pb-category-header span { font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
-.pb-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
-@media (min-width: 650px) { .pb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.pb-tile { background: rgba(10, 20, 40, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-width: 0; box-sizing: border-box; }
-.pb-tile:active { transform: scale(0.98); }
-.pb-tile-title { font-size: 13px; font-weight: 700; color: #f8fafc; line-height: 1.4; word-break: break-word; flex: 1; min-width: 0; }
-.pb-tile-phones { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; align-items: flex-end; }
-.pb-phone-btn { background: transparent; color: #00ff9c; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; border: 1px solid rgba(0, 255, 156, 0.5); transition: background 0.2s, border-color 0.2s; text-align: center; white-space: nowrap; letter-spacing: 0.5px; }
-.pb-phone-btn:hover { border-color: #00ff9c; background: rgba(0, 255, 156, 0.05); }
-.pb-phone-btn:active { background: rgba(0, 255, 156, 0.15); }
+.form-title{margin:0 0 20px 0;font-size:18px;font-weight:800;text-align:center;text-transform:uppercase;color:var(--highlight-color)} .form-group{display:flex;flex-direction:column;margin-bottom:12px} .form-row{display:flex;gap:10px} .form-row .form-group{flex:1} .form-label{font-size:11px;font-weight:700;margin-bottom:5px;color:rgba(255,255,255,0.7);text-transform:uppercase}
+.form-input{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;color:#fff;font-size:14px;font-family:inherit;outline:none;transition:border-color 0.2s;width:100%;max-width:100%;box-sizing:border-box;margin:0} input[type="date"].form-input, input[type="time"].form-input{ -webkit-appearance:none; appearance:none; display:block; width:100%; } .form-input:focus{border-color:var(--time-green);background:rgba(0,0,0,0.5)} .form-input::placeholder{color:rgba(255,255,255,0.4)} textarea.form-input{resize:none} select.form-input{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:20px;padding-right:30px} select.form-input option{background:#0b1d3a;color:#fff} input[type="file"].form-input{padding:8px;font-size:12px}
+.captcha-group { background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1); margin-top: 5px; } .captcha-label { text-transform: none; color: #fff; } .captcha-expr { color: var(--time-green); font-size: 14px; } .captcha-input { text-align: center; font-weight: bold; font-size: 15px; }
+.form-submit-btn{width:100%;padding:14px;margin-top:10px;border:none;border-radius:14px;font-size:15px;font-weight:800;color:#0b1d3a;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.2s} .form-submit-btn.driver{background:linear-gradient(135deg,#00ff9c,#00b8ff)} .form-submit-btn.passenger{background:linear-gradient(135deg,#ffcc00,#ff8800)} .form-submit-btn.flea,.form-submit-btn.lost,.form-submit-btn.estate{background:linear-gradient(135deg,#00ff9c,#00b8ff)} .form-submit-btn.promo{background:linear-gradient(135deg,#ff3366,#ff9f43); color: #fff;} .form-submit-btn:active{transform:translateY(2px)}
+.image-modal{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.98);z-index:100000;display:flex;flex-direction:column;justify-content:center;align-items:center;pointer-events:none;transition:opacity 0.3s ease; opacity:0;} .image-modal.active{opacity:1;pointer-events:auto;touch-action:none} .image-modal-slider{width:100%;height:100%;overflow:hidden;position:relative} .image-modal-track{display:flex;width:100%;height:100%;transition:transform 0.3s cubic-bezier(0.25,1,0.5,1);will-change:transform} .image-modal-slide{flex:0 0 100%;width:100%;height:100%;display:flex;justify-content:center;align-items:center;position:relative} .image-modal-slide img{max-width:100%;max-height:100%;object-fit:contain;transition:transform 0.3s ease;} .image-modal-close{position:absolute;top:20px;right:20px;color:#fff;font-size:36px;font-weight:300;cursor:pointer;background:rgba(0,0,0,0.5);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:100001} #modal-image-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font-weight:700;font-size:14px;background:rgba(0,0,0,0.5);padding:6px 14px;border-radius:14px;z-index:100001;display:none}
+.flea-categories-wrapper { display: flex; overflow-x: auto; gap: 8px; padding: 5px 15px 15px 15px; scrollbar-width: none; -ms-overflow-style: none; align-items: center; } .flea-categories-wrapper::-webkit-scrollbar { display: none; } .flea-category-tag { padding: 6px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; cursor: pointer; transition: all 0.3s ease; } .flea-category-tag.active { background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; border-color: transparent; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); } #estate-categories .flea-category-tag.active { background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff; border-color: transparent; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3); }
+.beta-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease; cursor: default; } .beta-drawer.open { max-height: 500px; opacity: 1; padding-top: 15px; }
+.jobs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; } @media (max-width: 768px) { .jobs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (max-width: 550px) { .jobs-grid { grid-template-columns: minmax(0, 1fr); } }
+.equalizer { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-left: auto; transition: opacity 0.3s; margin-right: 5px; opacity:0.2;} .equalizer.playing { opacity: 1; } .eq-bar { width: 4px; height: 4px; background: linear-gradient(to top, #00ff9c 0%, #00ff9c 75%, #ff3b3b 75%, #ff3b3b 100%); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); transition: height 0.15s ease; } .equalizer.playing .eq-bar:nth-child(1) { animation: eq-1 1.2s infinite ease-in-out; } .equalizer.playing .eq-bar:nth-child(2) { animation: eq-2 1.4s infinite ease-in-out; } .equalizer.playing .eq-bar:nth-child(3) { animation: eq-3 1.1s infinite ease-in-out; } .equalizer.playing .eq-bar:nth-child(4) { animation: eq-4 1.3s infinite ease-in-out; } .equalizer.playing .eq-bar:nth-child(5) { animation: eq-5 1.5s infinite ease-in-out; }
+@keyframes eq-1 { 0%, 100% { height: 4px; } 25% { height: 100%; } 50% { height: 30%; } 75% { height: 80%; } } @keyframes eq-2 { 0%, 100% { height: 4px; } 20% { height: 60%; } 40% { height: 100%; } 80% { height: 20%; } } @keyframes eq-3 { 0%, 100% { height: 4px; } 30% { height: 80%; } 60% { height: 40%; } 90% { height: 100%; } } @keyframes eq-4 { 0%, 100% { height: 4px; } 15% { height: 50%; } 45% { height: 100%; } 75% { height: 60%; } } @keyframes eq-5 { 0%, 100% { height: 4px; } 35% { height: 100%; } 65% { height: 30%; } 85% { height: 70%; } }
+.workua-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease; } .workua-drawer.open { max-height: 5000px; opacity: 1; margin-top: 10px; } .section-divider { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); margin: 15px 0; } .jobs-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding-bottom: 10px; scrollbar-width: none; -ms-overflow-style: none; } .jobs-carousel::-webkit-scrollbar { display: none; } .jobs-carousel-card { flex: 0 0 90%; max-width: 350px; scroll-snap-align: center; } @media (min-width: 650px) { .jobs-carousel-card { flex: 0 0 45%; } }
+.modal-mini-guide { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px 12px; font-size: 11px; opacity: 0.9; margin-bottom: 15px; text-align: left; line-height: 1.4; } .load-more-btn { width:100%; padding:14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:12px; color:#fff; font-weight:800; margin-top:15px; cursor:pointer; transition:0.2s; } .load-more-btn:active { background:rgba(255,255,255,0.2); }
+.pb-search-container { position: sticky; top: -15px; z-index: 10; padding: 10px 0; margin-bottom: 5px; background: linear-gradient(to bottom, rgba(11,29,58,1) 80%, rgba(11,29,58,0)); } .pb-category-section { margin-bottom: 24px; } .pb-category-header { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; padding-left: 4px; } .pb-category-header span { font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); } .pb-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 10px; align-items: stretch; } @media (min-width: 650px) { .pb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } } .pb-tile { background: rgba(10, 20, 40, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-width: 0; box-sizing: border-box; } .pb-tile:active { transform: scale(0.98); } .pb-tile-title { font-size: 13px; font-weight: 700; color: #f8fafc; line-height: 1.4; word-break: break-word; flex: 1; min-width: 0; } .pb-tile-phones { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; align-items: flex-end; } .pb-phone-btn { background: transparent; color: #00ff9c; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; border: 1px solid rgba(0, 255, 156, 0.5); transition: background 0.2s, border-color 0.2s; text-align: center; white-space: nowrap; letter-spacing: 0.5px; } .pb-phone-btn:hover { border-color: #00ff9c; background: rgba(0, 255, 156, 0.05); } .pb-phone-btn:active { background: rgba(0, 255, 156, 0.15); }
 </style>
 </head>
 <body>
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBDJ9B94" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
 <div class="image-modal" id="image-modal" onclick="closeImageModal(event)">
   <div class="image-modal-close" onclick="closeImageModal(event)">&times;</div>
-  <div class="image-modal-slider" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)">
-    <div class="image-modal-track" id="modal-image-track"></div>
-  </div>
+  <div class="image-modal-slider" ontouchstart="handleTouchStart(event)" ontouchmove="handleTouchMove(event)" ontouchend="handleTouchEnd(event)"><div class="image-modal-track" id="modal-image-track"></div></div>
   <div id="modal-image-counter"></div>
-</div>
-
-<!-- МОДАЛКА НАЛАШТУВАННЯ СПОВІЩЕНЬ -->
-<div class="custom-modal-overlay" id="push-settings-modal" onclick="closeModalForm(event, 'push-settings-modal')">
-  <div class="custom-modal-box" onclick="event.stopPropagation()">
-    <div class="close-modal-btn" onclick="closeModalForm(null, 'push-settings-modal')">&times;</div>
-    <h3 class="form-title" style="color: #ffcc00; margin-bottom: 10px;">🔔 Сповіщення</h3>
-    <p style="font-size: 12px; color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 15px; line-height: 1.4;">Оберіть, про що ви хочете отримувати повідомлення на свій телефон:</p>
-    
-    <div class="push-settings-list">
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🚰</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Комунальний інформер</div></div><label class="toggle-switch"><input type="checkbox" id="push-communal"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">📰</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Новини</div></div><label class="toggle-switch"><input type="checkbox" id="push-news"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🎭</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Афіші</div></div><label class="toggle-switch"><input type="checkbox" id="push-events"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">📸</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Фото міста</div></div><label class="toggle-switch"><input type="checkbox" id="push-gallery"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">💙💛</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Допомога ЗСУ</div></div><label class="toggle-switch"><input type="checkbox" id="push-volunteers"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🔥</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Акції</div></div><label class="toggle-switch"><input type="checkbox" id="push-promos"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🚗</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Bla Bla Car</div></div><label class="toggle-switch"><input type="checkbox" id="push-blablacar"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🚆</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Електрички</div></div><label class="toggle-switch"><input type="checkbox" id="push-trains"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🚌</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Автобуси</div></div><label class="toggle-switch"><input type="checkbox" id="push-buses"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🛤️</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Потяги</div></div><label class="toggle-switch"><input type="checkbox" id="push-long_trains"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🏠</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Нерухомість</div></div><label class="toggle-switch"><input type="checkbox" id="push-estate"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🛍</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Шопінг</div></div><label class="toggle-switch"><input type="checkbox" id="push-shopping"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">📦</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Барахолка</div></div><label class="toggle-switch"><input type="checkbox" id="push-flea"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">💼</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Вакансії</div></div><label class="toggle-switch"><input type="checkbox" id="push-jobs"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">🔍</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Знахідки</div></div><label class="toggle-switch"><input type="checkbox" id="push-lost"><span class="toggle-slider"></span></label></div>
-        <div class="push-setting-row" style="border-bottom: none;"><div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 18px;">📖</span><div style="font-size: 13px; font-weight: 800; color: #fff;">Міський довідник</div></div><label class="toggle-switch"><input type="checkbox" id="push-guide"><span class="toggle-slider"></span></label></div>
-    </div>
-
-    <button onclick="savePushSettings()" class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff);" id="push-save-btn">Зберегти налаштування</button>
-  </div>
 </div>
 
 <div class="custom-modal-overlay" id="blabla-modal" onclick="closeModalForm(event, 'blabla-modal')">
@@ -399,34 +149,14 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <h3 class="form-title" id="form-modal-title">Додати поїздку</h3>
     <form id="custom-blabla-form" onsubmit="submitBlaBlaForm(event)">
       <div class="form-group"><label class="form-label" id="label-name">Ім'я</label><input type="text" class="form-input" id="input-name" placeholder="Олександр" required maxlength="30"></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Звідки</label><input type="text" class="form-input" id="input-from" placeholder="Вільногірськ" required maxlength="20"></div>
-        <div class="form-group"><label class="form-label">Куди</label><input type="text" class="form-input" id="input-to" placeholder="Дніпро" required maxlength="20"></div>
-      </div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Звідки</label><input type="text" class="form-input" id="input-from" placeholder="Вільногірськ" required maxlength="20"></div><div class="form-group"><label class="form-label">Куди</label><input type="text" class="form-input" id="input-to" placeholder="Дніпро" required maxlength="20"></div></div>
       <div class="form-group"><label class="form-label">Дата поїздки</label><input type="date" class="form-input" id="input-date" required></div>
-      <div class="form-group">
-        <label class="form-label" id="label-time">Час відправлення</label>
-        <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
-          <input type="time" class="form-input" id="input-time-from" step="1800" style="flex:1;" required>
-          <span style="color: rgba(255,255,255,0.5); font-weight: bold;">-</span>
-          <input type="time" class="form-input" id="input-time-to" step="1800" style="flex:1;">
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label" id="label-seats">Вільних місць</label>
-          <select class="form-input" id="input-seats" required><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option></select>
-        </div>
-        <div class="form-group" id="group-price"><label class="form-label">Ціна (грн)</label><input type="tel" class="form-input" id="input-price" placeholder="150" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
-      </div>
+      <div class="form-group"><label class="form-label" id="label-time">Час відправлення</label><div style="display: flex; gap: 10px; align-items: center; width: 100%;"><input type="time" class="form-input" id="input-time-from" step="1800" style="flex:1;" required><span style="color: rgba(255,255,255,0.5); font-weight: bold;">-</span><input type="time" class="form-input" id="input-time-to" step="1800" style="flex:1;"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label" id="label-seats">Вільних місць</label><select class="form-input" id="input-seats" required><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option></select></div><div class="form-group" id="group-price"><label class="form-label">Ціна (грн)</label><input type="tel" class="form-input" id="input-price" placeholder="150" maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div></div>
       <div class="form-group"><label class="form-label">Номер телефону</label><input type="tel" class="form-input" id="input-phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
       <div class="form-group"><label class="form-label">Коментар</label><textarea class="form-input" id="input-comment" rows="2"></textarea></div>
       <input type="hidden" id="input-type" value="">
-      <div class="form-group captcha-group">
-        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        <input type="hidden" class="captcha-answer">
-      </div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn driver" id="form-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -438,26 +168,12 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <h3 class="form-title" style="color: #00ff9c;">📦 Додати оголошення</h3>
     <form id="custom-flea-form" onsubmit="submitGenericForm(event, 'custom-flea-form', 'flea-modal', 'flea-submit-btn', 'flea', 5)">
       <div class="form-group"><label class="form-label">Назва товару</label><input type="text" class="form-input" name="title" required></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Категорія</label>
-          <select class="form-input" name="category" required>
-            <option value="Інше">Інше</option><option value="Електроніка">Електроніка</option><option value="Одяг">Одяг</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Стан</label><select class="form-input" name="condition" required><option value="Вживане">Вживане</option><option value="Нове">Нове</option></select></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Ціна (грн)</label><input type="tel" class="form-input" name="price" placeholder="500" required maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
-        <div class="form-group"><label class="form-label">Локація</label><input type="text" class="form-input" name="location" value="Вільногірськ" required></div>
-      </div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Категорія</label><select class="form-input" name="category" required><option value="Інше">Інше</option><option value="Електроніка">Електроніка</option><option value="Одяг">Одяг</option></select></div><div class="form-group"><label class="form-label">Стан</label><select class="form-input" name="condition" required><option value="Вживане">Вживане</option><option value="Нове">Нове</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Ціна (грн)</label><input type="tel" class="form-input" name="price" placeholder="500" required maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div><div class="form-group"><label class="form-label">Локація</label><input type="text" class="form-input" name="location" value="Вільногірськ" required></div></div>
       <div class="form-group"><label class="form-label">Опис товару</label><textarea class="form-input" name="description" rows="3" required></textarea></div>
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      <div class="form-group captcha-group">
-        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        <input type="hidden" class="captcha-answer">
-      </div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn flea" id="flea-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -475,11 +191,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
       <div class="form-group"><label class="form-label">Локація</label><input type="text" class="form-input" name="location" value="Вільногірськ" required></div>
       <div class="form-group"><label class="form-label">Додати фото (якщо є)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple></div>
       <div class="form-group"><label class="form-label">Ваш телефон (не обов'язково)</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" oninput="formatUAPhone(this)"></div>
-      <div class="form-group captcha-group">
-        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        <input type="hidden" class="captcha-answer">
-      </div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn lost" id="lost-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -491,27 +203,11 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <h3 class="form-title" style="color: #00b8ff;">💼 Додати вакансію</h3>
     <form id="custom-job-form" onsubmit="submitGenericForm(event, 'custom-job-form', 'job-modal', 'job-submit-btn', 'job', 0)">
       <div class="form-group"><label class="form-label">Посада</label><input type="text" class="form-input" name="title" placeholder="Наприклад: Продавець" required></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Зарплата</label><input type="tel" class="form-input" name="salary" placeholder="15000" required maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
-        <div class="form-group"><label class="form-label">Компанія</label><input type="text" class="form-input" name="company" placeholder="Назва фірми" required></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Кого шукають</label>
-          <select class="form-input" name="gender" required><option value="Не має значення">Не має значення</option><option value="Чоловік">Чоловік</option><option value="Жінка">Жінка</option></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Зайнятість</label>
-          <select class="form-input" name="employment" required><option value="Повна">Повна</option><option value="Неповна">Неповна</option><option value="Віддалена">Віддалена</option></select>
-        </div>
-      </div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Зарплата</label><input type="tel" class="form-input" name="salary" placeholder="15000" required maxlength="6" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div><div class="form-group"><label class="form-label">Компанія</label><input type="text" class="form-input" name="company" placeholder="Назва фірми" required></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Кого шукають</label><select class="form-input" name="gender" required><option value="Не має значення">Не має значення</option><option value="Чоловік">Чоловік</option><option value="Жінка">Жінка</option></select></div><div class="form-group"><label class="form-label">Зайнятість</label><select class="form-input" name="employment" required><option value="Повна">Повна</option><option value="Неповна">Неповна</option><option value="Віддалена">Віддалена</option></select></div></div>
       <div class="form-group"><label class="form-label">Опис</label><textarea class="form-input" name="description" rows="4" required></textarea></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      <div class="form-group captcha-group">
-        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        <input type="hidden" class="captcha-answer">
-      </div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn" style="background: linear-gradient(135deg, #00b8ff, #0055ff); color: #fff;" id="job-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -522,34 +218,12 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <div class="close-modal-btn" onclick="closeModalForm(null, 'estate-modal')">&times;</div>
     <h3 class="form-title" style="color: #ff9f43;">🏠 Додати нерухомість</h3>
     <form id="custom-estate-form" onsubmit="submitGenericForm(event, 'custom-estate-form', 'estate-modal', 'estate-submit-btn', 'estate', 5)">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Угода</label>
-          <select class="form-input" name="dealType" required><option value="Оренда">Оренда</option><option value="Продаж">Продаж</option></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Об'єкт</label>
-          <select class="form-input" name="propertyType" required><option value="Квартира">Квартира</option><option value="Будинок">Будинок</option><option value="Кімната">Кімната</option><option value="Комерція">Комерція</option><option value="Гараж">Гараж</option></select>
-        </div>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Кімнат</label>
-          <select class="form-input" name="rooms"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4+</option><option value="-">-</option></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Ціна (грн або $)</label>
-          <input type="text" class="form-input" name="price" placeholder="5000 грн" required>
-        </div>
-      </div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Угода</label><select class="form-input" name="dealType" required><option value="Оренда">Оренда</option><option value="Продаж">Продаж</option></select></div><div class="form-group"><label class="form-label">Об'єкт</label><select class="form-input" name="propertyType" required><option value="Квартира">Квартира</option><option value="Будинок">Будинок</option><option value="Кімната">Кімната</option><option value="Комерція">Комерція</option><option value="Гараж">Гараж</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Кімнат</label><select class="form-input" name="rooms"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4+</option><option value="-">-</option></select></div><div class="form-group"><label class="form-label">Ціна (грн або $)</label><input type="text" class="form-input" name="price" placeholder="5000 грн" required></div></div>
       <div class="form-group"><label class="form-label">Опис та адреса</label><textarea class="form-input" name="description" rows="3" placeholder="Деталі, район..." required></textarea></div>
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      <div class="form-group captcha-group">
-        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        <input type="hidden" class="captcha-answer">
-      </div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn estate" id="estate-submit-btn" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">Опублікувати</button>
     </form>
   </div>
@@ -562,18 +236,11 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <form id="custom-promo-form" onsubmit="submitGenericForm(event, 'custom-promo-form', 'promo-modal', 'promo-submit-btn', 'promo', 1)">
       <div class="form-group"><label class="form-label">Назва вашого магазину/закладу</label><input type="text" class="form-input" name="company" placeholder="Наприклад: Кав'ярня 'Мрія'" required></div>
       <div class="form-group"><label class="form-label">Заголовок акції</label><input type="text" class="form-input" name="title" placeholder="Наприклад: Знижка -20% на все" required></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Суть знижки</label><input type="text" class="form-input" name="discount" placeholder="-20%, 1+1=3, тощо" required></div>
-        <div class="form-group"><label class="form-label">Діє до (включно)</label><input type="date" class="form-input" name="validUntil" required></div>
-      </div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Суть знижки</label><input type="text" class="form-input" name="discount" placeholder="-20%, 1+1=3, тощо" required></div><div class="form-group"><label class="form-label">Діє до (включно)</label><input type="date" class="form-input" name="validUntil" required></div></div>
       <div class="form-group"><label class="form-label">Опис умов</label><textarea class="form-input" name="description" rows="3" placeholder="Детальні умови акції..." required></textarea></div>
       <div class="form-group"><label class="form-label">Рекламне фото (1 шт)</label><input type="file" class="form-input" name="photos" accept="image/*" required></div>
       <div class="form-group"><label class="form-label">Телефон для довідок</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      <div class="form-group captcha-group">
-        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
-        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-        <input type="hidden" class="captcha-answer">
-      </div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn promo" id="promo-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -599,10 +266,10 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
                 </div>
                 <div style="display: flex; gap: 8px; width: 100%;">
                     <div class="tab-alert events" onclick="switchAppTab('alert-events', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Афіші<span class="notification-dot" id="dot-events"></span></div>
-                    <div class="tab-alert gallery" onclick="switchAppTab('alert-gallery', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Фото міста</div>
+                    <div class="tab-alert gallery" onclick="switchAppTab('alert-gallery', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">Фото міста<span class="notification-dot" id="dot-gallery"></span></div>
                 </div>
                 <div style="display: flex; gap: 8px; width: 100%;">
-                    <div class="tab-alert volunteers" onclick="switchAppTab('alert-volunteers', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">💙💛 Допомога ЗСУ</div>
+                    <div class="tab-alert volunteers" onclick="switchAppTab('alert-volunteers', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">💙💛 Допомога ЗСУ<span class="notification-dot" id="dot-volunteers"></span></div>
                     <div class="tab-alert promos" onclick="switchAppTab('alert-promos', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);">🔥 Акції<span class="notification-dot" id="dot-promos"></span></div>
                 </div>
             </div>
@@ -631,8 +298,8 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
         <div class="tabs-nav" id="schedule-tabs">
           <button class="tab-btn" onclick="switchAppTab('blablacar', this, 'schedule')">🚗 Bla Bla Car<span class="notification-dot" id="dot-blablacar"></span></button>
           <button class="tab-btn" onclick="switchAppTab('trains', this, 'schedule')">🚆 Електрички<span class="notification-dot" id="dot-trains"></span></button>
-          <button class="tab-btn" onclick="switchAppTab('buses', this, 'schedule')">🚌 Автобуси</button>
-          <button class="tab-btn" onclick="switchAppTab('long-trains', this, 'schedule')">🛤️ Потяги</button>
+          <button class="tab-btn" onclick="switchAppTab('buses', this, 'schedule')">🚌 Автобуси<span class="notification-dot" id="dot-buses"></span></button>
+          <button class="tab-btn" onclick="switchAppTab('long-trains', this, 'schedule')">🛤️ Потяги<span class="notification-dot" id="dot-long_trains"></span></button>
         </div>
         <div class="scroll-hint" id="hint-schedule"><span>❯</span></div>
       </div>
@@ -703,85 +370,47 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
           <button class="tab-btn" onclick="switchAppTab('flea-market-tab', this, 'market')">📦 Барахолка<span class="notification-dot" id="dot-flea"></span></button>
           <button class="tab-btn" onclick="switchAppTab('jobs-tab', this, 'market')">💼 Вакансії<span class="notification-dot" id="dot-jobs"></span></button>
           <button class="tab-btn" onclick="switchAppTab('lost-found-tab', this, 'market')">🔍 Знахідки<span class="notification-dot" id="dot-lost"></span></button>
-          <button class="tab-btn" onclick="switchAppTab('city-guide-tab', this, 'market')">📖 Міський довідник</button>
+          <button class="tab-btn" onclick="switchAppTab('city-guide-tab', this, 'market')">📖 Міський довідник<span class="notification-dot" id="dot-guide"></span></button>
         </div>
         <div class="scroll-hint" id="hint-market"><span>❯</span></div>
       </div>
       <div class="shopping-drawer" id="market-drawer">
-        
         <div id="estate-tab" class="content-section">
           <div style="padding: 10px; text-align: center;"><button onclick="openModalForm('custom-estate-form', 'estate-modal')" style="border:none; background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">➕ Додати оголошення</button></div>
-          <div class="flea-categories-wrapper" id="estate-categories">
-            <div class="flea-category-tag active" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff;" onclick="filterEstate('Всі', this)">Всі</div>
-            <div class="flea-category-tag" onclick="filterEstate('Оренда', this)">Оренда</div>
-            <div class="flea-category-tag" onclick="filterEstate('Продаж', this)">Продаж</div>
-            <select id="estate-sort" class="form-input" style="padding:4px 10px; font-size:11px; border-radius:20px; margin-left:auto; width:auto; min-width:110px; background-color:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff;" onchange="window.currentEstateSort = this.value; window.estateRenderLimit = 20; const a = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(a?a.innerText:'Всі', a);">
-              <option value="new">Спочатку нові</option>
-              <option value="cheap">Дешевші</option>
-              <option value="expensive">Дорожчі</option>
-            </select>
-          </div>
+          <div class="flea-categories-wrapper" id="estate-categories"><div class="flea-category-tag active" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff;" onclick="filterEstate('Всі', this)">Всі</div><div class="flea-category-tag" onclick="filterEstate('Оренда', this)">Оренда</div><div class="flea-category-tag" onclick="filterEstate('Продаж', this)">Продаж</div><select id="estate-sort" class="form-input" style="padding:4px 10px; font-size:11px; border-radius:20px; margin-left:auto; width:auto; min-width:110px; background-color:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff;" onchange="window.currentEstateSort = this.value; window.estateRenderLimit = 20; const a = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(a?a.innerText:'Всі', a);"><option value="new">Спочатку нові</option><option value="cheap">Дешевші</option><option value="expensive">Дорожчі</option></select></div>
           <div id="estate-list-content"></div>
         </div>
-
         <div id="shopping-tab" class="content-section"><div id="shopping-list-content"></div></div>
-
         <div id="flea-market-tab" class="content-section">
           <div style="padding: 10px; text-align: center;"><button onclick="openModalForm('custom-flea-form', 'flea-modal')" style="border:none; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer;">➕ Додати оголошення</button></div>
-          <div class="flea-categories-wrapper" id="flea-categories">
-            <div class="flea-category-tag active" onclick="filterFleaMarket('Всі', this)">Всі</div>
-            <div class="flea-category-tag" onclick="filterFleaMarket('Електроніка', this)">Електроніка</div>
-            <div class="flea-category-tag" onclick="filterFleaMarket('Одяг', this)">Одяг</div>
-            <div class="flea-category-tag" onclick="filterFleaMarket('Інше', this)">Інше</div>
-            <select id="flea-sort" class="form-input" style="padding:4px 10px; font-size:11px; border-radius:20px; margin-left:auto; width:auto; min-width:110px; background-color:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff;" onchange="window.currentFleaSort = this.value; window.fleaRenderLimit = 20; const a = document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(a?a.innerText:'Всі', a);">
-              <option value="new">Спочатку нові</option>
-              <option value="cheap">Дешевші</option>
-              <option value="expensive">Дорожчі</option>
-            </select>
-          </div>
+          <div class="flea-categories-wrapper" id="flea-categories"><div class="flea-category-tag active" onclick="filterFleaMarket('Всі', this)">Всі</div><div class="flea-category-tag" onclick="filterFleaMarket('Електроніка', this)">Електроніка</div><div class="flea-category-tag" onclick="filterFleaMarket('Одяг', this)">Одяг</div><div class="flea-category-tag" onclick="filterFleaMarket('Інше', this)">Інше</div><select id="flea-sort" class="form-input" style="padding:4px 10px; font-size:11px; border-radius:20px; margin-left:auto; width:auto; min-width:110px; background-color:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff;" onchange="window.currentFleaSort = this.value; window.fleaRenderLimit = 20; const a = document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(a?a.innerText:'Всі', a);"><option value="new">Спочатку нові</option><option value="cheap">Дешевші</option><option value="expensive">Дорожчі</option></select></div>
           <div id="flea-market-list-content"></div>
         </div>
-        
         <div id="lost-found-tab" class="content-section">
           <div style="padding: 10px; text-align: center;"><button onclick="openModalForm('custom-lost-form', 'lost-modal')" style="border:none; background: linear-gradient(135deg, #e056fd, #8c7ae6); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer;">➕ Повідомити про знахідку/втрату</button></div>
           <div id="lost-found-list-content"></div>
         </div>
-
         <div id="jobs-tab" class="content-section">
           <div style="padding: 10px; text-align: center;"><button onclick="openModalForm('custom-job-form', 'job-modal')" style="border:none; background: linear-gradient(135deg, #00b8ff, #0055ff); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 184, 255, 0.3);">➕ Додати вакансію</button></div>
           <div style="padding: 10px; text-align: center; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6); margin-bottom: 5px;">Актуальні вакансії у Вільногірську</div>
           <div id="jobs-list-content" class="empty-msg">Завантаження вакансій...</div>
         </div>
-
         <div id="city-guide-tab" class="content-section">
-          <div style="text-align: center; margin-bottom: 10px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; padding: 0 5px;">
-            Знайшли помилку, не знайшли номер або хочете додати новий? Пишіть у тг: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a>
-          </div>
-          <div class="pb-search-container">
-            <input type="text" id="pb-search" placeholder="🔍 Пошук за назвою або номером..." class="form-input" style="border-radius: 20px; font-weight: 600; padding: 14px 20px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);" onkeyup="filterPhonebook()">
-          </div>
-          <div id="city-guide-list-content" style="padding-top: 5px;">
-             <div class="empty-msg">Завантаження довідника...</div>
-          </div>
+          <div style="text-align: center; margin-bottom: 10px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600; padding: 0 5px;">Знайшли помилку, не знайшли номер або хочете додати новий? Пишіть у тг: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div>
+          <div class="pb-search-container"><input type="text" id="pb-search" placeholder="🔍 Пошук за назвою або номером..." class="form-input" style="border-radius: 20px; font-weight: 600; padding: 14px 20px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);" onkeyup="filterPhonebook()"></div>
+          <div id="city-guide-list-content" style="padding-top: 5px;"><div class="empty-msg">Завантаження довідника...</div></div>
         </div>
-
       </div>
     </div>
 
-    <!-- КНОПКА ВІДГУКІВ ТА ДЗВІНОЧОК СПОВІЩЕНЬ -->
+    <!-- КНОПКА ВІДГУКІВ ТА ІДЕЙ -->
     <div style="display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 15px; z-index: 50; width: 100%;">
       <div class="liquid-glass" style="flex: 1; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="document.getElementById('beta-drawer').classList.toggle('open')">
-        <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">
-          👋 Ваші відгуки, ідеї та пропозиції пишіть нам (Зв'язок з адмінами) <span style="color: var(--time-green); font-size: 14px; vertical-align: middle;">▾</span>
-        </div>
+        <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">👋 Ваші відгуки, ідеї та пропозиції пишіть нам (Зв'язок з адмінами) <span style="color: var(--time-green); font-size: 14px; vertical-align: middle;">▾</span></div>
         <div class="beta-drawer" id="beta-drawer" onclick="event.stopPropagation()">
           <textarea class="form-input" id="beta-feedback-text" rows="2" placeholder="Що можна покращити? Напишіть нам..." style="margin-bottom: 8px; font-size: 12px; padding: 10px;"></textarea>
           <button class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); margin-top: 0; padding: 10px; font-size: 13px;" onclick="submitBetaFeedback(event)">Відправити</button>
         </div>
-      </div>
-      <!-- Кнопка налаштування сповіщень -->
-      <div class="liquid-glass" style="width: 56px; height: 56px; display: flex; justify-content: center; align-items: center; cursor: pointer; border: 1px solid rgba(255, 204, 0, 0.4); background: linear-gradient(135deg, rgba(255, 204, 0, 0.1), rgba(255, 136, 0, 0.15)); border-radius: 24px; font-size: 24px; flex-shrink: 0; box-shadow: 0 4px 15px rgba(255, 204, 0, 0.2); transition: 0.2s;" onclick="openPushSettingsModal()" onactive="this.style.transform='scale(0.9)'">
-        🔔
       </div>
     </div>
 
@@ -806,13 +435,20 @@ var allFleaMarketItems = []; var fleaRenderLimit = 20; var currentFleaSort = 'ne
 var allEstateItems = []; var estateRenderLimit = 20; var currentEstateSort = 'new';
 var allPromoItems = [];
 
+// === ОНОВЛЕНА ЛОГІКА ЧЕРВОНИХ КРАПОК ===
 function checkNotification(key, dataArray) {
   if (!dataArray || dataArray.length === 0) return;
   const signature = String(dataArray.length); 
   currentDataSignature[key] = signature;
+  
   const seenSignature = localStorage.getItem('seen_' + key); 
   const dot = document.getElementById('dot-' + key);
-  if (signature !== seenSignature && dot) { dot.style.display = 'block'; }
+  
+  if (!seenSignature) {
+      localStorage.setItem('seen_' + key, signature);
+  } else if (signature !== seenSignature && dot) { 
+      dot.style.display = 'block'; 
+  }
 }
 
 function clearNotification(key) {
@@ -822,39 +458,23 @@ function clearNotification(key) {
 }
 
 function fallbackCopyText(text, successCb) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.position = "fixed";
-    textArea.style.left = "-999999px";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try { document.execCommand('copy'); if(successCb) successCb(); } catch (err) {}
-    document.body.removeChild(textArea);
+    const textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "fixed"; textArea.style.left = "-999999px";
+    document.body.appendChild(textArea); textArea.focus(); textArea.select();
+    try { document.execCommand('copy'); if(successCb) successCb(); } catch (err) {} document.body.removeChild(textArea);
 }
 
 function copyToClipboardBtn(text, btn) {
-    fallbackCopyText(text, () => {
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<span style="color:#00ff9c">✔️</span>';
-        setTimeout(() => { btn.innerHTML = originalHtml; }, 2000);
-    });
+    fallbackCopyText(text, () => { const originalHtml = btn.innerHTML; btn.innerHTML = '<span style="color:#00ff9c">✔️</span>'; setTimeout(() => { btn.innerHTML = originalHtml; }, 2000); });
 }
 
 async function fetchCachedText(url, key, ttlMinutes = 5) {
     const cached = localStorage.getItem('cache_' + key);
     try {
-        const separator = url.includes('?') ? '&' : '?';
-        const freshUrl = url + separator + '_nocache=' + Date.now();
+        const separator = url.includes('?') ? '&' : '?'; const freshUrl = url + separator + '_nocache=' + Date.now();
         const r = await fetch(freshUrl, { cache: 'no-store' }); 
         if (!r.ok) throw new Error('HTTP Error');
-        const text = await r.text(); 
-        localStorage.setItem('cache_' + key, text); 
-        return text;
-    } catch (e) { 
-        if (cached) return cached; 
-        throw e; 
-    }
+        const text = await r.text(); localStorage.setItem('cache_' + key, text); return text;
+    } catch (e) { if (cached) return cached; throw e; }
 }
 
 async function fetchCachedJson(url, key, ttlMinutes = 5) { return JSON.parse(await fetchCachedText(url, key, ttlMinutes)); }
@@ -880,8 +500,7 @@ function openImageModal(images, index, event) {
   const track = document.getElementById('modal-image-track'); 
   track.innerHTML = currentGallery.map(img => `<div class="image-modal-slide" onclick="handleSlideClick(event)"><img src="${img.url}" alt="Фото">${img.author ? `<div style="position:absolute; bottom:60px; left:50%; transform:translateX(-50%); color:#fff; font-weight:700; font-size:12px; background:rgba(0,0,0,0.6); padding:6px 14px; border-radius:14px; z-index:100002; pointer-events:none; white-space:nowrap;">📸 Фото: ${img.author}</div>` : ''}</div>`).join('');
   track.style.transition = 'none'; updateModalImage(); document.getElementById('image-modal').classList.add('active');
-  document.body.style.overflow = 'hidden'; 
-  setTimeout(() => { track.style.transition = 'transform 0.3s cubic-bezier(0.25,1,0.5,1)'; }, 50);
+  document.body.style.overflow = 'hidden'; setTimeout(() => { track.style.transition = 'transform 0.3s cubic-bezier(0.25,1,0.5,1)'; }, 50);
 }
 
 function updateModalImage() {
@@ -950,8 +569,7 @@ function handleTouchEnd(e) {
 
 function closeImageModal(event) { 
     if (event && event.target.id !== 'image-modal' && !event.target.classList.contains('image-modal-close') && !event.target.classList.contains('image-modal-slider') && !event.target.classList.contains('image-modal-slide')) { return; } 
-    document.getElementById('image-modal').classList.remove('active'); 
-    document.body.style.overflow = ''; 
+    document.getElementById('image-modal').classList.remove('active'); document.body.style.overflow = ''; 
 }
 
 var currentVilnohirskPhotos = []; 
@@ -959,15 +577,10 @@ function renderGallery(photos) {
     const container = document.getElementById('gallery-list-content'); if (!container) return;
     if (!photos || photos.length === 0) { container.innerHTML = '<div class="empty-msg">Фотографій поки немає</div>'; return; }
     currentVilnohirskPhotos = photos; 
-    let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Маєте круті фото нашого міста? Надсилайте: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div>';
-    html += '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding: 5px;">';
+    let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Маєте круті фото нашого міста? Надсилайте: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding: 5px;">';
     photos.forEach((item, i) => {
-        const url = typeof item === 'string' ? item : item.url;
-        const author = typeof item === 'object' && item.author ? item.author : '';
-        html += `<div style="aspect-ratio:1/1; border-radius:14px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.2); cursor:pointer; border:1px solid rgba(255,255,255,0.1); position:relative;" onclick="openImageModal(currentVilnohirskPhotos, ${i}, event)">
-            <img src="${url}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">
-            ${author ? `<div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 8px 8px 8px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.9); text-align:left; text-shadow:0 1px 2px rgba(0,0,0,0.8); pointer-events:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📸 ${author}</div>` : ''}
-        </div>`;
+        const url = typeof item === 'string' ? item : item.url; const author = typeof item === 'object' && item.author ? item.author : '';
+        html += `<div style="aspect-ratio:1/1; border-radius:14px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.2); cursor:pointer; border:1px solid rgba(255,255,255,0.1); position:relative;" onclick="openImageModal(currentVilnohirskPhotos, ${i}, event)"><img src="${url}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">${author ? `<div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 8px 8px 8px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.9); text-align:left; text-shadow:0 1px 2px rgba(0,0,0,0.8); pointer-events:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📸 ${author}</div>` : ''}</div>`;
     });
     container.innerHTML = html + '</div>';
 }
@@ -1002,55 +615,30 @@ const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
             if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
             else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
             canvas.width = width; canvas.height = height;
-            const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]); 
+            const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height); resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]); 
         };
     }; reader.onerror = error => reject(error);
 });
 
 async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos) {
   event.preventDefault(); if (!validateCaptcha(formId)) return;
-  const btn = document.getElementById(btnId); const origText = btn.innerText;
-  btn.innerText = maxPhotos ? 'Обробка фото...' : 'Відправка...'; btn.disabled = true; btn.style.opacity = '0.7';
+  const btn = document.getElementById(btnId); const origText = btn.innerText; btn.innerText = maxPhotos ? 'Обробка фото...' : 'Відправка...'; btn.disabled = true; btn.style.opacity = '0.7';
   try {
-    const form = document.getElementById(formId); const formData = new FormData(form);
-    const sheetData = { formType: type };
-    for (let [key, val] of formData.entries()) {
-      if (key !== 'photos') sheetData[key] = (key === 'phone' && val !== '+380') ? ("'" + val) : val;
-    }
+    const form = document.getElementById(formId); const formData = new FormData(form); const sheetData = { formType: type };
+    for (let [key, val] of formData.entries()) { if (key !== 'photos') sheetData[key] = (key === 'phone' && val !== '+380') ? ("'" + val) : val; }
     if (maxPhotos > 0) {
-      const photos = form.querySelector('input[name="photos"]').files;
-      if (photos.length > maxPhotos) throw new Error(`Максимум ${maxPhotos} фото!`);
-      let b64 = []; for (let i = 0; i < photos.length; i++) b64.push(await compressAndGetBase64(photos[i]));
-      sheetData.photosBase64 = b64;
+      const photos = form.querySelector('input[name="photos"]').files; if (photos.length > maxPhotos) throw new Error(`Максимум ${maxPhotos} фото!`);
+      let b64 = []; for (let i = 0; i < photos.length; i++) b64.push(await compressAndGetBase64(photos[i])); sheetData.photosBase64 = b64;
     }
     btn.innerText = 'Збереження...';
     await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
-    alert('✅ Успішно відправлено на модерацію!'); document.getElementById(modalId).classList.remove('active');
-    form.reset(); setupCaptcha(formId);
-  } catch (e) { alert('❌ Помилка: ' + e.message); }
-  finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
+    alert('✅ Успішно відправлено на модерацію!'); document.getElementById(modalId).classList.remove('active'); form.reset(); setupCaptcha(formId);
+  } catch (e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
 }
 
-function openModalForm(formId, modalId) { 
-    const form = document.getElementById(formId);
-    if(form) form.reset(); 
-    setupCaptcha(formId); 
-    document.getElementById(modalId).classList.add('active'); 
-    document.body.style.overflow = 'hidden';
-}
-
-function closeModalForm(event, modalId) { 
-    if (!event || event.target.classList.contains('close-modal-btn') || event.target.id === modalId) {
-        document.getElementById(modalId).classList.remove('active');
-        document.body.style.overflow = '';
-    }
-}
-
-function closeAllShopDropdowns() {
-  document.querySelectorAll('.shop-details-dropdown.open').forEach(el => { el.classList.remove('open'); if (el.parentElement) el.parentElement.classList.remove('tile-active'); });
-  document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; });
-}
+function openModalForm(formId, modalId) { const form = document.getElementById(formId); if(form) form.reset(); setupCaptcha(formId); document.getElementById(modalId).classList.add('active'); document.body.style.overflow = 'hidden'; }
+function closeModalForm(event, modalId) { if (!event || event.target.classList.contains('close-modal-btn') || event.target.id === modalId) { document.getElementById(modalId).classList.remove('active'); document.body.style.overflow = ''; } }
+function closeAllShopDropdowns() { document.querySelectorAll('.shop-details-dropdown.open').forEach(el => { el.classList.remove('open'); if (el.parentElement) el.parentElement.classList.remove('tile-active'); }); document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; }); }
 
 document.addEventListener('click', function(e) {
   if (e.target.closest('.image-modal') || e.target.closest('.custom-modal-box')) return;
@@ -1071,29 +659,14 @@ function switchAppTab(tabId, btn, group) {
   const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'alert-promos':'promos', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
-  
-  if (btn.classList.contains('active')) {
-      btn.classList.remove('active');
-      const groupDrawer = document.getElementById(drawers[group]);
-      if(groupDrawer) groupDrawer.classList.remove('open');
-      return;
-  }
+  if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
   document.querySelectorAll('.main-list-widget, .shopping-drawer, .alert-drawer').forEach(d => d.classList.remove('open'));
   document.querySelectorAll('.tab-btn, .tab-alert').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-
   const drawer = document.getElementById(drawers[group]);
-  if (drawer) {
-      drawer.classList.remove('drawer-events', 'drawer-communal');
-      if(tabId === 'alert-events') drawer.classList.add('drawer-events');
-      if(tabId === 'alert-communal') drawer.classList.add('drawer-communal');
-      drawer.classList.add('open');
-  }
-  btn.classList.add('active'); 
-  const targetSection = document.getElementById(tabId);
-  if (targetSection) targetSection.classList.add('active'); 
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
+  if (drawer) { drawer.classList.remove('drawer-events', 'drawer-communal'); if(tabId === 'alert-events') drawer.classList.add('drawer-events'); if(tabId === 'alert-communal') drawer.classList.add('drawer-communal'); drawer.classList.add('open'); }
+  btn.classList.add('active'); const targetSection = document.getElementById(tabId); if (targetSection) targetSection.classList.add('active'); 
+  window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
 }
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
@@ -1110,12 +683,7 @@ async function loadWeather(){
   }
   const container = document.getElementById("weather-container"); 
   if(results.length === 0) { container.innerHTML = '<div class="empty-msg" style="font-size:11px;">Дані погоди тимчасово недоступні ☁️</div>'; return; }
-  container.innerHTML = results.map((item, index) => `
-    <div class="weather-content ${index === 0 ? 'active' : ''}" style="width: 100%;">
-      <div class="weather-city">${item.name}</div>
-      <div class="weather-temp-row"><span class="weather-icon">${getWeatherEmoji(item.w.weathercode)}</span><span class="weather-temp">${Math.round(item.w.temperature)}°C</span></div>
-      <div class="weather-wind"><span style="font-size:14px;">🌬️</span> ${Math.round(item.w.windspeed)} м/с</div>
-    </div>`).join("");
+  container.innerHTML = results.map((item, index) => `<div class="weather-content ${index === 0 ? 'active' : ''}" style="width: 100%;"><div class="weather-city">${item.name}</div><div class="weather-temp-row"><span class="weather-icon">${getWeatherEmoji(item.w.weathercode)}</span><span class="weather-temp">${Math.round(item.w.temperature)}°C</span></div><div class="weather-wind"><span style="font-size:14px;">🌬️</span> ${Math.round(item.w.windspeed)} м/с</div></div>`).join("");
   if (window.weatherInterval) clearInterval(window.weatherInterval); let currentIndex = 0;
   window.weatherInterval = setInterval(() => { const slides = container.querySelectorAll('.weather-content'); if(slides.length < 2) return; slides[currentIndex].classList.remove('active'); currentIndex = (currentIndex + 1) % slides.length; slides[currentIndex].classList.add('active'); }, 7000); 
 }
@@ -1124,43 +692,22 @@ async function loadExchangeRates() {
   try {
     const pbRes = await fetch('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=5');
     if (pbRes.ok) {
-        const pb = await pbRes.json();
-        const usd = pb.find(c => c.ccy === 'USD');
-        const eur = pb.find(c => c.ccy === 'EUR');
-        if (usd && eur) {
-           document.getElementById('usd-buy').textContent = Number(usd.buy).toFixed(2);
-           document.getElementById('usd-sell').textContent = Number(usd.sale).toFixed(2);
-           document.getElementById('eur-buy').textContent = Number(eur.buy).toFixed(2);
-           document.getElementById('eur-sell').textContent = Number(eur.sale).toFixed(2);
-           return;
-        }
+        const pb = await pbRes.json(); const usd = pb.find(c => c.ccy === 'USD'); const eur = pb.find(c => c.ccy === 'EUR');
+        if (usd && eur) { document.getElementById('usd-buy').textContent = Number(usd.buy).toFixed(2); document.getElementById('usd-sell').textContent = Number(usd.sale).toFixed(2); document.getElementById('eur-buy').textContent = Number(eur.buy).toFixed(2); document.getElementById('eur-sell').textContent = Number(eur.sale).toFixed(2); return; }
     }
   } catch (e) {}
   try {
       const dataMono = await fetchCachedJson('https://api.monobank.ua/bank/currency', 'mono_rates', 60);
       if (Array.isArray(dataMono)) {
-          const usd = dataMono.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980);
-          const eur = dataMono.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
-          if (usd && eur) {
-             document.getElementById('usd-buy').textContent = Number(usd.rateBuy).toFixed(2);
-             document.getElementById('usd-sell').textContent = Number(usd.rateSell).toFixed(2);
-             document.getElementById('eur-buy').textContent = Number(eur.rateBuy).toFixed(2);
-             document.getElementById('eur-sell').textContent = Number(eur.rateSell).toFixed(2);
-             return;
-          }
+          const usd = dataMono.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980); const eur = dataMono.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
+          if (usd && eur) { document.getElementById('usd-buy').textContent = Number(usd.rateBuy).toFixed(2); document.getElementById('usd-sell').textContent = Number(usd.rateSell).toFixed(2); document.getElementById('eur-buy').textContent = Number(eur.rateBuy).toFixed(2); document.getElementById('eur-sell').textContent = Number(eur.rateSell).toFixed(2); return; }
       }
   } catch(e2) {}
   try {
       const dataNbu = await fetchCachedJson('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json', 'nbu_rates', 60);
       if (Array.isArray(dataNbu)) {
-          const usd = dataNbu.find(c => c.cc === 'USD');
-          const eur = dataNbu.find(c => c.cc === 'EUR');
-          if (usd && eur) {
-             document.getElementById('usd-buy').textContent = Number(usd.rate).toFixed(2);
-             document.getElementById('usd-sell').textContent = Number(usd.rate).toFixed(2);
-             document.getElementById('eur-buy').textContent = Number(eur.rate).toFixed(2);
-             document.getElementById('eur-sell').textContent = Number(eur.rate).toFixed(2);
-          }
+          const usd = dataNbu.find(c => c.cc === 'USD'); const eur = dataNbu.find(c => c.cc === 'EUR');
+          if (usd && eur) { document.getElementById('usd-buy').textContent = Number(usd.rate).toFixed(2); document.getElementById('usd-sell').textContent = Number(usd.rate).toFixed(2); document.getElementById('eur-buy').textContent = Number(eur.rate).toFixed(2); document.getElementById('eur-sell').textContent = Number(eur.rate).toFixed(2); }
       }
   } catch(e3) {}
 }
@@ -1262,12 +809,10 @@ function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) { container.innerHTML = '<div class="empty-msg">Оголошень поки немає</div>'; return; }
   let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color:rgba(255,255,255,0.7); font-weight: 600;">Якщо теж бажаєте тут з’явитися, пишіть нам у тг <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div class="shops-tile-grid">';
-  
   shopsData.forEach((shop, index) => {
     if(!shop) return;
     const safeName = shop.name != null ? String(shop.name).trim() : ""; const displayName = safeName !== "" ? safeName : "Оголошення " + (index + 1);
     const detailsId = 'shop-detail-' + index; const isVip = shop.vip === true || shop.vip === 'true'; const vipClass = isVip ? 'vip-tile' : ''; const vipBadge = isVip ? '<div class="vip-badge">VIP</div>' : '';
-    
     let rawPhoto = Array.isArray(shop.photos) && shop.photos.length > 0 ? shop.photos[0] : (shop.photo || shop.image || '');
     let photoUrl = String(rawPhoto).trim();
     if (photoUrl) {
@@ -1276,30 +821,14 @@ function renderShops(shopsData) {
         else if (photoUrl.includes('file/d/')) { let match = photoUrl.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
         if (fileId) photoUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
     }
-
     const photoHtml = photoUrl ? `<img src="${photoUrl}" alt="${displayName}">` : `<span style="font-size:28px;">🛍️</span>`;
     const titleHtml = (shop.instagram && String(shop.instagram).trim() !== "") ? `<a href="${String(shop.instagram).trim()}" target="_blank" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${displayName} 🔗</a>` : displayName;
-    
     let phoneHtml = 'Не вказано';
-    if (shop.phone && String(shop.phone).trim() !== "") {
-      phoneHtml = String(shop.phone).split(',').map(p => `<a href="tel:${p.replace(/[^0-9+]/g, '')}" class="shop-phone-link" onclick="event.stopPropagation();">${p.trim()}</a>`).join('<br>'); 
-    }
-    
+    if (shop.phone && String(shop.phone).trim() !== "") { phoneHtml = String(shop.phone).split(',').map(p => `<a href="tel:${p.replace(/[^0-9+]/g, '')}" class="shop-phone-link" onclick="event.stopPropagation();">${p.trim()}</a>`).join('<br>'); }
     const isContactless = shop.contactless === true || shop.contactless === 'true' || shop.contactless === '✅';
-    
-    let photosHtml = '';
-    let photosArray = Array.isArray(shop.photos) ? shop.photos : (photoUrl ? [photoUrl] : []);
-    if (photosArray.length > 0) {
-        photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(photosArray))}')), 0, event)"><img src="${photosArray[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Збільшити фото</div></div>`;
-    }
-
-    const dropdownHtml = buildDropdown(detailsId, photosHtml, [
-        {icon: '📍', label: 'Адреса', value: shop.address || "Не вказано"},
-        {icon: '🕒', label: 'Графік роботи', value: shop.schedule ? String(shop.schedule).replace(/\n/g, '<br>') : 'Не вказано'},
-        {icon: '💳', label: 'Термінал', value: isContactless ? '✅' : '❌'},
-        {icon: '📞', label: 'Телефон(и)', value: phoneHtml}
-    ]);
-
+    let photosHtml = ''; let photosArray = Array.isArray(shop.photos) ? shop.photos : (photoUrl ? [photoUrl] : []);
+    if (photosArray.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(photosArray))}')), 0, event)"><img src="${photosArray[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
+    const dropdownHtml = buildDropdown(detailsId, photosHtml, [ {icon: '📍', label: 'Адреса', value: shop.address || "Не вказано"}, {icon: '🕒', label: 'Графік роботи', value: shop.schedule ? String(shop.schedule).replace(/\n/g, '<br>') : 'Не вказано'}, {icon: '💳', label: 'Термінал', value: isContactless ? '✅' : '❌'}, {icon: '📞', label: 'Телефон(и)', value: phoneHtml} ]);
     html += `<div class="shop-tile ${vipClass}" onclick="toggleShop('${detailsId}', this)">${vipBadge}<div class="shop-tile-photo">${photoHtml}</div><div class="shop-tile-cat">${shop.category || "Магазин"}</div><div class="shop-tile-name">${titleHtml}</div><div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
   });
   container.innerHTML = html + '</div>';
@@ -1313,42 +842,24 @@ async function loadShopsData() {
     if (!itemsArray || itemsArray.length === 0) { document.getElementById('shopping-list-content').innerHTML = '<div class="empty-msg">Оголошень поки немає</div>'; return; }
     const activeShops = itemsArray.filter(shop => shop && shop.name && String(shop.name).trim() !== ""); const vipShops = activeShops.filter(shop => shop.vip === true || shop.vip === 'true'); const regularShops = activeShops.filter(shop => shop.vip !== true && shop.vip !== 'true');
     renderShops([...vipShops, ...shuffleArray([...regularShops])]);
-  } catch(e) { document.getElementById('shopping-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження магазинів: ${e.message}</div>`; }
+  } catch(e) { document.getElementById('shopping-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження магазинів</div>`; }
 }
 
 function renderPromosList(items) {
   const cont = document.getElementById('promos-list-content');
   if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Активних пропозицій немає</div>'; return; }
   let html = '<div class="shops-tile-grid">';
-  
   items.forEach((item, i) => {
     const id = 'promo-detail-' + i; 
     const thumb = item.photos && item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔥</span>`;
-    
     let photosHtml = '';
-    if (item.photos && item.photos.length > 0) { 
-        photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Збільшити фото</div></div>`; 
-    }
-    
-    const dropdownHtml = buildDropdown(id, photosHtml, [
-        {icon: '📝', label: 'Умови акції', value: String(item.description || '').replace(/\n/g, '<br>')},
-        {icon: '📞', label: 'Телефон', value: `<a href="tel:${String(item.phone || '').replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone || ''}</a>`}
-    ]);
-
+    if (item.photos && item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
+    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📝', label: 'Умови акції', value: String(item.description || '').replace(/\n/g, '<br>')}, {icon: '📞', label: 'Телефон', value: `<a href="tel:${String(item.phone || '').replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone || ''}</a>`} ]);
     const isVip = item.vip === true || item.vip === 'true';
     const tileClass = isVip ? 'shop-tile promo-tile vip-tile' : 'shop-tile promo-tile';
     const badgeHtml = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000; box-shadow: 0 4px 10px rgba(255,204,0,0.4);">VIP АКЦІЯ</div>' : '<div class="vip-badge promo-badge">АКЦІЯ</div>';
-
-    html += `<div class="${tileClass}" onclick="toggleShop('${id}', this)">
-        ${badgeHtml}
-        <div class="shop-tile-photo">${thumb}</div>
-        <div class="shop-tile-cat" style="color: #fff;">Магазин: ${item.shop || 'Не вказано'}</div>
-        <div class="card-row"><span class="card-price" style="color: var(--highlight-color); font-size: 14px;">${item.discount || ''}</span></div>
-        <div class="shop-tile-name" style="font-size: 14px; margin-bottom: 5px;">${item.title || ''}</div>
-        <div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 5px;">⏳ Діє до: <span style="color:#ffcc00;">${item.validUntil || '-'}</span></div>
-        <div class="shop-tile-chevron" style="color: #ff9f43; background: rgba(255,159,67,0.1);">Детальніше ▾</div>${dropdownHtml}</div>`;
+    html += `<div class="${tileClass}" onclick="toggleShop('${id}', this)">${badgeHtml}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: #fff;">Магазин: ${item.shop || 'Не вказано'}</div><div class="card-row"><span class="card-price" style="color: var(--highlight-color); font-size: 14px;">${item.discount || ''}</span></div><div class="shop-tile-name" style="font-size: 14px; margin-bottom: 5px;">${item.title || ''}</div><div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 5px;">⏳ Діє до: <span style="color:#ffcc00;">${item.validUntil || '-'}</span></div><div class="shop-tile-chevron" style="color: #ff9f43; background: rgba(255,159,67,0.1);">Детальніше ▾</div>${dropdownHtml}</div>`;
   });
-  
   cont.innerHTML = html + '</div>';
 }
 
@@ -1356,23 +867,13 @@ async function loadPromosData() {
   try {
     const response = await fetch(PROMOS_API_URL + '?_t=' + Date.now());
     if (!response.ok) throw new Error(`Код помилки: ${response.status}`);
-    
-    const data = await response.json();
-    let itemsArray = [];
-    if (Array.isArray(data)) itemsArray = data;
-    else if (data && Array.isArray(data.promos)) itemsArray = data.promos;
-
+    const data = await response.json(); let itemsArray = [];
+    if (Array.isArray(data)) itemsArray = data; else if (data && Array.isArray(data.promos)) itemsArray = data.promos;
     const activeItems = itemsArray.filter(item => item && item.active !== false);
     checkNotification('promos', activeItems);
-    
-    allPromoItems = [
-        ...activeItems.filter(item => item.vip).reverse(),
-        ...activeItems.filter(item => !item.vip).reverse()
-    ];
+    allPromoItems = [...activeItems.filter(item => item.vip).reverse(), ...activeItems.filter(item => !item.vip).reverse()];
     renderPromosList(allPromoItems);
-  } catch (e) { 
-    document.getElementById('promos-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d; line-height: 1.4;">Помилка зв'язку з сервером акцій.<br><b>Деталі: ${e.message}</b><br><br><span style="font-size:10px; color:rgba(255,255,255,0.6);">Перевірте, чи публічний репозиторій на GitHub і чи немає помилок у файлі promos.yaml.</span></div>`; 
-  }
+  } catch (e) { document.getElementById('promos-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d; line-height: 1.4;">Помилка зв'язку з сервером акцій</div>`; }
 }
 
 function renderEstateList(items, hasMore = false) {
@@ -1385,17 +886,8 @@ function renderEstateList(items, hasMore = false) {
     let photosHtml = '';
     if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const dealColor = item.dealType.toLowerCase() === 'оренда' ? '#00b8ff' : '#ff3366';
-    
-    const dropdownHtml = buildDropdown(id, photosHtml, [
-        {icon: '📌', label: 'Тип об\'єкта', value: `${item.propertyType} (${item.dealType})`},
-        {icon: '📝', label: 'Опис та адреса', value: item.description.replace(/\n/g, '<br>')},
-        {icon: '📞', label: 'Телефон', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a>`}
-    ]);
-
-    html += `<div class="shop-tile ${item.isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${item.isVip ? '<div class="vip-badge">VIP</div>' : ''}
-        <div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${item.dealType} • ${item.propertyType}</div>
-        <div class="card-row"><span class="card-price">${item.price}</span><span class="card-info">Кімнат: ${item.rooms}</span></div>
-        <div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
+    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Тип об\'єкта', value: `${item.propertyType} (${item.dealType})`}, {icon: '📝', label: 'Опис та адреса', value: item.description.replace(/\n/g, '<br>')}, {icon: '📞', label: 'Телефон', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a>`} ]);
+    html += `<div class="shop-tile ${item.isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${item.isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${item.dealType} • ${item.propertyType}</div><div class="card-row"><span class="card-price">${item.price}</span><span class="card-info">Кімнат: ${item.rooms}</span></div><div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
   if (hasMore) { html += `<button class="load-more-btn" onclick="estateRenderLimit+=20; const a=document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(a?a.innerText:'Всі',a);">Показати ще ▾</button>`; }
@@ -1403,8 +895,7 @@ function renderEstateList(items, hasMore = false) {
 }
 
 function filterEstate(category, element) {
-  document.querySelectorAll('#estate-categories .flea-category-tag').forEach(tag => { tag.classList.remove('active'); });
-  if(element) { element.classList.add('active'); }
+  document.querySelectorAll('#estate-categories .flea-category-tag').forEach(tag => { tag.classList.remove('active'); }); if(element) { element.classList.add('active'); }
   let filtered = allEstateItems.filter(item => category === 'Всі' || (item.dealType && item.dealType.includes(category)));
   if (currentEstateSort === 'cheap') filtered.sort((a,b) => (parseInt(a.price.replace(/\D/g,''))||0) - (parseInt(b.price.replace(/\D/g,''))||0));
   else if (currentEstateSort === 'expensive') filtered.sort((a,b) => (parseInt(b.price.replace(/\D/g,''))||0) - (parseInt(a.price.replace(/\D/g,''))||0));
@@ -1428,34 +919,21 @@ async function loadEstateData() {
         const activeTag = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
       }
     });
-  } catch (e) { document.getElementById('estate-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка: ${e.message}</div>`; }
+  } catch (e) { document.getElementById('estate-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
 }
 
 function renderFleaMarketList(items, hasMore = false) {
   const cont = document.getElementById('flea-market-list-content');
   if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
   const sortedItems = [...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return v === 'так' || v === '+' || v === 'true'; }).reverse(), ...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return !(v === 'так' || v === '+' || v === 'true'); })];
-  
   let html = '<div class="shops-tile-grid">';
   sortedItems.forEach((item, i) => {
     const id = 'flea-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">📦</span>`;
     let priceText = item.price ? String(item.price).trim() : 'Ціна договірна'; if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
-    
-    let photosHtml = '';
-    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
-    
+    let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const v = String(item.vip || '').trim().toLowerCase(); const isVip = v === 'так' || v === '+' || v === 'true';
-    const dropdownHtml = buildDropdown(id, photosHtml, [
-        {icon: '📌', label: 'Категорія', value: item.category},
-        {icon: '✨', label: 'Стан', value: item.condition},
-        {icon: '📝', label: 'Опис', value: item.description.replace(/\n/g, '<br>')},
-        {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a>`}
-    ]);
-
-    html += `<div class="shop-tile ${isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${isVip ? '<div class="vip-badge">VIP</div>' : ''}
-        <div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${item.category}</div>
-        <div class="card-row"><span class="card-price">${priceText}</span><span class="card-info">📍 ${item.location}</span></div>
-        <div class="shop-tile-name">${item.title}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
+    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: item.category}, {icon: '✨', label: 'Стан', value: item.condition}, {icon: '📝', label: 'Опис', value: item.description.replace(/\n/g, '<br>')}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a>`} ]);
+    html += `<div class="shop-tile ${isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${item.category}</div><div class="card-row"><span class="card-price">${priceText}</span><span class="card-info">📍 ${item.location}</span></div><div class="shop-tile-name">${item.title}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
   if (hasMore) { html += `<button class="load-more-btn" onclick="fleaRenderLimit+=20; const a=document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(a?a.innerText:'Всі',a);">Показати ще ▾</button>`; }
@@ -1488,7 +966,7 @@ async function loadFleaMarketData() {
         const activeTag = document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
       }
     });
-  } catch (e) { document.getElementById('flea-market-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка: ${e.message}</div>`; }
+  } catch (e) { document.getElementById('flea-market-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
 }
 
 async function loadLostFoundData() {
@@ -1498,87 +976,40 @@ async function loadLostFoundData() {
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
-        const getValue = (row, possibleNames) => {
-          const key = Object.keys(row).find(k => possibleNames.some(n => k.toLowerCase().includes(n)));
-          return key ? String(row[key]).trim() : '';
-        };
-
-        const approvedItems = results.data.filter(row => {
-          let status = getValue(row, ['статус', 'status']);
-          if (!status) { 
-             const keys = Object.keys(row);
-             status = String(row[keys[keys.length - 1]]).trim();
-          }
-          return status.toLowerCase() === 'одобрено';
-        }).map(row => {
-          let rawPhoto = getValue(row, ['фото', 'photo', 'photos', 'світлина']);
-          let photoUrls = rawPhoto.split(',').map(p => p.trim()).filter(p => p);
-          let processedPhotos = photoUrls.map(url => {
-            let fileId = '';
-            if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0];
-            else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
-            return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url;
-          });
-
-          return {
-            title: getValue(row, ['назва', 'title', 'речі']) || 'Без назви',
-            type: getValue(row, ['що сталося', 'type', 'тип']) || 'Знайдено',
-            description: getValue(row, ['опис', 'обставини', 'desc']) || 'Без опису',
-            phone: getValue(row, ['телефон', 'phone', 'контакт']) || 'Не вказано',
-            photos: processedPhotos,
-            category: getValue(row, ['категорія', 'category']) || 'Інше',
-            location: getValue(row, ['локація', 'місто', 'location', 'адреса']) || 'Вільногірськ'
-          };
+        const getValue = (row, possibleNames) => { const key = Object.keys(row).find(k => possibleNames.some(n => k.toLowerCase().includes(n))); return key ? String(row[key]).trim() : ''; };
+        const approvedItems = results.data.filter(row => { let status = getValue(row, ['статус', 'status']); if (!status) { const keys = Object.keys(row); status = String(row[keys[keys.length - 1]]).trim(); } return status.toLowerCase() === 'одобрено'; }).map(row => {
+          let rawPhoto = getValue(row, ['фото', 'photo', 'photos', 'світлина']); let photoUrls = rawPhoto.split(',').map(p => p.trim()).filter(p => p);
+          let processedPhotos = photoUrls.map(url => { let fileId = ''; if (url.includes('id=')) fileId = url.split('id=')[1].split('&')[0]; else if (url.includes('file/d/')) { let match = url.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; } return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : url; });
+          return { title: getValue(row, ['назва', 'title', 'речі']) || 'Без назви', type: getValue(row, ['що сталося', 'type', 'тип']) || 'Знайдено', description: getValue(row, ['опис', 'обставини', 'desc']) || 'Без опису', phone: getValue(row, ['телефон', 'phone', 'контакт']) || 'Не вказано', photos: processedPhotos, category: getValue(row, ['категорія', 'category']) || 'Інше', location: getValue(row, ['локація', 'місто', 'location', 'адреса']) || 'Вільногірськ' };
         });
-        
-        const localItems = approvedItems;
-        checkNotification('lost', localItems);
-        
+        const localItems = approvedItems; checkNotification('lost', localItems);
         const cont = document.getElementById('lost-found-list-content'); 
         if (!localItems.length) { cont.innerHTML = '<div class="empty-msg">Оголошень немає</div>'; return; }
-        
         let html = '<div class="shops-tile-grid">';
         localItems.reverse().forEach((item, i) => {
-          const id = 'lost-detail-' + i; 
-          const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`; 
-          const badgeColor = item.type.toLowerCase().includes('знайд') ? '#00ff9c' : '#ff4d4d';
-          let photosHtml = ''; 
-          if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
-          
-          const dropdownHtml = buildDropdown(id, photosHtml, [
-            {icon: '📌', label: 'Категорія', value: item.category},
-            {icon: '📝', label: 'Опис', value: item.description.replace(/\n/g, '<br>')},
-            {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a>`}
-          ]);
-
-          html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${item.category}</div>
-            <div class="card-row"><span class="card-price" style="color:${badgeColor}; max-width:45%;">${item.type}</span><span class="card-info">📍 ${item.location}</span></div>
-            <div class="shop-tile-name">${item.title}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
+          const id = 'lost-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`; const badgeColor = item.type.toLowerCase().includes('знайд') ? '#00ff9c' : '#ff4d4d';
+          let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+          const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: item.category}, {icon: '📝', label: 'Опис', value: item.description.replace(/\n/g, '<br>')}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a>`} ]);
+          html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${item.category}</div><div class="card-row"><span class="card-price" style="color:${badgeColor}; max-width:45%;">${item.type}</span><span class="card-info">📍 ${item.location}</span></div><div class="shop-tile-name">${item.title}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
         });
         cont.innerHTML = html + '</div>';
       }
     });
-  } catch (e) { document.getElementById('lost-found-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка: ${e.message}</div>`; }
+  } catch (e) { document.getElementById('lost-found-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
 }
 
 function isPast(timeStr) {
-  if (!timeStr || !timeStr.includes(":")) return false;
-  const now = getKyivNow(); const [h, m] = timeStr.split(":").map(Number);
-  const t = new Date(now); t.setHours(h, m, 0, 0); return t < now;
+  if (!timeStr || !timeStr.includes(":")) return false; const now = getKyivNow(); const [h, m] = timeStr.split(":").map(Number); const t = new Date(now); t.setHours(h, m, 0, 0); return t < now;
 }
 
 function renderGrid(data, isChanges = false, alwaysWhite = false) {
-  if (!data || data.length === 0) return "";
-  const total = data.length; const perCol = Math.ceil(total / 3);
-  let html = '<div class="schedule-grid">';
+  if (!data || data.length === 0) return ""; const total = data.length; const perCol = Math.ceil(total / 3); let html = '<div class="schedule-grid">';
   for(let c = 0; c < 3; c++) {
     html += '<div class="schedule-column">';
     for(let j = 0; j < perCol; j++) {
       const idx = c * perCol + j;
       if (idx < total) {
-        const r = data[idx]; const past = isPast(r[1]);
-        const isVil = (r[0] || "").toLowerCase().includes('вільногірськ');
-        const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
+        const r = data[idx]; const past = isPast(r[1]); const isVil = (r[0] || "").toLowerCase().includes('вільногірськ'); const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
         let timeClass = (alwaysWhite || isChanges) ? 'time-normal' : (past ? 'time-passed' : 'time-green');
         html += `<div class="${rowClass}"><div class="schedule-left"><span class="station-number">${idx + 1}.</span><span class="station-name-text">${r[0]}</span></div><div class="${timeClass}">${r[1]}</div></div>`;
       }
@@ -1590,8 +1021,7 @@ function renderGrid(data, isChanges = false, alwaysWhite = false) {
 
 function toggleTransportDetails(id, el) {
     const target = document.getElementById(id); if (!target) return;
-    const isOpening = !target.classList.contains('open');
-    document.querySelectorAll('.schedule-group .details.open').forEach(detail => detail.classList.remove('open'));
+    const isOpening = !target.classList.contains('open'); document.querySelectorAll('.schedule-group .details.open').forEach(detail => detail.classList.remove('open'));
     if (isOpening) { target.classList.add('open'); setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 350); }
 }
 
@@ -1603,15 +1033,13 @@ async function loadTrainsData(){
       d.trains.forEach((x, i) => {
         if (!x) return; const id = "train-" + i; const now = getKyivNow(); let sc = "future", dt = x.time;
         if (x.time && x.time.includes(':')) {
-          const [hh, mm] = x.time.split(':').map(Number); const tt = new Date(now); tt.setHours(hh, mm, 0, 0);
-          const diff = Math.floor((tt - now) / 60000);
+          const [hh, mm] = x.time.split(':').map(Number); const tt = new Date(now); tt.setHours(hh, mm, 0, 0); const diff = Math.floor((tt - now) / 60000);
           if (diff < 0) sc = "passed"; else if (diff <= 10) { sc = "soon"; dt = `≈ ${diff} хв`; }
         } else sc = "passed";
         const hc = x.note && x.note !== "змін немає...";
         h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${x.number}${hc ? '<span class="train-alert-dot"></span>' : ''}</div><div class="route-text">${x.route}</div><div class="time-val ${sc}">${dt}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${x.note}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}</div>`;
       });
       document.getElementById("list").innerHTML = h + `</div>`;
-      
       const changed = d.trains.filter(x => x && x.note && x.note !== "змін немає...");
       if (changed.length > 0) checkNotification('trains', changed); else { const dot = document.getElementById('dot-trains'); if (dot) dot.style.display = 'none'; }
     }
@@ -1624,13 +1052,10 @@ async function loadLongTrainsData() {
     if(d&&d.trains) {
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div>`;
       d.trains.forEach((x,i) => {
-        if(!x) return; const id = "lt-" + i; 
-        const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
-        const hasChanges = x.changes && Array.isArray(x.changes) && x.changes.length > 0;
+        if(!x) return; const id = "lt-" + i; const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : []; const hasChanges = x.changes && Array.isArray(x.changes) && x.changes.length > 0;
         let infoHtml = "";
         if (x.periodicityText) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність:</b><br><span style="color:inherit; font-weight:500;">${x.periodicityText}</span></div>`;
         if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500;">${x.changes.map(c => `<li>${c}</li>`).join('')}</ul></div>`;
-
         h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${x.number}</div><div class="route-text">${x.route}</div><div class="time-val">${x.time}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
       });
       document.getElementById("long-trains-list").innerHTML = h;
@@ -1649,11 +1074,9 @@ async function loadBusesData(){
           let rh = dir.rows.map(row => `<div class="schedule-row"><div class="schedule-left"><span class="station-name-text">${row[0]}</span></div><div class="time-normal">${row[1]}</div></div>`).join('');
           ch += `<div class="schedule-column"><div style="text-align:center; color:var(--highlight-color); font-size:11px; margin-bottom:10px; font-weight:800; text-transform:uppercase;">${dir.title}</div>${rh}</div>`;
         });
-        
         let extraInfo = '';
         if (b.note) extraInfo += `<div class="details-divider"></div><div class="details-note">${b.note}</div>`;
         if (b.info) extraInfo += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);">${b.info}</div>`;
-
         h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div><div class="route-text">${b.route}</div><div class="time-val future" style="font-size:11px;">Розклад ▾</div></div><div class="details" id="${id}"><div class="bus-grid">${ch}</div>${extraInfo}</div>`;
       });
       document.getElementById("buses-list").innerHTML = h;
@@ -1666,8 +1089,7 @@ function switchBlaBlaList(type) {
   document.getElementById('blabla-drivers-list').style.display = 'none'; document.getElementById('blabla-passengers-list').style.display = 'none';
   if (type === 'drivers') { document.getElementById('btn-show-drivers').classList.add('active'); document.getElementById('blabla-drivers-list').style.display = 'block'; } 
   else { document.getElementById('btn-show-passengers').classList.add('active'); document.getElementById('blabla-passengers-list').style.display = 'block'; }
-  window.dataLayer = window.dataLayer || [];
-  window.dataLayer.push({'event': 'tab_view', 'tab_name': 'blablacar_' + type, 'tab_group': 'blablacar_sub'});
+  window.dataLayer = window.dataLayer || []; window.dataLayer.push({'event': 'tab_view', 'tab_name': 'blablacar_' + type, 'tab_group': 'blablacar_sub'});
 }
 
 async function submitBlaBlaForm(event) {
@@ -1688,105 +1110,39 @@ async function loadBlaBlaCarData() {
     checkNotification('blablacar', d);
     const dr = d.filter(x => x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
     const ps = d.filter(x => x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
-    document.getElementById('blabla-drivers-list').innerHTML = dr.length ? dr.map(x => `
-      <div class="blabla-card">
-        <div class="blabla-route">📍 ${x.from} - ${x.to}</div>
-        <div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div>
-        <div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div>
-        <div class="blabla-info-row"><span>💺 Місць: <b>${x.seats}</b></span><span>💵 <b>${x.price > 0 ? x.price + ' грн' : 'Договірна'}</b></span></div>
-        ${x.comment ? `<div class="card-desc">💬 ${x.comment}</div>` : ''}
-        <div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div>
-      </div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
-    document.getElementById('blabla-passengers-list').innerHTML = ps.length ? ps.map(x => `
-      <div class="blabla-card">
-        <div class="blabla-route">📍 ${x.from} - ${x.to}</div>
-        <div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div>
-        <div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div>
-        <div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${x.seats}</b></span></div>
-        ${x.comment ? `<div class="card-desc">💬 ${x.comment}</div>` : ''}
-        <div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div>
-      </div>`).join('') : '<div class="empty-msg">Запитів немає</div>';
+    document.getElementById('blabla-drivers-list').innerHTML = dr.length ? dr.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${x.from} - ${x.to}</div><div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div><div class="blabla-info-row"><span>💺 Місць: <b>${x.seats}</b></span><span>💵 <b>${x.price > 0 ? x.price + ' грн' : 'Договірна'}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${x.comment}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div></div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
+    document.getElementById('blabla-passengers-list').innerHTML = ps.length ? ps.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${x.from} - ${x.to}</div><div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div><div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${x.seats}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${x.comment}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div></div>`).join('') : '<div class="empty-msg">Запитів немає</div>';
   } catch(e) {}
 }
 
 async function loadVolunteersData() {
-  const container = document.getElementById('volunteers-list-content');
-  if (!container) return;
+  const container = document.getElementById('volunteers-list-content'); if (!container) return;
   try {
-    const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers';
-    const data = await fetchCachedJson(API_URL, 'volunteers_api', 0);
+    const data = await fetchCachedJson('https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers', 'volunteers_api', 0);
     const activeItems = (data || []).filter(item => item.active !== false);
     if (!activeItems || activeItems.length === 0) { container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>'; return; }
     let html = '';
     activeItems.forEach((item, i) => {
-        const title = item.title || 'ЗБІР НА ЗСУ';
-        const desc = item.description ? item.description.replace(/\n/g, '<br>') : 'Підтримайте наших захисників!';
-        const jarUrl = item.jar_url || '';
-        const cardNumber = item.card_number || '';
-        const id = Math.random().toString(36).substr(2, 5);
-        const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0;
-        const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
+        const title = item.title || 'ЗБІР НА ЗСУ'; const desc = item.description ? item.description.replace(/\n/g, '<br>') : 'Підтримайте наших захисників!';
+        const jarUrl = item.jar_url || ''; const cardNumber = item.card_number || ''; const id = Math.random().toString(36).substr(2, 5);
+        const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0; const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
         let progressHtml = '';
         if (goal > 0) {
             const percent = Math.min(Math.round((collected / goal) * 100), 100);
-            progressHtml = `
-            <div style="width: 100%; margin-top: 15px; margin-bottom: 5px;">
-                <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 6px;">
-                    <span style="color: #00ff9c;">Зібрано: ${collected.toLocaleString('uk-UA')} ₴</span>
-                    <span style="color: rgba(255,255,255,0.5);">Ціль: ${goal.toLocaleString('uk-UA')} ₴</span>
-                </div>
-                <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);">
-                    <div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, #38bdf8, #ffcc00); border-radius: 10px; transition: width 1s ease-in-out;"></div>
-                </div>
-            </div>`;
+            progressHtml = `<div style="width: 100%; margin-top: 15px; margin-bottom: 5px;"><div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 6px;"><span style="color: #00ff9c;">Зібрано: ${collected.toLocaleString('uk-UA')} ₴</span><span style="color: rgba(255,255,255,0.5);">Ціль: ${goal.toLocaleString('uk-UA')} ₴</span></div><div style="width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);"><div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, #38bdf8, #ffcc00); border-radius: 10px; transition: width 1s ease-in-out;"></div></div></div>`;
         }
         let reqsHtml = '';
-        if (jarUrl) {
-            const jarId = 'jar-' + id;
-            reqsHtml += `
-            <a href="${jarUrl}" target="_blank" style="display: block; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 10px; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(0,0,0,0.25)'">
-                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                    <span style="font-size: 16px;">🏦</span>
-                    <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Посилання на Банку (натисніть для переходу)</span>
-                </div>
-                <div style="font-size: 13px; color: var(--time-green); font-weight: 800; word-break: break-all; line-height: 1.4;" id="${jarId}">${jarUrl}</div>
-            </a>`;
-        }
-        if (cardNumber) {
-            const cardId = 'card-' + id;
-            reqsHtml += `
-            <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px;">
-                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;">
-                    <span style="font-size: 16px;">💳</span>
-                    <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Номер картки</span>
-                </div>
-                <div style="font-size: 18px; font-weight: 800; font-family: monospace; letter-spacing: 1px; color: #fff; margin-bottom: 12px; text-align: center;" id="${cardId}">${cardNumber}</div>
-                <button onclick="copyToClipboardBtn('${cardNumber.replace(/\s/g, '')}', this)" style="width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">📋 Копіювати номер</button>
-            </div>`;
-        }
-        html += `
-        <div style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;">
-            <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding-right: 15px;">
-                <div style="width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.6); margin-top: 4px; flex-shrink: 0; animation: pulseAlert 2s infinite;"></div>
-                <div style="font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; text-align: left;">${title}</div>
-            </div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.6; text-align: left; margin-bottom: 15px; word-break: break-word;">${desc}</div>
-            ${progressHtml}
-            <div style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;">
-                <div style="font-size: 10px; font-weight: 700; color: var(--highlight-color); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: left;">Реквізити для допомоги:</div>
-                ${reqsHtml}
-            </div>
-        </div>`;
+        if (jarUrl) reqsHtml += `<a href="${jarUrl}" target="_blank" style="display: block; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 10px; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(0,0,0,0.25)'"><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">🏦</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Посилання на Банку</span></div><div style="font-size: 13px; color: var(--time-green); font-weight: 800; word-break: break-all; line-height: 1.4;" id="jar-${id}">${jarUrl}</div></a>`;
+        if (cardNumber) reqsHtml += `<div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px;"><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">💳</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Номер картки</span></div><div style="font-size: 18px; font-weight: 800; font-family: monospace; letter-spacing: 1px; color: #fff; margin-bottom: 12px; text-align: center;" id="card-${id}">${cardNumber}</div><button onclick="copyToClipboardBtn('${cardNumber.replace(/\s/g, '')}', this)" style="width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">📋 Копіювати номер</button></div>`;
+        html += `<div style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;"><div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding-right: 15px;"><div style="width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.6); margin-top: 4px; flex-shrink: 0; animation: pulseAlert 2s infinite;"></div><div style="font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; text-align: left;">${title}</div></div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.6; text-align: left; margin-bottom: 15px; word-break: break-word;">${desc}</div>${progressHtml}<div style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;"><div style="font-size: 10px; font-weight: 700; color: var(--highlight-color); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: left;">Реквізити для допомоги:</div>${reqsHtml}</div></div>`;
     });
     container.innerHTML = html;
   } catch (e) { container.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження зборів</div>'; }
 }
 
 function renderJobs(jobs) {
-  const container = document.getElementById('jobs-list-content');
-  if (!container) return;
+  const container = document.getElementById('jobs-list-content'); if (!container) return;
   if (!jobs || jobs.length === 0) { container.innerHTML = '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
-  
   let html = '';
   const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
   const safeJobs = jobs.filter(job => { const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase(); return !stopWords.some(word => textToSearch.includes(word)); });
@@ -1800,13 +1156,9 @@ function renderJobs(jobs) {
     if (displayPhone) { let cleanPhone = displayPhone.replace(/\D/g, ''); if (cleanPhone.length >= 10) displayPhone = '0' + cleanPhone.slice(-9); else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone; }
     const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Відгукнутися 🔗');
     const targetAttr = isTel ? '_self' : '_blank'; 
-    let displaySalary = job.salary;
-    if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) { displaySalary = displaySalary.trim() + ' грн'; }
-    const isVip = job.isVip || job.vip;
-    const vipBadge = isVip ? '<div class="vip-badge" style="top:-8px; right:-8px; font-size: 12px; padding: 4px 10px;">VIP</div>' : '';
-    const vipClass = isVip ? 'vip-job-card' : 'regular-job-card';
-    const employment = job.employment || 'Повна / Не вказано';
-    const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : '';
+    let displaySalary = job.salary; if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) { displaySalary = displaySalary.trim() + ' грн'; }
+    const isVip = job.isVip || job.vip; const vipBadge = isVip ? '<div class="vip-badge" style="top:-8px; right:-8px; font-size: 12px; padding: 4px 10px;">VIP</div>' : ''; const vipClass = isVip ? 'vip-job-card' : 'regular-job-card';
+    const employment = job.employment || 'Повна / Не вказано'; const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : '';
     
     return `<div class="blabla-card ${vipClass} ${extraClass}" style="position: relative; text-align: left; ${!isVip ? 'background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2)); border:1px solid rgba(255,255,255,0.05);' : ''} border-radius: 16px; padding: 0; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
         ${vipBadge}
@@ -1828,11 +1180,11 @@ function renderJobs(jobs) {
         </div>
       </div>`;
   }
+  
   if (vipJobs.length > 0) { html += '<div class="jobs-grid">'; vipJobs.forEach(job => { html += createJobCardHtml(job); }); html += '</div>'; }
   if (vipJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
   if (internetJobs.length > 0) {
-      html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button>
-          <div id="workua-drawer" class="workua-drawer"><div class="jobs-carousel">`;
+      html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button><div id="workua-drawer" class="workua-drawer"><div class="jobs-carousel">`;
       internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); html += `</div></div></div>`;
   }
   if (internetJobs.length > 0 && regularJobs.length > 0) { html += '<div class="section-divider"></div>'; }
@@ -1899,88 +1251,6 @@ async function submitBetaFeedback(event) {
     alert('✅ Дякуємо! Ваш відгук успішно відправлено.'); textEl.value = ''; document.getElementById('beta-drawer').classList.remove('open');
   } catch(e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = originalText; btn.disabled = false; }
 }
-
-// --- FIREBASE PUSH NOTIFICATIONS LOGIC ---
-let messaging;
-try {
-    firebase.initializeApp({
-      apiKey: "AIzaSyAG8UbnsZ2DphoF0H7w088vE7pNHMkJs80",
-      authDomain: "smart-vilnohirsk.firebaseapp.com",
-      projectId: "smart-vilnohirsk",
-      storageBucket: "smart-vilnohirsk.firebasestorage.app",
-      messagingSenderId: "676865197841",
-      appId: "1:676865197841:web:5d53065b2bb211bf77eeb0"
-    });
-    messaging = firebase.messaging();
-
-    messaging.onMessage((payload) => {
-        console.log('Отримано пуш на передньому плані:', payload);
-        alert(`🔔 НОВЕ СПОВІЩЕННЯ:\n${payload.notification.title}\n${payload.notification.body}`);
-    });
-} catch (e) {
-    console.error("Firebase не ініціалізовано:", e);
-}
-
-const TOPIC_KEYS = ['communal', 'news', 'events', 'gallery', 'volunteers', 'promos', 'blablacar', 'trains', 'buses', 'long_trains', 'estate', 'shopping', 'flea', 'jobs', 'lost', 'guide'];
-
-function openPushSettingsModal() {
-    const defaultTopics = {};
-    TOPIC_KEYS.forEach(k => defaultTopics[k] = false); // По умолчанию все выключено
-    
-    const topics = JSON.parse(localStorage.getItem('push_topics')) || defaultTopics;
-    
-    TOPIC_KEYS.forEach(k => {
-        const el = document.getElementById('push-' + k);
-        if(el) el.checked = !!topics[k];
-    });
-    
-    document.getElementById('push-settings-modal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-async function savePushSettings() {
-    const btn = document.getElementById('push-save-btn');
-    const origText = btn.innerText;
-    btn.innerText = 'Збереження...'; btn.disabled = true;
-
-    const topics = {};
-    TOPIC_KEYS.forEach(k => {
-        const el = document.getElementById('push-' + k);
-        topics[k] = el ? el.checked : false;
-    });
-
-    try {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-            
-            const token = await messaging.getToken({ 
-                vapidKey: 'BHmSY-eFLxPx60kZjEwkhEDXhYri04G6d-Pl37o-p6qQaCJT88VZImQiDPOoBTgEn9aRmZHsmw5Y5qhmsQ8y2Ls', 
-                serviceWorkerRegistration: registration 
-            });
-
-            if (token) {
-                await fetch(APP_SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ formType: 'push_subscription', token: token, topics: topics })
-                });
-                localStorage.setItem('push_topics', JSON.stringify(topics));
-                alert('✅ Налаштування сповіщень успішно збережено!');
-                closeModalForm(null, 'push-settings-modal');
-            }
-        } else {
-            alert('❌ Ви не надали дозвіл на отримання сповіщень у вашому браузері.');
-        }
-    } catch (error) {
-        console.error('Помилка підключення сповіщень:', error);
-        alert('Помилка підключення. Можливо, ваш браузер або пристрій не підтримує сповіщення.');
-    } finally {
-        btn.innerText = origText; btn.disabled = false;
-    }
-}
-// --- END FIREBASE ---
 
 const initApp = () => {
   updateDateTime(); setInterval(updateDateTime, 1000); loadWeather(); loadAlerts(); loadExchangeRates();
