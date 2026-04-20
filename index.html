@@ -106,7 +106,7 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .promo-tile { border-color: rgba(255, 51, 102, 0.4) !important; } .promo-badge { background: linear-gradient(135deg, #ff3366, #ff9f43) !important; color: #fff !important; box-shadow: 0 4px 10px rgba(255,51,102,0.4) !important; }
 .shop-tile-photo{width:100%;height:160px;border-radius:10px;background:rgba(0,0,0,0.3);display:flex;justify-content:center;align-items:center;overflow:hidden;margin-bottom:8px;border:1px solid rgba(255,255,255,0.05)} .shop-tile.vip-tile .shop-tile-photo, .promo-tile .shop-tile-photo {height:190px;} .shop-tile-photo img{width:100%;height:100%;object-fit:cover;display:block;}
 .shop-tile-cat{font-size:10px;color:var(--highlight-color);font-weight:800;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;word-break:break-word;overflow-wrap:anywhere;} .shop-tile-name{font-weight:800;font-size:13px;color:#fff;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;} .shop-tile-chevron{font-size:11px;color:var(--time-green);font-weight:800;margin-top:auto;text-align:center;background:rgba(0,255,156,0.1);padding:4px;border-radius:8px}
-.shop-details-dropdown{position:absolute;top:calc(100% + 5px);left:0;width:100%;max-height:0;opacity:0;overflow:hidden;margin-top:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;pointer-events:none;box-sizing:border-box;z-index:50; opacity:0;} .shop-details-dropdown.open{max-height:3000px;opacity:1;pointer-events:auto}
+.shop-details-dropdown{position:absolute;top:calc(100% + 5px);left:0;width:100%;max-height:0;opacity:0;overflow:hidden;margin-top:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;pointer-events:none;box-sizing:border-box;z-index:50;} .shop-details-dropdown.open{max-height:3000px;opacity:1;pointer-events:auto}
 .shop-inner-list{display:flex;flex-direction:column;gap:8px;font-size:11px;text-align:left;color:rgba(255,255,255,0.85);background:rgba(11,29,58,0.98);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 15px 35px rgba(0,0,0,0.8)} .shop-inner-item{display:flex;gap:6px;align-items:flex-start;line-height:1.3} .detail-icon{flex-shrink:0;font-size:12px} .shop-phone-link{color:#2af598;text-decoration:none;font-weight:800;letter-spacing:0.5px}
 .blabla-actions{display:flex;gap:10px;margin-bottom:15px;padding:0 5px} .blabla-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px 5px;border-radius:14px;text-decoration:none;font-weight:800;font-size:14px;font-family:inherit;color:#0b1d3a;cursor:pointer;border:none;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3)} .blabla-btn:active{transform:translateY(1px)}
 .btn-driver{background:linear-gradient(135deg,#00ff9c,#00b8ff)} .btn-passenger{background:linear-gradient(135deg,#ffcc00,#ff8800)} .blabla-subtext{font-size:10px;color:rgba(0,0,0,0.8);font-weight:600;margin-top:3px;text-transform:uppercase}
@@ -459,13 +459,31 @@ function copyToClipboardBtn(text, btn) {
 }
 
 async function fetchCachedText(url, key, ttlMinutes = 5) {
-    const cached = localStorage.getItem('cache_' + key);
+    const cacheKey = 'cache_' + key;
+    const timeKey = 'cache_time_' + key;
+    const cached = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(timeKey);
+    const now = Date.now();
+
+    // Реальне кешування: якщо час не минув, віддаємо моментально з пам'яті телефону!
+    if (cached && cachedTime && (now - parseInt(cachedTime)) < ttlMinutes * 60 * 1000) {
+        return cached;
+    }
+
     try {
-        const separator = url.includes('?') ? '&' : '?'; const freshUrl = url + separator + '_nocache=' + Date.now();
+        const separator = url.includes('?') ? '&' : '?'; 
+        const freshUrl = url + separator + '_nocache=' + now;
         const r = await fetch(freshUrl, { cache: 'no-store' }); 
         if (!r.ok) throw new Error('HTTP Error');
-        const text = await r.text(); localStorage.setItem('cache_' + key, text); return text;
-    } catch (e) { if (cached) return cached; throw e; }
+        const text = await r.text(); 
+        
+        localStorage.setItem(cacheKey, text); 
+        localStorage.setItem(timeKey, now.toString());
+        return text;
+    } catch (e) { 
+        if (cached) return cached; // Фолбек при відсутності інтернету
+        throw e; 
+    }
 }
 
 async function fetchCachedJson(url, key, ttlMinutes = 5) { return JSON.parse(await fetchCachedText(url, key, ttlMinutes)); }
