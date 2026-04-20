@@ -106,7 +106,7 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .promo-tile { border-color: rgba(255, 51, 102, 0.4) !important; } .promo-badge { background: linear-gradient(135deg, #ff3366, #ff9f43) !important; color: #fff !important; box-shadow: 0 4px 10px rgba(255,51,102,0.4) !important; }
 .shop-tile-photo{width:100%;height:160px;border-radius:10px;background:rgba(0,0,0,0.3);display:flex;justify-content:center;align-items:center;overflow:hidden;margin-bottom:8px;border:1px solid rgba(255,255,255,0.05)} .shop-tile.vip-tile .shop-tile-photo, .promo-tile .shop-tile-photo {height:190px;} .shop-tile-photo img{width:100%;height:100%;object-fit:cover;display:block;}
 .shop-tile-cat{font-size:10px;color:var(--highlight-color);font-weight:800;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;word-break:break-word;overflow-wrap:anywhere;} .shop-tile-name{font-weight:800;font-size:13px;color:#fff;line-height:1.2;word-break:break-word;overflow-wrap:anywhere;} .shop-tile-chevron{font-size:11px;color:var(--time-green);font-weight:800;margin-top:auto;text-align:center;background:rgba(0,255,156,0.1);padding:4px;border-radius:8px}
-.shop-details-dropdown{position:absolute;top:calc(100% + 5px);left:0;width:100%;max-height:0;opacity:0;overflow:hidden;margin-top:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;pointer-events:none;box-sizing:border-box;z-index:50;} .shop-details-dropdown.open{max-height:3000px;opacity:1;pointer-events:auto}
+.shop-details-dropdown{position:absolute;top:calc(100% + 5px);left:0;width:100%;max-height:0;opacity:0;overflow:hidden;margin-top:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;pointer-events:none;box-sizing:border-box;z-index:50; opacity:0;} .shop-details-dropdown.open{max-height:3000px;opacity:1;pointer-events:auto}
 .shop-inner-list{display:flex;flex-direction:column;gap:8px;font-size:11px;text-align:left;color:rgba(255,255,255,0.85);background:rgba(11,29,58,0.98);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);box-shadow:0 15px 35px rgba(0,0,0,0.8)} .shop-inner-item{display:flex;gap:6px;align-items:flex-start;line-height:1.3} .detail-icon{flex-shrink:0;font-size:12px} .shop-phone-link{color:#2af598;text-decoration:none;font-weight:800;letter-spacing:0.5px}
 .blabla-actions{display:flex;gap:10px;margin-bottom:15px;padding:0 5px} .blabla-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px 5px;border-radius:14px;text-decoration:none;font-weight:800;font-size:14px;font-family:inherit;color:#0b1d3a;cursor:pointer;border:none;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 4px 15px rgba(0,0,0,0.3)} .blabla-btn:active{transform:translateY(1px)}
 .btn-driver{background:linear-gradient(135deg,#00ff9c,#00b8ff)} .btn-passenger{background:linear-gradient(135deg,#ffcc00,#ff8800)} .blabla-subtext{font-size:10px;color:rgba(0,0,0,0.8);font-weight:600;margin-top:3px;text-transform:uppercase}
@@ -426,7 +426,7 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
   document.head.appendChild(l1); document.head.appendChild(l2);
 })();
 
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDwYQpUFVN9rvS-auA4mlqEO5ffKE8e5mWwPMiXhlbDbD94S07MleIBsVMXjzKMnUd/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw8MLPkLkjxtqraoKgFDTDk7zLJeuVH26dVnL86yn5hb_gOYbQiPfpqNBdL47IA7rEe/exec';
 const ESTATE_CSV_URL = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=622618191';
 const PROMOS_API_URL = 'https://vilnohirsk-promos-api-production.up.railway.app/api/promos';
 
@@ -458,35 +458,17 @@ function copyToClipboardBtn(text, btn) {
     fallbackCopyText(text, () => { const originalHtml = btn.innerHTML; btn.innerHTML = '<span style="color:#00ff9c">✔️</span>'; setTimeout(() => { btn.innerHTML = originalHtml; }, 2000); });
 }
 
-async function fetchCachedText(url, key, ttlMinutes = 5) {
-    const cacheKey = 'cache_' + key;
-    const timeKey = 'cache_time_' + key;
-    const cached = localStorage.getItem(cacheKey);
-    const cachedTime = localStorage.getItem(timeKey);
-    const now = Date.now();
-
-    // Реальне кешування: якщо час не минув, віддаємо моментально з пам'яті телефону!
-    if (cached && cachedTime && (now - parseInt(cachedTime)) < ttlMinutes * 60 * 1000) {
-        return cached;
-    }
-
+async function fetchCachedText(url, key, ttlMinutes = 1) {
+    const cached = localStorage.getItem('cache_' + key);
     try {
-        const separator = url.includes('?') ? '&' : '?'; 
-        const freshUrl = url + separator + '_nocache=' + now;
+        const separator = url.includes('?') ? '&' : '?'; const freshUrl = url + separator + '_nocache=' + Date.now();
         const r = await fetch(freshUrl, { cache: 'no-store' }); 
         if (!r.ok) throw new Error('HTTP Error');
-        const text = await r.text(); 
-        
-        localStorage.setItem(cacheKey, text); 
-        localStorage.setItem(timeKey, now.toString());
-        return text;
-    } catch (e) { 
-        if (cached) return cached; // Фолбек при відсутності інтернету
-        throw e; 
-    }
+        const text = await r.text(); localStorage.setItem('cache_' + key, text); return text;
+    } catch (e) { if (cached) return cached; throw e; }
 }
 
-async function fetchCachedJson(url, key, ttlMinutes = 5) { return JSON.parse(await fetchCachedText(url, key, ttlMinutes)); }
+async function fetchCachedJson(url, key, ttlMinutes = 1) { return JSON.parse(await fetchCachedText(url, key, ttlMinutes)); }
 
 function formatUAPhone(input) {
     let d = input.value.replace(/\D/g, '');
@@ -913,7 +895,7 @@ function filterEstate(category, element) {
 
 async function loadEstateData() {
   try {
-    const csvText = await fetchCachedText(ESTATE_CSV_URL, 'estate_csv', 5);
+    const csvText = await fetchCachedText(ESTATE_CSV_URL, 'estate_csv', 1);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
@@ -960,7 +942,7 @@ function filterFleaMarket(category, element) {
 async function loadFleaMarketData() {
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=111977759';
-    const csvText = await fetchCachedText(csvUrl, 'flea_csv', 5);
+    const csvText = await fetchCachedText(csvUrl, 'flea_csv', 1);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
@@ -981,7 +963,7 @@ async function loadFleaMarketData() {
 async function loadLostFoundData() {
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=624471689';
-    const csvText = await fetchCachedText(csvUrl, 'lost_csv', 5);
+    const csvText = await fetchCachedText(csvUrl, 'lost_csv', 1);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
@@ -1115,7 +1097,7 @@ async function submitBlaBlaForm(event) {
 
 async function loadBlaBlaCarData() {
   try {
-    const d = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 5);
+    const d = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 1);
     checkNotification('blablacar', d);
     const dr = d.filter(x => x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
     const ps = d.filter(x => x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
@@ -1128,7 +1110,8 @@ async function loadVolunteersData() {
   const container = document.getElementById('volunteers-list-content'); if (!container) return;
   try {
     const data = await fetchCachedJson('https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers', 'volunteers_api', 0);
-    const activeItems = (data || []).filter(item => item.active !== false);
+    let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.volunteers) ? data.volunteers : []);
+    const activeItems = itemsArray.filter(item => item && item.active !== false);
     if (!activeItems || activeItems.length === 0) { container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>'; return; }
     let html = '';
     activeItems.forEach((item, i) => {
@@ -1146,7 +1129,7 @@ async function loadVolunteersData() {
         html += `<div style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;"><div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding-right: 15px;"><div style="width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.6); margin-top: 4px; flex-shrink: 0; animation: pulseAlert 2s infinite;"></div><div style="font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; text-align: left;">${title}</div></div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.6; text-align: left; margin-bottom: 15px; word-break: break-word;">${desc}</div>${progressHtml}<div style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;"><div style="font-size: 10px; font-weight: 700; color: var(--highlight-color); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: left;">Реквізити для допомоги:</div>${reqsHtml}</div></div>`;
     });
     container.innerHTML = html;
-  } catch (e) { container.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження зборів</div>'; }
+  } catch (e) { container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>'; }
 }
 
 function renderJobs(jobs) {
@@ -1209,7 +1192,7 @@ async function loadJobsData() {
   try { const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 60); if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); } } catch(e) {}
   const SHEET_GID = '1809375718'; const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
   try {
-    const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 5);
+    const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 1);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
@@ -1238,7 +1221,9 @@ function toggleRadio() {
 async function showDailyVolunteerAlert() {
     const today = new Date().toDateString(); const lastSeen = localStorage.getItem('last_zsu_alert_date'); if (lastSeen === today) return;
     try {
-        const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers'; const data = await fetchCachedJson(API_URL, 'volunteers_api', 0); const activeItems = (data || []).filter(item => item.active !== false);
+        const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers'; const data = await fetchCachedJson(API_URL, 'volunteers_api', 0); 
+        let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.volunteers) ? data.volunteers : []);
+        const activeItems = itemsArray.filter(item => item && item.active !== false);
         if (activeItems && activeItems.length > 0) {
             const item = activeItems[0]; const title = item.title || 'ЗБІР НА ЗСУ'; const desc = item.description ? String(item.description).replace(/\n/g, '<br>') : ''; const jarUrl = item.jar_url || ''; const cardNumber = item.card_number || ''; const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0; const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
             let progressHtml = '';
