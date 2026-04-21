@@ -913,7 +913,7 @@ function filterEstate(category, element) {
 
 async function loadEstateData() {
   try {
-    const csvText = await fetchCachedText(ESTATE_CSV_URL, 'estate_csv', 1);
+    const csvText = await fetchCachedText(ESTATE_CSV_URL, 'estate_csv', 0);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
@@ -960,7 +960,7 @@ function filterFleaMarket(category, element) {
 async function loadFleaMarketData() {
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=111977759';
-    const csvText = await fetchCachedText(csvUrl, 'flea_csv', 1);
+    const csvText = await fetchCachedText(csvUrl, 'flea_csv', 0);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
@@ -981,7 +981,7 @@ async function loadFleaMarketData() {
 async function loadLostFoundData() {
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=624471689';
-    const csvText = await fetchCachedText(csvUrl, 'lost_csv', 1);
+    const csvText = await fetchCachedText(csvUrl, 'lost_csv', 0);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
@@ -1115,7 +1115,7 @@ async function submitBlaBlaForm(event) {
 
 async function loadBlaBlaCarData() {
   try {
-    const d = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 1);
+    const d = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 0);
     checkNotification('blablacar', d);
     const dr = d.filter(x => x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
     const ps = d.filter(x => x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
@@ -1210,7 +1210,7 @@ async function loadJobsData() {
   try { const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 60); if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); } } catch(e) {}
   const SHEET_GID = '1809375718'; const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
   try {
-    const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 1);
+    const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 0);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
