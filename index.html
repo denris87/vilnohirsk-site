@@ -459,13 +459,31 @@ function copyToClipboardBtn(text, btn) {
 }
 
 async function fetchCachedText(url, key, ttlMinutes = 1) {
-    const cached = localStorage.getItem('cache_' + key);
+    const cacheKey = 'cache_' + key;
+    const timeKey = 'cache_time_' + key;
+    const cached = localStorage.getItem(cacheKey);
+    const cachedTime = localStorage.getItem(timeKey);
+    const now = Date.now();
+
+    // Перевіряємо, чи є дані в пам'яті і чи не минув час (1 хвилина)
+    if (cached && cachedTime && (now - parseInt(cachedTime)) < ttlMinutes * 60 * 1000) {
+        return cached;
+    }
+
     try {
-        const separator = url.includes('?') ? '&' : '?'; const freshUrl = url + separator + '_nocache=' + Date.now();
+        const separator = url.includes('?') ? '&' : '?'; 
+        const freshUrl = url + separator + '_nocache=' + now;
         const r = await fetch(freshUrl, { cache: 'no-store' }); 
         if (!r.ok) throw new Error('HTTP Error');
-        const text = await r.text(); localStorage.setItem('cache_' + key, text); return text;
-    } catch (e) { if (cached) return cached; throw e; }
+        const text = await r.text(); 
+        
+        localStorage.setItem(cacheKey, text); 
+        localStorage.setItem(timeKey, now.toString());
+        return text;
+    } catch (e) { 
+        if (cached) return cached; 
+        throw e; 
+    }
 }
 
 async function fetchCachedJson(url, key, ttlMinutes = 1) { return JSON.parse(await fetchCachedText(url, key, ttlMinutes)); }
