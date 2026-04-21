@@ -458,6 +458,7 @@ function copyToClipboardBtn(text, btn) {
     fallbackCopyText(text, () => { const originalHtml = btn.innerHTML; btn.innerHTML = '<span style="color:#00ff9c">✔️</span>'; setTimeout(() => { btn.innerHTML = originalHtml; }, 2000); });
 }
 
+// ВИПРАВЛЕНА ФУНКЦІЯ КЕШУВАННЯ
 async function fetchCachedText(url, key, ttlMinutes = 1) {
     const cacheKey = 'cache_' + key;
     const timeKey = 'cache_time_' + key;
@@ -465,7 +466,6 @@ async function fetchCachedText(url, key, ttlMinutes = 1) {
     const cachedTime = localStorage.getItem(timeKey);
     const now = Date.now();
 
-    // Перевіряємо, чи є дані в пам'яті і чи не минув час (1 хвилина)
     if (cached && cachedTime && (now - parseInt(cachedTime)) < ttlMinutes * 60 * 1000) {
         return cached;
     }
