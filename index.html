@@ -615,7 +615,7 @@ function renderGallery(photos) {
 }
 
 async function loadGalleryData() {
-  try { renderGallery(await fetchCachedJson(`https://vilnohirsk-photos-production.up.railway.app/api/photos`, 'gallery_api', 30)); } 
+  try { renderGallery(await fetchCachedJson(`https://vilnohirsk-photos-production.up.railway.app/api/photos`, 'gallery_api', 5)); } 
   catch(e) { document.getElementById('gallery-list-content').innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження фотографій</div>'; }
 }
 
