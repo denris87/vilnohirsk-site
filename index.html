@@ -24,6 +24,23 @@ e.preventDefault();
 <meta property="og:url" content="https://vilnohirsk.online">
 <meta property="og:type" content="website">
 
+<!-- SEO Meta Tags -->
+<meta name="description" content="Smart Вільногірськ – головний портал міста. Актуальний розклад транспорту, барахолка, свіжі вакансії, новини, нерухомість, афіша та довідник Вільногірська.">
+<meta name="keywords" content="Вільногірськ, барахолка Вільногірськ, робота Вільногірськ, розклад електричок Вільногірськ, новини Вільногірськ, нерухомість Вільногірськ, розклад автобусів Вільногірськ, Smart Вільногірськ">
+
+<!-- Структуровані дані для Google (JSON-LD) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Smart Вільногірськ",
+  "url": "https://vilnohirsk.online",
+  "description": "Усе місто Вільногірськ в одному додатку: розклад, барахолка, робота, афіші, довідник та важливі новини.",
+  "applicationCategory": "UtilityApplication",
+  "operatingSystem": "All"
+}
+</script>
+
 <!-- Базовий PWA Manifest -->
 <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiU21hcnQg0JLRltC70YzQvdC+0LPRltGA0YHRjNC6Iiwic2hvcnRfbmFtZSI6ItCS0ZbQu9GM0L3QvtCz0ZbRgNGB0YzQuiIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMWUzYzcyIiwidGhlbWVfY29sb3IiOiIjMWUzYzcyIn0=">
 
@@ -135,6 +152,9 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 </style>
 </head>
 <body>
+<!-- Невидимий заголовок H1 для SEO (роботи Google його бачать, а люди ні) -->
+<h1 style="position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); border:0;">Smart Вільногірськ: Барахолка, Робота, Розклад транспорту та Новини міста</h1>
+
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBDJ9B94" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <div class="image-modal" id="image-modal" onclick="closeImageModal(event)">
@@ -634,7 +654,20 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
   const btn = document.getElementById(btnId); const origText = btn.innerText; btn.innerText = maxPhotos ? 'Обробка фото...' : 'Відправка...'; btn.disabled = true; btn.style.opacity = '0.7';
   try {
     const form = document.getElementById(formId); const formData = new FormData(form); const sheetData = { formType: type };
-    for (let [key, val] of formData.entries()) { if (key !== 'photos') sheetData[key] = (key === 'phone' && val !== '+380') ? ("'" + val) : val; }
+    
+    // Формуємо дані
+    for (let [key, val] of formData.entries()) { 
+        if (key !== 'photos') {
+            let finalVal = val;
+            // Додаємо апостроф до телефону для Google Таблиць
+            if (key === 'phone' && val !== '+380') finalVal = "'" + val;
+            // Умное добавление $ только к недвижимости
+            if (type === 'estate' && key === 'price' && val) finalVal = val + ' $';
+            
+            sheetData[key] = finalVal;
+        }
+    }
+    
     if (maxPhotos > 0) {
       const photos = form.querySelector('input[name="photos"]').files; if (photos.length > maxPhotos) throw new Error(`Максимум ${maxPhotos} фото!`);
       let b64 = []; for (let i = 0; i < photos.length; i++) b64.push(await compressAndGetBase64(photos[i])); sheetData.photosBase64 = b64;
@@ -1232,7 +1265,7 @@ function toggleRadio() {
         status.innerText = 'ЗАВАНТАЖЕННЯ...'; status.style.color = '#38bdf8'; eq.classList.add('playing');
         audio.src = "https://myradio24.org/muzdance?t=" + new Date().getTime(); audio.load();
         const playPromise = audio.play();
-        if (playPromise !== undefined) { playPromise.then(() => { icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>'; status.innerText = 'PLAY'; status.style.color = '#00ff9c'; icon.style.transform = 'none'; }).catch(error => { status.innerText = 'ПОМИЛКА'; status.style.color = '#ff4d4d'; eq.classList.remove('playing'); }); }
+        if (playPromise !== undefined) { playPromise.then(() => { icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg>'; status.innerText = 'PLAY'; status.style.color = '#00ff9c'; icon.style.transform = 'none'; }).catch(error => { status.innerText = 'ПОМИЛКА'; status.style.color = '#ff4d4d'; eq.classList.remove('playing'); }); }
     } else {
         audio.pause(); audio.src = ""; icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg>'; status.innerText = 'PAUSED'; status.style.color = 'rgba(255,255,255,0.5)'; eq.classList.remove('playing'); icon.style.transform = 'translateX(1px)';
     }
