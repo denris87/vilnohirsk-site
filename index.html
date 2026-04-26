@@ -371,7 +371,7 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
             <span id="radio-icon" style="display: flex; align-items: center; justify-content: center; transform: translateX(1px);"><svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg></span>
           </button>
           <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; line-height: 1.3; flex: 1; min-width: 0;">
-            <div style="font-size: 13px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">muzdance.com.ua</div>
+            <div id="radio-track-name" style="font-size: 13px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">muzdance.com.ua</div>
             <div id="radio-status" style="font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px;">PAUSED</div>
           </div>
           <div class="equalizer" id="equalizer" style="margin-left: 0; margin-right: 0;">
@@ -1241,10 +1241,8 @@ function renderJobs(jobs) {
 }
 
 async function loadJobsData() {
-  let allJobs = [];
-  try { const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 60); if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); } } catch(e) {}
-  const SHEET_GID = '1809375718'; const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
   try {
+    const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=1809375718';
     const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 0);
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
@@ -1253,10 +1251,24 @@ async function loadJobsData() {
           const keys = Object.keys(row); const phone = row['Телефон'] || row[keys[6]] || ''; const gender = row['Стать'] || row['gender'] || row[keys[7]] || ''; const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || ''; const vipStatus = row['VIP'] || row[keys[9]] || ''; const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
           return { title: row['Посада'] || row[keys[2]] || 'Без назви', salary: row['Зарплата'] || row[keys[3]] || '-', company: row['Компанія'] || row[keys[4]] || 'Не вказано', description: row['Опис'] || row[keys[5]] || '', date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно', phone: phone, gender: gender, employment: employment, url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#', isVip: isVip, source: 'User' };
         });
-        allJobs = allJobs.concat(userJobs); checkNotification('jobs', allJobs); renderJobs(allJobs);
+        renderJobs(userJobs);
       }
     });
-  } catch (e) { checkNotification('jobs', allJobs); renderJobs(allJobs); }
+  } catch (e) { document.getElementById('jobs-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
+}
+
+let radioStatsInterval;
+async function updateRadioStats() {
+  try {
+    const res = await fetch('https://myradio24.com/users/muzdance/status.json?t=' + Date.now());
+    if(res.ok) {
+      const data = await res.json();
+      const audio = document.getElementById('radio-audio');
+      if (!audio.paused && data.listeners !== undefined) {
+         document.getElementById('radio-track-name').innerHTML = `muzdance.com.ua <span style="color: var(--time-green); margin-left: 4px;">🎧 ${data.listeners}</span>`;
+      }
+    }
+  } catch(e) {}
 }
 
 function toggleRadio() {
@@ -1265,9 +1277,18 @@ function toggleRadio() {
         status.innerText = 'ЗАВАНТАЖЕННЯ...'; status.style.color = '#38bdf8'; eq.classList.add('playing');
         audio.src = "https://myradio24.org/muzdance?t=" + new Date().getTime(); audio.load();
         const playPromise = audio.play();
-        if (playPromise !== undefined) { playPromise.then(() => { icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg>'; status.innerText = 'PLAY'; status.style.color = '#00ff9c'; icon.style.transform = 'none'; }).catch(error => { status.innerText = 'ПОМИЛКА'; status.style.color = '#ff4d4d'; eq.classList.remove('playing'); }); }
+        if (playPromise !== undefined) { 
+          playPromise.then(() => { 
+            icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg>'; 
+            status.innerText = 'PLAY'; status.style.color = '#00ff9c'; icon.style.transform = 'none'; 
+            updateRadioStats();
+            if(!radioStatsInterval) radioStatsInterval = setInterval(updateRadioStats, 15000);
+          }).catch(error => { status.innerText = 'ПОМИЛКА'; status.style.color = '#ff4d4d'; eq.classList.remove('playing'); }); 
+        }
     } else {
         audio.pause(); audio.src = ""; icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg>'; status.innerText = 'PAUSED'; status.style.color = 'rgba(255,255,255,0.5)'; eq.classList.remove('playing'); icon.style.transform = 'translateX(1px)';
+        document.getElementById('radio-track-name').innerText = 'muzdance.com.ua';
+        if(radioStatsInterval) { clearInterval(radioStatsInterval); radioStatsInterval = null; }
     }
 }
 
@@ -1300,6 +1321,7 @@ async function submitBetaFeedback(event) {
 }
 
 const initApp = () => {
+  updateRadioStats();
   updateDateTime(); setInterval(updateDateTime, 1000); loadWeather(); loadAlerts(); loadExchangeRates();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); }, 100);
   setTimeout(() => { loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGalleryData(); loadVolunteersData(); setTimeout(showDailyVolunteerAlert, 1500); }, 600);
