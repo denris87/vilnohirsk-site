@@ -59,7 +59,7 @@ e.preventDefault();
 
 <style>
 :root{--highlight-color:#ffcc00;--glass-bg:rgba(0,0,0,0.45);--glass-border:rgba(255,255,255,0.08);--glass-border-light:rgba(255,255,255,0.15);--glass-shadow:0 16px 40px rgba(0,0,0,0.3);--time-green:#00ff9c;--time-passed:rgba(255,255,255,0.4);--text-main:#fff;--bg-grad-1:#1e3c72;--bg-grad-2:#2a5298;--bg-grad-3:#009ffd;--bg-grad-4:#2af598}
-html,body{margin:0;padding:0;min-height:100vh;background-color:#1e3c72}
+html,body{margin:0;padding:0;min-height:100vh;background-color:#1e3c72; -webkit-text-size-adjust: none;}
 *{-webkit-user-select:none;user-select:none;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;background:linear-gradient(-45deg,var(--bg-grad-1),var(--bg-grad-2),var(--bg-grad-3),var(--bg-grad-4),var(--bg-grad-3));background-size:300% 300%;animation:gradientMove 30s ease-in-out infinite alternate; transition: color 0.3s ease;}
 @keyframes gradientMove{0%{background-position:0% 50%}100%{background-position:100% 50%}}
@@ -151,11 +151,12 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .pb-search-container { position: sticky; top: -15px; z-index: 10; padding: 10px 0; margin-bottom: 5px; background: linear-gradient(to bottom, rgba(11,29,58,1) 80%, rgba(11,29,58,0)); } .pb-category-section { margin-bottom: 24px; } .pb-category-header { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; padding-left: 4px; } .pb-category-header span { font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); } .pb-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 10px; align-items: stretch; } @media (min-width: 650px) { .pb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } } .pb-tile { background: rgba(10, 20, 40, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-width: 0; box-sizing: border-box; } .pb-tile:active { transform: scale(0.98); } .pb-tile-title { font-size: 13px; font-weight: 700; color: #f8fafc; line-height: 1.4; word-break: break-word; flex: 1; min-width: 0; } .pb-tile-phones { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; align-items: flex-end; } .pb-phone-btn { background: transparent; color: #00ff9c; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; border: 1px solid rgba(0, 255, 156, 0.5); transition: background 0.2s, border-color 0.2s; text-align: center; white-space: nowrap; letter-spacing: 0.5px; } .pb-phone-btn:hover { border-color: #00ff9c; background: rgba(0, 255, 156, 0.05); } .pb-phone-btn:active { background: rgba(0, 255, 156, 0.15); }
 
 /* Бігуча стрічка (Ticker) */
-.ticker-wrap { width: 100%; overflow: hidden; background: linear-gradient(145deg, rgba(0, 0, 0, 0.5), rgba(10, 15, 30, 0.7)); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 10px 0; margin-bottom: 8px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); }
-.ticker-move { display: inline-block; white-space: nowrap; padding-left: 100%; animation: ticker 15s linear infinite; }
+.ticker-wrap { width: 100%; overflow: hidden; background: linear-gradient(145deg, rgba(0, 0, 0, 0.5), rgba(10, 15, 30, 0.7)); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 10px 0; margin-bottom: 8px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); -webkit-text-size-adjust: none; text-size-adjust: none; }
+.ticker-move { display: inline-block; white-space: nowrap; padding-left: 100%; animation: ticker 15s linear infinite; -webkit-text-size-adjust: none; text-size-adjust: none; }
 .ticker-move:hover { animation-play-state: paused; cursor: default; }
 @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
-.ticker-item { display: inline-block; font-size: 13px; font-weight: 800; color: #ffffff; padding: 0 15px; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); }
+.ticker-item { display: inline-block; vertical-align: middle; font-size: 13px !important; font-weight: 800 !important; color: #ffffff; padding: 0 15px; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); line-height: 1.2; -webkit-text-size-adjust: none; text-size-adjust: none; }
+.ticker-divider { display: inline-block; vertical-align: middle; color: var(--time-green); font-size: 10px !important; }
 </style>
 </head>
 <body>
@@ -1178,7 +1179,7 @@ async function loadTickerData() {
     const content = document.getElementById('ticker-content');
     
     if (data && data.messages && data.messages.length > 0) {
-      content.innerHTML = data.messages.map(m => `<div class="ticker-item">${m}</div>`).join('<span style="color:var(--time-green); font-size: 10px; display: inline-block; vertical-align: middle;">🟢</span>');
+      content.innerHTML = data.messages.map(m => `<span class="ticker-item">${m}</span>`).join('<span class="ticker-divider">🟢</span>');
       container.style.display = 'block';
     } else {
       container.style.display = 'none';
@@ -1282,17 +1283,10 @@ async function loadJobsData() {
           const keys = Object.keys(row); const phone = row['Телефон'] || row[keys[6]] || ''; const gender = row['Стать'] || row['gender'] || row[keys[7]] || ''; const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || ''; const vipStatus = row['VIP'] || row[keys[9]] || ''; const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
           return { title: row['Посада'] || row[keys[2]] || 'Без назви', salary: row['Зарплата'] || row[keys[3]] || '-', company: row['Компанія'] || row[keys[4]] || 'Не вказано', description: row['Опис'] || row[keys[5]] || '', date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно', phone: phone, gender: gender, employment: employment, url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#', isVip: isVip, source: 'User' };
         });
-        allJobs = allJobs.concat(userJobs); 
-        checkNotification('jobs', allJobs);
-        if (typeof window.updateTicker === 'function') { window.allJobsData = allJobs; updateTicker(); }
-        renderJobs(allJobs);
+        allJobs = allJobs.concat(userJobs); checkNotification('jobs', allJobs); renderJobs(allJobs);
       }
     });
-  } catch (e) { 
-    checkNotification('jobs', allJobs); 
-    if (typeof window.updateTicker === 'function') { window.allJobsData = allJobs; updateTicker(); }
-    renderJobs(allJobs); 
-  }
+  } catch (e) { checkNotification('jobs', allJobs); renderJobs(allJobs); }
 }
 
 let radioStatsInterval;
@@ -1359,6 +1353,7 @@ async function submitBetaFeedback(event) {
 }
 
 const initApp = () => {
+  updateRadioStats();
   updateDateTime(); setInterval(updateDateTime, 1000); loadWeather(); loadAlerts(); loadExchangeRates();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGalleryData(); loadVolunteersData(); setTimeout(showDailyVolunteerAlert, 1500); }, 600);
