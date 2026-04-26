@@ -1178,7 +1178,7 @@ async function loadTickerData() {
     const content = document.getElementById('ticker-content');
     
     if (data && data.messages && data.messages.length > 0) {
-      content.innerHTML = data.messages.map(m => `<div class="ticker-item">${m}</div>`).join('<span style="color:var(--time-green); font-size: 10px; vertical-align: middle;">🟢</span>');
+      content.innerHTML = data.messages.map(m => `<div class="ticker-item">${m}</div>`).join('<span style="color:var(--time-green); font-size: 10px; display: inline-block; vertical-align: middle;">🟢</span>');
       container.style.display = 'block';
     } else {
       container.style.display = 'none';
