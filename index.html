@@ -1265,24 +1265,25 @@ function renderJobs(jobs) {
   }
   
   if (vipJobs.length > 0) { 
-      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌟 VIP Вакансії</div><div class="jobs-carousel">'; 
+      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌟 VIP Вакансії</div><div style="position: relative;"><div class="jobs-carousel">'; 
       vipJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); 
-      html += '</div>'; 
+      html += '</div><div class="scroll-hint" style="border-radius: 0 16px 16px 0; right: -5px; top: 12px; bottom: 15px; width: 40px;"><span>❯</span></div></div>'; 
   }
   if (vipJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
   if (internetJobs.length > 0) {
-      html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button><div id="workua-drawer" class="workua-drawer"><div class="jobs-carousel">`;
-      internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); html += `</div></div></div>`;
+      html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button><div id="workua-drawer" class="workua-drawer"><div style="position: relative;"><div class="jobs-carousel">`;
+      internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); html += `</div><div class="scroll-hint" style="border-radius: 0 16px 16px 0; right: -5px; top: 12px; bottom: 15px; width: 40px;"><span>❯</span></div></div></div></div>`;
   }
   if (internetJobs.length > 0 && regularJobs.length > 0) { html += '<div class="section-divider"></div>'; }
   if (regularJobs.length > 0) {
-      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">👥 Від місцевих жителів</div><div class="jobs-carousel">';
-      shuffleArray(regularJobs).forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); html += '</div>';
+      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">👥 Від місцевих жителів</div><div style="position: relative;"><div class="jobs-carousel">';
+      shuffleArray(regularJobs).forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); html += '</div><div class="scroll-hint" style="border-radius: 0 16px 16px 0; right: -5px; top: 12px; bottom: 15px; width: 40px;"><span>❯</span></div></div>';
   }
   container.innerHTML = html;
 
   // Логіка для стрілочок скролу (надійна перевірка для мобільних)
   const checkAllScrolls = () => {
+    // 1. Вертикальний скролл тексту всередині карток
     document.querySelectorAll('.job-scroll-desc').forEach(scrollEl => {
       const indicator = scrollEl.parentElement.querySelector('.scroll-indicator');
       if (!indicator) return;
@@ -1296,10 +1297,29 @@ function renderJobs(jobs) {
         if (indicator.style.display !== 'none') indicator.style.display = 'none';
       }
     });
+
+    // 2. Горизонтальний скролл самих карток (каруселі)
+    document.querySelectorAll('.jobs-carousel').forEach(carousel => {
+      const hint = carousel.parentElement.querySelector('.scroll-hint');
+      if (!hint) return;
+      const needsScroll = carousel.scrollWidth > carousel.clientWidth + 5;
+      if (needsScroll) {
+        if (hint.style.display !== 'flex') hint.style.display = 'flex';
+        const isAtEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 10;
+        if (isAtEnd) {
+          hint.classList.add('hidden');
+        } else {
+          hint.classList.remove('hidden');
+        }
+      } else {
+        if (hint.style.display !== 'none') hint.style.display = 'none';
+      }
+    });
   };
 
-  document.querySelectorAll('.job-scroll-desc').forEach(scrollEl => {
-    scrollEl.addEventListener('scroll', checkAllScrolls, { passive: true });
+  // Вішаємо слухачів на обидва типи скролу
+  document.querySelectorAll('.job-scroll-desc, .jobs-carousel').forEach(el => {
+    el.addEventListener('scroll', checkAllScrolls, { passive: true });
   });
 
   // Запускаємо перевірку каскадом, щоб точно встигло відмалюватися на всіх телефонах
