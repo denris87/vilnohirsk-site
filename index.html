@@ -146,10 +146,13 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .form-submit-btn{width:100%;padding:14px;margin-top:10px;border:none;border-radius:14px;font-size:15px;font-weight:800;color:#0b1d3a;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,0.3);transition:transform 0.2s} .form-submit-btn.driver{background:linear-gradient(135deg,#00ff9c,#00b8ff)} .form-submit-btn.passenger{background:linear-gradient(135deg,#ffcc00,#ff8800)} .form-submit-btn.flea,.form-submit-btn.lost,.form-submit-btn.estate{background:linear-gradient(135deg,#00ff9c,#00b8ff)} .form-submit-btn.promo{background:linear-gradient(135deg,#ff3366,#ff9f43); color: #fff;} .form-submit-btn:active{transform:translateY(2px)}
 .image-modal{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.98);z-index:100000;display:flex;flex-direction:column;justify-content:center;align-items:center;pointer-events:none;transition:opacity 0.3s ease; opacity:0;} .image-modal.active{opacity:1;pointer-events:auto;touch-action:none} .image-modal-slider{width:100%;height:100%;overflow:hidden;position:relative} .image-modal-track{display:flex;width:100%;height:100%;transition:transform 0.3s cubic-bezier(0.25,1,0.5,1);will-change:transform} .image-modal-slide{flex:0 0 100%;width:100%;height:100%;display:flex;justify-content:center;align-items:center;position:relative} .image-modal-slide img{max-width:100%;max-height:100%;object-fit:contain;transition:transform 0.3s ease;} .image-modal-close{position:absolute;top:20px;right:20px;color:#ff4d4d;font-size:36px;font-weight:400;cursor:pointer;background:rgba(0,0,0,0.6);border:1px solid rgba(255,77,77,0.3);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:100001;transition:0.2s;line-height:0;padding-bottom:4px;} .image-modal-close:active{transform:scale(0.9); background:rgba(255,77,77,0.2);} #modal-image-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font-weight:700;font-size:14px;background:rgba(0,0,0,0.5);padding:6px 14px;border-radius:14px;z-index:100001;display:none}
 .flea-categories-wrapper { display: flex; overflow-x: auto; gap: 8px; padding: 5px 15px 15px 15px; scrollbar-width: none; -ms-overflow-style: none; align-items: center; } .flea-categories-wrapper::-webkit-scrollbar { display: none; } .flea-category-tag { padding: 6px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.7); white-space: nowrap; cursor: pointer; transition: all 0.3s ease; } .flea-category-tag.active { background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; border-color: transparent; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); } #estate-categories .flea-category-tag.active { background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff; border-color: transparent; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3); }
-.jobs-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; } @media (max-width: 768px) { .jobs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } } @media (max-width: 550px) { .jobs-grid { grid-template-columns: minmax(0, 1fr); } }
+.beta-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, padding 0.3s ease; cursor: default; } .beta-drawer.open { max-height: 500px; opacity: 1; padding-top: 15px; }
 .equalizer { display: flex; align-items: flex-end; gap: 2px; height: 18px; margin-left: auto; transition: opacity 0.3s; margin-right: 5px; opacity:0.2;} .equalizer.playing { opacity: 1; } .eq-bar { width: 4px; height: 4px; background: linear-gradient(to top, #00ff9c 0%, #00ff9c 75%, #ff3b3b 75%, #ff3b3b 100%); box-shadow: inset 0 -1px 0 rgba(0,0,0,0.5); transition: height 0.15s ease; } .equalizer.playing .eq-bar:nth-child(1) { animation: eq-1 1.2s infinite ease-in-out; } .equalizer.playing .eq-bar:nth-child(2) { animation: eq-2 1.4s infinite ease-in-out; } .equalizer.playing .eq-bar:nth-child(3) { animation: eq-3 1.1s infinite ease-in-out; } .equalizer.playing .eq-bar:nth-child(4) { animation: eq-4 1.3s infinite ease-in-out; } .equalizer.playing .eq-bar:nth-child(5) { animation: eq-5 1.5s infinite ease-in-out; }
 @keyframes eq-1 { 0%, 100% { height: 4px; } 25% { height: 100%; } 50% { height: 30%; } 75% { height: 80%; } } @keyframes eq-2 { 0%, 100% { height: 4px; } 20% { height: 60%; } 40% { height: 100%; } 80% { height: 20%; } } @keyframes eq-3 { 0%, 100% { height: 4px; } 30% { height: 80%; } 60% { height: 40%; } 90% { height: 100%; } } @keyframes eq-4 { 0%, 100% { height: 4px; } 15% { height: 50%; } 45% { height: 100%; } 75% { height: 60%; } } @keyframes eq-5 { 0%, 100% { height: 4px; } 35% { height: 100%; } 65% { height: 30%; } 85% { height: 70%; } }
-.workua-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease; } .workua-drawer.open { max-height: 5000px; opacity: 1; margin-top: 10px; } .section-divider { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); margin: 15px 0; } .jobs-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 12px 10px 15px 10px; scrollbar-width: none; -ms-overflow-style: none; } .jobs-carousel::-webkit-scrollbar { display: none; } .jobs-carousel-card { flex: 0 0 90%; max-width: 350px; scroll-snap-align: center; } @media (min-width: 650px) { .jobs-carousel-card { flex: 0 0 45%; } } .jobs-carousel .vip-job-card { width: 100% !important; margin: 0 !important; max-width: 100% !important; }
+.workua-drawer { max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease; } .workua-drawer.open { max-height: 5000px; opacity: 1; margin-top: 10px; } .section-divider { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); margin: 15px 0; } 
+.jobs-carousel { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; padding: 12px 10px 15px 10px; scrollbar-width: none; -ms-overflow-style: none; } 
+.jobs-carousel::-webkit-scrollbar { display: none; } 
+.jobs-carousel-card { flex: 0 0 90%; max-width: 350px; scroll-snap-align: center; } @media (min-width: 650px) { .jobs-carousel-card { flex: 0 0 45%; } } .jobs-carousel .vip-job-card { width: 100% !important; margin: 0 !important; max-width: 100% !important; }
 .modal-mini-guide { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 10px 12px; font-size: 11px; opacity: 0.9; margin-bottom: 15px; text-align: left; line-height: 1.4; } .load-more-btn { width:100%; padding:14px; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:12px; color:#fff; font-weight:800; margin-top:15px; cursor:pointer; transition:0.2s; } .load-more-btn:active { background:rgba(255,255,255,0.2); }
 .pb-search-container { position: sticky; top: -15px; z-index: 10; padding: 10px 0; margin-bottom: 5px; background: linear-gradient(to bottom, rgba(11,29,58,1) 80%, rgba(11,29,58,0)); } .pb-category-section { margin-bottom: 24px; } .pb-category-header { font-size: 14px; font-weight: 600; color: #e2e8f0; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; padding-left: 4px; } .pb-category-header span { font-size: 18px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); } .pb-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 10px; align-items: stretch; } @media (min-width: 650px) { .pb-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } } .pb-tile { background: rgba(10, 20, 40, 0.4); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; display: flex; justify-content: space-between; align-items: center; gap: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s, box-shadow 0.2s; min-width: 0; box-sizing: border-box; } .pb-tile:active { transform: scale(0.98); } .pb-tile-title { font-size: 13px; font-weight: 700; color: #f8fafc; line-height: 1.4; word-break: break-word; flex: 1; min-width: 0; } .pb-tile-phones { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; align-items: flex-end; } .pb-phone-btn { background: transparent; color: #00ff9c; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 12px; border: 1px solid rgba(0, 255, 156, 0.5); transition: background 0.2s, border-color 0.2s; text-align: center; white-space: nowrap; letter-spacing: 0.5px; } .pb-phone-btn:hover { border-color: #00ff9c; background: rgba(0, 255, 156, 0.05); } .pb-phone-btn:active { background: rgba(0, 255, 156, 0.15); }
 
@@ -731,7 +734,76 @@ function switchAppTab(tabId, btn, group) {
   if (drawer) { drawer.classList.remove('drawer-events', 'drawer-communal'); if(tabId === 'alert-events') drawer.classList.add('drawer-events'); if(tabId === 'alert-communal') drawer.classList.add('drawer-communal'); drawer.classList.add('open'); }
   btn.classList.add('active'); const targetSection = document.getElementById(tabId); if (targetSection) targetSection.classList.add('active'); 
   window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
+  if (typeof window.checkAllScrolls === 'function') { setTimeout(window.checkAllScrolls, 50); setTimeout(window.checkAllScrolls, 350); }
 }
+
+// === ДРАГ-СВАЙП (ГОРТАННЯ МИШКОЮ НА ПК) ===
+let isMouseDragging = false;
+let startMouseX, startScrollLeft, activeSliderEl, originalSnap;
+let hasDragged = false;
+
+document.addEventListener('mousedown', (e) => {
+  const slider = e.target.closest('.jobs-carousel, .tabs-nav, .flea-categories-wrapper, .carousel-container');
+  if (!slider) return;
+  isMouseDragging = true;
+  hasDragged = false;
+  activeSliderEl = slider;
+  startMouseX = e.pageX - slider.offsetLeft;
+  startScrollLeft = slider.scrollLeft;
+  
+  activeSliderEl.style.cursor = 'grabbing';
+  originalSnap = getComputedStyle(activeSliderEl).scrollSnapType;
+  activeSliderEl.style.scrollSnapType = 'none'; 
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isMouseDragging || !activeSliderEl) return;
+  const x = e.pageX - activeSliderEl.offsetLeft;
+  const walk = (x - startMouseX) * 1.5;
+  if (Math.abs(walk) > 5) {
+      hasDragged = true;
+      e.preventDefault(); // Запобігаємо виділенню тексту при перетягуванні
+  }
+  activeSliderEl.scrollLeft = startScrollLeft - walk;
+});
+
+const stopDragging = () => {
+  isMouseDragging = false;
+  if (activeSliderEl) {
+      activeSliderEl.style.cursor = '';
+      activeSliderEl.style.scrollSnapType = originalSnap || '';
+      activeSliderEl = null;
+  }
+};
+
+document.addEventListener('mouseup', stopDragging);
+document.addEventListener('mouseleave', stopDragging);
+
+// Блокуємо клік, якщо користувач тягнув мишкою (щоб не відкривались посилання)
+document.addEventListener('click', (e) => {
+  if (hasDragged) {
+    e.preventDefault();
+    e.stopPropagation();
+    hasDragged = false;
+  }
+}, true);
+
+// === СКРОЛЛ КОЛІЩАТКОМ МИШКИ ДЛЯ КАРУСЕЛЕЙ НА ПК ===
+document.addEventListener('wheel', (e) => {
+  const hScrollEl = e.target.closest('.jobs-carousel, .tabs-nav, .flea-categories-wrapper, .carousel-container');
+  if (hScrollEl) {
+    // Якщо курсор над текстом, що має власний вертикальний скролл - не блокуємо
+    const vScrollEl = e.target.closest('.job-scroll-desc, .alert-item');
+    if (vScrollEl && vScrollEl.scrollHeight > vScrollEl.clientHeight) {
+        // Даємо змогу скролити текст вакансії/афіші вниз
+        return;
+    }
+    if (e.deltaY !== 0) {
+        e.preventDefault();
+        hScrollEl.scrollLeft += e.deltaY;
+    }
+  }
+}, { passive: false });
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
 function getWeatherEmoji(code){ if(code === 0) return "☀️"; if(code <= 2) return "⛅"; if(code <= 3) return "☁️"; if(code <= 48) return "🌫️"; if(code <= 67) return "🌧️"; if(code <= 77) return "🌨️"; if(code <= 99) return "⛈️"; return "🌡️"; }
@@ -1223,6 +1295,39 @@ async function loadVolunteersData() {
     container.innerHTML = html;
   } catch (e) { container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>'; }
 }
+
+window.checkAllScrolls = function() {
+  document.querySelectorAll('.job-scroll-desc').forEach(scrollEl => {
+    const indicator = scrollEl.parentElement.querySelector('.scroll-indicator');
+    if (!indicator) return;
+    const needsScroll = scrollEl.scrollHeight > scrollEl.clientHeight + 5;
+    if (needsScroll) {
+      if (indicator.style.display !== 'flex') indicator.style.display = 'flex';
+      const isAtBottom = scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 10;
+      const targetOpacity = isAtBottom ? '0' : '1';
+      if (indicator.style.opacity !== targetOpacity) indicator.style.opacity = targetOpacity;
+    } else {
+      if (indicator.style.display !== 'none') indicator.style.display = 'none';
+    }
+  });
+
+  document.querySelectorAll('.jobs-carousel').forEach(carousel => {
+    const hint = carousel.parentElement.querySelector('.scroll-hint');
+    if (!hint) return;
+    const needsScroll = carousel.scrollWidth > carousel.clientWidth + 5;
+    if (needsScroll) {
+      if (hint.style.display !== 'flex') hint.style.display = 'flex';
+      const isAtEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 10;
+      if (isAtEnd) {
+        hint.classList.add('hidden');
+      } else {
+        hint.classList.remove('hidden');
+      }
+    } else {
+      if (hint.style.display !== 'none') hint.style.display = 'none';
+    }
+  });
+};
 
 function renderJobs(jobs) {
   const container = document.getElementById('jobs-list-content'); if (!container) return;
