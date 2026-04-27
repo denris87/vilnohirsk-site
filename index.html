@@ -1281,22 +1281,32 @@ function renderJobs(jobs) {
   }
   container.innerHTML = html;
 
-  // Логіка для стрілочок скролу (показувати тільки там, де текст реально довгий)
-  setTimeout(() => {
+  // Логіка для стрілочок скролу (надійна перевірка для мобільних)
+  const checkAllScrolls = () => {
     document.querySelectorAll('.job-scroll-desc').forEach(scrollEl => {
       const indicator = scrollEl.parentElement.querySelector('.scroll-indicator');
-      if (indicator && scrollEl.scrollHeight > scrollEl.clientHeight + 5) {
-        indicator.style.display = 'flex'; // Текст довгий - показуємо стрілочки
-        scrollEl.addEventListener('scroll', () => {
-          if (scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 10) {
-            indicator.style.opacity = '0'; // Докрутили до кінця - ховаємо
-          } else {
-            indicator.style.opacity = '1'; // Повернулися наверх - показуємо знову
-          }
-        });
+      if (!indicator) return;
+      const needsScroll = scrollEl.scrollHeight > scrollEl.clientHeight + 5;
+      if (needsScroll) {
+        if (indicator.style.display !== 'flex') indicator.style.display = 'flex';
+        const isAtBottom = scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 10;
+        const targetOpacity = isAtBottom ? '0' : '1';
+        if (indicator.style.opacity !== targetOpacity) indicator.style.opacity = targetOpacity;
+      } else {
+        if (indicator.style.display !== 'none') indicator.style.display = 'none';
       }
     });
-  }, 100);
+  };
+
+  document.querySelectorAll('.job-scroll-desc').forEach(scrollEl => {
+    scrollEl.addEventListener('scroll', checkAllScrolls, { passive: true });
+  });
+
+  // Запускаємо перевірку каскадом, щоб точно встигло відмалюватися на всіх телефонах
+  requestAnimationFrame(checkAllScrolls);
+  setTimeout(checkAllScrolls, 100);
+  setTimeout(checkAllScrolls, 500);
+  setTimeout(checkAllScrolls, 1500);
 }
 
 async function loadJobsData() {
