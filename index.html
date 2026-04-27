@@ -1272,7 +1272,7 @@ function renderJobs(jobs) {
   }
   if (vipJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
   if (internetJobs.length > 0) {
-      html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button><div id="workua-drawer" class="workua-drawer"><div style="position: relative;"><div class="jobs-carousel">`;
+      html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾'; setTimeout(window.checkAllScrolls, 350);" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button><div id="workua-drawer" class="workua-drawer"><div style="position: relative;"><div class="jobs-carousel">`;
       internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); html += `</div><div class="scroll-hint" style="border-radius: 0 16px 16px 0; right: -5px; top: 12px; bottom: 15px; width: 40px;"><span>❯</span></div></div></div></div>`;
   }
   if (internetJobs.length > 0 && regularJobs.length > 0) { html += '<div class="section-divider"></div>'; }
@@ -1282,47 +1282,14 @@ function renderJobs(jobs) {
   }
   container.innerHTML = html;
 
-  const checkAllScrolls = () => {
-    document.querySelectorAll('.job-scroll-desc').forEach(scrollEl => {
-      const indicator = scrollEl.parentElement.querySelector('.scroll-indicator');
-      if (!indicator) return;
-      const needsScroll = scrollEl.scrollHeight > scrollEl.clientHeight + 5;
-      if (needsScroll) {
-        if (indicator.style.display !== 'flex') indicator.style.display = 'flex';
-        const isAtBottom = scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 10;
-        const targetOpacity = isAtBottom ? '0' : '1';
-        if (indicator.style.opacity !== targetOpacity) indicator.style.opacity = targetOpacity;
-      } else {
-        if (indicator.style.display !== 'none') indicator.style.display = 'none';
-      }
-    });
-
-    document.querySelectorAll('.jobs-carousel').forEach(carousel => {
-      const hint = carousel.parentElement.querySelector('.scroll-hint');
-      if (!hint) return;
-      const needsScroll = carousel.scrollWidth > carousel.clientWidth + 5;
-      if (needsScroll) {
-        if (hint.style.display !== 'flex') hint.style.display = 'flex';
-        const isAtEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 10;
-        if (isAtEnd) {
-          hint.classList.add('hidden');
-        } else {
-          hint.classList.remove('hidden');
-        }
-      } else {
-        if (hint.style.display !== 'none') hint.style.display = 'none';
-      }
-    });
-  };
-
   document.querySelectorAll('.job-scroll-desc, .jobs-carousel').forEach(el => {
-    el.addEventListener('scroll', checkAllScrolls, { passive: true });
+    el.addEventListener('scroll', window.checkAllScrolls, { passive: true });
   });
 
-  requestAnimationFrame(checkAllScrolls);
-  setTimeout(checkAllScrolls, 100);
-  setTimeout(checkAllScrolls, 500);
-  setTimeout(checkAllScrolls, 1500);
+  requestAnimationFrame(window.checkAllScrolls);
+  setTimeout(window.checkAllScrolls, 100);
+  setTimeout(window.checkAllScrolls, 500);
+  setTimeout(window.checkAllScrolls, 1500);
 }
 
 async function loadJobsData() {
