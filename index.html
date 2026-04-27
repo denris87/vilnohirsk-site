@@ -1281,6 +1281,23 @@ function renderJobs(jobs) {
       shuffleArray(regularJobs).forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); html += '</div>';
   }
   container.innerHTML = html;
+
+  // Логіка для стрілочок скролу (показувати тільки там, де текст реально довгий)
+  setTimeout(() => {
+    document.querySelectorAll('.job-scroll-desc').forEach(scrollEl => {
+      const indicator = scrollEl.parentElement.querySelector('.scroll-indicator');
+      if (indicator && scrollEl.scrollHeight > scrollEl.clientHeight + 5) {
+        indicator.style.display = 'flex'; // Текст довгий - показуємо стрілочки
+        scrollEl.addEventListener('scroll', () => {
+          if (scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 10) {
+            indicator.style.opacity = '0'; // Докрутили до кінця - ховаємо
+          } else {
+            indicator.style.opacity = '1'; // Повернулися наверх - показуємо знову
+          }
+        });
+      }
+    });
+  }, 100);
 }
 
 async function loadJobsData() {
