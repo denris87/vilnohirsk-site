@@ -687,14 +687,14 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
         }
     }
     
-    if (maxPhotos > 0) {
-      const photos = form.querySelector('input[name="photos"]').files; if (photos.length > maxPhotos) throw new Error(`Максимум ${maxPhotos} фото!`);
-      let b64 = []; for (let i = 0; i < photos.length; i++) b64.push(await compressAndGetBase64(photos[i])); sheetData.photosBase64 = b64;
-    }
-    btn.innerText = 'Збереження...';
-    await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
-    alert('✅ Успішно відправлено на модерацію!'); document.getElementById(modalId).classList.remove('active'); form.reset(); setupCaptcha(formId);
-  } catch (e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
+        if (maxPhotos > 0) {
+          const photos = form.querySelector('input[name="photos"]').files; if (photos.length > maxPhotos) throw new Error(`Максимум ${maxPhotos} фото!`);
+          let b64 = []; for (let i = 0; i < photos.length; i++) b64.push(await compressAndGetBase64(photos[i])); sheetData.photosBase64 = b64;
+        }
+        btn.innerText = 'Збереження...';
+        await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
+        alert('✅ Успішно відправлено на модерацію!'); closeModalForm(null, modalId); form.reset(); setupCaptcha(formId);
+      } catch (e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
 }
 
 function openModalForm(formId, modalId) { const form = document.getElementById(formId); if(form) form.reset(); setupCaptcha(formId); document.getElementById(modalId).classList.add('active'); document.body.style.overflow = 'hidden'; }
