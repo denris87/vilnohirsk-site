@@ -837,27 +837,27 @@ function renderJobs(jobs) {
     const isVip = job.isVip || job.vip; 
     const vipClass = isVip ? 'vip-tile' : '';
     const vipBadge = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000;">VIP</div>' : ''; 
-    const employment = job.employment || 'Повна / Не вказано'; 
+    const employment = job.employment || 'Не вказано'; 
     const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : 'Без опису';
     const id = `job-detail-${prefix}-${index}`;
 
     const dropdownHtml = buildDropdown(id, '', [
-        {icon: '🏢', label: 'Роботодавець', value: job.company || 'Не вказано'},
-        {icon: '⏱', label: 'Зайнятість', value: employment},
-        {icon: '📝', label: 'Опис', value: safeDesc},
-        {icon: '📅', label: 'Дата', value: job.date},
-        {icon: '📞', label: 'Зв\'язок', value: `<a href="${job.url}" target="${targetAttr}" class="shop-phone-link" onclick="event.stopPropagation();">${btnText}</a>`}
+        {icon: '📝', label: 'Повний опис', value: safeDesc}
     ]);
 
-    return `<div class="shop-tile ${vipClass}" onclick="toggleShop('${id}', this)">
+    return `<div class="shop-tile ${vipClass}" style="justify-content: flex-start; text-align: left;" onclick="toggleShop('${id}', this)">
         ${vipBadge}
-        <div class="shop-tile-photo" style="height: 100px; background: rgba(255,255,255,0.05);">
-            <span style="font-size:36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">💼</span>
-        </div>
-        <div class="shop-tile-cat" style="color: ${isVip ? '#ffcc00' : '#74b9ff'};">${job.company || 'Роботодавець'}</div>
-        <div class="card-row"><span class="card-price">${displaySalary || '-'}</span></div>
-        <div class="shop-tile-name" style="margin-bottom: 5px;">${job.title}</div>
-        <div class="shop-tile-chevron">Деталі ▾</div>
+        <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 6px; margin-top: 4px;">${job.title}</div>
+        <div style="font-size: 10px; color: rgba(255,255,255,0.8); margin-bottom: 2px;"><b>Роботодавець:</b> ${job.company || 'Не вказано'}</div>
+        <div style="font-size: 10px; color: rgba(255,255,255,0.8); margin-bottom: 6px;"><b>Зайнятість:</b> ${employment}</div>
+        
+        <div class="card-price" style="font-size: 15px; margin-bottom: 6px;">${displaySalary || '-'}</div>
+        
+        <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">Дата: ${job.date}</div>
+        
+        <a href="${job.url}" target="${targetAttr}" style="display: block; width: 100%; padding: 8px 0; border-radius: 8px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 12px; text-align: center; text-decoration: none; margin-bottom: 6px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${btnText}</a>
+        
+        <div class="shop-tile-chevron" style="margin-top: auto; background: rgba(255,255,255,0.05); color: #fff; padding: 6px; border-radius: 8px; font-size: 11px;">Опис ▾</div>
         ${dropdownHtml}
     </div>`;
   }
