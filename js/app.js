@@ -14,6 +14,131 @@ var allFleaMarketItems = []; var fleaRenderLimit = 20; var currentFleaSort = 'ne
 var allEstateItems = []; var estateRenderLimit = 20; var currentEstateSort = 'new';
 var allPromoItems = [];
 
+// === FIREBASE PUSH NOTIFICATIONS ===
+const VAPID_KEY = "BHmSY-eFLxPx60kZjEwkhEDXhYri04G6d-Pl37o-p6qQaCJT88VZImQiDPOoBTgEn9aRmZHsmw5Y5qhmsQ8y2Ls";
+
+window.loadFirebaseAndSubscribe = function(categoryName, btn) {
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Завантаження...';
+    btn.disabled = true;
+
+    if (typeof firebase !== 'undefined' && firebase.messaging) {
+        handleSubscription(categoryName, btn, originalText);
+        return;
+    }
+
+    const s1 = document.createElement('script');
+    s1.src = 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js';
+    document.head.appendChild(s1);
+
+    s1.onload = () => {
+        const s2 = document.createElement('script');
+        s2.src = 'https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js';
+        document.head.appendChild(s2);
+        s2.onload = () => {
+            const firebaseConfig = {
+              apiKey: "AIzaSyAG8UbnsZ2DphoF0H7w088vE7pNHMkJs80",
+              authDomain: "smart-vilnohirsk.firebaseapp.com",
+              projectId: "smart-vilnohirsk",
+              storageBucket: "smart-vilnohirsk.firebasestorage.app",
+              messagingSenderId: "676865197841",
+              appId: "1:676865197841:web:5d53065b2bb211bf77eeb0"
+            };
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            handleSubscription(categoryName, btn, originalText);
+        };
+    };
+};
+
+async function handleSubscription(categoryName, btn, originalText) {
+    try {
+        const messaging = firebase.messaging();
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+            btn.innerHTML = '⏳ Реєстрація...';
+            
+            const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            
+            const token = await messaging.getToken({ 
+                vapidKey: VAPID_KEY,
+                serviceWorkerRegistration: registration
+            });
+            
+            if (token) {
+                localStorage.setItem('push_subscribed_' + categoryName, 'true');
+                
+                btn.innerHTML = '🔔 Підписано';
+                btn.style.background = 'rgba(255, 204, 0, 0.15)';
+                btn.style.borderColor = '#ffcc00';
+                btn.style.color = '#ffcc00';
+                btn.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+                btn.disabled = true;
+                
+                console.log('Firebase Token:', token); 
+                alert(`✅ Супер! Тепер ви отримуватимете сповіщення про нові публікації в категорії: ${categoryName}`);
+            } else {
+                alert('Помилка: не вдалося отримати токен.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        } else {
+            alert('Помилка: ви заблокували сповіщення у браузері. Дозвольте їх у налаштуваннях сайту.');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    } catch (error) {
+        console.error('Push Error:', error);
+        alert('Сталася помилка: ' + error.message);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+// Функція для автоматичного додавання кнопок підписки у всі вкладки
+function injectPushButtons() {
+    const sections = {
+        'alert-communal': 'Комуналка',
+        'alert-news': 'Новини',
+        'alert-events': 'Афіші',
+        'alert-gallery': 'Фото',
+        'alert-volunteers': 'ЗСУ',
+        'alert-promos': 'Акції',
+        'estate-tab': 'Нерухомість',
+        'shopping-tab': 'Шопінг',
+        'flea-market-tab': 'Барахолка',
+        'lost-found-tab': 'Знахідки',
+        'jobs-tab': 'Вакансії',
+        'city-guide-tab': 'Довідник',
+        'blablacar': 'BlaBlaCar',
+        'trains': 'Електрички',
+        'buses': 'Автобуси',
+        'long-trains': 'Потяги'
+    };
+
+    for (const [id, cat] of Object.entries(sections)) {
+        const section = document.getElementById(id);
+        if (section && !section.querySelector('.push-btn-container')) {
+            const isSubbed = localStorage.getItem('push_subscribed_' + cat);
+            
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'push-btn-container';
+            // ВІДМІНА position: absolute. Тепер кнопка просто стає згори справа і суне текст донизу.
+            btnDiv.style = 'display: flex; justify-content: flex-end; padding: 10px 10px 5px 10px; width: 100%; box-sizing: border-box;';
+            
+            const btnHtml = isSubbed 
+                ? `<button style="background: rgba(255, 204, 0, 0.15); border: 1px solid #ffcc00; color: #ffcc00; padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: default; box-shadow: 0 4px 10px rgba(0,0,0,0.3); letter-spacing: 0.5px;" disabled>🔔 Підписано</button>`
+                : `<button onclick="loadFirebaseAndSubscribe('${cat}', this)" style="background: linear-gradient(135deg, rgba(0, 255, 156, 0.15), rgba(0, 184, 255, 0.15)); border: 1px solid rgba(0, 255, 156, 0.4); color: #00ff9c; padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.2); letter-spacing: 0.5px;">🔔 Увімкнути</button>`;
+            
+            btnDiv.innerHTML = btnHtml;
+            section.insertBefore(btnDiv, section.firstChild);
+        }
+    }
+}
+// ====================================
+
 // === ОБНОВЛЕННАЯ ЛОГИКА КРАСНЫХ ТОЧЕК ===
 function checkNotification(key, dataArray) {
   if (!dataArray || dataArray.length === 0) return;
@@ -578,9 +703,11 @@ async function loadEstateData() {
 function renderFleaMarketList(items, hasMore = false) {
   const cont = document.getElementById('flea-market-list-content');
   const rulesHtml = `<div style="margin-bottom: 12px; background: linear-gradient(145deg, rgba(255, 77, 77, 0.05), rgba(0,0,0,0.2)); border: 1px solid rgba(255, 77, 77, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.rules-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.maxHeight = '400px'; content.style.padding = '0 15px 15px 15px'; icon.style.transform = 'rotate(180deg)'; } else { content.style.maxHeight = '0px'; content.style.padding = '0 15px 0 15px'; icon.style.transform = 'rotate(0deg)'; }" style="padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 12px; color: #ff6b6b;"><span style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 16px;">⚠️</span> Що заборонено публікувати?</span><span class="rules-icon" style="font-size: 14px; transition: transform 0.3s;">▼</span></div><div style="max-height: 0px; padding: 0 15px; overflow: hidden; transition: all 0.3s ease; font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.5;"><div style="border-top: 1px dashed rgba(255, 77, 77, 0.3); padding-top: 10px;"><ul style="margin: 5px 0 10px 0; padding-left: 20px;"><li>Будь-які <b>товари військового призначення</b> (військова форма, амуніція, бронежилети, зброя, тепловізори тощо).</li><li><b>Алкогольні напої</b> та <b>тютюнові вироби</b> (включаючи електронні сигарети, вейпи, рідини).</li><li>Продаж <b>живих тварин</b>.</li><li>Товари, продаж яких порушує <b>законодавство України</b> (ліки, наркотичні речовини, піротехніка, крадені речі, підроблені документи, спецзасоби).</li></ul><div style="color: #ff4d4d; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase;">❌ Такі оголошення будуть видалені!</div></div></div></div>`;
-  if (!items || !items.length) { cont.innerHTML = rulesHtml + '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
+  let html = rulesHtml;
+  
+  if (!items || !items.length) { cont.innerHTML = html + '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
   const sortedItems = [...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return v === 'так' || v === '+' || v === 'true'; }).reverse(), ...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return !(v === 'так' || v === '+' || v === 'true'); })];
-  let html = rulesHtml + '<div class="shops-tile-grid">';
+  html += '<div class="shops-tile-grid">';
   sortedItems.forEach((item, i) => {
     const id = 'flea-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">📦</span>`;
     let priceText = item.price ? String(item.price).trim() : 'Ціна договірна'; if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
@@ -812,13 +939,10 @@ async function loadVolunteersData() {
   } catch (e) { container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>'; }
 }
 
-// Заглушка, чтобы не ломался код (функция больше не нужна для сетки)
-window.checkAllScrolls = function() {};
-
 function renderJobs(jobs) {
   const container = document.getElementById('jobs-list-content'); if (!container) return;
   if (!jobs || jobs.length === 0) { container.innerHTML = '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
-  let html = '';
+  
   const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
   const safeJobs = jobs.filter(job => { const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase(); return !stopWords.some(word => textToSearch.includes(word)); });
   
@@ -835,32 +959,31 @@ function renderJobs(jobs) {
     let displaySalary = job.salary; if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) { displaySalary = displaySalary.trim() + ' грн'; }
     
     const isVip = job.isVip || job.vip; 
-    const vipClass = isVip ? 'vip-tile' : '';
     const vipBadge = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000;">VIP</div>' : ''; 
     const employment = job.employment || 'Не вказано'; 
     const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : 'Без опису';
     const id = `job-detail-${prefix}-${index}`;
 
-    // Кнопка звонка теперь полностью независимая и не съезжает вправо
-    const callBtnHtml = `<a href="${job.url}" target="${targetAttr}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 10px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${btnText}</a>`;
+    const callBtnHtml = `<a href="${job.url}" target="${targetAttr}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 5px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${btnText}</a>`;
 
-    // Выпадающее меню с блочной (а не сеточной) версткой, чтобы текст не сдвигался
     const dropdownHtml = `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
         <div class="shop-inner-list" style="display: block; padding: 12px; text-align: left;">
-            <div style="font-size: 11px; margin-bottom: 5px;">
-                <span style="font-weight: 800; color: #ffcc00;">📝 Повний опис:</span>
-            </div>
-            <div style="font-size: 11px; color: rgba(255,255,255,0.9); line-height: 1.4; margin-bottom: 10px;">
+            <div style="font-size: 11px; font-weight: 800; color: #ffcc00; margin-bottom: 6px;">📝 Повний опис:</div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.9); line-height: 1.4; word-break: break-word; margin-bottom: 12px;">
                 ${safeDesc}
             </div>
             ${callBtnHtml}
         </div>
     </div>`;
 
-    // Карточка с красивой маленькой кнопкой "Деталі ▾" справа
-    return `<div class="shop-tile ${vipClass}" style="justify-content: flex-start; text-align: left;" onclick="toggleShop('${id}', this)">
+    let tileStyle = "justify-content: flex-start; text-align: left; min-width: 0; box-sizing: border-box;";
+    if (isVip) {
+        tileStyle += " background: linear-gradient(135deg, rgba(255, 170, 0, 0.25), rgba(50, 15, 0, 0.9)) !important; border: 1px solid rgba(255, 204, 0, 0.4) !important; box-shadow: 0 10px 30px rgba(255, 170, 0, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.15) !important;";
+    }
+
+    return `<div class="shop-tile" style="${tileStyle}" onclick="toggleShop('${id}', this)">
         ${vipBadge}
-        <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 8px; margin-top: 2px;">${job.title}</div>
+        <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 6px; margin-top: 4px;">${job.title}</div>
         <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 4px;"><b>Роботодавець:</b> ${job.company || 'Не вказано'}</div>
         <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 8px;"><b>Зайнятість:</b> ${employment}</div>
         
@@ -875,6 +998,7 @@ function renderJobs(jobs) {
     </div>`;
   }
   
+  let html = '';
   if (vipJobs.length > 0) { 
       html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌟 VIP Вакансії</div>'; 
       html += '<div class="shops-tile-grid" style="margin-bottom: 15px;">';
@@ -984,6 +1108,7 @@ async function submitBetaFeedback(event) {
 const initApp = () => {
   updateRadioStats();
   updateDateTime(); setInterval(updateDateTime, 1000); loadWeather(); loadAlerts(); loadExchangeRates();
+  injectPushButtons(); 
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGalleryData(); loadVolunteersData(); setTimeout(showDailyVolunteerAlert, 1500); }, 600);
   setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadVolunteersData(); loadExchangeRates(); loadTickerData(); }, 60000);
@@ -992,7 +1117,6 @@ const initApp = () => {
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
 
-// Реєстрація Service Worker для роботи офлайн
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
