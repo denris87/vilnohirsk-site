@@ -14,166 +14,6 @@ var allFleaMarketItems = []; var fleaRenderLimit = 20; var currentFleaSort = 'ne
 var allEstateItems = []; var estateRenderLimit = 20; var currentEstateSort = 'new';
 var allPromoItems = [];
 
-// === FIREBASE PUSH NOTIFICATIONS ===
-const VAPID_KEY = "BHmSY-eFLxPx60kZjEwkhEDXhYri04G6d-Pl37o-p6qQaCJT88VZImQiDPOoBTgEn9aRmZHsmw5Y5qhmsQ8y2Ls";
-
-window.loadFirebaseAndSubscribe = function(categoryName, btn) {
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '⏳ Завантаження...';
-    btn.disabled = true;
-
-    // Спеціальна перевірка для iPhone/iPad (Apple вимагає додати сайт на головний екран)
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-
-    if (isIOS && !isStandalone) {
-        alert("🍏 Щоб увімкнути сповіщення на iPhone/iPad:\n\n1. Натисніть кнопку «Поділитися» (квадрат зі стрілочкою) внизу екрана.\n2. Виберіть «На початковий екран» (Add to Home Screen).\n3. Відкрийте сайт з головного екрана і натисніть дзвіночок ще раз!");
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        return;
-    }
-
-    // Захист від помилок у WebView (Instagram/Viber) або дуже старих браузерах
-    if (!('serviceWorker' in navigator) || typeof Notification === 'undefined') {
-        alert("⚠️ Ваш браузер (або додаток, через який ви відкрили посилання) не підтримує Push-сповіщення.\n\n👉 Натисніть на меню (три крапки) вгорі та виберіть «Відкрити в Chrome» або «Відкрити в Safari».");
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        return;
-    }
-
-    if (typeof firebase !== 'undefined' && firebase.messaging) {
-        handleSubscription(categoryName, btn, originalText);
-        return;
-    }
-
-    const s1 = document.createElement('script');
-    s1.src = 'https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js';
-    document.head.appendChild(s1);
-
-    s1.onload = () => {
-        const s2 = document.createElement('script');
-        s2.src = 'https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js';
-        document.head.appendChild(s2);
-        s2.onload = () => {
-            const firebaseConfig = {
-              apiKey: "AIzaSyAG8UbnsZ2DphoF0H7w088vE7pNHMkJs80",
-              authDomain: "smart-vilnohirsk.firebaseapp.com",
-              projectId: "smart-vilnohirsk",
-              storageBucket: "smart-vilnohirsk.firebasestorage.app",
-              messagingSenderId: "676865197841",
-              appId: "1:676865197841:web:5d53065b2bb211bf77eeb0"
-            };
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-            }
-            handleSubscription(categoryName, btn, originalText);
-        };
-    };
-};
-
-async function handleSubscription(categoryName, btn, originalText) {
-    try {
-        const messaging = firebase.messaging();
-        const permission = await Notification.requestPermission();
-        
-        if (permission === 'granted') {
-            btn.innerHTML = '⏳ Реєстрація...';
-            
-            const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-            
-            const token = await messaging.getToken({ 
-                vapidKey: VAPID_KEY,
-                serviceWorkerRegistration: registration
-            });
-            
-            if (token) {
-                localStorage.setItem('push_subscribed_' + categoryName, 'true');
-                
-                btn.innerHTML = '🔔 Підписано';
-                btn.style.background = 'rgba(255, 204, 0, 0.15)';
-                btn.style.borderColor = '#ffcc00';
-                btn.style.color = '#ffcc00';
-                btn.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
-                btn.disabled = true;
-                
-                try {
-                    await fetch(APP_SCRIPT_URL, {
-                        method: 'POST',
-                        mode: 'no-cors',
-                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                        body: JSON.stringify({ formType: 'subscribe', token: token, category: categoryName })
-                    });
-                } catch(e) { console.log(e); }
-
-                alert(`✅ Супер! Тепер ви отримуватимете сповіщення про нові публікації в категорії: ${categoryName}`);
-            } else {
-                alert('Помилка: не вдалося отримати токен.');
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        } else {
-            alert('Помилка: ви заблокували сповіщення у браузері. Дозвольте їх у налаштуваннях сайту.');
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        }
-    } catch (error) {
-        console.error('Push Error:', error);
-        alert('Сталася помилка: ' + error.message);
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-}
-
-function getPushBtnHtml(category) {
-    // Прибрали приховування кнопки, щоб вона завжди була видимою!
-    const isSubbed = localStorage.getItem('push_subscribed_' + category);
-    if (isSubbed) {
-        return `<div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 12px; padding: 0 5px; box-sizing: border-box;"><button style="background: rgba(255, 204, 0, 0.15); border: 1px solid #ffcc00; color: #ffcc00; padding: 5px 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: default; box-shadow: 0 4px 10px rgba(0,0,0,0.3); letter-spacing: 0.5px;" disabled>🔔 Підписано</button></div>`;
-    }
-    return `<div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 12px; padding: 0 5px; box-sizing: border-box;"><button onclick="loadFirebaseAndSubscribe('${category}', this)" style="background: linear-gradient(135deg, rgba(0, 255, 156, 0.15), rgba(0, 184, 255, 0.15)); border: 1px solid rgba(0, 255, 156, 0.4); color: #00ff9c; padding: 5px 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.2); letter-spacing: 0.5px;">🔔 Увімкнути</button></div>`;
-}
-
-// Функція для автоматичного додавання кнопок підписки у всі вкладки
-function injectPushButtons() {
-    const sections = {
-        'alert-communal': 'Комуналка',
-        'alert-news': 'Новини',
-        'alert-events': 'Афіші',
-        'alert-gallery': 'Фото',
-        'alert-volunteers': 'ЗСУ',
-        'alert-promos': 'Акції',
-        'estate-tab': 'Нерухомість',
-        'shopping-tab': 'Шопінг',
-        'flea-market-tab': 'Барахолка',
-        'lost-found-tab': 'Знахідки',
-        'jobs-tab': 'Вакансії',
-        'city-guide-tab': 'Довідник',
-        'blablacar': 'BlaBlaCar',
-        'trains': 'Електрички',
-        'buses': 'Автобуси',
-        'long-trains': 'Потяги'
-    };
-
-    for (const [id, cat] of Object.entries(sections)) {
-        const section = document.getElementById(id);
-        if (section && !section.querySelector('.push-btn-container')) {
-            const isSubbed = localStorage.getItem('push_subscribed_' + cat);
-            
-            const btnDiv = document.createElement('div');
-            btnDiv.className = 'push-btn-container';
-            btnDiv.style = 'display: flex; justify-content: flex-end; padding: 10px 10px 5px 10px; width: 100%; box-sizing: border-box;';
-            
-            const btnHtml = isSubbed 
-                ? `<button style="background: rgba(255, 204, 0, 0.15); border: 1px solid #ffcc00; color: #ffcc00; padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: default; box-shadow: 0 4px 10px rgba(0,0,0,0.3); letter-spacing: 0.5px;" disabled>🔔 Підписано</button>`
-                : `<button onclick="loadFirebaseAndSubscribe('${cat}', this)" style="background: linear-gradient(135deg, rgba(0, 255, 156, 0.15), rgba(0, 184, 255, 0.15)); border: 1px solid rgba(0, 255, 156, 0.4); color: #00ff9c; padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.2); letter-spacing: 0.5px;">🔔 Увімкнути</button>`;
-            
-            btnDiv.innerHTML = btnHtml;
-            section.insertBefore(btnDiv, section.firstChild);
-        }
-    }
-}
-// ====================================
-
 // === ОБНОВЛЕННАЯ ЛОГИКА КРАСНЫХ ТОЧЕК ===
 function checkNotification(key, dataArray) {
   if (!dataArray || dataArray.length === 0) return;
@@ -557,8 +397,8 @@ async function loadAlerts() {
     const d = await fetchCachedJson('https://vilnohirsk-alerts-production.up.railway.app/api/alert', 'alerts_api', 5);
     const communalAlerts = (d && Array.isArray(d.communal)) ? d.communal.filter(i => i && i.show) : []; const newsAlerts = (d && Array.isArray(d.news)) ? d.news.filter(i => i && i.show) : [];
     checkNotification('communal', communalAlerts); checkNotification('news', newsAlerts);
-    document.getElementById("alert-communal-content").innerHTML = getPushBtnHtml('Комуналка') + buildCarouselHtml(communalAlerts, '#ffcc00', 'communal'); 
-    document.getElementById("alert-news-content").innerHTML = getPushBtnHtml('Новини') + buildCarouselHtml(newsAlerts, '#00ff9c', 'news');
+    document.getElementById("alert-communal-content").innerHTML = buildCarouselHtml(communalAlerts, '#ffcc00', 'communal'); 
+    document.getElementById("alert-news-content").innerHTML = buildCarouselHtml(newsAlerts, '#00ff9c', 'news');
   } catch(e) { document.getElementById("alert-communal-content").innerHTML = `<div class="empty-msg">Помилка завантаження</div>`; document.getElementById("alert-news-content").innerHTML = `<div class="empty-msg">Помилка завантаження</div>`; }
 }
 
@@ -569,7 +409,7 @@ async function loadEventsData() {
     const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i.show !== false) : [];
     checkNotification('events', activeEvents);
     windowEventImages = activeEvents.map(ev => ev.photo || ev.image || ev.url).filter(Boolean);
-    document.getElementById("alert-events-content").innerHTML = getPushBtnHtml('Афіші') + buildCarouselHtml(activeEvents, '#FF3366', 'events', true);
+    document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#FF3366', 'events', true);
   } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
 }
 
@@ -619,7 +459,7 @@ function toggleShop(detailsId, tileElement) {
 
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
-  let html = getPushBtnHtml('Шопінг') + '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color:rgba(255,255,255,0.7); font-weight: 600;">Якщо бажаєте додати свій магазин, пишіть у Telegram <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div class="shops-tile-grid">';
+  let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color:rgba(255,255,255,0.7); font-weight: 600;">Якщо бажаєте додати свій магазин, пишіть у Telegram <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div class="shops-tile-grid">';
   if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) { container.innerHTML = html + '<div class="empty-msg">Оголошень поки немає</div>'; return; }
   shopsData.forEach((shop, index) => {
     if(!shop) return;
@@ -651,7 +491,7 @@ async function loadShopsData() {
     const d = await fetchCachedJson('https://vilnohirsk-shops-production.up.railway.app/api/shops', 'shops_api', 5);
     let itemsArray = d.shops || d.items || (Array.isArray(d) ? d : []);
     checkNotification('shopping', itemsArray);
-    if (!itemsArray || itemsArray.length === 0) { document.getElementById('shopping-list-content').innerHTML = getPushBtnHtml('Шопінг') + '<div class="empty-msg">Оголошень поки немає</div>'; return; }
+    if (!itemsArray || itemsArray.length === 0) { document.getElementById('shopping-list-content').innerHTML = '<div class="empty-msg">Оголошень поки немає</div>'; return; }
     const activeShops = itemsArray.filter(shop => shop && shop.name && String(shop.name).trim() !== ""); const vipShops = activeShops.filter(shop => shop.vip === true || shop.vip === 'true'); const regularShops = activeShops.filter(shop => shop.vip !== true && shop.vip !== 'true');
     renderShops([...vipShops, ...shuffleArray([...regularShops])]);
   } catch(e) { document.getElementById('shopping-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження магазинів</div>`; }
@@ -659,9 +499,8 @@ async function loadShopsData() {
 
 function renderPromosList(items) {
   const cont = document.getElementById('promos-list-content');
-  let html = getPushBtnHtml('Акції');
-  if (!items || !items.length) { cont.innerHTML = html + '<div class="empty-msg">Активних пропозицій немає</div>'; return; }
-  html += '<div class="shops-tile-grid">';
+  if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Активних пропозицій немає</div>'; return; }
+  let html = '<div class="shops-tile-grid">';
   items.forEach((item, i) => {
     const id = 'promo-detail-' + i; 
     const thumb = item.photos && item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔥</span>`;
@@ -691,10 +530,9 @@ async function loadPromosData() {
 
 function renderEstateList(items, hasMore = false) {
   const cont = document.getElementById('estate-list-content');
-  let html = getPushBtnHtml('Нерухомість');
-  if (!items || !items.length) { cont.innerHTML = html + '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
+  if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
   const sortedItems = [...items.filter(item => item.isVip).reverse(), ...items.filter(item => !item.isVip)];
-  html += '<div class="shops-tile-grid">';
+  let html = '<div class="shops-tile-grid">';
   sortedItems.forEach((item, i) => {
     const id = 'estate-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🏠</span>`;
     let photosHtml = '';
@@ -741,11 +579,10 @@ async function loadEstateData() {
 function renderFleaMarketList(items, hasMore = false) {
   const cont = document.getElementById('flea-market-list-content');
   const rulesHtml = `<div style="margin-bottom: 12px; background: linear-gradient(145deg, rgba(255, 77, 77, 0.05), rgba(0,0,0,0.2)); border: 1px solid rgba(255, 77, 77, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.rules-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.maxHeight = '400px'; content.style.padding = '0 15px 15px 15px'; icon.style.transform = 'rotate(180deg)'; } else { content.style.maxHeight = '0px'; content.style.padding = '0 15px 0 15px'; icon.style.transform = 'rotate(0deg)'; }" style="padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 12px; color: #ff6b6b;"><span style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 16px;">⚠️</span> Що заборонено публікувати?</span><span class="rules-icon" style="font-size: 14px; transition: transform 0.3s;">▼</span></div><div style="max-height: 0px; padding: 0 15px; overflow: hidden; transition: all 0.3s ease; font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.5;"><div style="border-top: 1px dashed rgba(255, 77, 77, 0.3); padding-top: 10px;"><ul style="margin: 5px 0 10px 0; padding-left: 20px;"><li>Будь-які <b>товари військового призначення</b> (військова форма, амуніція, бронежилети, зброя, тепловізори тощо).</li><li><b>Алкогольні напої</b> та <b>тютюнові вироби</b> (включаючи електронні сигарети, вейпи, рідини).</li><li>Продаж <b>живих тварин</b>.</li><li>Товари, продаж яких порушує <b>законодавство України</b> (ліки, наркотичні речовини, піротехніка, крадені речі, підроблені документи, спецзасоби).</li></ul><div style="color: #ff4d4d; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase;">❌ Такі оголошення будуть видалені!</div></div></div></div>`;
-  let html = getPushBtnHtml('Барахолка') + rulesHtml;
   
-  if (!items || !items.length) { cont.innerHTML = html + '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
+  if (!items || !items.length) { cont.innerHTML = rulesHtml + '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
   const sortedItems = [...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return v === 'так' || v === '+' || v === 'true'; }).reverse(), ...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return !(v === 'так' || v === '+' || v === 'true'); })];
-  html += '<div class="shops-tile-grid">';
+  let html = rulesHtml + '<div class="shops-tile-grid">';
   sortedItems.forEach((item, i) => {
     const id = 'flea-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">📦</span>`;
     let priceText = item.price ? String(item.price).trim() : 'Ціна договірна'; if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
@@ -803,8 +640,8 @@ async function loadLostFoundData() {
         });
         const localItems = approvedItems; checkNotification('lost', localItems);
         const cont = document.getElementById('lost-found-list-content'); 
-        if (!localItems.length) { cont.innerHTML = getPushBtnHtml('Знахідки') + '<div class="empty-msg">Оголошень немає</div>'; return; }
-        let html = getPushBtnHtml('Знахідки') + '<div class="shops-tile-grid">';
+        if (!localItems.length) { cont.innerHTML = '<div class="empty-msg">Оголошень немає</div>'; return; }
+        let html = '<div class="shops-tile-grid">';
         localItems.reverse().forEach((item, i) => {
           const id = 'lost-detail-' + i; const thumb = item.photos.length > 0 ? `<img src="${item.photos[0]}">` : `<span style="font-size:28px;">🔍</span>`; const badgeColor = item.type.toLowerCase().includes('знайд') ? '#00ff9c' : '#ff4d4d';
           let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos))}')), 0, event)"><img src="${item.photos[0]}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
@@ -848,7 +685,7 @@ async function loadTrainsData(){
   try {
     const d = await fetchCachedJson("https://vilnohirsk-trains-production.up.railway.app/api/trains", 'trains_api', 10);
     if(d&&d.trains) {
-      let h = getPushBtnHtml('Електрички') + `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div><div id="trains-content">`;
+      let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div><div id="trains-content">`;
       d.trains.forEach((x, i) => {
         if (!x) return; const id = "train-" + i; const now = getKyivNow(); let sc = "future", dt = x.time;
         if (x.time && x.time.includes(':')) {
@@ -869,7 +706,7 @@ async function loadLongTrainsData() {
   try {
     const d = await fetchCachedJson("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule", 'long_trains_api', 30);
     if(d&&d.trains) {
-      let h = getPushBtnHtml('Потяги') + `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div>`;
+      let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div>`;
       d.trains.forEach((x,i) => {
         if(!x) return; const id = "lt-" + i; const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : []; const hasChanges = x.changes && Array.isArray(x.changes) && x.changes.length > 0;
         let infoHtml = "";
@@ -886,7 +723,7 @@ async function loadBusesData(){
   try {
     const d = await fetchCachedJson("https://vilnohirskbuses-production.up.railway.app/api/buses", 'buses_api', 30);
     if(d&&d.buses) {
-      let h = getPushBtnHtml('Автобуси') + `<div class="table-head"><div>Тип</div><div>Маршрут</div><div>Статус</div></div>`;
+      let h = `<div class="table-head"><div>Тип</div><div>Маршрут</div><div>Статус</div></div>`;
       d.buses.forEach((b,i) => {
         if(!b) return; const id = "bus-" + i; let ch = '';
         if(b.directions) b.directions.forEach(dir => {
@@ -930,8 +767,8 @@ async function loadBlaBlaCarData() {
     const dr = d.filter(x => x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
     const ps = d.filter(x => x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
     
-    let htmlD = getPushBtnHtml('BlaBlaCar');
-    let htmlP = getPushBtnHtml('BlaBlaCar');
+    let htmlD = '';
+    let htmlP = '';
     
     htmlD += dr.length ? dr.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${x.from} - ${x.to}</div><div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div><div class="blabla-info-row"><span>💺 Місць: <b>${x.seats}</b></span><span>💵 <b>${x.price > 0 ? x.price + ' грн' : 'Договірна'}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${x.comment}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div></div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
     htmlP += ps.length ? ps.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${x.from} - ${x.to}</div><div class="blabla-date">🗓 ${x.date} | 🕒 ${x.time}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${x.name}</b></div><div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${x.seats}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${x.comment}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone}" class="blabla-phone">📞 ${x.phone}</a></div></div>`).join('') : '<div class="empty-msg">Запитів немає</div>';
@@ -986,9 +823,8 @@ async function loadVolunteersData() {
 
 function renderJobs(jobs) {
   const container = document.getElementById('jobs-list-content'); if (!container) return;
-  let html = getPushBtnHtml('Вакансії');
   
-  if (!jobs || jobs.length === 0) { container.innerHTML = html + '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
+  if (!jobs || jobs.length === 0) { container.innerHTML = '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
   
   const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
   const safeJobs = jobs.filter(job => { const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase(); return !stopWords.some(word => textToSearch.includes(word)); });
@@ -1045,6 +881,7 @@ function renderJobs(jobs) {
     </div>`;
   }
   
+  let html = '';
   if (vipJobs.length > 0) { 
       html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌟 VIP Вакансії</div>'; 
       html += '<div class="shops-tile-grid" style="margin-bottom: 15px;">';
