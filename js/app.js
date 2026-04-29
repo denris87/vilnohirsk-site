@@ -841,26 +841,36 @@ function renderJobs(jobs) {
     const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : 'Без опису';
     const id = `job-detail-${prefix}-${index}`;
 
-    // Кнопка связи, которая занимает 100% ширины меню, чтобы телефон не "съезжал" вбок
-    const callBtnHtml = `<a href="${job.url}" target="${targetAttr}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 10px 16px; border-radius: 12px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 8px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${btnText}</a>`;
+    // Кнопка звонка теперь полностью независимая и не съезжает вправо
+    const callBtnHtml = `<a href="${job.url}" target="${targetAttr}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 10px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${btnText}</a>`;
 
-    const dropdownHtml = buildDropdown(id, '', [
-        {icon: '📝', label: 'Повний опис', value: safeDesc},
-        {icon: '📞', label: 'Зв\'язок', value: callBtnHtml}
-    ]);
+    // Выпадающее меню с блочной (а не сеточной) версткой, чтобы текст не сдвигался
+    const dropdownHtml = `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
+        <div class="shop-inner-list" style="display: block; padding: 12px; text-align: left;">
+            <div style="font-size: 11px; margin-bottom: 5px;">
+                <span style="font-weight: 800; color: #ffcc00;">📝 Повний опис:</span>
+            </div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.9); line-height: 1.4; margin-bottom: 10px;">
+                ${safeDesc}
+            </div>
+            ${callBtnHtml}
+        </div>
+    </div>`;
 
-    // white-space: nowrap для кнопки "Детальніше ▾"
+    // Карточка с красивой маленькой кнопкой "Деталі ▾" справа
     return `<div class="shop-tile ${vipClass}" style="justify-content: flex-start; text-align: left;" onclick="toggleShop('${id}', this)">
         ${vipBadge}
-        <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 6px; margin-top: 4px;">${job.title}</div>
-        <div style="font-size: 10px; color: rgba(255,255,255,0.8); margin-bottom: 2px;"><b>Роботодавець:</b> ${job.company || 'Не вказано'}</div>
-        <div style="font-size: 10px; color: rgba(255,255,255,0.8); margin-bottom: 6px;"><b>Зайнятість:</b> ${employment}</div>
+        <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 8px; margin-top: 2px;">${job.title}</div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 4px;"><b>Роботодавець:</b> ${job.company || 'Не вказано'}</div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 8px;"><b>Зайнятість:</b> ${employment}</div>
         
-        <div class="card-price" style="font-size: 15px; margin-bottom: 6px;">${displaySalary || '-'}</div>
+        <div class="card-price" style="font-size: 16px; margin-bottom: 8px;">${displaySalary || '-'}</div>
         
-        <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">Дата: ${job.date}</div>
+        <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 8px;">Дата: ${job.date}</div>
         
-        <div class="shop-tile-chevron" style="margin-top: auto; background: linear-gradient(145deg, rgba(0, 255, 156, 0.15), rgba(0, 184, 255, 0.15)); border: 1px solid rgba(0, 255, 156, 0.3); color: var(--time-green); padding: 8px 4px; border-radius: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.1); white-space: nowrap; text-align: center;">Детальніше ▾</div>
+        <div style="margin-top: auto; display: flex; justify-content: flex-end; width: 100%;">
+            <div class="shop-tile-chevron" style="background: rgba(0, 255, 156, 0.15); color: var(--time-green); padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; white-space: nowrap; display: flex; align-items: center; gap: 4px; box-shadow: none; text-transform: uppercase;">Деталі <span>▾</span></div>
+        </div>
         ${dropdownHtml}
     </div>`;
   }
