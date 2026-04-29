@@ -213,15 +213,11 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
   try {
     const form = document.getElementById(formId); const formData = new FormData(form); const sheetData = { formType: type };
     
-    // Формуємо дані
     for (let [key, val] of formData.entries()) { 
         if (key !== 'photos') {
             let finalVal = val;
-            // Додаємо апостроф до телефону для Google Таблиць
             if (key === 'phone' && val !== '+380') finalVal = "'" + val;
-            // Умное добавление $ только к недвижимости
             if (type === 'estate' && key === 'price' && val) finalVal = val + ' $';
-            
             sheetData[key] = finalVal;
         }
     }
@@ -267,7 +263,6 @@ function switchAppTab(tabId, btn, group) {
   if (drawer) { drawer.classList.remove('drawer-events', 'drawer-communal'); if(tabId === 'alert-events') drawer.classList.add('drawer-events'); if(tabId === 'alert-communal') drawer.classList.add('drawer-communal'); drawer.classList.add('open'); }
   btn.classList.add('active'); const targetSection = document.getElementById(tabId); if (targetSection) targetSection.classList.add('active'); 
   window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
-  if (typeof window.checkAllScrolls === 'function') { setTimeout(window.checkAllScrolls, 50); setTimeout(window.checkAllScrolls, 350); }
 }
 
 // === ДРАГ-СВАЙП (ГОРТАННЯ МИШКОЮ НА ПК) ===
@@ -276,7 +271,7 @@ let startMouseX, startScrollLeft, activeSliderEl, originalSnap;
 let hasDragged = false;
 
 document.addEventListener('mousedown', (e) => {
-  const slider = e.target.closest('.jobs-carousel, .tabs-nav, .flea-categories-wrapper, .carousel-container');
+  const slider = e.target.closest('.tabs-nav, .flea-categories-wrapper, .carousel-container');
   if (!slider) return;
   isMouseDragging = true;
   hasDragged = false;
@@ -295,7 +290,7 @@ document.addEventListener('mousemove', (e) => {
   const walk = (x - startMouseX) * 1.5;
   if (Math.abs(walk) > 5) {
       hasDragged = true;
-      e.preventDefault(); // Запобігаємо виділенню тексту при перетягуванні
+      e.preventDefault(); 
   }
   activeSliderEl.scrollLeft = startScrollLeft - walk;
 });
@@ -312,29 +307,16 @@ const stopDragging = () => {
 document.addEventListener('mouseup', stopDragging);
 document.addEventListener('mouseleave', stopDragging);
 
-// Блокуємо клік, якщо користувач тягнув мишкою (щоб не відкривались посилання)
 document.addEventListener('click', (e) => {
-  if (hasDragged) {
-    e.preventDefault();
-    e.stopPropagation();
-    hasDragged = false;
-  }
+  if (hasDragged) { e.preventDefault(); e.stopPropagation(); hasDragged = false; }
 }, true);
 
-// === СКРОЛЛ КОЛІЩАТКОМ МИШКИ ДЛЯ КАРУСЕЛЕЙ НА ПК ===
 document.addEventListener('wheel', (e) => {
-  const hScrollEl = e.target.closest('.jobs-carousel, .tabs-nav, .flea-categories-wrapper, .carousel-container');
+  const hScrollEl = e.target.closest('.tabs-nav, .flea-categories-wrapper, .carousel-container');
   if (hScrollEl) {
-    // Якщо курсор над текстом, що має власний вертикальний скролл - не блокуємо
-    const vScrollEl = e.target.closest('.job-scroll-desc, .alert-item');
-    if (vScrollEl && vScrollEl.scrollHeight > vScrollEl.clientHeight) {
-        // Даємо змогу скролити текст вакансії/афіші вниз
-        return;
-    }
-    if (e.deltaY !== 0) {
-        e.preventDefault();
-        hScrollEl.scrollLeft += e.deltaY;
-    }
+    const vScrollEl = e.target.closest('.alert-item');
+    if (vScrollEl && vScrollEl.scrollHeight > vScrollEl.clientHeight) { return; }
+    if (e.deltaY !== 0) { e.preventDefault(); hScrollEl.scrollLeft += e.deltaY; }
   }
 }, { passive: false });
 
@@ -477,7 +459,7 @@ function toggleShop(detailsId, tileElement) {
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
   if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) { container.innerHTML = '<div class="empty-msg">Оголошень поки немає</div>'; return; }
-  let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color:rgba(255,255,255,0.7); font-weight: 600;">Если тоже хотите тут появиться, пишите нам в тг <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div class="shops-tile-grid">';
+  let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color:rgba(255,255,255,0.7); font-weight: 600;">Якщо бажаєте додати свій магазин, пишіть у Telegram <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div class="shops-tile-grid">';
   shopsData.forEach((shop, index) => {
     if(!shop) return;
     const safeName = shop.name != null ? String(shop.name).trim() : ""; const displayName = safeName !== "" ? safeName : "Оголошення " + (index + 1);
@@ -558,7 +540,7 @@ function renderEstateList(items, hasMore = false) {
     let displayPrice = item.price ? String(item.price).trim() : 'Договірна';
     if (displayPrice !== 'Договірна' && !displayPrice.includes('$')) { displayPrice += ' $'; }
     const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Тип об\'єкта', value: `${item.propertyType} (${item.dealType})`}, {icon: '📝', label: 'Опис та адреса', value: item.description.replace(/\n/g, '<br>')}, {icon: '📞', label: 'Телефон', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${item.phone}</a>`} ]);
-    html += `<div class="shop-tile ${item.isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${item.isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${item.dealType} • ${item.propertyType}</div><div class="card-row"><span class="card-price">${displayPrice}</span><span class="card-info">Кімнат: ${item.rooms}</span></div><div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
+    html += `<div class="shop-tile ${item.isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${item.isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${item.dealType} • ${item.propertyType}</div><div class="card-row"><span class="card-price">${displayPrice}</span><span class="card-info">Кімнат: ${item.rooms}</span></div><div class="shop-tile-name" style="margin-bottom: 5px;">Квартира у Вільногірську</div><div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
   if (hasMore) { html += `<button class="load-more-btn" onclick="estateRenderLimit+=20; const tagE=document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(tagE?tagE.innerText:'Всі',tagE);">Показати ще ▾</button>`; }
@@ -830,38 +812,8 @@ async function loadVolunteersData() {
   } catch (e) { container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>'; }
 }
 
-window.checkAllScrolls = function() {
-  document.querySelectorAll('.job-scroll-desc').forEach(scrollEl => {
-    const indicator = scrollEl.parentElement.querySelector('.scroll-indicator');
-    if (!indicator) return;
-    const needsScroll = scrollEl.scrollHeight > scrollEl.clientHeight + 5;
-    if (needsScroll) {
-      if (indicator.style.display !== 'flex') indicator.style.display = 'flex';
-      const isAtBottom = scrollEl.scrollTop + scrollEl.clientHeight >= scrollEl.scrollHeight - 10;
-      const targetOpacity = isAtBottom ? '0' : '1';
-      if (indicator.style.opacity !== targetOpacity) indicator.style.opacity = targetOpacity;
-    } else {
-      if (indicator.style.display !== 'none') indicator.style.display = 'none';
-    }
-  });
-
-  document.querySelectorAll('.jobs-carousel').forEach(carousel => {
-    const hint = carousel.parentElement.querySelector('.scroll-hint');
-    if (!hint) return;
-    const needsScroll = carousel.scrollWidth > carousel.clientWidth + 5;
-    if (needsScroll) {
-      if (hint.style.display !== 'flex') hint.style.display = 'flex';
-      const isAtEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 10;
-      if (isAtEnd) {
-        hint.classList.add('hidden');
-      } else {
-        hint.classList.remove('hidden');
-      }
-    } else {
-      if (hint.style.display !== 'none') hint.style.display = 'none';
-    }
-  });
-};
+// Заглушка, чтобы не ломался код (функция больше не нужна для сетки)
+window.checkAllScrolls = function() {};
 
 function renderJobs(jobs) {
   const container = document.getElementById('jobs-list-content'); if (!container) return;
@@ -869,66 +821,69 @@ function renderJobs(jobs) {
   let html = '';
   const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
   const safeJobs = jobs.filter(job => { const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase(); return !stopWords.some(word => textToSearch.includes(word)); });
+  
   const vipJobs = safeJobs.filter(j => j.isVip || j.vip).reverse();
   const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && (j.source === 'Work.ua' || j.date === 'Work.ua'));
   const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source !== 'Work.ua' && j.date !== 'Work.ua');
   
-  function createJobCardHtml(job, extraClass = '') {
+  function createJobCardHtml(job, index, prefix) {
     const isTel = job.url && job.url.startsWith('tel:');
     let displayPhone = job.phone;
     if (displayPhone) { let cleanPhone = displayPhone.replace(/\D/g, ''); if (cleanPhone.length >= 10) displayPhone = '0' + cleanPhone.slice(-9); else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone; }
     const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Відгукнутися 🔗');
     const targetAttr = isTel ? '_self' : '_blank'; 
     let displaySalary = job.salary; if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) { displaySalary = displaySalary.trim() + ' грн'; }
-    const isVip = job.isVip || job.vip; const vipBadge = isVip ? '<div class="vip-badge" style="top:-8px; right:-8px; font-size: 12px; padding: 4px 10px;">VIP</div>' : ''; const vipClass = isVip ? 'vip-job-card' : 'regular-job-card';
-    const employment = job.employment || 'Повна / Не вказано'; const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : '';
     
-    return `<div class="blabla-card ${vipClass} ${extraClass}" style="height: 380px; position: relative; text-align: left; ${!isVip ? 'background:linear-gradient(145deg, rgba(255,255,255,0.05), rgba(0,0,0,0.2)); border:1px solid rgba(255,255,255,0.05);' : ''} border-radius: 16px; padding: 0; display: flex; flex-direction: column; min-width: 0; overflow: visible; box-sizing: border-box; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+    const isVip = job.isVip || job.vip; 
+    const vipClass = isVip ? 'vip-tile' : '';
+    const vipBadge = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000;">VIP</div>' : ''; 
+    const employment = job.employment || 'Повна / Не вказано'; 
+    const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : 'Без опису';
+    const id = `job-detail-${prefix}-${index}`;
+
+    const dropdownHtml = buildDropdown(id, '', [
+        {icon: '🏢', label: 'Роботодавець', value: job.company || 'Не вказано'},
+        {icon: '⏱', label: 'Зайнятість', value: employment},
+        {icon: '📝', label: 'Опис', value: safeDesc},
+        {icon: '📅', label: 'Дата', value: job.date},
+        {icon: '📞', label: 'Зв\'язок', value: `<a href="${job.url}" target="${targetAttr}" class="shop-phone-link" onclick="event.stopPropagation();">${btnText}</a>`}
+    ]);
+
+    return `<div class="shop-tile ${vipClass}" onclick="toggleShop('${id}', this)">
         ${vipBadge}
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 15px; padding-right: 15px; flex-shrink: 0;">
-          <div style="font-size: 15px; font-weight: 800; color: ${isVip ? '#ffcc00' : '#74b9ff'}; min-width: 0; word-break: break-word; line-height: 1.3;">${job.title}</div>
-          <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 10px; font-size: 16px; border: 1px solid rgba(255,255,255,0.05);">💼</div>
+        <div class="shop-tile-photo" style="height: 100px; background: rgba(255,255,255,0.05);">
+            <span style="font-size:36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">💼</span>
         </div>
-        <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; flex-shrink: 0;">
-          <div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.8; flex: 1; min-width: 150px;">
-            <div><b>Роботодавець:</b> ${job.company}</div>
-            <div><b>Зайнятість:</b> ${employment}</div>
-          </div>
-          <div style="font-size: 18px; font-weight: 900; color: #00ff9c; white-space: nowrap; text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${displaySalary}</div>
-        </div>
-        ${safeDesc ? `<div style="position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; margin-bottom: 5px; border-radius: 0 0 16px 16px;"><div class="card-desc job-scroll-desc" style="padding: 0 15px 15px 15px; flex: 1; overflow-y: auto; overscroll-behavior: contain; position: relative; z-index: 1;">📝 ${safeDesc}</div><div class="scroll-indicator"><span>❯</span></div></div>` : '<div style="flex: 1;"></div>'}
-        <div style="background: rgba(0,0,0,0.3); border-radius: 0 0 16px 16px; padding: 12px 15px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; min-width: 0; gap: 10px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.05); flex-shrink: 0;">
-           <div style="font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 600; margin-right: auto;">Дата: ${job.date}</div>
-           <div style="font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(135deg, #00b8ff, #0055ff); padding: 8px 14px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(0, 184, 255, 0.4); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; flex-shrink: 1; word-wrap: break-word;" onclick="window.open('${job.url}', '${targetAttr}'); event.stopPropagation();">${btnText}</div>
-        </div>
-      </div>`;
+        <div class="shop-tile-cat" style="color: ${isVip ? '#ffcc00' : '#74b9ff'};">${job.company || 'Роботодавець'}</div>
+        <div class="card-row"><span class="card-price">${displaySalary || '-'}</span></div>
+        <div class="shop-tile-name" style="margin-bottom: 5px;">${job.title}</div>
+        <div class="shop-tile-chevron">Деталі ▾</div>
+        ${dropdownHtml}
+    </div>`;
   }
   
   if (vipJobs.length > 0) { 
-      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌟 VIP Вакансії</div><div style="position: relative;"><div class="jobs-carousel">'; 
-      vipJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); 
-      html += '</div><div class="scroll-hint" style="border-radius: 0 16px 16px 0; right: -5px; top: 12px; bottom: 15px; width: 40px;"><span>❯</span></div></div>'; 
+      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌟 VIP Вакансії</div>'; 
+      html += '<div class="shops-tile-grid" style="margin-bottom: 15px;">';
+      vipJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'v'); }); 
+      html += '</div>';
   }
   if (vipJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
+  
   if (internetJobs.length > 0) {
-      html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾'; setTimeout(window.checkAllScrolls, 350);" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button><div id="workua-drawer" class="workua-drawer"><div style="position: relative;"><div class="jobs-carousel">`;
-      internetJobs.forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); html += `</div><div class="scroll-hint" style="border-radius: 0 16px 16px 0; right: -5px; top: 12px; bottom: 15px; width: 40px;"><span>❯</span></div></div></div></div>`;
+      html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button><div id="workua-drawer" class="workua-drawer"><div class="shops-tile-grid" style="padding-bottom:10px;">`;
+      internetJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'i'); }); 
+      html += `</div></div></div>`;
   }
   if (internetJobs.length > 0 && regularJobs.length > 0) { html += '<div class="section-divider"></div>'; }
+  
   if (regularJobs.length > 0) {
-      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">👥 Від місцевих жителів</div><div style="position: relative;"><div class="jobs-carousel">';
-      shuffleArray(regularJobs).forEach(job => { html += createJobCardHtml(job, 'jobs-carousel-card'); }); html += '</div><div class="scroll-hint" style="border-radius: 0 16px 16px 0; right: -5px; top: 12px; bottom: 15px; width: 40px;"><span>❯</span></div></div>';
+      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">👥 Від місцевих жителів</div>';
+      html += '<div class="shops-tile-grid">';
+      shuffleArray(regularJobs).forEach((job, i) => { html += createJobCardHtml(job, i, 'r'); }); 
+      html += '</div>';
   }
   container.innerHTML = html;
-
-  document.querySelectorAll('.job-scroll-desc, .jobs-carousel').forEach(el => {
-    el.addEventListener('scroll', window.checkAllScrolls, { passive: true });
-  });
-
-  requestAnimationFrame(window.checkAllScrolls);
-  setTimeout(window.checkAllScrolls, 100);
-  setTimeout(window.checkAllScrolls, 500);
-  setTimeout(window.checkAllScrolls, 1500);
 }
 
 async function loadJobsData() {
