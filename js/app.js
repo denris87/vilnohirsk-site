@@ -22,9 +22,20 @@ window.loadFirebaseAndSubscribe = function(categoryName, btn) {
     btn.innerHTML = '⏳ Завантаження...';
     btn.disabled = true;
 
-    // ЗАХИСТ: Перевіряємо, чи підтримує браузер Push-сповіщення (захист від Telegram/Instagram WebView)
-    if (!('serviceWorker' in navigator) || !('Notification' in window)) {
-        alert("⚠️ Ваш поточний браузер (або додаток, через який ви відкрили посилання) не підтримує Push-сповіщення.\n\n👉 Натисніть на меню (три крапки) вгорі та виберіть «Відкрити в Safari» або «Відкрити в Chrome».");
+    // Спеціальна перевірка для iPhone/iPad (Apple вимагає додати сайт на головний екран)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+    if (isIOS && !isStandalone) {
+        alert("🍏 Щоб увімкнути сповіщення на iPhone/iPad:\n\n1. Натисніть кнопку «Поділитися» (квадрат зі стрілочкою) внизу екрана.\n2. Виберіть «На початковий екран» (Add to Home Screen).\n3. Відкрийте сайт з головного екрана і натисніть дзвіночок ще раз!");
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        return;
+    }
+
+    // Захист від помилок у WebView (Instagram/Viber) або дуже старих браузерах
+    if (!('serviceWorker' in navigator) || typeof Notification === 'undefined') {
+        alert("⚠️ Ваш браузер (або додаток, через який ви відкрили посилання) не підтримує Push-сповіщення.\n\n👉 Натисніть на меню (три крапки) вгорі та виберіть «Відкрити в Chrome» або «Відкрити в Safari».");
         btn.innerHTML = originalText;
         btn.disabled = false;
         return;
@@ -85,7 +96,6 @@ async function handleSubscription(categoryName, btn, originalText) {
                 btn.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
                 btn.disabled = true;
                 
-                // Якщо Гугл таблиця вже підключена - відправляємо туди токен
                 try {
                     await fetch(APP_SCRIPT_URL, {
                         method: 'POST',
@@ -114,14 +124,53 @@ async function handleSubscription(categoryName, btn, originalText) {
     }
 }
 
-// Генератор красивої кнопки підписки (вбудовується прямо в потік документа, щоб не перекривати текст)
 function getPushBtnHtml(category) {
-    if (!window.Notification) return ''; 
+    // Прибрали приховування кнопки, щоб вона завжди була видимою!
     const isSubbed = localStorage.getItem('push_subscribed_' + category);
     if (isSubbed) {
         return `<div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 12px; padding: 0 5px; box-sizing: border-box;"><button style="background: rgba(255, 204, 0, 0.15); border: 1px solid #ffcc00; color: #ffcc00; padding: 5px 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: default; box-shadow: 0 4px 10px rgba(0,0,0,0.3); letter-spacing: 0.5px;" disabled>🔔 Підписано</button></div>`;
     }
     return `<div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 12px; padding: 0 5px; box-sizing: border-box;"><button onclick="loadFirebaseAndSubscribe('${category}', this)" style="background: linear-gradient(135deg, rgba(0, 255, 156, 0.15), rgba(0, 184, 255, 0.15)); border: 1px solid rgba(0, 255, 156, 0.4); color: #00ff9c; padding: 5px 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.2); letter-spacing: 0.5px;">🔔 Увімкнути</button></div>`;
+}
+
+// Функція для автоматичного додавання кнопок підписки у всі вкладки
+function injectPushButtons() {
+    const sections = {
+        'alert-communal': 'Комуналка',
+        'alert-news': 'Новини',
+        'alert-events': 'Афіші',
+        'alert-gallery': 'Фото',
+        'alert-volunteers': 'ЗСУ',
+        'alert-promos': 'Акції',
+        'estate-tab': 'Нерухомість',
+        'shopping-tab': 'Шопінг',
+        'flea-market-tab': 'Барахолка',
+        'lost-found-tab': 'Знахідки',
+        'jobs-tab': 'Вакансії',
+        'city-guide-tab': 'Довідник',
+        'blablacar': 'BlaBlaCar',
+        'trains': 'Електрички',
+        'buses': 'Автобуси',
+        'long-trains': 'Потяги'
+    };
+
+    for (const [id, cat] of Object.entries(sections)) {
+        const section = document.getElementById(id);
+        if (section && !section.querySelector('.push-btn-container')) {
+            const isSubbed = localStorage.getItem('push_subscribed_' + cat);
+            
+            const btnDiv = document.createElement('div');
+            btnDiv.className = 'push-btn-container';
+            btnDiv.style = 'display: flex; justify-content: flex-end; padding: 10px 10px 5px 10px; width: 100%; box-sizing: border-box;';
+            
+            const btnHtml = isSubbed 
+                ? `<button style="background: rgba(255, 204, 0, 0.15); border: 1px solid #ffcc00; color: #ffcc00; padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: default; box-shadow: 0 4px 10px rgba(0,0,0,0.3); letter-spacing: 0.5px;" disabled>🔔 Підписано</button>`
+                : `<button onclick="loadFirebaseAndSubscribe('${cat}', this)" style="background: linear-gradient(135deg, rgba(0, 255, 156, 0.15), rgba(0, 184, 255, 0.15)); border: 1px solid rgba(0, 255, 156, 0.4); color: #00ff9c; padding: 6px 12px; border-radius: 12px; font-weight: 800; font-size: 11px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.2); letter-spacing: 0.5px;">🔔 Увімкнути</button>`;
+            
+            btnDiv.innerHTML = btnHtml;
+            section.insertBefore(btnDiv, section.firstChild);
+        }
+    }
 }
 // ====================================
 
@@ -1113,7 +1162,6 @@ const initApp = () => {
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
 
-// Реєстрація Service Worker для роботи офлайн
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js')
