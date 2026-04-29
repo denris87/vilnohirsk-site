@@ -1,4 +1,4 @@
-// Імпортуємо скрипти Firebase (версія має збігатися з тією, що в index.html)
+// Імпортуємо скрипти Firebase
 importScripts('https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js');
 
@@ -14,27 +14,25 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Обробка сповіщень у фоновому режимі (коли сайт закритий або згорнутий)
+// Обробка сповіщень у фоновому режимі
 messaging.onBackgroundMessage((payload) => {
   console.log('[firebase-messaging-sw.js] Отримано фонове сповіщення: ', payload);
 
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: 'https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true', // Іконка вашого додатку
+    icon: 'https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true',
     badge: 'https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true',
     vibrate: [200, 100, 200],
-    data: payload.data // додаткові дані, наприклад, посилання для переходу
+    data: payload.data
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
 });
 
-// Обробка кліку по сповіщенню
+// Відкриття сайту при кліку на сповіщення
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  
-  // Відкриваємо сайт при кліку на пуш
   event.waitUntil(
     clients.openWindow('https://vilnohirsk.online')
   );
