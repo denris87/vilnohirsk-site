@@ -446,7 +446,7 @@ function renderPhonebook(categories, searchQuery = '') {
 function filterPhonebook() { const input = document.getElementById('pb-search'); if (phonebookRawData && input) { renderPhonebook(phonebookRawData, input.value); } }
 
 function buildDropdown(id, photosHtml, details) {
-  const items = details.map(d => `<div class="shop-inner-item"><span class="detail-icon">${d.icon}</span><div><b>${d.label}:</b><br>${d.value}</div></div>`).join('');
+  const items = details.map(d => `<div class="shop-inner-item"><span class="detail-icon">${d.icon}</span><div style="width: 100%;"><b>${d.label}:</b><br>${d.value}</div></div>`).join('');
   return `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()"><div class="shop-inner-list">${photosHtml}${items}</div></div>`;
 }
 
@@ -841,13 +841,15 @@ function renderJobs(jobs) {
     const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : 'Без опису';
     const id = `job-detail-${prefix}-${index}`;
 
-    const callBtnHtml = `<a href="${job.url}" target="${targetAttr}" style="display: inline-block; padding: 10px 16px; border-radius: 12px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 5px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${btnText}</a>`;
+    // Кнопка связи, которая занимает 100% ширины меню, чтобы телефон не "съезжал" вбок
+    const callBtnHtml = `<a href="${job.url}" target="${targetAttr}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 10px 16px; border-radius: 12px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 8px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${btnText}</a>`;
 
     const dropdownHtml = buildDropdown(id, '', [
         {icon: '📝', label: 'Повний опис', value: safeDesc},
         {icon: '📞', label: 'Зв\'язок', value: callBtnHtml}
     ]);
 
+    // white-space: nowrap для кнопки "Детальніше ▾"
     return `<div class="shop-tile ${vipClass}" style="justify-content: flex-start; text-align: left;" onclick="toggleShop('${id}', this)">
         ${vipBadge}
         <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 6px; margin-top: 4px;">${job.title}</div>
@@ -858,7 +860,7 @@ function renderJobs(jobs) {
         
         <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">Дата: ${job.date}</div>
         
-        <div class="shop-tile-chevron" style="margin-top: auto; background: linear-gradient(145deg, rgba(0, 255, 156, 0.15), rgba(0, 184, 255, 0.15)); border: 1px solid rgba(0, 255, 156, 0.3); color: var(--time-green); padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.1);">Детальніше ▾</div>
+        <div class="shop-tile-chevron" style="margin-top: auto; background: linear-gradient(145deg, rgba(0, 255, 156, 0.15), rgba(0, 184, 255, 0.15)); border: 1px solid rgba(0, 255, 156, 0.3); color: var(--time-green); padding: 8px 4px; border-radius: 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.1); white-space: nowrap; text-align: center;">Детальніше ▾</div>
         ${dropdownHtml}
     </div>`;
   }
