@@ -841,8 +841,11 @@ function renderJobs(jobs) {
     const safeDesc = job.description ? String(job.description).replace(/\n/g, '<br>') : 'Без опису';
     const id = `job-detail-${prefix}-${index}`;
 
+    const callBtnHtml = `<a href="${job.url}" target="${targetAttr}" style="display: inline-block; padding: 10px 16px; border-radius: 12px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 5px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${btnText}</a>`;
+
     const dropdownHtml = buildDropdown(id, '', [
-        {icon: '📝', label: 'Повний опис', value: safeDesc}
+        {icon: '📝', label: 'Повний опис', value: safeDesc},
+        {icon: '📞', label: 'Зв\'язок', value: callBtnHtml}
     ]);
 
     return `<div class="shop-tile ${vipClass}" style="justify-content: flex-start; text-align: left;" onclick="toggleShop('${id}', this)">
@@ -855,9 +858,7 @@ function renderJobs(jobs) {
         
         <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 10px;">Дата: ${job.date}</div>
         
-        <a href="${job.url}" target="${targetAttr}" style="display: block; width: 100%; padding: 8px 0; border-radius: 8px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 12px; text-align: center; text-decoration: none; margin-bottom: 6px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${btnText}</a>
-        
-        <div class="shop-tile-chevron" style="margin-top: auto; background: rgba(255,255,255,0.05); color: #fff; padding: 6px; border-radius: 8px; font-size: 11px;">Опис ▾</div>
+        <div class="shop-tile-chevron" style="margin-top: auto; background: linear-gradient(145deg, rgba(0, 255, 156, 0.15), rgba(0, 184, 255, 0.15)); border: 1px solid rgba(0, 255, 156, 0.3); color: var(--time-green); padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.1);">Детальніше ▾</div>
         ${dropdownHtml}
     </div>`;
   }
