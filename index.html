@@ -59,7 +59,7 @@ e.preventDefault();
 <link rel="stylesheet" href="./css/styles.css">
 </head>
 <body>
-<!-- Невидимий заголовок H1 для SEO (роботи Google його бачать, а люди ні) -->
+<!-- Невидимий заголовок H1 для SEO -->
 <h1 style="position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); border:0;">Smart Вільногірськ: Барахолка, Робота, Розклад транспорту та Новини міста</h1>
 
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TBDJ9B94" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -100,7 +100,7 @@ e.preventDefault();
       <div class="form-group"><label class="form-label">Опис товару</label><textarea class="form-input" name="description" rows="3" required></textarea></div>
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9+]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn flea" id="flea-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -118,7 +118,7 @@ e.preventDefault();
       <div class="form-group"><label class="form-label">Локація</label><input type="text" class="form-input" name="location" value="Вільногірськ" required></div>
       <div class="form-group"><label class="form-label">Додати фото (якщо є)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple></div>
       <div class="form-group"><label class="form-label">Ваш телефон (не обов'язково)</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" oninput="formatUAPhone(this)"></div>
-      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9+]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn lost" id="lost-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -134,7 +134,7 @@ e.preventDefault();
       <div class="form-row"><div class="form-group"><label class="form-label">Кого шукають</label><select class="form-input" name="gender" required><option value="Не має значення">Не має значення</option><option value="Чоловік">Чоловік</option><option value="Жінка">Жінка</option></select></div><div class="form-group"><label class="form-label">Зайнятість</label><select class="form-input" name="employment" required><option value="Повна">Повна</option><option value="Неповна">Неповна</option><option value="Віддалена">Віддалена</option></select></div></div>
       <div class="form-group"><label class="form-label">Опис</label><textarea class="form-input" name="description" rows="4" required></textarea></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9+]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn" style="background: linear-gradient(135deg, #00b8ff, #0055ff); color: #fff;" id="job-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -150,7 +150,7 @@ e.preventDefault();
       <div class="form-group"><label class="form-label">Опис та адреса</label><textarea class="form-input" name="description" rows="3" placeholder="Деталі, район..." required></textarea></div>
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9+]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn estate" id="estate-submit-btn" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">Опублікувати</button>
     </form>
   </div>
@@ -167,7 +167,7 @@ e.preventDefault();
       <div class="form-group"><label class="form-label">Опис умов</label><textarea class="form-input" name="description" rows="3" placeholder="Детальні умови акції..." required></textarea></div>
       <div class="form-group"><label class="form-label">Рекламне фото (1 шт)</label><input type="file" class="form-input" name="photos" accept="image/*" required></div>
       <div class="form-group"><label class="form-label">Телефон для довідок</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
-      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
+      <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9+]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn promo" id="promo-submit-btn">Опублікувати</button>
     </form>
   </div>
@@ -242,7 +242,17 @@ e.preventDefault();
         <div class="scroll-hint" id="hint-schedule"><span>❯</span></div>
       </div>
       <div id="main-list-widget" class="main-list-widget">
-        <div id="trains" class="content-section"><div id="list" class="empty-msg">Завантаження...</div></div>
+        <!-- БЛОК ДЛЯ ЕЛЕКТРИЧОК -->
+        <div id="trains" class="content-section">
+            <div id="trains-changes-banner" style="display: none; margin-bottom: 10px; background: rgba(255, 204, 0, 0.1); border: 1px solid rgba(255, 204, 0, 0.3); border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                <div style="font-size: 13px; font-weight: 800; color: #ffcc00; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 6px;">
+                    <span style="font-size: 16px;">⚠️</span> Зміни у розкладі
+                </div>
+                <div id="trains-changes-list" style="font-size: 11px; color: rgba(255,255,255,0.8); line-height: 1.4;"></div>
+            </div>
+            <div id="list" class="empty-msg">Завантаження...</div>
+        </div>
+        
         <div id="long-trains" class="content-section"><div id="long-trains-list" class="empty-msg">Завантаження...</div></div>
         <div id="buses" class="content-section"><div id="buses-list" class="empty-msg">Завантаження...</div></div>
         <div id="blablacar" class="content-section">
@@ -261,7 +271,7 @@ e.preventDefault();
       </div>
     </div>
 
-    <!-- БЕГУЩАЯ СТРОКА (Оголошення від адміна) -->
+    <!-- БЕГУЩАЯ СТРОКА -->
     <div class="ticker-wrap" id="ticker-container" style="display: none;">
       <div class="ticker-move" id="ticker-content"></div>
     </div>
