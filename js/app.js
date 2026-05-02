@@ -28,7 +28,6 @@ function getDriveImageUrl(rawUrl) {
     else if (photoUrl.includes('file/d/')) { let match = photoUrl.match(/\/d\/(.*?)\//); if (match && match[1]) fileId = match[1]; }
     return fileId ? `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000` : photoUrl;
 }
-// ===============================
 
 // === ЛОГИКА КРАСНЫХ ТОЧЕК ===
 function checkNotification(key, dataArray) {
@@ -145,12 +144,12 @@ function handleTouchMove(e) {
   const activeImg = document.querySelector('.image-modal-track .image-modal-slide:nth-child(' + (currentGalleryIndex + 1) + ') img');
   if (e.touches.length === 2) {
       e.preventDefault(); currentZoom = Math.min(Math.max(startZoom * (getDistance(e.touches[0], e.touches[1]) / startDistance), minZoom), maxZoom);
-      if (activeImg) activeImg.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${currentZoom})`;
+      if (activeImg) { activeImg.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${currentZoom})`; }
   } else if (e.touches.length === 1) {
       if (isPinching) return; const diffX = e.touches[0].clientX - touchStartX; const diffY = e.touches[0].clientY - touchStartY;
       if (currentZoom > 1) {
           e.preventDefault(); panX = startPanX + diffX; panY = startPanY + diffY;
-          if (activeImg) activeImg.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${currentZoom})`;
+          if (activeImg) { activeImg.style.transform = `translate3d(${panX}px, ${panY}px, 0) scale(${currentZoom})`; }
       } else {
           if (currentGallery.length <= 1) return; const track = document.getElementById('modal-image-track'); if(track) track.style.transform = `translate3d(calc(-${currentGalleryIndex * 100}% + ${diffX}px), 0, 0)`;
       }
@@ -175,7 +174,6 @@ function closeImageModal(event) {
     document.getElementById('image-modal').classList.remove('active'); document.body.style.overflow = ''; 
 }
 
-let currentVilnohirskPhotos = []; 
 function renderGallery(photos) {
     const container = document.getElementById('gallery-list-content'); if (!container) return;
     if (!photos || photos.length === 0) { container.innerHTML = '<div class="empty-msg">Фотографій поки немає</div>'; return; }
@@ -248,7 +246,16 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
   } catch (e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
 }
 
-function openModalForm(formId, modalId) { const form = document.getElementById(formId); if(form) form.reset(); setupCaptcha(formId); document.getElementById(modalId).classList.add('active'); document.body.style.overflow = 'hidden'; }
+function openModalForm(formId, modalId) { 
+  if (modalId) {
+    const form = document.getElementById(formId); if(form) form.reset(); if(formId) setupCaptcha(formId);
+    document.getElementById(modalId).classList.add('active'); 
+  } else {
+    document.getElementById(formId).classList.add('active');
+  }
+  document.body.style.overflow = 'hidden'; 
+}
+
 function closeModalForm(event, modalId) { if (!event || event.target.classList.contains('close-modal-btn') || event.target.id === modalId) { document.getElementById(modalId).classList.remove('active'); document.body.style.overflow = ''; } }
 function closeAllShopDropdowns() { document.querySelectorAll('.shop-details-dropdown.open').forEach(el => { el.classList.remove('open'); if (el.parentElement) el.parentElement.classList.remove('tile-active'); }); document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; }); }
 
@@ -595,11 +602,10 @@ async function loadEstateData() {
 function renderFleaMarketList(items, hasMore = false) {
   const cont = document.getElementById('flea-market-list-content');
   const rulesHtml = `<div style="margin-bottom: 12px; background: linear-gradient(145deg, rgba(255, 77, 77, 0.05), rgba(0,0,0,0.2)); border: 1px solid rgba(255, 77, 77, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.rules-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.maxHeight = '400px'; content.style.padding = '0 15px 15px 15px'; icon.style.transform = 'rotate(180deg)'; } else { content.style.maxHeight = '0px'; content.style.padding = '0 15px 0 15px'; icon.style.transform = 'rotate(0deg)'; }" style="padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 12px; color: #ff6b6b;"><span style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 16px;">⚠️</span> Що заборонено публікувати?</span><span class="rules-icon" style="font-size: 14px; transition: transform 0.3s;">▼</span></div><div style="max-height: 0px; padding: 0 15px; overflow: hidden; transition: all 0.3s ease; font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.5;"><div style="border-top: 1px dashed rgba(255, 77, 77, 0.3); padding-top: 10px;"><ul style="margin: 5px 0 10px 0; padding-left: 20px;"><li>Будь-які <b>товари військового призначення</b> (військова форма, амуніція, бронежилети, зброя, тепловізори тощо).</li><li><b>Алкогольні напої</b> та <b>тютюнові вироби</b> (включаючи електронні сигарети, вейпи, рідини).</li><li>Продаж <b>живих тварин</b>.</li><li>Товари, продаж яких порушує <b>законодавство України</b> (ліки, наркотичні речовини, піротехніка, крадені речі, підроблені документи, спецзасоби).</li></ul><div style="color: #ff4d4d; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase;">❌ Такі оголошення будуть видалені!</div></div></div></div>`;
-  let html = rulesHtml;
   
-  if (!items || !items.length) { cont.innerHTML = html + '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
+  if (!items || !items.length) { cont.innerHTML = rulesHtml + '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
   const sortedItems = [...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return v === 'так' || v === '+' || v === 'true'; }).reverse(), ...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return !(v === 'так' || v === '+' || v === 'true'); })];
-  html += '<div class="shops-tile-grid">';
+  let html = rulesHtml + '<div class="shops-tile-grid">';
   sortedItems.forEach((item, i) => {
     const id = 'flea-detail-' + i; 
     let thumbUrl = item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
@@ -632,7 +638,7 @@ async function loadFleaMarketData() {
       complete: function(results) {
         const approvedItems = results.data.filter(row => { const keys = Object.keys(row); let status = row['Статус'] || row['Status'] || row['status'] || row[keys[keys.length - 1]]; return status && String(status).trim().toLowerCase() === 'одобрено'; }).map(row => {
           const keys = Object.keys(row); let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || row['Фото'] || row['photos'] || row['Photos'] || row[keys[5]] || ''; let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
-          return { title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви', price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['Price'] || row['price'] || row[keys[2]] || '', description: row['Опис (Абзац)'] || row['Опис'] || row['Description'] || row[keys[3]] || 'Без опису', phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['Phone'] || row[keys[4]] || 'Не вказано', photos: photoUrls, category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Різне', condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row['condition'] || row[keys[7]] || 'Не вказано', location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row['location'] || row[keys[8]] || 'Вільногірськ', vip: row['VIP'] || row['vip'] || row['Vip'] || '' };
+          return { title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви', price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['Price'] || row['price'] || row[keys[2]] || '', description: row['Опис (Абзац)'] || row['Опис'] || row['Description'] || row[keys[3]] || 'Без опису', phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['Phone'] || row[keys[4]] || 'Не вказано', photos: photoUrls, category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Різне', condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row['condition'] || row[keys[7]] || 'Не вказано', location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row[keys[8]] || 'Вільногірськ', vip: row['VIP'] || row['vip'] || row['Vip'] || '' };
         });
         const localItems = approvedItems.filter(item => isVilnohirsk(item.location)).reverse(); 
         checkNotification('flea', localItems);
@@ -706,16 +712,37 @@ async function loadTrainsData(){
     const d = await fetchCachedJson("https://vilnohirsk-trains-production.up.railway.app/api/trains", 'trains_api', 10);
     if(d&&d.trains) {
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div><div id="trains-content">`;
+      let changedTrains = [];
+
       d.trains.forEach((x, i) => {
         if (!x) return; const id = "train-" + i; const now = getKyivNow(); let sc = "future", dt = x.time;
         if (x.time && x.time.includes(':')) {
           const [hh, mm] = x.time.split(':').map(Number); const tt = new Date(now); tt.setHours(hh, mm, 0, 0); const diff = Math.floor((tt - now) / 60000);
           if (diff < 0) sc = "passed"; else if (diff <= 10) { sc = "soon"; dt = `≈ ${diff} хв`; }
         } else sc = "passed";
+        
         const hc = x.note && x.note !== "змін немає...";
-        h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}${hc ? '<span class="train-alert-dot"></span>' : ''}</div><div class="route-text">${escapeHTML(x.route)}</div><div class="time-val ${sc}">${escapeHTML(dt)}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}</div>`;
+        if (hc) {
+            changedTrains.push(x.number);
+        }
+        
+        // Зверніть увагу: ми видалили генерацію червоної крапки (<span class="train-alert-dot">)
+        h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div><div class="route-text">${escapeHTML(x.route)}</div><div class="time-val ${sc}">${escapeHTML(dt)}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}</div>`;
       });
       document.getElementById("list").innerHTML = h + `</div>`;
+      
+      // Оновлюємо верхній банер з переліком електричок, де є зміни
+      const banner = document.getElementById("trains-changes-banner");
+      const changesList = document.getElementById("trains-changes-list");
+      if (banner && changesList) {
+          if (changedTrains.length > 0) {
+              changesList.innerHTML = `Зверніть увагу, є зміни для рейсів: <b style="color: #fff; font-size: 13px;">${changedTrains.map(escapeHTML).join(', ')}</b><br><span style="color: rgba(255,255,255,0.6); font-size: 10px;">(Натисніть на рейс, щоб побачити деталі)</span>`;
+              banner.style.display = 'block';
+          } else {
+              banner.style.display = 'none';
+          }
+      }
+
       const changed = d.trains.filter(x => x && x.note && x.note !== "змін немає...");
       if (changed.length > 0) checkNotification('trains', changed); else { const dot = document.getElementById('dot-trains'); if (dot) dot.style.display = 'none'; }
     }
@@ -787,11 +814,8 @@ async function loadBlaBlaCarData() {
     const dr = d.filter(x => x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
     const ps = d.filter(x => x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to)));
     
-    let htmlD = '';
-    let htmlP = '';
-    
-    htmlD += dr.length ? dr.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b></div><div class="blabla-info-row"><span>💺 Місць: <b>${escapeHTML(x.seats)}</b></span><span>💵 <b>${x.price > 0 ? escapeHTML(x.price) + ' грн' : 'Договірна'}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone.replace(/[^0-9+]/g, '')}" class="blabla-phone">📞 ${escapeHTML(x.phone)}</a></div></div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
-    htmlP += ps.length ? ps.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b></div><div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${escapeHTML(x.seats)}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone.replace(/[^0-9+]/g, '')}" class="blabla-phone">📞 ${escapeHTML(x.phone)}</a></div></div>`).join('') : '<div class="empty-msg">Запитів немає</div>';
+    let htmlD = dr.length ? dr.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b></div><div class="blabla-info-row"><span>💺 Місць: <b>${escapeHTML(x.seats)}</b></span><span>💵 <b>${x.price > 0 ? escapeHTML(x.price) + ' грн' : 'Договірна'}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone.replace(/[^0-9+]/g, '')}" class="blabla-phone">📞 ${escapeHTML(x.phone)}</a></div></div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
+    let htmlP = ps.length ? ps.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b></div><div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${escapeHTML(x.seats)}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone.replace(/[^0-9+]/g, '')}" class="blabla-phone">📞 ${escapeHTML(x.phone)}</a></div></div>`).join('') : '<div class="empty-msg">Запитів немає</div>';
     
     document.getElementById('blabla-drivers-list').innerHTML = htmlD;
     document.getElementById('blabla-passengers-list').innerHTML = htmlP;
@@ -843,7 +867,6 @@ async function loadVolunteersData() {
 
 function renderJobs(jobs) {
   const container = document.getElementById('jobs-list-content'); if (!container) return;
-  
   if (!jobs || jobs.length === 0) { container.innerHTML = '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
   
   const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
@@ -1011,7 +1034,6 @@ async function submitBetaFeedback(event) {
 const initApp = () => {
   updateRadioStats();
   updateDateTime(); setInterval(updateDateTime, 1000); loadWeather(); loadAlerts(); loadExchangeRates();
-  // Викликаємо оновлення даних кожні 3 хвилини замість 1 (бережемо батарею і ліміти)
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGalleryData(); loadVolunteersData(); setTimeout(showDailyVolunteerAlert, 1500); }, 600);
   setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadVolunteersData(); loadExchangeRates(); loadTickerData(); }, 180000);
