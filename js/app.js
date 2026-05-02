@@ -638,7 +638,7 @@ async function loadFleaMarketData() {
       complete: function(results) {
         const approvedItems = results.data.filter(row => { const keys = Object.keys(row); let status = row['Статус'] || row['Status'] || row['status'] || row[keys[keys.length - 1]]; return status && String(status).trim().toLowerCase() === 'одобрено'; }).map(row => {
           const keys = Object.keys(row); let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || row['Фото'] || row['photos'] || row['Photos'] || row[keys[5]] || ''; let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
-          return { title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви', price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['Price'] || row['price'] || row[keys[2]] || '', description: row['Опис (Абзац)'] || row['Опис'] || row['Description'] || row[keys[3]] || 'Без опису', phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['Phone'] || row[keys[4]] || 'Не вказано', photos: photoUrls, category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Різне', condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row['condition'] || row[keys[7]] || 'Не вказано', location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row[keys[8]] || 'Вільногірськ', vip: row['VIP'] || row['vip'] || row['Vip'] || '' };
+          return { title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви', price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['Price'] || row['price'] || row[keys[2]] || '', description: row['Опис (Абзац)'] || row['Опис'] || row['Description'] || row[keys[3]] || 'Без опису', phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['Phone'] || row[keys[4]] || 'Не вказано', photos: photoUrls, category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Різне', condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row['condition'] || row[keys[7]] || 'Не вказано', location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row['location'] || row[keys[8]] || 'Вільногірськ', vip: row['VIP'] || row['vip'] || row['Vip'] || '' };
         });
         const localItems = approvedItems.filter(item => isVilnohirsk(item.location)).reverse(); 
         checkNotification('flea', localItems);
@@ -726,20 +726,33 @@ async function loadTrainsData(){
             changedTrains.push(x.number);
         }
         
-        // Зверніть увагу: ми видалили генерацію червоної крапки (<span class="train-alert-dot">)
         h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div><div class="route-text">${escapeHTML(x.route)}</div><div class="time-val ${sc}">${escapeHTML(dt)}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}</div>`;
       });
       document.getElementById("list").innerHTML = h + `</div>`;
       
-      // Оновлюємо верхній банер з переліком електричок, де є зміни
       const banner = document.getElementById("trains-changes-banner");
-      const changesList = document.getElementById("trains-changes-list");
-      if (banner && changesList) {
+      if (banner) {
           if (changedTrains.length > 0) {
-              changesList.innerHTML = `Зверніть увагу, є зміни для рейсів: <b style="color: #fff; font-size: 13px;">${changedTrains.map(escapeHTML).join(', ')}</b><br><span style="color: rgba(255,255,255,0.6); font-size: 10px;">(Натисніть на рейс, щоб побачити деталі)</span>`;
-              banner.style.display = 'block';
+              banner.style.cssText = 'display: block; margin-bottom: 12px;';
+              banner.innerHTML = `
+                <div style="background: linear-gradient(135deg, rgba(255, 159, 67, 0.15), rgba(255, 51, 102, 0.15)); border: 1px solid rgba(255, 159, 67, 0.4); border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.15);">
+                    <div style="font-size: 12px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <span style="font-size: 14px;">⚠️</span> Зміни у розкладі
+                    </div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.9); line-height: 1.4; margin-bottom: 8px;">
+                        Оновлено інформацію для рейсів:
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 8px;">
+                        ${changedTrains.map(num => `<span style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255, 204, 0, 0.5); padding: 3px 8px; border-radius: 6px; font-weight: 800; color: #ffcc00; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${escapeHTML(num)}</span>`).join('')}
+                    </div>
+                    <div style="font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase;">
+                        👇 Натисніть на рейс нижче для деталей
+                    </div>
+                </div>
+              `;
           } else {
               banner.style.display = 'none';
+              banner.innerHTML = '';
           }
       }
 
