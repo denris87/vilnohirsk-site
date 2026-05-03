@@ -13,6 +13,7 @@ let currentDataSignature = {};
 let allFleaMarketItems = []; let fleaRenderLimit = 20; let currentFleaSort = 'new';
 let allEstateItems = []; let estateRenderLimit = 20; let currentEstateSort = 'new';
 let allPromoItems = [];
+let phonebookRawData = [];
 
 // === БЕЗОПАСНОСТЬ И УТИЛИТЫ ===
 function escapeHTML(str) {
@@ -491,7 +492,6 @@ async function loadEventsData() {
   } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
 }
 
-let phonebookRawData = [];
 async function loadPhonebookData() {
   const container = document.getElementById('city-guide-list-content');
   try {
@@ -1130,12 +1130,14 @@ async function showDailyVolunteerAlert() {
 }
 
 async function submitBetaFeedback(event) {
-  event.preventDefault(); const textEl = document.getElementById('beta-feedback-text'); const text = textEl.value.trim();
+  event.preventDefault(); 
+  if (!validateCaptcha('custom-feedback-form')) return;
+  const textEl = document.getElementById('beta-feedback-text'); const text = textEl.value.trim();
   if (!text) { alert('Будь ласка, напишіть текст відгуку.'); return; }
-  const btn = event.target; const originalText = btn.innerText; btn.innerText = 'Відправка...'; btn.disabled = true;
+  const btn = document.getElementById('feedback-submit-btn'); const originalText = btn.innerText; btn.innerText = 'Відправка...'; btn.disabled = true;
   try {
     await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ formType: 'feedback', text: text }) });
-    alert('✅ Дякуємо! Ваш відгук успішно відправлено.'); textEl.value = ''; closeModalForm(null, 'feedback-modal');
+    alert('✅ Дякуємо! Ваш відгук успішно відправлено.'); textEl.value = ''; closeModalForm(null, 'feedback-modal'); setupCaptcha('custom-feedback-form');
   } catch(e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = originalText; btn.disabled = false; }
 }
 
