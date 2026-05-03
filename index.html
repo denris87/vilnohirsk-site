@@ -186,8 +186,11 @@ e.preventDefault();
     <div class="close-modal-btn" onclick="closeModalForm(null, 'feedback-modal')">&times;</div>
     <h3 class="form-title" style="color: #00ff9c; margin-bottom: 15px;">💬 Зв'язок з адмінами</h3>
     <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: center; margin-bottom: 15px;">Що можна покращити на сайті? Пишіть нам свої ідеї, і ми це додамо!</div>
-    <textarea class="form-input" id="beta-feedback-text" rows="4" placeholder="Напишіть нам..."></textarea>
-    <button class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); margin-top: 15px;" onclick="submitBetaFeedback(event)">Відправити</button>
+    <form id="custom-feedback-form" onsubmit="submitBetaFeedback(event)">
+      <textarea class="form-input" id="beta-feedback-text" rows="4" placeholder="Напишіть нам..." required></textarea>
+      <div class="form-group captcha-group" style="margin-top: 10px;"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9+]/g, '')"><input type="hidden" class="captcha-answer"></div>
+      <button type="submit" class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); margin-top: 15px;" id="feedback-submit-btn">Відправити</button>
+    </form>
   </div>
 </div>
 
@@ -242,17 +245,17 @@ e.preventDefault();
         <div class="scroll-hint" id="hint-schedule"><span>❯</span></div>
       </div>
       <div id="main-list-widget" class="main-list-widget">
-        <!-- БЛОК ДЛЯ ЕЛЕКТРИЧОК -->
         <div id="trains" class="content-section">
-            <div id="trains-changes-banner" style="display: none; margin-bottom: 10px; background: rgba(255, 204, 0, 0.1); border: 1px solid rgba(255, 204, 0, 0.3); border-radius: 12px; padding: 12px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                <div style="font-size: 13px; font-weight: 800; color: #ffcc00; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 6px;">
-                    <span style="font-size: 16px;">⚠️</span> Зміни у розкладі
+            <div id="trains-changes-banner" style="display: none; margin-bottom: 12px; background: linear-gradient(135deg, rgba(255, 159, 67, 0.15), rgba(255, 51, 102, 0.15)); border: 1px solid rgba(255, 159, 67, 0.4); border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.15);">
+                <div style="font-size: 12px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <span style="font-size: 14px;">⚠️</span> Зміни у розкладі
                 </div>
-                <div id="trains-changes-list" style="font-size: 11px; color: rgba(255,255,255,0.8); line-height: 1.4;"></div>
+                <div style="font-size: 11px; color: rgba(255,255,255,0.9); line-height: 1.4; margin-bottom: 8px;">Оновлено інформацію для рейсів:</div>
+                <div id="trains-changes-list" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 8px;"></div>
+                <div style="font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase;">👇 Натисніть на рейс нижче для деталей</div>
             </div>
             <div id="list" class="empty-msg">Завантаження...</div>
         </div>
-        
         <div id="long-trains" class="content-section"><div id="long-trains-list" class="empty-msg">Завантаження...</div></div>
         <div id="buses" class="content-section"><div id="buses-list" class="empty-msg">Завантаження...</div></div>
         <div id="blablacar" class="content-section">
@@ -328,6 +331,7 @@ e.preventDefault();
         <div class="scroll-hint" id="hint-market"><span>❯</span></div>
       </div>
       <div class="shopping-drawer" id="market-drawer">
+
         <div id="estate-tab" class="content-section">
           <div style="padding: 10px; text-align: center;"><button onclick="openModalForm('custom-estate-form', 'estate-modal')" style="border:none; background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff; font-weight: 800; padding: 12px 20px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">➕ Додати оголошення</button></div>
           <div class="flea-categories-wrapper" id="estate-categories"><div class="flea-category-tag active" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); color: #fff;" onclick="filterEstate('Всі', this)">Всі</div><div class="flea-category-tag" onclick="filterEstate('Оренда', this)">Оренда</div><div class="flea-category-tag" onclick="filterEstate('Продаж', this)">Продаж</div><select id="estate-sort" class="form-input" style="padding:4px 10px; font-size:11px; border-radius:20px; margin-left:auto; width:auto; min-width:110px; background-color:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); color:#fff;" onchange="window.currentEstateSort = this.value; window.estateRenderLimit = 20; const activeEstateTag = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(activeEstateTag ? activeEstateTag.innerText : 'Всі', activeEstateTag);"><option value="new">Спочатку нові</option><option value="cheap">Дешевші</option><option value="expensive">Дорожчі</option></select></div>
@@ -358,7 +362,7 @@ e.preventDefault();
 
     <!-- КНОПКА ВІДГУКІВ ТА ІДЕЙ -->
     <div style="display: flex; gap: 8px; align-items: flex-end; position: sticky; bottom: 15px; z-index: 70; width: 100%;">
-      <div class="liquid-glass" style="flex: 1; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="openModalForm(null, 'feedback-modal')">
+      <div class="liquid-glass" style="flex: 1; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="openModalForm('custom-feedback-form', 'feedback-modal')">
         <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">👋 Ваші відгуки, ідеї та пропозиції пишіть нам (Зв'язок з адмінами)</div>
       </div>
     </div>
