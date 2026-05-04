@@ -587,17 +587,30 @@ function renderPromosList(items) {
   items.forEach((item, i) => {
     const id = 'promo-detail-' + i; 
     let thumbUrl = item.photos && item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
-    // Змінено стиль картинки: object-fit: contain гарантує, що банер буде видно повністю
     const thumb = thumbUrl ? `<img src="${thumbUrl}" style="object-fit: contain; width: 100%; height: 100%;">` : `<span style="font-size:28px;">🔥</span>`;
     let photosHtml = '';
     if (item.photos && item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
-    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📝', label: 'Умови акції', value: escapeHTML(String(item.description || '')).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Телефон', value: `<a href="tel:${String(item.phone || '').replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone || '')}</a>`} ]);
+    
+    // НОВА ЛОГІКА: Автоматичний пошук посилань (http/https) та перетворення їх на яскраві кнопки
+    let rawDesc = escapeHTML(String(item.description || '')).replace(/\n/g, '<br>');
+    let descWithButton = rawDesc.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" onclick="event.stopPropagation();" style="display: block; text-align: center; margin-top: 12px; padding: 12px; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; font-size: 14px; text-decoration: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3);">🚀 Перейти за посиланням</a>');
+
+    // НОВА ЛОГІКА: Перевіряємо телефон. Якщо цифр немає (наприклад "Онлайн"), не намагаємося "дзвонити"
+    let phoneVal = escapeHTML(item.phone || '');
+    let phoneHtml = '';
+    if (/\d/.test(phoneVal)) {
+        phoneHtml = `<a href="tel:${phoneVal.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${phoneVal}</a>`;
+    } else {
+        phoneHtml = `<span style="color:#00ff9c; font-weight:700;">${phoneVal}</span>`;
+    }
+
+    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📝', label: 'Умови акції', value: descWithButton}, {icon: '📞', label: 'Зв\'язок', value: phoneHtml} ]);
+    
     const isVip = item.vip === true || item.vip === 'true';
     const tileClass = isVip ? 'shop-tile promo-tile vip-tile' : 'shop-tile promo-tile';
     const badgeHtml = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000; box-shadow: 0 4px 10px rgba(255,204,0,0.4);">VIP АКЦІЯ</div>' : '<div class="vip-badge promo-badge">АКЦІЯ</div>';
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-    // Прибрано слово "Магазин: " з відображення компанії
     html += `<div class="${tileClass}" onclick="toggleShop('${id}', this)">${badgeHtml}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: #fff; font-size: 11px;">${escapeHTML(item.shop || 'Не вказано')}</div><div class="card-row"><span class="card-price" style="color: var(--highlight-color); font-size: 14px;">${escapeHTML(item.discount || '')}</span></div><div class="shop-tile-name" style="font-size: 14px; margin-bottom: 5px;">${escapeHTML(item.title || '')}${dot}</div><div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 5px;">⏳ Діє до: <span style="color:#ffcc00;">${escapeHTML(item.validUntil || '-')}</span></div><div class="shop-tile-chevron" style="color: #ff9f43; background: rgba(255,159,67,0.1);">Детальніше ▾</div>${dropdownHtml}</div>`;
   });
   cont.innerHTML = html + '</div>';
