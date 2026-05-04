@@ -591,11 +591,22 @@ function renderPromosList(items) {
     let photosHtml = '';
     if (item.photos && item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
     
-    // НОВА ЛОГІКА: Автоматичний пошук посилань (http/https) та перетворення їх на яскраві кнопки
     let rawDesc = escapeHTML(String(item.description || '')).replace(/\n/g, '<br>');
-    let descWithButton = rawDesc.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" onclick="event.stopPropagation();" style="display: block; text-align: center; margin-top: 12px; padding: 12px; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; font-size: 14px; text-decoration: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3);">🚀 Перейти за посиланням</a>');
+    let extractedLink = '';
+    
+    // Розумний пошук посилання: дістаємо його і прибираємо з основного тексту
+    let finalDesc = rawDesc.replace(/(https?:\/\/[^\s<]+)/g, function(match) {
+        extractedLink = match;
+        return ''; 
+    }).replace(/(<br>|\s)+$/, ''); // Прибираємо зайві пробіли чи відступи в кінці
 
-    // НОВА ЛОГІКА: Перевіряємо телефон. Якщо цифр немає (наприклад "Онлайн"), не намагаємося "дзвонити"
+    // Створюємо красиву, широку кнопку, якщо знайдено посилання
+    let buttonHtml = '';
+    if (extractedLink) {
+        buttonHtml = `<a href="${extractedLink}" target="_blank" onclick="event.stopPropagation();" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; margin-top: 15px; padding: 14px 10px; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; font-size: 14px; text-decoration: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); text-transform: uppercase; letter-spacing: 0.5px;"><span style="font-size: 18px;">🚀</span><span>Перейти на сайт</span></a>`;
+    }
+
+    // Обробка поля "Телефон" (захист від кліків по слову "Онлайн")
     let phoneVal = escapeHTML(item.phone || '');
     let phoneHtml = '';
     if (/\d/.test(phoneVal)) {
@@ -604,7 +615,15 @@ function renderPromosList(items) {
         phoneHtml = `<span style="color:#00ff9c; font-weight:700;">${phoneVal}</span>`;
     }
 
-    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📝', label: 'Умови акції', value: descWithButton}, {icon: '📞', label: 'Зв\'язок', value: phoneHtml} ]);
+    // Власна структура списку: кнопка винесена ОКРЕМО на всю ширину
+    const dropdownHtml = `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
+        <div class="shop-inner-list" style="padding: 10px; text-align: left;">
+            ${photosHtml}
+            <div class="shop-inner-item"><span class="detail-icon">📝</span><div style="width: 100%;"><b>Умови акції:</b><br><span style="line-height: 1.4;">${finalDesc}</span></div></div>
+            <div class="shop-inner-item" style="margin-bottom: 0;"><span class="detail-icon">📞</span><div style="width: 100%;"><b>Зв'язок:</b><br>${phoneHtml}</div></div>
+            ${buttonHtml}
+        </div>
+    </div>`;
     
     const isVip = item.vip === true || item.vip === 'true';
     const tileClass = isVip ? 'shop-tile promo-tile vip-tile' : 'shop-tile promo-tile';
