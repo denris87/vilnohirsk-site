@@ -598,7 +598,7 @@ function renderPromosList(items) {
     let finalDesc = rawDesc.replace(/(https?:\/\/[^\s<]+)/g, function(match) {
         extractedLink = match;
         return ''; 
-    }).replace(/(<br>|\s)+$/, ''); // Прибираємо зайві пробіли чи відступи в кінці
+    }).replace(/^(<br>|\s)+/, '').replace(/(<br>|\s)+$/, '').trim(); // Прибираємо зайві відступи
 
     // Створюємо красиву, широку кнопку, якщо знайдено посилання
     let buttonHtml = '';
@@ -610,28 +610,38 @@ function renderPromosList(items) {
     let outerDescHtml = finalDesc ? `<div style="font-size: 12px; color: rgba(255,255,255,0.95); line-height: 1.4; margin-top: 8px; margin-bottom: 8px; text-align: left;">${finalDesc}</div>` : '';
 
     // Обробка поля "Телефон" (захист від кліків по слову "Онлайн")
-    let phoneVal = escapeHTML(item.phone || '');
-    let phoneHtml = '';
-    if (/\d/.test(phoneVal)) {
-        phoneHtml = `<a href="tel:${phoneVal.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${phoneVal}</a>`;
-    } else {
-        phoneHtml = `<span style="color:#00ff9c; font-weight:700;">${phoneVal}</span>`;
+    let phoneVal = escapeHTML(item.phone || '').trim();
+    let phoneBlockHtml = '';
+    if (phoneVal) {
+        let phoneHtml = '';
+        if (/\d/.test(phoneVal)) {
+            phoneHtml = `<a href="tel:${phoneVal.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${phoneVal}</a>`;
+        } else {
+            phoneHtml = `<span style="color:#00ff9c; font-weight:700;">${phoneVal}</span>`;
+        }
+        phoneBlockHtml = `<div class="shop-inner-item" style="margin-bottom: 0;"><span class="detail-icon">📞</span><div style="width: 100%;"><b>Зв'язок:</b><br>${phoneHtml}</div></div>`;
     }
 
-    // Власна структура списку: залишаємо ТІЛЬКИ фото та контакт у шторці
-    const dropdownHtml = `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
-        <div class="shop-inner-list" style="padding: 10px; text-align: left;">
-            ${photosHtml}
-            <div class="shop-inner-item" style="margin-bottom: 0;"><span class="detail-icon">📞</span><div style="width: 100%;"><b>Зв'язок:</b><br>${phoneHtml}</div></div>
-        </div>
-    </div>`;
+    // Власна структура списку: якщо є фото або телефон - показуємо шторку, інакше ховаємо
+    let dropdownInnerHtml = photosHtml + phoneBlockHtml;
+    let dropdownHtml = '';
+    let chevronHtml = '';
+    
+    if (dropdownInnerHtml) {
+        dropdownHtml = `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
+            <div class="shop-inner-list" style="padding: 10px; text-align: left;">
+                ${dropdownInnerHtml}
+            </div>
+        </div>`;
+        chevronHtml = `<div class="shop-tile-chevron" style="color: #ff9f43; background: rgba(255,159,67,0.1);">Детальніше ▾</div>`;
+    }
     
     const isVip = item.vip === true || item.vip === 'true';
     const tileClass = isVip ? 'shop-tile promo-tile vip-tile' : 'shop-tile promo-tile';
     const badgeHtml = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000; box-shadow: 0 4px 10px rgba(255,204,0,0.4);">VIP АКЦІЯ</div>' : '<div class="vip-badge promo-badge">АКЦІЯ</div>';
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-    html += `<div class="${tileClass}" onclick="toggleShop('${id}', this)">${badgeHtml}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: #fff; font-size: 11px;">${escapeHTML(item.shop || 'Не вказано')}</div><div class="card-row"><span class="card-price" style="color: var(--highlight-color); font-size: 14px;">${escapeHTML(item.discount || '')}</span></div><div class="shop-tile-name" style="font-size: 14px; margin-bottom: 5px;">${escapeHTML(item.title || '')}${dot}</div><div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 5px;">⏳ Діє до: <span style="color:#ffcc00;">${escapeHTML(item.validUntil || '-')}</span></div>${outerDescHtml}${buttonHtml}<div class="shop-tile-chevron" style="color: #ff9f43; background: rgba(255,159,67,0.1);">Детальніше ▾</div>${dropdownHtml}</div>`;
+    html += `<div class="${tileClass}" onclick="toggleShop('${id}', this)">${badgeHtml}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: #fff; font-size: 11px;">${escapeHTML(item.shop || 'Не вказано')}</div><div class="card-row"><span class="card-price" style="color: var(--highlight-color); font-size: 14px;">${escapeHTML(item.discount || '')}</span></div><div class="shop-tile-name" style="font-size: 14px; margin-bottom: 5px;">${escapeHTML(item.title || '')}${dot}</div><div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 5px;">⏳ Діє до: <span style="color:#ffcc00;">${escapeHTML(item.validUntil || '-')}</span></div>${outerDescHtml}${buttonHtml}${chevronHtml}${dropdownHtml}</div>`;
   });
   cont.innerHTML = html + '</div>';
 }
