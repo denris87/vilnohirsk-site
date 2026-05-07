@@ -1,5 +1,5 @@
-const CACHE_NAME = 'smart-vilnohirsk-static-v10.00.21';
-const DYNAMIC_CACHE = 'smart-vilnohirsk-dynamic-v10.00.21';
+const CACHE_NAME = 'smart-vilnohirsk-static-v10.00.22';
+const DYNAMIC_CACHE = 'smart-vilnohirsk-dynamic-v10.00.22';
 
 // Статические файлы, которые кешируются при первой загрузке (чтобы сайт открывался без сети)
 const STATIC_ASSETS = [
