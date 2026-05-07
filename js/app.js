@@ -594,22 +594,18 @@ function renderPromosList(items) {
     let rawDesc = escapeHTML(String(item.description || '')).replace(/\n/g, '<br>');
     let extractedLink = '';
     
-    // Розумний пошук посилання: дістаємо його і прибираємо з основного тексту
     let finalDesc = rawDesc.replace(/(https?:\/\/[^\s<]+)/g, function(match) {
         extractedLink = match;
         return ''; 
-    }).replace(/^(<br>|\s)+/, '').replace(/(<br>|\s)+$/, '').trim(); // Прибираємо зайві відступи
+    }).replace(/^(<br>|\s)+/, '').replace(/(<br>|\s)+$/, '').trim(); 
 
-    // Створюємо красиву, широку кнопку, якщо знайдено посилання
     let buttonHtml = '';
     if (extractedLink) {
         buttonHtml = `<a href="${extractedLink}" target="_blank" onclick="event.stopPropagation();" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; margin-top: 8px; margin-bottom: 12px; padding: 12px 10px; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; font-size: 14px; text-decoration: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); text-transform: uppercase; letter-spacing: 0.5px;"><span style="font-size: 18px;">🚀</span><span>Перейти на сайт</span></a>`;
     }
 
-    // Виносимо текст умов акції НАЗОВНІ, над кнопкою
     let outerDescHtml = finalDesc ? `<div style="font-size: 12px; color: rgba(255,255,255,0.95); line-height: 1.4; margin-top: 8px; margin-bottom: 8px; text-align: left;">${finalDesc}</div>` : '';
 
-    // Обробка поля "Телефон" (захист від кліків по слову "Онлайн")
     let phoneVal = escapeHTML(item.phone || '').trim();
     let phoneBlockHtml = '';
     if (phoneVal) {
@@ -622,7 +618,6 @@ function renderPromosList(items) {
         phoneBlockHtml = `<div class="shop-inner-item" style="margin-bottom: 0;"><span class="detail-icon">📞</span><div style="width: 100%;"><b>Зв'язок:</b><br>${phoneHtml}</div></div>`;
     }
 
-    // Власна структура списку: якщо є фото або телефон - показуємо шторку, інакше ховаємо
     let dropdownInnerHtml = photosHtml + phoneBlockHtml;
     let dropdownHtml = '';
     let chevronHtml = '';
@@ -641,7 +636,8 @@ function renderPromosList(items) {
     const badgeHtml = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000; box-shadow: 0 4px 10px rgba(255,204,0,0.4);">VIP АКЦІЯ</div>' : '<div class="vip-badge promo-badge">АКЦІЯ</div>';
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-    html += `<div class="${tileClass}" onclick="toggleShop('${id}', this)">${badgeHtml}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: #fff; font-size: 11px;">${escapeHTML(item.shop || 'Не вказано')}</div><div class="card-row"><span class="card-price" style="color: var(--highlight-color); font-size: 14px;">${escapeHTML(item.discount || '')}</span></div><div class="shop-tile-name" style="font-size: 14px; margin-bottom: 5px;">${escapeHTML(item.title || '')}${dot}</div><div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 5px;">⏳ Діє до: <span style="color:#ffcc00;">${escapeHTML(item.validUntil || '-')}</span></div>${outerDescHtml}${buttonHtml}${chevronHtml}${dropdownHtml}</div>`;
+    // ВИПРАВЛЕНО: Гнучкий flex-контейнер для ціни, щоб вона не обрізалася
+    html += `<div class="${tileClass}" onclick="toggleShop('${id}', this)">${badgeHtml}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: #fff; font-size: 11px;">${escapeHTML(item.shop || 'Не вказано')}</div><div class="card-row" style="margin-bottom: 6px;"><span class="card-price" style="color: var(--highlight-color); font-size: 14px; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; display: block;">${escapeHTML(item.discount || '')}</span></div><div class="shop-tile-name" style="font-size: 14px; margin-bottom: 5px;">${escapeHTML(item.title || '')}${dot}</div><div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 5px;">⏳ Діє до: <span style="color:#ffcc00;">${escapeHTML(item.validUntil || '-')}</span></div>${outerDescHtml}${buttonHtml}${chevronHtml}${dropdownHtml}</div>`;
   });
   cont.innerHTML = html + '</div>';
 }
@@ -679,7 +675,8 @@ function renderEstateList(items, hasMore = false) {
     const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Тип об\'єкта', value: `${escapeHTML(item.propertyType)} (${escapeHTML(item.dealType)})`}, {icon: '📝', label: 'Опис та адреса', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Телефон', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-    html += `<div class="shop-tile ${item.isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${item.isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${escapeHTML(item.dealType)} • ${escapeHTML(item.propertyType)}</div><div class="card-row"><span class="card-price">${escapeHTML(displayPrice)}</span><span class="card-info">Кімнат: ${escapeHTML(item.rooms)}</span></div><div class="shop-tile-name" style="margin-bottom: 5px;">Квартира у Вільногірську${dot}</div><div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
+    // ВИПРАВЛЕНО: Гнучкий flex-контейнер для ціни, щоб вона не обрізалася
+    html += `<div class="shop-tile ${item.isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${item.isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${escapeHTML(item.dealType)} • ${escapeHTML(item.propertyType)}</div><div class="card-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><span class="card-price" style="white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; flex: 1;">${escapeHTML(displayPrice)}</span><span class="card-info" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; text-align: right; margin-top: 2px;">Кімнат: ${escapeHTML(item.rooms)}</span></div><div class="shop-tile-name" style="margin-bottom: 5px;">Квартира у Вільногірську${dot}</div><div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
   if (hasMore) { html += `<button class="load-more-btn" onclick="estateRenderLimit+=20; const tagE=document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(tagE?tagE.innerText:'Всі',tagE);">Показати ще ▾</button>`; }
@@ -732,7 +729,8 @@ function renderFleaMarketList(items, hasMore = false) {
     const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '✨', label: 'Стан', value: escapeHTML(item.condition)}, {icon: '📝', label: 'Опис', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-    html += `<div class="shop-tile ${isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row"><span class="card-price">${escapeHTML(priceText)}</span><span class="card-info">📍 ${escapeHTML(item.location)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
+    // ВИПРАВЛЕНО: Гнучкий flex-контейнер для ціни, щоб вона не обрізалася
+    html += `<div class="shop-tile ${isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><span class="card-price" style="white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; flex: 1;">${escapeHTML(priceText)}</span><span class="card-info" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; text-align: right; margin-top: 2px;">📍 ${escapeHTML(item.location)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
   if (hasMore) { html += `<button class="load-more-btn" onclick="fleaRenderLimit+=20; const tagF=document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(tagF?tagF.innerText:'Всі',tagF);">Показати ще ▾</button>`; }
@@ -795,7 +793,8 @@ async function loadLostFoundData() {
           const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📝', label: 'Опис', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
           
           const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-          html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row"><span class="card-price" style="color:${badgeColor}; max-width:45%;">${escapeHTML(item.type)}</span><span class="card-info">📍 ${escapeHTML(item.location)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
+          // ВИПРАВЛЕНО: Гнучкий flex-контейнер для ціни, щоб вона не обрізалася
+          html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><span class="card-price" style="color:${badgeColor}; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; flex: 1;">${escapeHTML(item.type)}</span><span class="card-info" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; text-align: right; margin-top: 2px;">📍 ${escapeHTML(item.location)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
         });
         cont.innerHTML = html + '</div>';
       }
@@ -1053,13 +1052,14 @@ function renderJobs(jobs) {
 
     const dot = job.isNewItem ? NEW_BADGE_HTML : '';
 
+    // ВИПРАВЛЕНО: Гнучкий flex-контейнер для ціни, щоб вона не обрізалася
     return `<div class="shop-tile" style="${tileStyle}" onclick="toggleShop('${id}', this)">
         ${vipBadge}
         <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 6px; margin-top: 4px;">${escapeHTML(job.title)}${dot}</div>
         <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 4px;"><b>Роботодавець:</b> ${escapeHTML(job.company) || 'Не вказано'}</div>
         <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 8px;"><b>Зайнятість:</b> ${escapeHTML(employment)}</div>
         
-        <div class="card-price" style="font-size: 16px; margin-bottom: 8px;">${escapeHTML(displaySalary) || '-'}</div>
+        <div class="card-price" style="font-size: 16px; margin-bottom: 8px; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2;">${escapeHTML(displaySalary) || '-'}</div>
         
         <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 8px;">Дата: ${escapeHTML(job.date)}</div>
         
