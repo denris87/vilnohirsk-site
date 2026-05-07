@@ -636,7 +636,6 @@ function renderPromosList(items) {
     const badgeHtml = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000; box-shadow: 0 4px 10px rgba(255,204,0,0.4);">VIP АКЦІЯ</div>' : '<div class="vip-badge promo-badge">АКЦІЯ</div>';
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-    // ВИПРАВЛЕНО: Гнучкий flex-контейнер для ціни, щоб вона не обрізалася
     html += `<div class="${tileClass}" onclick="toggleShop('${id}', this)">${badgeHtml}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: #fff; font-size: 11px;">${escapeHTML(item.shop || 'Не вказано')}</div><div class="card-row" style="margin-bottom: 6px;"><span class="card-price" style="color: var(--highlight-color); font-size: 14px; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; display: block;">${escapeHTML(item.discount || '')}</span></div><div class="shop-tile-name" style="font-size: 14px; margin-bottom: 5px;">${escapeHTML(item.title || '')}${dot}</div><div style="font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 700; margin-bottom: 5px;">⏳ Діє до: <span style="color:#ffcc00;">${escapeHTML(item.validUntil || '-')}</span></div>${outerDescHtml}${buttonHtml}${chevronHtml}${dropdownHtml}</div>`;
   });
   cont.innerHTML = html + '</div>';
@@ -672,10 +671,9 @@ function renderEstateList(items, hasMore = false) {
     const dealColor = item.dealType.toLowerCase() === 'оренда' ? '#00b8ff' : '#ff3366';
     let displayPrice = item.price ? String(item.price).trim() : 'Договірна';
     if (displayPrice !== 'Договірна' && !displayPrice.includes('$')) { displayPrice += ' $'; }
-    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Тип об\'єкта', value: `${escapeHTML(item.propertyType)} (${escapeHTML(item.dealType)})`}, {icon: '📝', label: 'Опис та адреса', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Телефон', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
+    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Тип об\'єкта', value: `${escapeHTML(item.propertyType)} (${escapeHTML(item.dealType)})`}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location || 'Вільногірськ')}, {icon: '📝', label: 'Опис та адреса', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Телефон', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-    // ВИПРАВЛЕНО: Гнучкий flex-контейнер для ціни, щоб вона не обрізалася
     html += `<div class="shop-tile ${item.isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${item.isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${escapeHTML(item.dealType)} • ${escapeHTML(item.propertyType)}</div><div class="card-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><span class="card-price" style="white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; flex: 1;">${escapeHTML(displayPrice)}</span><span class="card-info" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; text-align: right; margin-top: 2px;">Кімнат: ${escapeHTML(item.rooms)}</span></div><div class="shop-tile-name" style="margin-bottom: 5px;">Квартира у Вільногірську${dot}</div><div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
@@ -726,11 +724,13 @@ function renderFleaMarketList(items, hasMore = false) {
     let priceText = item.price ? String(item.price).trim() : 'Ціна договірна'; if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
     let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const v = String(item.vip || '').trim().toLowerCase(); const isVip = v === 'так' || v === '+' || v === 'true';
-    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '✨', label: 'Стан', value: escapeHTML(item.condition)}, {icon: '📝', label: 'Опис', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
+    
+    // ДОДАНО: Локація тепер всередині шторки, відразу після категорії
+    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '✨', label: 'Стан', value: escapeHTML(item.condition)}, {icon: '📝', label: 'Опис', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-    // ВИПРАВЛЕНО: Гнучкий flex-контейнер для ціни, щоб вона не обрізалася
-    html += `<div class="shop-tile ${isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><span class="card-price" style="white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; flex: 1;">${escapeHTML(priceText)}</span><span class="card-info" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; text-align: right; margin-top: 2px;">📍 ${escapeHTML(item.location)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
+    // ВИПРАВЛЕНО: Локація прибрана з .card-row, тепер ціна займає 100% ширини і ніколи не обрізається
+    html += `<div class="shop-tile ${isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row" style="margin-bottom: 6px;"><span class="card-price" style="white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; display: block;">${escapeHTML(priceText)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
   if (hasMore) { html += `<button class="load-more-btn" onclick="fleaRenderLimit+=20; const tagF=document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(tagF?tagF.innerText:'Всі',tagF);">Показати ще ▾</button>`; }
@@ -790,11 +790,13 @@ async function loadLostFoundData() {
           const thumb = thumbUrl ? `<img src="${thumbUrl}">` : `<span style="font-size:28px;">🔍</span>`; 
           const badgeColor = item.type.toLowerCase().includes('знайд') ? '#00ff9c' : '#ff4d4d';
           let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
-          const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📝', label: 'Опис', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
+          
+          // ДОДАНО: Локація також всередині шторки для знахідок
+          const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '📝', label: 'Опис', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
           
           const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-          // ВИПРАВЛЕНО: Гнучкий flex-контейнер для ціни, щоб вона не обрізалася
-          html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><span class="card-price" style="color:${badgeColor}; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; flex: 1;">${escapeHTML(item.type)}</span><span class="card-info" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; text-align: right; margin-top: 2px;">📍 ${escapeHTML(item.location)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
+          // ВИПРАВЛЕНО: Локація прибрана з головного виду, статус на всю ширину
+          html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row" style="margin-bottom: 6px;"><span class="card-price" style="color:${badgeColor}; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; display: block;">${escapeHTML(item.type)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
         });
         cont.innerHTML = html + '</div>';
       }
@@ -1052,7 +1054,6 @@ function renderJobs(jobs) {
 
     const dot = job.isNewItem ? NEW_BADGE_HTML : '';
 
-    // ВИПРАВЛЕНО: Гнучкий flex-контейнер для ціни, щоб вона не обрізалася
     return `<div class="shop-tile" style="${tileStyle}" onclick="toggleShop('${id}', this)">
         ${vipBadge}
         <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 6px; margin-top: 4px;">${escapeHTML(job.title)}${dot}</div>
