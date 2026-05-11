@@ -989,7 +989,7 @@ function renderPhoenixList(items) {
     const id = 'phoenix-detail-' + i;
     let thumbUrl = item.photos && item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
     
-    // Головне фото тепер обрізається (cover) для гарної квадратної плитки
+    // Головне фото обрізається (cover) для гарної квадратної плитки
     const thumb = thumbUrl 
       ? `<img src="${thumbUrl}" style="object-fit: cover !important; width: 100%; height: 100%; background: #000; border-radius: 8px;">` 
       : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);background:#111;border-radius:8px;">ФОТО ВІДСУТНЄ</div>`;
@@ -997,7 +997,7 @@ function renderPhoenixList(items) {
     let photosHtml = '';
     if (item.photos && item.photos.length > 0) {
       // В описі фото залишається повним (не обрізаним)
-      photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" style="object-fit: contain;" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`;
+      photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" style="object-fit: contain; max-height: 300px;" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Збільшити фото</div></div>`;
     }
 
     const dropdownHtml = buildDropdown(id, photosHtml, [
@@ -1016,13 +1016,13 @@ function renderPhoenixList(items) {
         ${thumb}
       </div>
       
-      <div style="font-size: 13px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.2; margin-bottom: auto; text-transform: uppercase; word-break: break-word; overflow-wrap: break-word; padding: 0 4px;">
+      <div style="font-size: clamp(10px, 3vw, 12px); font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.3; margin-bottom: auto; text-transform: uppercase; word-break: normal; overflow-wrap: break-word; padding: 0 2px;">
         ${escapeHTML(item.name)}${dot}
       </div>
       
-      <div style="background: rgba(255, 77, 77, 0.1); border-radius: 8px; padding: 6px; margin-top: 10px; margin-bottom: 10px; border: 1px solid rgba(255,77,77,0.2); text-align: center;">
+      <div style="background: rgba(255, 77, 77, 0.1); border-radius: 8px; padding: 8px; margin-top: 10px; margin-bottom: 10px; border: 1px solid rgba(255,77,77,0.2); text-align: center;">
         <div style="font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 2px;">Зник:</div>
-        <div style="font-size: 12px; color: #ff4d4d; font-weight: 700;">${escapeHTML(item.date_missing || '-')}</div>
+        <div style="font-size: 13px; color: #ff4d4d; font-weight: 700;">${escapeHTML(item.date_missing || '-')}</div>
       </div>
       
       <div class="shop-tile-chevron" style="background: transparent; border: 1px solid rgba(255,77,77,0.3); color: #ff4d4d; border-radius: 8px; padding: 6px; font-size: 10px;">Деталі ▾</div>
