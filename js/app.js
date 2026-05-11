@@ -1006,30 +1006,31 @@ function renderPhoenixList(items) {
 
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
     
+    // Унікальний дизайн карток Фенікс з червоною темою та виправленим форматуванням дат
     html += `
     <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5);" onclick="toggleShop('${id}', this)">
-      <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9)); color: #fff; text-align: center; font-weight: 800; font-size: 10px; text-transform: uppercase; padding: 4px; border-radius: 6px 6px 0 0; margin: -10px -10px 10px -10px; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Зник безвісти</div>
+      <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9)); color: #fff; text-align: center; font-weight: 800; font-size: 11px; text-transform: uppercase; padding: 6px; border-radius: 6px 6px 0 0; margin: -10px -10px 12px -10px; letter-spacing: 1px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Зник безвісти</div>
       
-      <div class="shop-tile-photo" style="height: 190px; padding: 0; background: transparent; border: none; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+      <div class="shop-tile-photo" style="height: 240px; padding: 0; background: transparent; border: none; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
         ${thumb}
       </div>
       
-      <div style="font-size: 13px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.2; margin-bottom: 10px; text-transform: uppercase; word-break: break-word;">
+      <div style="font-size: 14px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.3; margin-bottom: 12px; text-transform: uppercase;">
         ${escapeHTML(item.name)}${dot}
       </div>
       
-      <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 6px 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 6px;">
-        <div style="display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
-          <span style="font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Народився:</span>
-          <span style="font-size: 11px; color: #fff; font-weight: 600;">${escapeHTML(item.dob || '-')}</span>
+      <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
+          <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Народився:</span>
+          <span style="font-size: 12px; color: #fff; font-weight: 600;">${escapeHTML(item.dob || '-')}</span>
         </div>
-        <div style="display: flex; flex-direction: column; align-items: center;">
-          <span style="font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Зник:</span>
-          <span style="font-size: 11px; color: #ff4d4d; font-weight: 600;">${escapeHTML(item.date_missing || '-')}</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Зник:</span>
+          <span style="font-size: 12px; color: #ff4d4d; font-weight: 600;">${escapeHTML(item.date_missing || '-')}</span>
         </div>
       </div>
       
-      <div class="shop-tile-chevron" style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-radius: 8px; padding: 6px; font-size: 10px;">Деталі ▾</div>
+      <div class="shop-tile-chevron" style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-radius: 8px; padding: 6px;">Деталі та прикмети ▾</div>
       ${dropdownHtml}
     </div>`;
   });
