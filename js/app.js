@@ -1015,18 +1015,18 @@ function renderPhoenixList(items) {
         ${thumb}
       </div>
       
-      <div style="font-size: 16px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.3; margin-bottom: 12px; text-transform: uppercase;">
+      <div style="font-size: 14px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.3; margin-bottom: 12px; text-transform: uppercase;">
         ${escapeHTML(item.name)}${dot}
       </div>
       
-      <div style="display: flex; justify-content: space-between; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05);">
-        <div style="display: flex; flex-direction: column; align-items: center; width: 50%; border-right: 1px solid rgba(255,255,255,0.1);">
-          <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Народився</span>
-          <span style="font-size: 13px; color: #fff; font-weight: 600; margin-top: 3px;">${escapeHTML(item.dob || '-')}</span>
+      <div style="background: rgba(0,0,0,0.4); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
+          <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Народився:</span>
+          <span style="font-size: 11px; color: #fff; font-weight: 600;">${escapeHTML(item.dob || '-')}</span>
         </div>
-        <div style="display: flex; flex-direction: column; align-items: center; width: 50%;">
-          <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Зник</span>
-          <span style="font-size: 13px; color: #ff4d4d; font-weight: 600; margin-top: 3px;">${escapeHTML(item.date_missing || '-')}</span>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Зник:</span>
+          <span style="font-size: 11px; color: #ff4d4d; font-weight: 600;">${escapeHTML(item.date_missing || '-')}</span>
         </div>
       </div>
       
