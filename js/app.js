@@ -60,7 +60,6 @@ function checkNotification(key, dataArray) {
     localStorage.setItem('seen_' + key, String(currentLength)); 
   } else {
     const seenCount = parseInt(seenSignature, 10);
-    // Точка загорается только если количество увеличилось
     if (currentLength > seenCount && dot) { 
       dot.style.display = 'block'; 
     }
@@ -134,7 +133,12 @@ function openImageModal(images, index, event) {
   currentGallery = normalizedImages; currentGalleryIndex = index || 0;
   const track = document.getElementById('modal-image-track'); 
   track.innerHTML = currentGallery.map(img => `<div class="image-modal-slide" onclick="handleSlideClick(event)"><img src="${img.url}" alt="Фото">${img.author ? `<div style="position:absolute; bottom:60px; left:50%; transform:translateX(-50%); color:#fff; font-weight:700; font-size:12px; background:rgba(0,0,0,0.6); padding:6px 14px; border-radius:14px; z-index:100002; pointer-events:none; white-space:nowrap;">📸 Фото: ${escapeHTML(img.author)}</div>` : ''}</div>`).join('');
-  track.style.transition = 'none'; updateModalImage(); document.getElementById('image-modal').classList.add('active');
+  track.style.transition = 'none'; updateModalImage(); 
+  
+  const modalObj = document.getElementById('image-modal');
+  modalObj.style.zIndex = '9999999';
+  modalObj.classList.add('active');
+  
   document.body.style.overflow = 'hidden'; setTimeout(() => { track.style.transition = 'transform 0.3s cubic-bezier(0.25,1,0.5,1)'; }, 50);
 }
 
@@ -204,7 +208,12 @@ function handleTouchEnd(e) {
 
 function closeImageModal(event) { 
     if (event && event.target.id !== 'image-modal' && !event.target.classList.contains('image-modal-close') && !event.target.classList.contains('image-modal-slider') && !event.target.classList.contains('image-modal-slide')) { return; } 
-    document.getElementById('image-modal').classList.remove('active'); document.body.style.overflow = ''; 
+    const modalObj = document.getElementById('image-modal');
+    modalObj.classList.remove('active'); 
+    
+    if (!document.querySelector('.custom-modal-overlay.active')) {
+        document.body.style.overflow = ''; 
+    }
 }
 
 function renderGallery(photos) {
@@ -313,7 +322,7 @@ function recalcDropdownHeight(imgEl) {
 
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
-  const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
+  const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
   if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
@@ -671,6 +680,7 @@ function renderEstateList(items, hasMore = false) {
     const dealColor = item.dealType.toLowerCase() === 'оренда' ? '#00b8ff' : '#ff3366';
     let displayPrice = item.price ? String(item.price).trim() : 'Договірна';
     if (displayPrice !== 'Договірна' && !displayPrice.includes('$')) { displayPrice += ' $'; }
+    
     const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Тип об\'єкта', value: `${escapeHTML(item.propertyType)} (${escapeHTML(item.dealType)})`}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location || 'Вільногірськ')}, {icon: '📝', label: 'Опис та адреса', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Телефон', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
@@ -725,11 +735,9 @@ function renderFleaMarketList(items, hasMore = false) {
     let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const v = String(item.vip || '').trim().toLowerCase(); const isVip = v === 'так' || v === '+' || v === 'true';
     
-    // ДОДАНО: Локація тепер всередині шторки, відразу після категорії
     const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '✨', label: 'Стан', value: escapeHTML(item.condition)}, {icon: '📝', label: 'Опис', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-    // ВИПРАВЛЕНО: Локація прибрана з .card-row, тепер ціна займає 100% ширини і ніколи не обрізається
     html += `<div class="shop-tile ${isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row" style="margin-bottom: 6px;"><span class="card-price" style="white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; display: block;">${escapeHTML(priceText)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
@@ -791,11 +799,9 @@ async function loadLostFoundData() {
           const badgeColor = item.type.toLowerCase().includes('знайд') ? '#00ff9c' : '#ff4d4d';
           let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
           
-          // ДОДАНО: Локація також всередині шторки для знахідок
           const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '📝', label: 'Опис', value: escapeHTML(item.description).replace(/\n/g, '<br>')}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
           
           const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-          // ВИПРАВЛЕНО: Локація прибрана з головного виду, статус на всю ширину
           html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row" style="margin-bottom: 6px;"><span class="card-price" style="color:${badgeColor}; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; display: block;">${escapeHTML(item.type)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
         });
         cont.innerHTML = html + '</div>';
@@ -863,15 +869,11 @@ async function loadTrainsData(){
                     <div style="font-size: 12px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 6px;">
                         <span style="font-size: 14px;">⚠️</span> Зміни у розкладі
                     </div>
-                    <div style="font-size: 11px; color: rgba(255,255,255,0.9); line-height: 1.4; margin-bottom: 8px;">
-                        Оновлено інформацію для рейсів:
-                    </div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.9); line-height: 1.4; margin-bottom: 8px;">Оновлено інформацію для рейсів:</div>
                     <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 8px;">
                         ${changedTrains.map(num => `<span style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255, 204, 0, 0.5); padding: 3px 8px; border-radius: 6px; font-weight: 800; color: #ffcc00; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${escapeHTML(num)}</span>`).join('')}
                     </div>
-                    <div style="font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase;">
-                        👇 Натисніть на рейс нижче для деталей
-                    </div>
+                    <div style="font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase;">👇 Натисніть на рейс нижче для деталей</div>
                 </div>
               `;
           } else {
@@ -975,6 +977,79 @@ async function loadTickerData() {
     }
   } catch(e) {
     document.getElementById('ticker-container').style.display = 'none';
+  }
+}
+
+function renderPhoenixList(items) {
+  const cont = document.getElementById('phoenix-list-content');
+  if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Актуальної інформації немає</div>'; return; }
+  let html = '<div class="shops-tile-grid">';
+  items.forEach((item, i) => {
+    if(!item) return;
+    const id = 'phoenix-detail-' + i;
+    let thumbUrl = item.photos && item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
+    
+    // Новий дизайн фото контейнера
+    const thumb = thumbUrl 
+      ? `<img src="${thumbUrl}" style="object-fit: contain !important; width: 100%; height: 100%; background: #000; border-radius: 10px;">` 
+      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);background:#111;border-radius:10px;">ФОТО ВІДСУТНЄ</div>`;
+    
+    let photosHtml = '';
+    if (item.photos && item.photos.length > 0) {
+      photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`;
+    }
+
+    const dropdownHtml = buildDropdown(id, photosHtml, [
+      {icon: '📝', label: 'Додаткова інформація', value: escapeHTML(item.description).replace(/\n/g, '<br>')},
+      ...(item.phone ? [{icon: '📞', label: 'Контакти для зв\'язку', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link" style="color:#ff4d4d;">${escapeHTML(item.phone)}</a>`}] : [])
+    ]);
+
+    const dot = item.isNewItem ? NEW_BADGE_HTML : '';
+    
+    // Унікальний дизайн карток Фенікс з червоною темою
+    html += `
+    <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5);" onclick="toggleShop('${id}', this)">
+      <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9)); color: #fff; text-align: center; font-weight: 800; font-size: 11px; text-transform: uppercase; padding: 6px; border-radius: 6px 6px 0 0; margin: -10px -10px 12px -10px; letter-spacing: 1px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Зник безвісти</div>
+      
+      <div class="shop-tile-photo" style="height: 240px; padding: 0; background: transparent; border: none; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+        ${thumb}
+      </div>
+      
+      <div style="font-size: 16px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.3; margin-bottom: 12px; text-transform: uppercase;">
+        ${escapeHTML(item.name)}${dot}
+      </div>
+      
+      <div style="display: flex; justify-content: space-between; background: rgba(0,0,0,0.4); border-radius: 8px; padding: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; flex-direction: column; align-items: center; width: 50%; border-right: 1px solid rgba(255,255,255,0.1);">
+          <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Народився</span>
+          <span style="font-size: 13px; color: #fff; font-weight: 600; margin-top: 3px;">${escapeHTML(item.dob || '-')}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; width: 50%;">
+          <span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Зник</span>
+          <span style="font-size: 13px; color: #ff4d4d; font-weight: 600; margin-top: 3px;">${escapeHTML(item.date_missing || '-')}</span>
+        </div>
+      </div>
+      
+      <div class="shop-tile-chevron" style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border-radius: 8px; padding: 6px;">Деталі та прикмети ▾</div>
+      ${dropdownHtml}
+    </div>`;
+  });
+  html += '</div>';
+  cont.innerHTML = html;
+}
+
+async function loadPhoenixData() {
+  try {
+    const PHOENIX_API_URL = 'https://vilnohirsk-phoenix-api-production.up.railway.app/api/phoenix';
+    const data = await fetchCachedJson(PHOENIX_API_URL + '?t=' + Date.now(), 'phoenix_api', 5);
+    let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.phoenix) ? data.phoenix : []);
+    const activeItems = itemsArray.filter(item => item && item.active !== false);
+    
+    markNewItems(activeItems, 'phoenix', false);
+    checkNotification('phoenix', activeItems);
+    renderPhoenixList(activeItems);
+  } catch(e) {
+    document.getElementById('phoenix-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження даних Фенікс</div>`;
   }
 }
 
@@ -1191,8 +1266,11 @@ const initApp = () => {
   updateRadioStats();
   updateDateTime(); setInterval(updateDateTime, 1000); loadWeather(); loadAlerts(); loadExchangeRates();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
-  setTimeout(() => { loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGalleryData(); loadVolunteersData(); setTimeout(showDailyVolunteerAlert, 1500); }, 600);
-  setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadVolunteersData(); loadExchangeRates(); loadTickerData(); }, 180000);
+  setTimeout(() => { 
+      loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGalleryData(); loadVolunteersData(); loadPhoenixData();
+      setTimeout(showDailyVolunteerAlert, 1500); 
+  }, 600);
+  setInterval(() => { loadTrainsData(); loadLongTrainsData(); loadAlerts(); loadEventsData(); loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadVolunteersData(); loadPhoenixData(); loadExchangeRates(); loadTickerData(); }, 180000);
   document.querySelectorAll('.form-input').forEach(input => { input.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }); });
 };
 
