@@ -1016,7 +1016,7 @@ function renderPhoenixList(items) {
         ${thumb}
       </div>
       
-      <div style="font-size: clamp(10px, 3vw, 12px); font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.3; margin-bottom: auto; text-transform: uppercase; word-break: normal; overflow-wrap: break-word; padding: 0 2px;">
+      <div style="font-size: 10px; font-weight: 700; color: #f8fafc; text-align: center; line-height: 1.2; margin-bottom: auto; text-transform: uppercase; word-break: keep-all; overflow-wrap: normal; padding: 0 2px; letter-spacing: -0.2px;">
         ${escapeHTML(item.name)}${dot}
       </div>
       
