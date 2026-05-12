@@ -722,7 +722,7 @@ async function loadEstateData() {
 
 function renderFleaMarketList(items, hasMore = false) {
   const cont = document.getElementById('flea-market-list-content');
-  const rulesHtml = `<div style="margin-bottom: 12px; background: linear-gradient(145deg, rgba(255, 77, 77, 0.05), rgba(0,0,0,0.2)); border: 1px solid rgba(255, 77, 77, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.rules-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.maxHeight = '400px'; content.style.padding = '0 15px 15px 15px'; icon.style.transform = 'rotate(180deg)'; } else { content.style.maxHeight = '0px'; content.style.padding = '0 15px 0 15px'; icon.style.transform = 'rotate(0deg)'; }" style="padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 12px; color: #ff6b6b;"><span style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 16px;">⚠️</span> Що заборонено публікувати?</span><span class="rules-icon" style="font-size: 14px; transition: transform 0.3s;">▼</span></div><div style="max-height: 0px; padding: 0 15px; overflow: hidden; transition: all 0.3s ease; font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.5;"><div style="border-top: 1px dashed rgba(255, 77, 77, 0.3); padding-top: 10px;"><ul style="margin: 5px 0 10px 0; padding-left: 20px;"><li>Будь-які <b>товари військового призначення</b> (військова форма, амуніція, бронежилети, зброя, тепловізори тощо).</li><li><b>Алкогольні напої</b> та <b>тютюнові вироби</b> (включаючи електронні сигарети, вейпи, рідини).</li><li>Продаж <b>живих тварин</b>.</li><li>Товари, продаж яких порушує <b>законодавство України</b> (ліки, наркотичні речовини, піротехніка, крадені речі, підроблені документи, спецзасоби).</li></ul><div style="color: #ff4d4d; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase;">❌ Такі оголошення будуть видалені!</div></div></div></div>`;
+  const rulesHtml = `<div style="margin-bottom: 12px; background: linear-gradient(145deg, rgba(255, 77, 77, 0.05), rgba(0,0,0,0.2)); border: 1px solid rgba(255, 77, 77, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.rules-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.maxHeight = '400px'; content.style.padding = '0 15px 15px 15px'; icon.style.transform = 'rotate(180deg)'; } else { content.style.maxHeight = '0px'; content.style.padding = '0 15px 0 15px'; icon.style.transform = 'rotate(0deg)'; }" style="padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 12px; color: #ff6b6b;"><span style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 16px;">⚠️</span> Що заборонено публікувати?</span><span class="rules-icon" style="font-size: 14px; transition: transform 0.3s;">▼</span></div><div style="max-height: 0px; padding: 0 15px; overflow: hidden; transition: all 0.3s ease; font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.5;"><div style="border-top: 1px dashed rgba(255, 77, 77, 0.3); padding-top: 10px;"><ul style="margin: 5px 0 10px 0; padding-left: 20px;"><li>Будь-які <b>товари військового призначення</b> (військова форма, амуніція, бронежилети, зброя, тепловізори тощо).</li><li><b>Алкогольні напої</b> та <b>тютюнові вироби</b> (включаючи електронні сигарети, вейпи, рідини).</li><li>Продаж <b>живих тварин</b>.</li><li>Товари, продаж gross порушує <b>законодавство України</b> (ліки, наркотичні речовини, піротехніка, крадені речі, підроблені документи, спецзасоби).</li></ul><div style="color: #ff4d4d; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase;">❌ Такі оголошення будуть видалені!</div></div></div></div>`;
   
   if (!items || !items.length) { cont.innerHTML = rulesHtml + '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
   const sortedItems = [...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return v === 'так' || v === '+' || v === 'true'; }).reverse(), ...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return !(v === 'так' || v === '+' || v === 'true'); })];
@@ -986,47 +986,53 @@ function renderPhoenixList(items) {
   let html = '<div class="shops-tile-grid">';
   items.forEach((item, i) => {
     if(!item) return;
-    const id = 'phoenix-detail-' + i;
+    
     let thumbUrl = item.photos && item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
     
-    // Головне фото не обрізається (contain). Додано чорний фон (паспарту) для збереження ідеального розміру плитки
-    const thumb = thumbUrl 
-      ? `<img src="${thumbUrl}" style="object-fit: contain !important; width: 100%; height: 100%; border-radius: 4px;">` 
-      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);">ФОТО ВІДСУТНЄ</div>`;
-    
-    let photosHtml = '';
+    let photoClickAttr = '';
     if (item.photos && item.photos.length > 0) {
-      // В описі фото залишається повним (не обрізаним) і може відкриватися на весь екран
-      photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" style="object-fit: contain; max-height: 300px;" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Збільшити фото</div></div>`;
+      photoClickAttr = `onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"`;
     }
 
-    const dropdownHtml = buildDropdown(id, photosHtml, [
-      {icon: '🗓️', label: 'Дата народження', value: escapeHTML(item.dob || '-')},
-      {icon: '📝', label: 'Додаткова інформація', value: escapeHTML(item.description).replace(/\n/g, '<br>')},
-      ...(item.phone ? [{icon: '📞', label: 'Контакти для зв\'язку', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link" style="color:#ff4d4d;">${escapeHTML(item.phone)}</a>`}] : [])
-    ]);
-
+    const thumb = thumbUrl 
+      ? `<img src="${thumbUrl}" style="object-fit: cover !important; width: 100%; height: 100%; background: #000; border-radius: 8px; cursor: pointer;" ${photoClickAttr}>` 
+      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);background:#111;border-radius:8px;">ФОТО ВІДСУТНЄ</div>`;
+    
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
     
+    const callsignHtml = item.callsign 
+      ? `<div style="font-size: 11px; color: #ffcc00; font-weight: 700; text-align: center; margin-bottom: 8px; text-transform: uppercase;">Позивний: «${escapeHTML(item.callsign)}»</div>` 
+      : '';
+    
+    const photoBadge = (item.photos && item.photos.length > 1) 
+      ? `<div style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:2px 6px; border-radius:6px; font-weight:bold; pointer-events:none;">📸 ${item.photos.length}</div>` 
+      : '';
+
     html += `
-    <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5); justify-content: flex-start;" onclick="toggleShop('${id}', this)">
+    <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5); justify-content: flex-start; cursor: default;">
       <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9)); color: #fff; text-align: center; font-weight: 800; font-size: 10px; text-transform: uppercase; padding: 4px; border-radius: 6px 6px 0 0; margin: -10px -10px 10px -10px; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Зник безвісти</div>
       
-      <div class="shop-tile-photo" style="height: 160px; padding: 4px; background: #000; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 10px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.8); box-sizing: border-box;">
+      <div class="shop-tile-photo" style="height: 160px; padding: 0; background: transparent; border: none; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); position: relative;">
         ${thumb}
+        ${photoBadge}
       </div>
       
-      <div style="font-size: 10px; font-weight: 700; color: #f8fafc; text-align: center; line-height: 1.2; margin-bottom: auto; text-transform: uppercase; word-break: keep-all; overflow-wrap: normal; padding: 0 2px; letter-spacing: -0.2px;">
+      <div style="font-size: 10px; font-weight: 700; color: #f8fafc; text-align: center; line-height: 1.2; margin-bottom: 6px; text-transform: uppercase; word-break: keep-all; overflow-wrap: normal; padding: 0 2px; letter-spacing: -0.2px;">
         ${escapeHTML(item.name)}${dot}
       </div>
       
-      <div style="background: rgba(255, 77, 77, 0.1); border-radius: 8px; padding: 8px; margin-top: 10px; margin-bottom: 10px; border: 1px solid rgba(255,77,77,0.2); text-align: center;">
-        <div style="font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 2px;">Зник:</div>
-        <div style="font-size: 13px; color: #ff4d4d; font-weight: 700;">${escapeHTML(item.date_missing || '-')}</div>
-      </div>
+      ${callsignHtml}
       
-      <div class="shop-tile-chevron" style="background: transparent; border: 1px solid rgba(255,77,77,0.3); color: #ff4d4d; border-radius: 8px; padding: 6px; font-size: 10px;">Деталі ▾</div>
-      ${dropdownHtml}
+      <div style="background: rgba(255, 77, 77, 0.1); border-radius: 8px; padding: 6px 8px; margin-top: auto; border: 1px solid rgba(255,77,77,0.2); text-align: center; display: flex; flex-direction: column; gap: 4px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
+          <span style="font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Народився:</span>
+          <span style="font-size: 10px; color: #fff; font-weight: 600;">${escapeHTML(item.dob || '-')}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 9px; color: rgba(255,255,255,0.5); text-transform: uppercase;">Зник:</span>
+          <span style="font-size: 11px; color: #ff4d4d; font-weight: 700;">${escapeHTML(item.date_missing || '-')}</span>
+        </div>
+      </div>
     </div>`;
   });
   html += '</div>';
