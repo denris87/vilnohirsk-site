@@ -995,8 +995,8 @@ function renderPhoenixList(items) {
     }
 
     const thumb = thumbUrl 
-      ? `<img src="${thumbUrl}" style="object-fit: cover !important; width: 100%; height: 100%; background: #000; border-radius: 8px; cursor: pointer;" ${photoClickAttr}>` 
-      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);background:#111;border-radius:8px;">ФОТО ВІДСУТНЄ</div>`;
+      ? `<img src="${thumbUrl}" style="object-fit: contain !important; width: 100%; height: 100%; background: #000; border-radius: 4px; cursor: pointer;" ${photoClickAttr}>` 
+      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);background:#111;border-radius:4px;">ФОТО ВІДСУТНЄ</div>`;
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
     
@@ -1009,28 +1009,28 @@ function renderPhoenixList(items) {
       : '';
 
     html += `
-    <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5); justify-content: flex-start; padding: 10px;">
-      <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9)); color: #fff; text-align: center; font-weight: 800; font-size: 9px; text-transform: uppercase; padding: 4px; border-radius: 6px 6px 0 0; margin: -10px -10px 10px -10px; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Зник безвісти</div>
+    <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5); justify-content: flex-start; cursor: default; padding: 10px;">
+      <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9)); color: #fff; text-align: center; font-weight: 800; font-size: 10px; text-transform: uppercase; padding: 4px; border-radius: 6px 6px 0 0; margin: -10px -10px 10px -10px; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Зник безвісти</div>
       
-      <div class="shop-tile-photo" style="height: 160px; padding: 0; background: transparent; border: none; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); position: relative;">
+      <div class="shop-tile-photo" style="height: 180px; padding: 0; background: #000; border: none; border-radius: 4px; margin-bottom: 10px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.5); position: relative;">
         ${thumb}
         ${photoBadge}
       </div>
       
-      <div style="font-size: 9px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.2; margin-bottom: 6px; text-transform: uppercase; letter-spacing: -0.2px;">
+      <div style="font-size: 10px; font-weight: 700; color: #f8fafc; text-align: center; line-height: 1.2; margin-bottom: 6px; text-transform: uppercase; word-break: keep-all; overflow-wrap: normal; padding: 0 2px; letter-spacing: -0.2px;">
         ${escapeHTML(item.name)}${dot}
       </div>
       
       ${callsignHtml}
       
-      <div style="background: rgba(255, 77, 77, 0.1); border-radius: 8px; padding: 6px; margin-top: auto; border: 1px solid rgba(255,77,77,0.2); text-align: center; display: flex; flex-direction: column; gap: 4px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
-          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Народився:</span>
-          <span style="font-size: 9px; color: #fff; font-weight: 700;">${escapeHTML(item.dob || '-')}</span>
+      <div style="background: rgba(255, 77, 77, 0.1); border-radius: 8px; padding: 6px 0; margin-top: auto; border: 1px solid rgba(255,77,77,0.2); display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; flex-direction: column; align-items: center; width: 50%; border-right: 1px solid rgba(255,255,255,0.1);">
+          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Народився</span>
+          <span style="font-size: 10px; color: #fff; font-weight: 700; margin-top: 2px;">${escapeHTML(item.dob || '-')}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Зник:</span>
-          <span style="font-size: 10px; color: #ff4d4d; font-weight: 800;">${escapeHTML(item.date_missing || '-')}</span>
+        <div style="display: flex; flex-direction: column; align-items: center; width: 50%;">
+          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Зник</span>
+          <span style="font-size: 11px; color: #ff4d4d; font-weight: 800; margin-top: 2px;">${escapeHTML(item.date_missing || '-')}</span>
         </div>
       </div>
     </div>`;
