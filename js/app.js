@@ -989,14 +989,14 @@ function renderPhoenixList(items) {
     const id = 'phoenix-detail-' + i;
     let thumbUrl = item.photos && item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
     
-    // Головне фото обрізається (cover) для гарної квадратної плитки
+    // Головне фото не обрізається (contain). Додано чорний фон (паспарту) для збереження ідеального розміру плитки
     const thumb = thumbUrl 
-      ? `<img src="${thumbUrl}" style="object-fit: cover !important; width: 100%; height: 100%; background: #000; border-radius: 8px;">` 
-      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);background:#111;border-radius:8px;">ФОТО ВІДСУТНЄ</div>`;
+      ? `<img src="${thumbUrl}" style="object-fit: contain !important; width: 100%; height: 100%; border-radius: 4px;">` 
+      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);">ФОТО ВІДСУТНЄ</div>`;
     
     let photosHtml = '';
     if (item.photos && item.photos.length > 0) {
-      // В описі фото залишається повним (не обрізаним)
+      // В описі фото залишається повним (не обрізаним) і може відкриватися на весь екран
       photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${getDriveImageUrl(item.photos[0])}" style="object-fit: contain; max-height: 300px;" onload="if(recalcDropdownHeight) recalcDropdownHeight(this)"><div class="gallery-text">🔍 Збільшити фото</div></div>`;
     }
 
@@ -1012,7 +1012,7 @@ function renderPhoenixList(items) {
     <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5); justify-content: flex-start;" onclick="toggleShop('${id}', this)">
       <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9)); color: #fff; text-align: center; font-weight: 800; font-size: 10px; text-transform: uppercase; padding: 4px; border-radius: 6px 6px 0 0; margin: -10px -10px 10px -10px; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Зник безвісти</div>
       
-      <div class="shop-tile-photo" style="height: 160px; padding: 0; background: transparent; border: none; border-radius: 8px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+      <div class="shop-tile-photo" style="height: 160px; padding: 4px; background: #000; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 10px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.8); box-sizing: border-box;">
         ${thumb}
       </div>
       
