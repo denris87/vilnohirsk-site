@@ -90,20 +90,15 @@ function copyToClipboardBtn(text, btn) {
 // ОБНОВЛЕННАЯ ФУНКЦИЯ КЭШИРОВАНИЯ БЕЗ ЗАВИСАНИЙ
 async function fetchCachedText(url, key, ttlMinutes = 1) {
     const now = Date.now();
-
-    // Проверяем быструю RAM память
     if (memoryDataCache[key] && (now - memoryDataCache[key].time) < ttlMinutes * 60 * 1000) {
         return memoryDataCache[key].text;
     }
-
     try {
         const separator = url.includes('?') ? '&' : '?'; 
         const freshUrl = url + separator + '_nocache=' + now;
         const r = await fetch(freshUrl, { cache: 'no-store' }); 
         if (!r.ok) throw new Error('HTTP Error');
         const text = await r.text(); 
-        
-        // Сохраняем в быструю память (не нагружает диск телефона)
         memoryDataCache[key] = { time: now, text: text };
         return text;
     } catch (e) { 
@@ -998,22 +993,22 @@ function renderPhoenixList(items) {
       photoClickAttr = `onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"`;
     }
 
-    // ВАЖНО: object-fit: contain - чтобы лица не обрезались!
+    // Фото на главной карточке - object-fit: contain (лица не обрезаются)
     const thumb = thumbUrl 
-      ? `<img src="${thumbUrl}" style="object-fit: contain !important; width: 100%; height: 100%; background: #000; border-radius: 8px; cursor: pointer;" ${photoClickAttr}>` 
+      ? `<img src="${thumbUrl}" style="object-fit: contain !important; width: 100%; height: 100%; border-radius: 8px; cursor: pointer;" ${photoClickAttr}>` 
       : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);background:#111;border-radius:8px;">ФОТО ВІДСУТНЄ</div>`;
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
     
     const callsignHtml = item.callsign 
-      ? `<div style="font-size: 11px; color: #ffcc00; font-weight: 800; text-align: center; margin-bottom: 8px; text-transform: uppercase;">Позивний: «${escapeHTML(item.callsign)}»</div>` 
+      ? `<div style="font-size: 11px; color: #ffcc00; font-weight: 800; text-align: center; margin-bottom: 6px; text-transform: uppercase;">Позивний: «${escapeHTML(item.callsign)}»</div>` 
       : '';
     
     const photoBadge = (item.photos && item.photos.length > 1) 
-      ? `<div style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:3px 8px; border-radius:8px; font-weight:bold; pointer-events:none; border: 1px solid rgba(255,255,255,0.2);">📸 ${item.photos.length}</div>` 
+      ? `<div style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; padding:3px 8px; border-radius:6px; font-weight:bold; pointer-events:none; border: 1px solid rgba(255,255,255,0.2);">📸 ${item.photos.length}</div>` 
       : '';
 
-    // Две строки для дат "Народився" и "Зник"
+    // Даты "в два этажа" чтобы 100% не слипались
     html += `
     <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5); justify-content: flex-start; cursor: default; padding: 10px;">
       <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9)); color: #fff; text-align: center; font-weight: 800; font-size: 10px; text-transform: uppercase; padding: 4px; border-radius: 6px 6px 0 0; margin: -10px -10px 10px -10px; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Зник безвісти</div>
@@ -1023,7 +1018,7 @@ function renderPhoenixList(items) {
         ${photoBadge}
       </div>
       
-      <div style="font-size: 9px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.4; margin-bottom: 8px; text-transform: uppercase; word-wrap: break-word;">
+      <div style="font-size: 9px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.4; margin-bottom: 8px; text-transform: uppercase; word-break: break-word;">
         ${escapeHTML(item.name)}${dot}
       </div>
       
@@ -1260,12 +1255,24 @@ async function showDailyVolunteerAlert() {
 async function submitBetaFeedback(event) {
   event.preventDefault(); 
   if (!validateCaptcha('custom-feedback-form')) return;
-  const textEl = document.getElementById('beta-feedback-text'); const text = textEl.value.trim();
+  const textEl = document.getElementById('beta-feedback-text'); 
+  const contactEl = document.getElementById('beta-feedback-contact');
+  let text = textEl.value.trim();
+  const contact = contactEl ? contactEl.value.trim() : '';
+  
   if (!text) { alert('Будь ласка, напишіть текст відгуку.'); return; }
+  
+  if (contact) {
+    text += `\n\n---Контакт для зв'язку---\n${contact}`;
+  }
+
   const btn = document.getElementById('feedback-submit-btn'); const originalText = btn.innerText; btn.innerText = 'Відправка...'; btn.disabled = true;
   try {
     await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ formType: 'feedback', text: text }) });
-    alert('✅ Дякуємо! Ваш відгук успішно відправлено.'); textEl.value = ''; closeModalForm(null, 'feedback-modal'); setupCaptcha('custom-feedback-form');
+    alert('✅ Дякуємо! Ваш відгук успішно відправлено.'); 
+    textEl.value = ''; 
+    if (contactEl) contactEl.value = '';
+    closeModalForm(null, 'feedback-modal'); setupCaptcha('custom-feedback-form');
   } catch(e) { alert('❌ Помилка: ' + e.message); } finally { btn.innerText = originalText; btn.disabled = false; }
 }
 
@@ -1288,7 +1295,6 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
       for(let registration of registrations) {
         registration.unregister();
-        console.log('Service Worker видалено (кешування вимкнено)');
       }
     });
   });
