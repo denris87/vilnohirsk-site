@@ -157,24 +157,53 @@ function copyToClipboardBtn(text, btn) {
     }
 }
 
-// ОБНОВЛЕННАЯ ФУНКЦИЯ КЭШИРОВАНИЯ БЕЗ ЗАВИСАНИЙ
+// Хелпер для таймаута fetch (если сервер не отвечает за N секунд — отменяем)
+function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    return fetch(url, { ...options, signal: controller.signal })
+        .finally(() => clearTimeout(timeoutId));
+}
+
+// Пауза
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// ОБНОВЛЕННАЯ ФУНКЦИЯ КЭШИРОВАНИЯ С RETRY (для пробуждения "холодного" Railway)
 async function fetchCachedText(url, key, ttlMinutes = 1) {
     const now = Date.now();
     if (memoryDataCache[key] && (now - memoryDataCache[key].time) < ttlMinutes * 60 * 1000) {
         return memoryDataCache[key].text;
     }
-    try {
-        const separator = url.includes('?') ? '&' : '?'; 
-        const freshUrl = url + separator + '_nocache=' + now;
-        const r = await fetch(freshUrl, { cache: 'no-store' }); 
-        if (!r.ok) throw new Error('HTTP Error');
-        const text = await r.text(); 
-        memoryDataCache[key] = { time: now, text: text };
-        return text;
-    } catch (e) { 
-        if (memoryDataCache[key]) return memoryDataCache[key].text; 
-        throw e; 
+    
+    // Расписание попыток: 0с (сразу), 2с, 4с
+    const retryDelays = [0, 2000, 4000];
+    let lastError = null;
+    
+    for (let attempt = 0; attempt < retryDelays.length; attempt++) {
+        if (retryDelays[attempt] > 0) {
+            await sleep(retryDelays[attempt]);
+        }
+        try {
+            const separator = url.includes('?') ? '&' : '?'; 
+            const freshUrl = url + separator + '_nocache=' + Date.now();
+            const r = await fetchWithTimeout(freshUrl, { cache: 'no-store' }, 8000); 
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const text = await r.text(); 
+            memoryDataCache[key] = { time: Date.now(), text: text };
+            return text;
+        } catch (e) { 
+            lastError = e;
+            // Логируем тихо, не пугаем юзера
+            console.warn(`[${key}] Спроба ${attempt + 1} не вдалася:`, e.message);
+        }
     }
+    
+    // Все 3 попытки провалились — отдаём старый кэш если есть, иначе кидаем ошибку
+    if (memoryDataCache[key]) {
+        console.warn(`[${key}] Використовуємо застарілий кеш`);
+        return memoryDataCache[key].text;
+    }
+    throw lastError || new Error('Не вдалося завантажити дані');
 }
 
 async function fetchCachedJson(url, key, ttlMinutes = 1) { 
