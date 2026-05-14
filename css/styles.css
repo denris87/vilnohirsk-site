@@ -103,3 +103,21 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
 .ticker-item { display: inline-block; vertical-align: middle; font-size: 13px !important; font-weight: 700 !important; color: #ffffff; padding: 0 15px; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.9); line-height: 1.2; -webkit-text-size-adjust: none; text-size-adjust: none; }
 .ticker-divider { display: inline-block; vertical-align: middle; color: var(--time-green); font-size: 10px !important; }
+
+/* === LAZY LOADING: skeleton-анімація для фото поки воно вантажиться === */
+.shop-tile-photo,
+.gallery-preview {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+.shop-tile-photo:has(img[style*="opacity: 1"]),
+.gallery-preview:has(img[style*="opacity: 1"]),
+.shop-tile-photo:has(span) {
+  animation: none;
+  background: rgba(0, 0, 0, 0.3);
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
