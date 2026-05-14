@@ -15,6 +15,9 @@ let allEstateItems = []; let estateRenderLimit = 20; let currentEstateSort = 'ne
 let allPromoItems = [];
 let phonebookRawData = [];
 
+// СУПЕРБЫСТРЫЙ КЭШ В ОПЕРАТИВНОЙ ПАМЯТИ (НЕ ТОРМОЗИТ ТЕЛЕФОН)
+const memoryDataCache = {};
+
 // === БЕЗОПАСНОСТЬ И УТИЛИТЫ ===
 function escapeHTML(str) {
     if (!str) return '';
@@ -84,15 +87,13 @@ function copyToClipboardBtn(text, btn) {
     fallbackCopyText(text, () => { const originalHtml = btn.innerHTML; btn.innerHTML = '<span style="color:#00ff9c">✔️</span>'; setTimeout(() => { btn.innerHTML = originalHtml; }, 2000); });
 }
 
+// ОБНОВЛЕННАЯ ФУНКЦИЯ КЭШИРОВАНИЯ БЕЗ ЗАВИСАНИЙ
 async function fetchCachedText(url, key, ttlMinutes = 1) {
-    const cacheKey = 'cache_' + key;
-    const timeKey = 'cache_time_' + key;
-    const cached = localStorage.getItem(cacheKey);
-    const cachedTime = localStorage.getItem(timeKey);
     const now = Date.now();
 
-    if (cached && cachedTime && (now - parseInt(cachedTime)) < ttlMinutes * 60 * 1000) {
-        return cached;
+    // Проверяем быструю RAM память
+    if (memoryDataCache[key] && (now - memoryDataCache[key].time) < ttlMinutes * 60 * 1000) {
+        return memoryDataCache[key].text;
     }
 
     try {
@@ -102,16 +103,19 @@ async function fetchCachedText(url, key, ttlMinutes = 1) {
         if (!r.ok) throw new Error('HTTP Error');
         const text = await r.text(); 
         
-        localStorage.setItem(cacheKey, text); 
-        localStorage.setItem(timeKey, now.toString());
+        // Сохраняем в быструю память (не нагружает диск телефона)
+        memoryDataCache[key] = { time: now, text: text };
         return text;
     } catch (e) { 
-        if (cached) return cached; 
+        if (memoryDataCache[key]) return memoryDataCache[key].text; 
         throw e; 
     }
 }
 
-async function fetchCachedJson(url, key, ttlMinutes = 1) { return JSON.parse(await fetchCachedText(url, key, ttlMinutes)); }
+async function fetchCachedJson(url, key, ttlMinutes = 1) { 
+  const text = await fetchCachedText(url, key, ttlMinutes);
+  return JSON.parse(text); 
+}
 
 function formatUAPhone(input) {
     let d = input.value.replace(/\D/g, '');
@@ -994,43 +998,45 @@ function renderPhoenixList(items) {
       photoClickAttr = `onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"`;
     }
 
+    // ВАЖНО: object-fit: contain - чтобы лица не обрезались!
     const thumb = thumbUrl 
-      ? `<img src="${thumbUrl}" style="object-fit: contain !important; width: 100%; height: 100%; border-radius: 4px;" ${photoClickAttr}>` 
-      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);background:#111;border-radius:4px;">ФОТО ВІДСУТНЄ</div>`;
+      ? `<img src="${thumbUrl}" style="object-fit: contain !important; width: 100%; height: 100%; background: #000; border-radius: 8px; cursor: pointer;" ${photoClickAttr}>` 
+      : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);background:#111;border-radius:8px;">ФОТО ВІДСУТНЄ</div>`;
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
     
     const callsignHtml = item.callsign 
-      ? `<div style="font-size: 11px; color: #ffcc00; font-weight: 800; text-align: center; margin-bottom: 6px; text-transform: uppercase;">Позивний: «${escapeHTML(item.callsign)}»</div>` 
+      ? `<div style="font-size: 11px; color: #ffcc00; font-weight: 800; text-align: center; margin-bottom: 8px; text-transform: uppercase;">Позивний: «${escapeHTML(item.callsign)}»</div>` 
       : '';
     
     const photoBadge = (item.photos && item.photos.length > 1) 
-      ? `<div style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; padding:3px 6px; border-radius:6px; font-weight:bold; pointer-events:none; border: 1px solid rgba(255,255,255,0.2);">📸 ${item.photos.length}</div>` 
+      ? `<div style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:3px 8px; border-radius:8px; font-weight:bold; pointer-events:none; border: 1px solid rgba(255,255,255,0.2);">📸 ${item.photos.length}</div>` 
       : '';
 
+    // Две строки для дат "Народився" и "Зник"
     html += `
-    <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5); justify-content: flex-start; padding: 10px;">
+    <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5); justify-content: flex-start; cursor: default; padding: 10px;">
       <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9)); color: #fff; text-align: center; font-weight: 800; font-size: 10px; text-transform: uppercase; padding: 4px; border-radius: 6px 6px 0 0; margin: -10px -10px 10px -10px; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Зник безвісти</div>
       
-      <div class="shop-tile-photo" style="height: 180px; padding: 0; background: #000; border: none; border-radius: 4px; margin-bottom: 10px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.5); position: relative; cursor: pointer;">
+      <div class="shop-tile-photo" style="height: 180px; padding: 0; background: #000; border: none; border-radius: 8px; margin-bottom: 10px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.5); position: relative;">
         ${thumb}
         ${photoBadge}
       </div>
       
-      <div style="font-size: 9px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.3; margin-bottom: 6px; text-transform: uppercase; word-break: normal; overflow-wrap: break-word; padding: 0;">
+      <div style="font-size: 9px; font-weight: 800; color: #f8fafc; text-align: center; line-height: 1.4; margin-bottom: 8px; text-transform: uppercase; word-wrap: break-word;">
         ${escapeHTML(item.name)}${dot}
       </div>
       
       ${callsignHtml}
       
-      <div style="background: rgba(255, 77, 77, 0.1); border-radius: 8px; padding: 8px; margin-top: auto; border: 1px solid rgba(255,77,77,0.2); display: flex; flex-direction: column; gap: 6px;">
-        <div style="display: flex; flex-direction: column; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px;">
-          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 2px;">Народився:</span>
+      <div style="background: rgba(255, 77, 77, 0.1); border-radius: 8px; padding: 8px 0; margin-top: auto; border: 1px solid rgba(255,77,77,0.2); display: flex; justify-content: space-between; align-items: stretch;">
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 50%; border-right: 1px solid rgba(255,255,255,0.1);">
+          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 4px;">Народився:</span>
           <span style="font-size: 11px; color: #fff; font-weight: 700;">${escapeHTML(item.dob || '-')}</span>
         </div>
-        <div style="display: flex; flex-direction: column; align-items: center;">
-          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 2px;">Зник:</span>
-          <span style="font-size: 13px; color: #ff4d4d; font-weight: 800;">${escapeHTML(item.date_missing || '-')}</span>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 50%;">
+          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 4px;">Зник:</span>
+          <span style="font-size: 12px; color: #ff4d4d; font-weight: 800;">${escapeHTML(item.date_missing || '-')}</span>
         </div>
       </div>
     </div>`;
@@ -1279,12 +1285,11 @@ if (document.readyState === 'loading') { document.addEventListener('DOMContentLo
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(registration => {
-        console.log('Service Worker зареєстровано успішно:', registration.scope);
-      })
-      .catch(error => {
-        console.log('Помилка реєстрації Service Worker:', error);
-      });
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+      for(let registration of registrations) {
+        registration.unregister();
+        console.log('Service Worker видалено (кешування вимкнено)');
+      }
+    });
   });
 }
