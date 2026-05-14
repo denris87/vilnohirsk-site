@@ -180,15 +180,33 @@ e.preventDefault();
   </div>
 </div>
 
-<!-- Модалка для відгуків -->
+<!-- Модалка для відгуків (Связь с админами) -->
 <div class="custom-modal-overlay" id="feedback-modal" onclick="closeModalForm(event, 'feedback-modal')">
   <div class="custom-modal-box" onclick="event.stopPropagation()">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'feedback-modal')">&times;</div>
     <h3 class="form-title" style="color: #00ff9c; margin-bottom: 15px;">💬 Зв'язок з адмінами</h3>
-    <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: center; margin-bottom: 15px;">Що можна покращити на сайті? Пишіть нам свої ідеї, і ми це додамо!</div>
+    <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: center; margin-bottom: 15px;">
+      Що можна покращити на сайті? Знайшли помилку чи хочете додати заклад? Пишіть нам!
+    </div>
+    
     <form id="custom-feedback-form" onsubmit="submitBetaFeedback(event)">
-      <textarea class="form-input" id="beta-feedback-text" rows="4" placeholder="Напишіть нам..." required></textarea>
-      <div class="form-group captcha-group" style="margin-top: 10px;"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9+]/g, '')"><input type="hidden" class="captcha-answer"></div>
+      <textarea class="form-input" id="beta-feedback-text" rows="4" placeholder="Напишіть своє повідомлення тут..." required></textarea>
+      
+      <!-- Поле для контакта -->
+      <div class="form-group" style="margin-top: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
+        <label class="form-label" style="color: #00b8ff; margin-bottom: 8px; font-size: 12px;">📞 Як з вами зв'язатися? (Не обов'язково)</label>
+        <input type="text" class="form-input" id="beta-feedback-contact" placeholder="Ваш Telegram (@нік) або номер телефону" style="font-size: 13px; padding: 12px; background: rgba(0,0,0,0.4);">
+        <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 6px; text-align: center; line-height: 1.3;">
+          Залиште контакти, якщо хочете, щоб ми могли вам відповісти.
+        </div>
+      </div>
+      
+      <div class="form-group captcha-group" style="margin-top: 10px;">
+        <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
+        <input type="tel" class="form-input captcha-input" required placeholder="Введіть суму" oninput="this.value = this.value.replace(/[^0-9+]/g, '')">
+        <input type="hidden" class="captcha-answer">
+      </div>
+      
       <button type="submit" class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); margin-top: 15px;" id="feedback-submit-btn">Відправити</button>
     </form>
   </div>
@@ -236,7 +254,7 @@ e.preventDefault();
             </div>
             <div id="alert-phoenix" class="content-section">
               <div style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); background: linear-gradient(135deg, rgba(255, 77, 77, 0.15), rgba(0, 0, 0, 0.4)); border: 1px dashed rgba(255, 77, 77, 0.4); border-radius: 14px; margin-bottom: 12px; line-height: 1.4;">
-                Інформація про зниклих безвісти Героїв нашого міста.<br>Для розміщення анкети пишіть: <a href="https://t.me/Anastasia_Krasulia" target="_blank" style="color: #ff4d4d; text-decoration: none; font-weight: 800; font-size: 13px;">@Anastasia_Krasulia</a>
+                Інформація про зниклих безвісти Героїв нашого міста.<br>Для розміщення анкети пишіть нам: <a href="https://t.me/vilnohirsk" target="_blank" style="color: #ff4d4d; text-decoration: none; font-weight: 800; font-size: 13px;">@vilnohirsk</a>
               </div>
               <div id="phoenix-list-content" class="empty-msg">Завантаження інформації...</div>
             </div>
