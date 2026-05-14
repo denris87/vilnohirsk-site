@@ -1001,11 +1001,11 @@ function renderPhoenixList(items) {
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
     
     const callsignHtml = item.callsign 
-      ? `<div style="font-size: 11px; color: #ffcc00; font-weight: 800; text-align: center; margin-bottom: 8px; text-transform: uppercase;">Позивний: «${escapeHTML(item.callsign)}»</div>` 
+      ? `<div style="font-size: 11px; color: #ffcc00; font-weight: 800; text-align: center; margin-bottom: 6px; text-transform: uppercase;">Позивний: «${escapeHTML(item.callsign)}»</div>` 
       : '';
     
     const photoBadge = (item.photos && item.photos.length > 1) 
-      ? `<div style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:#fff; font-size:10px; padding:3px 8px; border-radius:8px; font-weight:bold; pointer-events:none; border: 1px solid rgba(255,255,255,0.2);">📸 ${item.photos.length}</div>` 
+      ? `<div style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; padding:3px 8px; border-radius:6px; font-weight:bold; pointer-events:none; border: 1px solid rgba(255,255,255,0.2);">📸 ${item.photos.length}</div>` 
       : '';
 
     // Даты "в два этажа" чтобы 100% не слипались
@@ -1025,13 +1025,13 @@ function renderPhoenixList(items) {
       ${callsignHtml}
       
       <div style="background: rgba(255, 77, 77, 0.1); border-radius: 8px; padding: 8px 0; margin-top: auto; border: 1px solid rgba(255,77,77,0.2); display: flex; flex-direction: column; gap: 6px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; padding-left: 8px; padding-right: 8px;">
-          <span style="font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Народився:</span>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; padding-left: 8px; padding-right: 8px;">
+          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 2px;">Народився:</span>
           <span style="font-size: 10px; color: #fff; font-weight: 700;">${escapeHTML(item.dob || '-')}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-left: 8px; padding-right: 8px;">
-          <span style="font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Зник:</span>
-          <span style="font-size: 12px; color: #ff4d4d; font-weight: 800;">${escapeHTML(item.date_missing || '-')}</span>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-left: 8px; padding-right: 8px;">
+          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 2px;">Зник:</span>
+          <span style="font-size: 11px; color: #ff4d4d; font-weight: 800;">${escapeHTML(item.date_missing || '-')}</span>
         </div>
       </div>
     </div>`;
