@@ -9,6 +9,17 @@ const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRH8Fg2WThVyFqO
 const ESTATE_CSV_URL = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=622618191';
 const PROMOS_API_URL = 'https://vilnohirsk-promos-api-production.up.railway.app/api/promos';
 
+// === КОНФИГУРАЦИЯ FIREBASE (для push-уведомлений) ===
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAG8UbnsZ2DphoF0H7w088vE7pNHMkJs80",
+  authDomain: "smart-vilnohirsk.firebaseapp.com",
+  projectId: "smart-vilnohirsk",
+  storageBucket: "smart-vilnohirsk.firebasestorage.app",
+  messagingSenderId: "676865197841",
+  appId: "1:676865197841:web:5d53065b2bb211bf77eeb0"
+};
+const FIREBASE_VAPID_KEY = "BHmSY-eFLxPx60kZjEwkhEDXhYri04G6d-Pl37o-p6qQaCJT88VZImQiDPOoBTgEn9aRmZHsmw5Y5qhmsQ8y2Ls";
+
 let currentDataSignature = {};
 let allFleaMarketItems = []; let fleaRenderLimit = 20; let currentFleaSort = 'new';
 let allEstateItems = []; let estateRenderLimit = 20; let currentEstateSort = 'new';
@@ -1468,6 +1479,598 @@ function refreshGroupC() {
     loadBlaBlaCarData();
 }
 
+// =========================================================================
+// =========================================================================
+// === PUSH-УВЕДОМЛЕНИЯ (Firebase Cloud Messaging) ===
+// === з вибором категорій (по вкладкам сайту)            ===
+// =========================================================================
+// =========================================================================
+
+let firebaseMessaging = null;
+let firebaseInitialized = false;
+
+// === ВСЕ КАТЕГОРИИ САЙТА (16 шт.) ===
+// id повинен співпадати з тим що пишеш в G колонку Push_Tokens
+const PUSH_CATEGORIES = [
+  // ВАЖЛИВЕ
+  { id: 'communal',    icon: '⚡', name: 'Комунальні новини', desc: 'Світло, вода, газ', group: 'Важливе', defaultOn: true },
+  { id: 'news',        icon: '📰', name: 'Новини міста',      desc: 'Міські новини',     group: 'Важливе', defaultOn: true },
+  { id: 'volunteers',  icon: '🇺🇦', name: 'Допомога ЗСУ',     desc: 'Нові збори',         group: 'Важливе', defaultOn: true },
+  { id: 'phoenix',     icon: '🚒', name: 'Фенікс (зниклі)',   desc: 'Пошук людей',        group: 'Важливе', defaultOn: true },
+  // ПОДІЇ
+  { id: 'events',      icon: '🎉', name: 'Афіші',             desc: 'Концерти, заходи',   group: 'Події та акції', defaultOn: false },
+  { id: 'gallery',     icon: '📸', name: 'Фото міста',        desc: 'Нові фото',          group: 'Події та акції', defaultOn: false },
+  { id: 'promos',      icon: '🔥', name: 'Акції магазинів',   desc: 'Знижки та акції',    group: 'Події та акції', defaultOn: false },
+  // ТРАНСПОРТ
+  { id: 'trains',      icon: '🚆', name: 'Електрички',        desc: 'Зміни розкладу',     group: 'Транспорт', defaultOn: false },
+  { id: 'buses',       icon: '🚌', name: 'Автобуси',          desc: 'Зміни розкладу',     group: 'Транспорт', defaultOn: false },
+  { id: 'long_trains', icon: '🛤️', name: 'Потяги (далекі)',  desc: 'Зміни розкладу',     group: 'Транспорт', defaultOn: false },
+  { id: 'blablacar',   icon: '🚗', name: 'BlaBlaCar',         desc: 'Нові попутки',       group: 'Транспорт', defaultOn: false },
+  // ОГОЛОШЕННЯ
+  { id: 'estate',      icon: '🏠', name: 'Нерухомість',       desc: 'Нові оголошення',    group: 'Оголошення', defaultOn: false },
+  { id: 'shopping',    icon: '🛍', name: 'Шопінг',            desc: 'Нові магазини',      group: 'Оголошення', defaultOn: false },
+  { id: 'flea',        icon: '📦', name: 'Барахолка',         desc: 'Нові оголошення',    group: 'Оголошення', defaultOn: false },
+  { id: 'jobs',        icon: '💼', name: 'Вакансії',          desc: 'Нові вакансії',      group: 'Оголошення', defaultOn: false },
+  { id: 'lost',        icon: '🔍', name: 'Знахідки',          desc: 'Бюро знахідок',      group: 'Оголошення', defaultOn: false }
+];
+
+// Категории по умолчанию (для нового подписчика)
+function getDefaultCategories() {
+  return PUSH_CATEGORIES.filter(c => c.defaultOn).map(c => c.id);
+}
+
+// Получить текущие выбранные категории юзера (из localStorage)
+function getCurrentCategories() {
+  const saved = localStorage.getItem('push_categories');
+  if (!saved) return getDefaultCategories();
+  try {
+    const arr = JSON.parse(saved);
+    return Array.isArray(arr) && arr.length > 0 ? arr : getDefaultCategories();
+  } catch (e) {
+    return getDefaultCategories();
+  }
+}
+
+// Проверка — есть ли вообще поддержка пушей в этом браузере
+function isPushSupported() {
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+
+// Проверка — iOS устройство (iPhone/iPad)
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+}
+
+// Проверка — запущен ли сайт в PWA-режиме (с домашнего экрана)
+function isPWA() {
+  return window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true;
+}
+
+// Определяем платформу для записи в таблицу
+function detectPlatform() {
+  const ua = navigator.userAgent;
+  if (/Android/i.test(ua)) return 'Android';
+  if (/iPad|iPhone|iPod/.test(ua)) return isPWA() ? 'iOS (PWA)' : 'iOS (Safari)';
+  if (/Windows/i.test(ua)) return 'Windows';
+  if (/Mac/i.test(ua)) return 'macOS';
+  if (/Linux/i.test(ua)) return 'Linux';
+  return 'Unknown';
+}
+
+// Ленивая инициализация Firebase (только когда юзер реально хочет подписаться)
+async function initFirebase() {
+  if (firebaseInitialized) return firebaseMessaging;
+  
+  if (!window.firebase) {
+    throw new Error('Firebase SDK не завантажено');
+  }
+  
+  firebase.initializeApp(FIREBASE_CONFIG);
+  firebaseMessaging = firebase.messaging();
+  firebaseInitialized = true;
+  return firebaseMessaging;
+}
+
+// Регистрация Service Worker для Firebase (только когда нужен)
+async function registerFirebaseSW() {
+  if (!('serviceWorker' in navigator)) {
+    throw new Error('Service Worker не підтримується');
+  }
+  
+  // Проверяем что SW ещё не зарегистрирован
+  const regs = await navigator.serviceWorker.getRegistrations();
+  for (let r of regs) {
+    if (r.active && r.active.scriptURL && r.active.scriptURL.includes('firebase-messaging-sw')) {
+      return r;
+    }
+  }
+  
+  // Регистрируем
+  const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+  await navigator.serviceWorker.ready;
+  return registration;
+}
+
+// Сохраняем токен в Google Sheets через Apps Script (с категориями)
+async function savePushTokenToServer(token, categories) {
+  try {
+    await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        formType: 'push_subscribe',
+        token: token,
+        userAgent: navigator.userAgent,
+        platform: detectPlatform(),
+        categories: categories
+      })
+    });
+    return true;
+  } catch (e) {
+    console.error('Помилка збереження токена:', e);
+    return false;
+  }
+}
+
+// Обновляем категории на сервере (для уже подписанного юзера)
+async function updateCategoriesOnServer(token, categories) {
+  try {
+    await fetch(APP_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        formType: 'push_update_categories',
+        token: token,
+        categories: categories
+      })
+    });
+    return true;
+  } catch (e) {
+    console.error('Помилка оновлення категорій:', e);
+    return false;
+  }
+}
+
+// Главная функция подписки — вызывается после выбора категорий
+async function subscribeToPush(selectedCategories) {
+  // 1. Проверяем поддержку браузера
+  if (!isPushSupported()) {
+    showToast('❌ Ваш браузер не підтримує сповіщення', 'error');
+    return false;
+  }
+  
+  // 2. iOS особый случай — нужен PWA режим
+  if (isIOS() && !isPWA()) {
+    showIOSInstructions();
+    return false;
+  }
+
+  if (!selectedCategories || selectedCategories.length === 0) {
+    showToast('❌ Оберіть хоча б одну категорію', 'error');
+    return false;
+  }
+  
+  try {
+    // 3. Запрашиваем разрешение
+    const permission = await Notification.requestPermission();
+    
+    if (permission === 'denied') {
+      showToast('🚫 Ви заборонили сповіщення. Дозвольте в налаштуваннях браузера.', 'error');
+      return false;
+    }
+    
+    if (permission !== 'granted') {
+      return false;
+    }
+    
+    // 4. Регистрируем Service Worker
+    const registration = await registerFirebaseSW();
+    
+    // 5. Инициализируем Firebase
+    await initFirebase();
+    
+    // 6. Получаем токен
+    const token = await firebaseMessaging.getToken({
+      vapidKey: FIREBASE_VAPID_KEY,
+      serviceWorkerRegistration: registration
+    });
+    
+    if (!token) {
+      showToast('❌ Не вдалося отримати токен. Спробуйте ще раз.', 'error');
+      return false;
+    }
+    
+    // 7. Отправляем токен с категориями на сервер
+    const saved = await savePushTokenToServer(token, selectedCategories);
+    
+    if (!saved) {
+      showToast('⚠️ Підписка створена, але не вдалося зберегти. Спробуйте пізніше.', 'error');
+      return false;
+    }
+    
+    // 8. Сохраняем в localStorage
+    localStorage.setItem('push_subscribed', '1');
+    localStorage.setItem('push_token', token);
+    localStorage.setItem('push_categories', JSON.stringify(selectedCategories));
+    
+    showToast(`✅ Підписано на ${selectedCategories.length} категорій!`, 'success');
+    updatePushButtonState();
+    return true;
+    
+  } catch (err) {
+    console.error('Помилка підписки:', err);
+    showToast('❌ Помилка: ' + (err.message || 'невідома'), 'error');
+    return false;
+  }
+}
+
+// Сохранить новые категории для уже подписанного юзера
+async function savePushPreferences(newCategories) {
+  const token = localStorage.getItem('push_token');
+  if (!token) {
+    showToast('❌ Токен не знайдено. Підпишіться спочатку.', 'error');
+    return false;
+  }
+
+  // Если юзер снял ВСЕ галочки — это отписка
+  if (!newCategories || newCategories.length === 0) {
+    showUnsubscribeConfirm();
+    return false;
+  }
+
+  const saved = await updateCategoriesOnServer(token, newCategories);
+  if (saved) {
+    localStorage.setItem('push_categories', JSON.stringify(newCategories));
+    showToast(`✅ Збережено ${newCategories.length} категорій`, 'success');
+    updatePushButtonState();
+    return true;
+  } else {
+    showToast('❌ Не вдалося зберегти. Спробуйте пізніше.', 'error');
+    return false;
+  }
+}
+
+// Отписка от пушей
+async function unsubscribeFromPush() {
+  try {
+    if (firebaseMessaging) {
+      const token = localStorage.getItem('push_token');
+      if (token) {
+        await firebaseMessaging.deleteToken();
+      }
+    }
+    localStorage.removeItem('push_subscribed');
+    localStorage.removeItem('push_token');
+    localStorage.removeItem('push_categories');
+    showToast('🔕 Ви відписалися від сповіщень', 'info');
+    updatePushButtonState();
+  } catch (err) {
+    console.error('Помилка відписки:', err);
+    // Всё равно убираем локально
+    localStorage.removeItem('push_subscribed');
+    localStorage.removeItem('push_token');
+    localStorage.removeItem('push_categories');
+    updatePushButtonState();
+  }
+}
+
+// Обновляем текст кнопки в зависимости от статуса
+function updatePushButtonState() {
+  const btn = document.getElementById('push-subscribe-btn');
+  if (!btn) return;
+  
+  const isSubscribed = localStorage.getItem('push_subscribed') === '1';
+  const permission = ('Notification' in window) ? Notification.permission : 'default';
+  
+  if (isSubscribed && permission === 'granted') {
+    const cats = getCurrentCategories();
+    btn.innerHTML = `<div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">🔔 Підписано: ${cats.length} категорій<br><span style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500;">Натисніть щоб налаштувати</span></div>`;
+    btn.style.border = '1px solid rgba(0, 255, 156, 0.5)';
+    btn.style.background = 'rgba(0, 255, 156, 0.1)';
+  } else if (permission === 'denied') {
+    btn.innerHTML = '<div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); line-height: 1.3;">🔕 Сповіщення заблоковано<br><span style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500;">Дозвольте у налаштуваннях браузера</span></div>';
+    btn.style.border = '1px solid rgba(255, 77, 77, 0.4)';
+    btn.style.background = 'rgba(255, 77, 77, 0.05)';
+  } else {
+    btn.innerHTML = '<div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">🔔 Отримувати важливі сповіщення<br><span style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500;">Світло, ЗСУ, новини міста</span></div>';
+    btn.style.border = '1px solid rgba(255, 204, 0, 0.4)';
+    btn.style.background = 'rgba(255, 204, 0, 0.05)';
+  }
+}
+
+// Обработчик клика по кнопке подписки
+function handlePushButtonClick() {
+  const isSubscribed = localStorage.getItem('push_subscribed') === '1';
+  
+  if (isSubscribed) {
+    // Уже подписан — показываем модалку настроек
+    showSettingsModal();
+  } else {
+    // Не подписан — показываем модалку выбора категорий
+    showCategoriesModal('subscribe');
+  }
+}
+
+// =========================================================================
+// УНІВЕРСАЛЬНА МОДАЛКА З КАТЕГОРІЯМИ
+// mode: 'subscribe' (для новых) або 'edit' (для уже подписанных)
+// =========================================================================
+function showCategoriesModal(mode) {
+  const modalId = 'push-cats-modal';
+  const existing = document.getElementById(modalId);
+  if (existing) existing.remove();
+
+  const isSubscribeMode = mode === 'subscribe';
+  // При первой подписке — дефолтные категории, при редактировании — текущие выбранные
+  const initialCats = isSubscribeMode ? getDefaultCategories() : getCurrentCategories();
+
+  // Группируем категории
+  const groups = {};
+  PUSH_CATEGORIES.forEach(cat => {
+    if (!groups[cat.group]) groups[cat.group] = [];
+    groups[cat.group].push(cat);
+  });
+
+  // Создаём HTML для каждой категории
+  let groupsHTML = '';
+  Object.keys(groups).forEach(groupName => {
+    groupsHTML += `<div style="margin-bottom: 14px;">
+      <div style="font-size: 11px; font-weight: 700; color: rgba(255,204,0,0.85); letter-spacing: 1px; margin-bottom: 8px; padding: 0 4px;">${escapeHTML(groupName)}</div>`;
+    
+    groups[groupName].forEach(cat => {
+      const isChecked = initialCats.includes(cat.id);
+      groupsHTML += `
+        <label class="push-cat-row" data-cat-id="${escapeHTML(cat.id)}" style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-bottom: 5px; background: ${isChecked ? 'rgba(0,255,156,0.08)' : 'rgba(0,0,0,0.2)'}; border: 1px solid ${isChecked ? 'rgba(0,255,156,0.3)' : 'rgba(255,255,255,0.05)'}; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; user-select: none;">
+          <input type="checkbox" class="push-cat-cb" data-cat-id="${escapeHTML(cat.id)}" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px; accent-color: #00ff9c; cursor: pointer; flex-shrink: 0;">
+          <span style="font-size: 18px; flex-shrink: 0;">${cat.icon}</span>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 13px; font-weight: 700; color: #fff; line-height: 1.2;">${escapeHTML(cat.name)}</div>
+            <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px;">${escapeHTML(cat.desc)}</div>
+          </div>
+        </label>`;
+    });
+    groupsHTML += `</div>`;
+  });
+
+  const title = isSubscribeMode ? '🔔 Обери що тобі цікаво' : '⚙️ Налаштування сповіщень';
+  const subtitle = isSubscribeMode 
+    ? 'Ти отримуватимеш сповіщення лише по вибраних темах. Можна змінити будь-коли.'
+    : 'Ти підписаний на сповіщення. Обери що отримувати:';
+  const submitBtnText = isSubscribeMode ? '✅ Підписатись' : '💾 Зберегти зміни';
+
+  const modal = document.createElement('div');
+  modal.id = modalId;
+  modal.className = 'custom-modal-overlay active';
+  modal.onclick = (e) => { if (e.target.id === modalId) { modal.remove(); document.body.style.overflow = ''; } };
+
+  modal.innerHTML = `
+    <div class="custom-modal-box" onclick="event.stopPropagation()" style="background: linear-gradient(145deg, rgba(20,30,50,0.97), rgba(10,15,30,0.99)); border: 1px solid rgba(255, 204, 0, 0.3); max-width: 420px; max-height: 90vh; display: flex; flex-direction: column; padding: 0;">
+      
+      <!-- Header (фиксированный) -->
+      <div style="padding: 20px 22px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; position: relative;">
+        <div class="close-modal-btn" onclick="document.getElementById('${modalId}').remove(); document.body.style.overflow = '';">&times;</div>
+        <h3 class="form-title" style="color: #ffcc00; margin: 0 0 8px; padding-right: 30px; font-size: 18px;">${title}</h3>
+        <div style="font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.4;">${subtitle}</div>
+      </div>
+      
+      <!-- Scrollable body -->
+      <div style="overflow-y: auto; padding: 14px 18px; flex: 1; -webkit-overflow-scrolling: touch;">
+        ${groupsHTML}
+        
+        <div style="display: flex; gap: 8px; margin-top: 10px;">
+          <button type="button" id="cat-select-all" style="flex: 1; padding: 9px; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); border-radius: 10px; color: #38bdf8; font-size: 12px; font-weight: 700; cursor: pointer;">Обрати все</button>
+          <button type="button" id="cat-clear-all" style="flex: 1; padding: 9px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: rgba(255,255,255,0.7); font-size: 12px; font-weight: 700; cursor: pointer;">Зняти все</button>
+        </div>
+      </div>
+      
+      <!-- Footer (фиксированный) -->
+      <div style="padding: 14px 18px 18px; border-top: 1px solid rgba(255,255,255,0.08); flex-shrink: 0;">
+        <div id="cat-counter" style="text-align: center; font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 10px;">Обрано: <span id="cat-count">${initialCats.length}</span> з ${PUSH_CATEGORIES.length}</div>
+        
+        <button type="button" id="cat-submit-btn"
+                style="width: 100%; padding: 14px; border: none; border-radius: 14px; background: linear-gradient(135deg, #ffcc00, #ff8800); color: #0b1d3a; font-weight: 800; font-size: 15px; cursor: pointer; box-shadow: 0 4px 15px rgba(255,204,0,0.3);">
+          ${submitBtnText}
+        </button>
+        
+        ${!isSubscribeMode ? `
+          <button type="button" onclick="document.getElementById('${modalId}').remove(); document.body.style.overflow = ''; showUnsubscribeConfirm();" 
+                  style="width: 100%; padding: 11px; margin-top: 8px; background: transparent; border: 1px solid rgba(255,77,77,0.3); border-radius: 14px; color: rgba(255,77,77,0.85); font-weight: 600; font-size: 12px; cursor: pointer;">
+            🔕 Повністю відписатись
+          </button>
+        ` : `
+          <button type="button" onclick="document.getElementById('${modalId}').remove(); document.body.style.overflow = '';" 
+                  style="width: 100%; padding: 11px; margin-top: 8px; background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; color: rgba(255,255,255,0.7); font-weight: 600; font-size: 12px; cursor: pointer;">
+            Скасувати
+          </button>
+        `}
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+
+  // === Логика чекбоксов ===
+  const updateRowStyle = (row, checked) => {
+    row.style.background = checked ? 'rgba(0,255,156,0.08)' : 'rgba(0,0,0,0.2)';
+    row.style.borderColor = checked ? 'rgba(0,255,156,0.3)' : 'rgba(255,255,255,0.05)';
+  };
+
+  const updateCounter = () => {
+    const checked = modal.querySelectorAll('.push-cat-cb:checked').length;
+    const counter = modal.querySelector('#cat-count');
+    if (counter) counter.textContent = checked;
+  };
+
+  // Подсветка строк при изменении галочки
+  modal.querySelectorAll('.push-cat-cb').forEach(cb => {
+    const row = cb.closest('.push-cat-row');
+    cb.addEventListener('change', () => {
+      updateRowStyle(row, cb.checked);
+      updateCounter();
+    });
+  });
+
+  // "Обрати все"
+  modal.querySelector('#cat-select-all').addEventListener('click', () => {
+    modal.querySelectorAll('.push-cat-cb').forEach(cb => {
+      cb.checked = true;
+      updateRowStyle(cb.closest('.push-cat-row'), true);
+    });
+    updateCounter();
+  });
+
+  // "Зняти все"
+  modal.querySelector('#cat-clear-all').addEventListener('click', () => {
+    modal.querySelectorAll('.push-cat-cb').forEach(cb => {
+      cb.checked = false;
+      updateRowStyle(cb.closest('.push-cat-row'), false);
+    });
+    updateCounter();
+  });
+
+  // Submit
+  modal.querySelector('#cat-submit-btn').addEventListener('click', async () => {
+    const selected = Array.from(modal.querySelectorAll('.push-cat-cb:checked'))
+      .map(cb => cb.dataset.catId);
+    
+    if (selected.length === 0) {
+      showToast('⚠️ Оберіть хоча б одну категорію', 'error');
+      return;
+    }
+
+    // Блокуємо кнопку щоб не клікали 2 рази
+    const btn = modal.querySelector('#cat-submit-btn');
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    btn.innerHTML = '⏳ Обробка...';
+
+    modal.remove();
+    document.body.style.overflow = '';
+
+    if (isSubscribeMode) {
+      await subscribeToPush(selected);
+    } else {
+      await savePushPreferences(selected);
+    }
+  });
+}
+
+// Открыть настройки (для уже подписанных) — обёртка
+function showSettingsModal() {
+  showCategoriesModal('edit');
+}
+
+// Модалка подтверждения отписки
+function showUnsubscribeConfirm() {
+  const modalId = 'push-unsub-modal';
+  const existing = document.getElementById(modalId);
+  if (existing) existing.remove();
+  
+  const modal = document.createElement('div');
+  modal.id = modalId;
+  modal.className = 'custom-modal-overlay active';
+  modal.onclick = (e) => { if (e.target.id === modalId) { modal.remove(); document.body.style.overflow = ''; } };
+  
+  modal.innerHTML = `
+    <div class="custom-modal-box" onclick="event.stopPropagation()" style="max-width: 360px;">
+      <div class="close-modal-btn" onclick="document.getElementById('${modalId}').remove(); document.body.style.overflow = '';">&times;</div>
+      <div style="text-align: center; font-size: 50px; margin-bottom: 10px;">🔕</div>
+      <h3 class="form-title" style="color: #ff4d4d;">Відписатись від сповіщень?</h3>
+      <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 20px; text-align: center;">
+        Ви більше не будете отримувати жодних сповіщень. Можна підписатись знову коли захочете.
+      </div>
+      <button type="button" onclick="document.getElementById('${modalId}').remove(); document.body.style.overflow = ''; unsubscribeFromPush();" 
+              style="width: 100%; padding: 14px; border: none; border-radius: 14px; background: linear-gradient(135deg, #ff4d4d, #ff3366); color: #fff; font-weight: 800; font-size: 14px; cursor: pointer;">
+        Так, відписатись
+      </button>
+      <button type="button" onclick="document.getElementById('${modalId}').remove(); document.body.style.overflow = '';" 
+              style="width: 100%; padding: 12px; margin-top: 8px; background: transparent; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; color: rgba(255,255,255,0.7); font-weight: 600; font-size: 13px; cursor: pointer;">
+        Скасувати
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+}
+
+// Инструкция для iPhone — как добавить на главный экран
+function showIOSInstructions() {
+  const modalId = 'push-ios-modal';
+  const existing = document.getElementById(modalId);
+  if (existing) existing.remove();
+  
+  const modal = document.createElement('div');
+  modal.id = modalId;
+  modal.className = 'custom-modal-overlay active';
+  modal.onclick = (e) => { if (e.target.id === modalId) { modal.remove(); document.body.style.overflow = ''; } };
+  
+  modal.innerHTML = `
+    <div class="custom-modal-box" onclick="event.stopPropagation()" style="max-width: 400px;">
+      <div class="close-modal-btn" onclick="document.getElementById('${modalId}').remove(); document.body.style.overflow = '';">&times;</div>
+      
+      <div style="text-align: center; font-size: 50px; margin-bottom: 5px;">🍎</div>
+      <h3 class="form-title" style="color: #38bdf8; margin-bottom: 15px;">Інструкція для iPhone</h3>
+      
+      <div style="font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 18px; text-align: center;">
+        Через обмеження Apple, сповіщення на iPhone працюють <b style="color:#ffcc00;">тільки якщо</b> ви додасте сайт на головний екран:
+      </div>
+      
+      <div style="background: rgba(0,0,0,0.3); border-radius: 14px; padding: 16px; margin-bottom: 15px; border: 1px solid rgba(56,189,248,0.2);">
+        <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px; color: rgba(255,255,255,0.9); text-align: left;">
+          
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div style="background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0;">1</div>
+            <div style="line-height: 1.4;">Відкрийте сайт у браузері <b>Safari</b> (не Chrome!)</div>
+          </div>
+          
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div style="background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0;">2</div>
+            <div style="line-height: 1.4;">Натисніть кнопку <b>«Поділитись»</b> внизу екрану <span style="display: inline-block; background: rgba(56,189,248,0.2); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 14px;">⬆</span></div>
+          </div>
+          
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div style="background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0;">3</div>
+            <div style="line-height: 1.4;">Прокрутіть і виберіть <b>«На екран Домой»</b> (Add to Home Screen)</div>
+          </div>
+          
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div style="background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0;">4</div>
+            <div style="line-height: 1.4;">Підтвердіть <b>«Додати»</b> — з'явиться іконка на екрані</div>
+          </div>
+          
+          <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <div style="background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0;">5</div>
+            <div style="line-height: 1.4;"><b>Запустіть сайт з домашнього екрану</b> (не з Safari!) і знову натисніть «Сповіщення»</div>
+          </div>
+          
+        </div>
+      </div>
+      
+      <div style="font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.4; text-align: center; padding: 10px;">
+        💡 Це обмеження Apple — у Android та десктопі усе працює одразу.
+      </div>
+      
+      <button type="button" onclick="document.getElementById('${modalId}').remove(); document.body.style.overflow = '';" 
+              style="width: 100%; padding: 14px; border: none; border-radius: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; font-weight: 800; font-size: 14px; cursor: pointer;">
+        Зрозуміло 👌
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+}
+
+// =========================================================================
+// === КОНЕЦ PUSH-УВЕДОМЛЕНИЙ ===
+// =========================================================================
+
 const initApp = () => {
   updateDateTime(); setInterval(updateDateTime, 1000); 
   loadWeather(); loadAlerts(); loadExchangeRates();
@@ -1492,22 +2095,19 @@ const initApp = () => {
   });
   
   document.querySelectorAll('.form-input').forEach(input => { input.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }); });
+  
+  // === PUSH-УВЕДОМЛЕНИЯ: инициализация состояния кнопки ===
+  setTimeout(() => {
+    updatePushButtonState();
+    // Если юзер уже подписан — тихо перерегистрируем SW чтобы он был активный
+    if (localStorage.getItem('push_subscribed') === '1' && isPushSupported()) {
+      registerFirebaseSW().catch(() => {});
+    }
+  }, 1000);
 };
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
 
-// Чистим все service workers (старый sw.js конфликтовал с firebase-messaging-sw.js)
-// Если в будущем нужны push-уведомления — Firebase SW нужно регистрировать явно через navigator.serviceWorker.register
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.getRegistrations().then(function(registrations) {
-      for(let registration of registrations) {
-        // Не трогаем firebase SW если он зарегистрирован
-        if (registration.active && registration.active.scriptURL && registration.active.scriptURL.includes('firebase-messaging-sw')) {
-          continue;
-        }
-        registration.unregister();
-      }
-    }).catch(() => {});
-  });
-}
+// === PUSH SW регистрируется по запросу пользователя через subscribeToPush() ===
+// Старый код который unregister-ил SW удалён — теперь firebase-messaging-sw.js
+// активно используется для пушей. Регистрация делается лениво по клику.
