@@ -5,7 +5,7 @@
   document.head.appendChild(l1); document.head.appendChild(l2);
 })();
 
-const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDwYQpUFVN9rvS-auA4mlqEO5ffKE8e5mWwPMiXhlbDbD94S07MleIBsVMXjzKMnUd/exec';
+const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRH8Fg2WThVyFqO3AoMS9cNsz_-G8jI4AkP2Pn6i4PrKnWkB3C6sBcc_6Qhnq_LiAR/exec';
 const ESTATE_CSV_URL = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=622618191';
 const PROMOS_API_URL = 'https://vilnohirsk-promos-api-production.up.railway.app/api/promos';
 
