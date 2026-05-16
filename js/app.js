@@ -1784,6 +1784,28 @@ function updatePushButtonState() {
 
 // Обработчик клика по кнопке подписки
 function handlePushButtonClick() {
+  // ВАЖНО: проверяем заранее iPhone в чужом браузере (Chrome/Firefox/etc)
+  // В iOS пуши работают тільки в Safari у PWA-режимі
+  if (isIOS()) {
+    // Якщо це iPhone і НЕ Safari — пуши взагалі неможливі в цьому браузері
+    const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+    if (!isSafari) {
+      showIOSChromeWarning();
+      return;
+    }
+    // Якщо це Safari але не PWA — потрібно додати на головний екран
+    if (!isPWA()) {
+      showIOSInstructions();
+      return;
+    }
+  }
+  
+  // Перевірка чи браузер взагалі підтримує пуші
+  if (!isPushSupported()) {
+    showToast('❌ Ваш браузер не підтримує сповіщення. Спробуйте інший браузер.', 'error');
+    return;
+  }
+  
   const isSubscribed = localStorage.getItem('push_subscribed') === '1';
   
   if (isSubscribed) {
@@ -1793,6 +1815,53 @@ function handlePushButtonClick() {
     // Не подписан — показываем модалку выбора категорий
     showCategoriesModal('subscribe');
   }
+}
+
+// Попередження для iPhone в Chrome/Firefox/інших браузерах
+function showIOSChromeWarning() {
+  const modalId = 'push-ios-chrome-modal';
+  const existing = document.getElementById(modalId);
+  if (existing) existing.remove();
+  
+  const modal = document.createElement('div');
+  modal.id = modalId;
+  modal.className = 'custom-modal-overlay active';
+  modal.onclick = (e) => { if (e.target.id === modalId) { modal.remove(); document.body.style.overflow = ''; } };
+  
+  modal.innerHTML = `
+    <div class="custom-modal-box" onclick="event.stopPropagation()" style="max-width: 380px;">
+      <div class="close-modal-btn" onclick="document.getElementById('${modalId}').remove(); document.body.style.overflow = '';">&times;</div>
+      
+      <div style="text-align: center; font-size: 50px; margin-bottom: 5px;">🍎</div>
+      <h3 class="form-title" style="color: #ffcc00; margin-bottom: 12px;">Потрібен Safari</h3>
+      
+      <div style="font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 18px; text-align: center;">
+        На iPhone сповіщення працюють <b style="color:#ffcc00;">тільки в браузері Safari</b> (це обмеження Apple).
+      </div>
+      
+      <div style="background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3); border-radius: 14px; padding: 14px; margin-bottom: 18px;">
+        <div style="font-size: 13px; color: #fff; line-height: 1.5; text-align: center;">
+          <b>👉 Що робити:</b><br>
+          1. Закрийте цей браузер<br>
+          2. Відкрийте <b>Safari</b><br>
+          3. Перейдіть на <b>vilnohirsk.online</b><br>
+          4. Натисніть кнопку "🔔" знову
+        </div>
+      </div>
+      
+      <div style="font-size: 11px; color: rgba(255,255,255,0.5); line-height: 1.4; text-align: center; padding-bottom: 12px;">
+        💡 Apple дозволяє пуші на iPhone тільки через Safari + PWA (додавання на головний екран)
+      </div>
+      
+      <button type="button" onclick="document.getElementById('${modalId}').remove(); document.body.style.overflow = '';" 
+              style="width: 100%; padding: 14px; border: none; border-radius: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; font-weight: 800; font-size: 14px; cursor: pointer;">
+        Зрозуміло 👌
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
 }
 
 // =========================================================================
