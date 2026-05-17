@@ -1,0 +1,18 @@
+{
+  "name": "Smart Вільногірськ",
+  "short_name": "Вільногірськ",
+  "description": "Усе місто в одному додатку: розклад, барахолка, робота, афіші, довідник та важливі новини.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e3c72",
+  "theme_color": "#1e3c72",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

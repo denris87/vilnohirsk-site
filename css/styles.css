@@ -121,3 +121,27 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* === ВИПРАВЛЕННЯ: дозволяємо виділення тексту в контентних зонах === */
+.alert-card-text,
+.alert-card-title,
+.card-desc,
+.shop-inner-list,
+.shop-inner-item,
+.pb-tile-title,
+.blabla-route,
+.blabla-date,
+.blabla-info-row,
+.schedule-row,
+.station-name-text,
+.details-note,
+.form-input,
+textarea,
+input,
+a,
+.pb-phone-btn,
+.shop-phone-link,
+.blabla-phone {
+  -webkit-user-select: text;
+  user-select: text;
+}
