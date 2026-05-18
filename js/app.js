@@ -876,7 +876,9 @@ async function loadEstateData() {
         const approvedItems = results.data.filter(row => { const keys = Object.keys(row); let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]]; return status && String(status).trim().toLowerCase() === 'одобрено'; }).map(row => {
           const keys = Object.keys(row); let rawPhoto = row['Фото'] || row['photos'] || row['Photos'] || row[keys[8]] || ''; let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
           const v = String(row['VIP'] || row['vip'] || row[keys[9]] || '').trim().toLowerCase();
-          return { dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда', propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира', rooms: row["Кімнат"] || row[keys[4]] || '-', price: row["Ціна"] || row[keys[5]] || 'Договірна', description: row["Опис"] || row[keys[6]] || 'Без опису', phone: row["Телефон"] || row[keys[7]] || 'Не вказано', photos: photoUrls, isVip: (v === 'так' || v === '+' || v === 'true') };
+          const priceKey = keys.find(k => k && k.toLowerCase().includes('ціна')) || keys[5];
+          const rawPrice = priceKey ? row[priceKey] : '';
+          return { dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда', propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира', rooms: row["Кімнат"] || row[keys[4]] || '-', price: (rawPrice && String(rawPrice).trim()) || 'Договірна', description: row["Опис"] || row[keys[6]] || 'Без опису', phone: row["Телефон"] || row[keys[7]] || 'Не вказано', photos: photoUrls, isVip: (v === 'так' || v === '+' || v === 'true') };
         });
         const localItems = approvedItems.reverse();
         markNewItems(localItems, 'estate', true);
