@@ -1203,18 +1203,24 @@ function renderPhoenixList(items) {
   cont.innerHTML = html;
 }
 
-async function loadPhoenixData() {
+async function loadPhoenixData(isRetry = false) {
   try {
+    delete memoryDataCache['phoenix_api'];
     const PHOENIX_API_URL = 'https://vilnohirsk-phoenix-api-production.up.railway.app/api/phoenix';
     const data = await fetchCachedJson(PHOENIX_API_URL, 'phoenix_api', 5);
     let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.phoenix) ? data.phoenix : []);
     const activeItems = itemsArray.filter(item => item && item.active !== false);
-    
     markNewItems(activeItems, 'phoenix', false);
     checkNotification('phoenix', activeItems);
     renderPhoenixList(activeItems);
   } catch(e) {
-    document.getElementById('phoenix-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження даних Фенікс</div>`;
+    const cont = document.getElementById('phoenix-list-content');
+    if (!isRetry) {
+      cont.innerHTML = `<div class="empty-msg" style="color:rgba(255,255,255,0.5); font-size:12px;">⏳ Сервер прокидається, повторна спроба через 20 сек...</div>`;
+      setTimeout(() => loadPhoenixData(true), 20000);
+    } else {
+      cont.innerHTML = `<div class="empty-msg" style="color:#ff6b6b;">Помилка завантаження даних Фенікс<br><button onclick="loadPhoenixData()" style="margin-top:10px; padding:8px 18px; border-radius:10px; border:1px solid rgba(255,100,100,0.4); background:rgba(255,100,100,0.1); color:#ff7070; font-weight:700; cursor:pointer;">🔄 Спробувати ще раз</button></div>`;
+    }
   }
 }
 
