@@ -1075,8 +1075,20 @@ async function loadBusesData(){
       let h = `<div class="table-head"><div>Тип</div><div>Маршрут</div><div>Статус</div></div>`;
       d.buses.forEach((b,i) => {
         if(!b) return; const id = "bus-" + i; let ch = '';
-        if(b.directions) b.directions.forEach(dir => {
-          let rh = dir.rows.map(row => `<div class="schedule-row"><div class="schedule-left"><span class="station-name-text">${escapeHTML(row[0])}</span></div><div class="time-normal">${escapeHTML(row[1])}</div></div>`).join('');
+        if(b.directions) b.directions.forEach((dir, dIdx) => {
+          let rh = dir.rows.map((row, rIdx) => {
+            if (Array.isArray(row)) {
+              return `<div class="schedule-row"><div class="schedule-left"><span class="station-name-text">${escapeHTML(row[0])}</span></div><div class="time-normal">${escapeHTML(row[1])}</div></div>`;
+            }
+            const label = row.label || ''; const time = row.time || '';
+            const hasStops = Array.isArray(row.stops) && row.stops.length > 0;
+            if (!hasStops) {
+              return `<div class="schedule-row"><div class="schedule-left"><span class="station-name-text">${escapeHTML(label)}</span></div><div class="time-normal">${escapeHTML(time)}</div></div>`;
+            }
+            const stopsId = `bus-stops-${i}-${dIdx}-${rIdx}`;
+            const stopsHtml = row.stops.map(s => `<div class="bus-stop-row"><span class="bus-stop-name">${escapeHTML(s[0])}</span><span class="bus-stop-time">${escapeHTML(s[1])}</span></div>`).join('');
+            return `<div class="schedule-row bus-row-clickable" onclick="event.stopPropagation(); document.getElementById('${stopsId}').classList.toggle('open'); this.classList.toggle('expanded');"><div class="schedule-left"><span class="station-name-text">${escapeHTML(label)} <span class="bus-stops-chevron">▾</span></span></div><div class="time-normal">${escapeHTML(time)}</div></div><div class="bus-stops-list" id="${stopsId}">${stopsHtml}</div>`;
+          }).join('');
           ch += `<div class="schedule-column"><div style="text-align:center; color:var(--highlight-color); font-size:11px; margin-bottom:10px; font-weight:800; text-transform:uppercase;">${escapeHTML(dir.title)}</div>${rh}</div>`;
         });
         let extraInfo = '';
