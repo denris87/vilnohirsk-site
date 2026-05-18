@@ -873,6 +873,8 @@ async function loadEstateData() {
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
+        console.log('[ESTATE DEBUG] Заголовки CSV:', Object.keys(results.data[0] || {}));
+        console.log('[ESTATE DEBUG] Все строки:', results.data);
         const approvedItems = results.data.filter(row => { const keys = Object.keys(row); let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]]; return status && String(status).trim().toLowerCase() === 'одобрено'; }).map(row => {
           const keys = Object.keys(row); let rawPhoto = row['Фото'] || row['photos'] || row['Photos'] || row[keys[8]] || ''; let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
           const v = String(row['VIP'] || row['vip'] || row[keys[9]] || '').trim().toLowerCase();
