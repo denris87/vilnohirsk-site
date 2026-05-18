@@ -47,6 +47,17 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .train{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;padding:14px 10px;margin-bottom:10px;cursor:pointer;transition:all 0.3s ease;border-radius:16px;min-height:60px;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05)} .train:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3)}
 .train-num-box{position:relative;font-weight:700;display:inline-block;font-size:clamp(10px,2.8vw,12px);background:rgba(255,255,255,0.1);color:#fff;padding:4px 6px;border-radius:8px}
 .train-change-tag{display:inline-block;background:rgba(210,45,65,0.25);border:1px solid rgba(210,45,65,0.55);color:#ff7085;font-size:11px;font-weight:800;padding:3px 10px;border-radius:8px;animation:trainChangePulse 2s ease-in-out infinite;}
+.bus-row-clickable{cursor:pointer;border-radius:8px;transition:background 0.2s;position:relative;}
+.bus-row-clickable:hover{background:rgba(255,255,255,0.05);}
+.bus-row-clickable.expanded{background:rgba(0,184,255,0.12);}
+.bus-stops-chevron{color:var(--time-green);font-size:11px;display:inline-block;margin-left:4px;transition:transform 0.3s;}
+.bus-row-clickable.expanded .bus-stops-chevron{transform:rotate(180deg);}
+.bus-stops-list{max-height:0;overflow:hidden;opacity:0;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease,margin 0.3s ease;border-left:2px solid rgba(0,184,255,0.4);margin-left:10px;}
+.bus-stops-list.open{max-height:1000px;opacity:1;padding:8px 0;margin:4px 0 8px 10px;}
+.bus-stop-row{display:flex;justify-content:space-between;align-items:center;padding:5px 10px 5px 12px;font-size:11px;gap:8px;}
+.bus-stop-row:not(:last-child){border-bottom:1px dashed rgba(255,255,255,0.06);}
+.bus-stop-name{color:rgba(255,255,255,0.85);flex:1;text-align:left;word-break:break-word;}
+.bus-stop-time{color:var(--time-green);font-family:monospace;font-weight:700;white-space:nowrap;}
 .train-num-box.has-changes{background:rgba(210,45,65,0.25);border:1px solid rgba(210,45,65,0.55);color:#ff7085;animation:trainChangePulse 2s ease-in-out infinite;}
 @keyframes trainChangePulse{0%,100%{box-shadow:0 0 4px rgba(210,45,65,0.3);}50%{box-shadow:0 0 12px rgba(210,45,65,0.7),0 0 20px rgba(210,45,65,0.3);}}
 .route-text{font-weight:600;color:#fff;text-align:center;font-size:clamp(9px,2.7vw,14px);width:100%;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
