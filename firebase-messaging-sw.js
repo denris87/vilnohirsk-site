@@ -21,8 +21,8 @@ messaging.onBackgroundMessage((payload) => {
   const notificationTitle = payload.notification.title;
   const notificationOptions = {
     body: payload.notification.body,
-    icon: 'https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true',
-    badge: 'https://github.com/denris87/vilnohirsk-site/blob/main/apple-touch-icon.png?raw=true',
+    icon: 'https://vilnohirsk.online/apple-touch-icon.png',
+    badge: 'https://vilnohirsk.online/apple-touch-icon.png',
     vibrate: [200, 100, 200],
     data: payload.data
   };
