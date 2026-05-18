@@ -1037,8 +1037,8 @@ async function loadTrainsData(){
       if (banner && list) {
           if (changedTrains.length > 0) {
               banner.style.display = 'block';
-              list.innerHTML = changedTrains.map(num => 
-                `<span style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255, 204, 0, 0.5); padding: 3px 8px; border-radius: 6px; font-weight: 800; color: #ffcc00; font-size: 11px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${escapeHTML(num)}</span>`
+              list.innerHTML = changedTrains.map(num =>
+                `<span class="train-change-tag">${escapeHTML(num)}</span>`
               ).join('');
           } else {
               banner.style.display = 'none';
