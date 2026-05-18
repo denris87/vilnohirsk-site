@@ -873,14 +873,20 @@ async function loadEstateData() {
     Papa.parse(csvText, {
       header: true, skipEmptyLines: true,
       complete: function(results) {
-        console.log('[ESTATE DEBUG] Заголовки CSV:', Object.keys(results.data[0] || {}));
-        console.log('[ESTATE DEBUG] Все строки:', results.data);
         const approvedItems = results.data.filter(row => { const keys = Object.keys(row); let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]]; return status && String(status).trim().toLowerCase() === 'одобрено'; }).map(row => {
           const keys = Object.keys(row); let rawPhoto = row['Фото'] || row['photos'] || row['Photos'] || row[keys[8]] || ''; let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
           const v = String(row['VIP'] || row['vip'] || row[keys[9]] || '').trim().toLowerCase();
           const priceKey = keys.find(k => k && k.toLowerCase().includes('ціна')) || keys[5];
-          const rawPrice = priceKey ? row[priceKey] : '';
-          return { dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда', propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира', rooms: row["Кімнат"] || row[keys[4]] || '-', price: (rawPrice && String(rawPrice).trim()) || 'Договірна', description: row["Опис"] || row[keys[6]] || 'Без опису', phone: row["Телефон"] || row[keys[7]] || 'Не вказано', photos: photoUrls, isVip: (v === 'так' || v === '+' || v === 'true') };
+          let rawPrice = priceKey ? row[priceKey] : '';
+          // Чистим невидимые символы (NBSP, zero-width space), нормализуем пробелы
+          let cleanPrice = String(rawPrice || '').replace(/ /g, ' ').replace(/[​-‍﻿]/g, '').trim();
+          // Fallback: если цена пустая — пытаемся выдернуть число из описания (на случай если юзер вписал цену туда)
+          if (!cleanPrice) {
+            const descText = String(row["Опис"] || row[keys[6]] || '');
+            const priceMatch = descText.match(/(\d[\d\s.,]{2,})\s*(\$|usd|у\.?о\.?|грн|₴)/i);
+            if (priceMatch) cleanPrice = priceMatch[1].replace(/[\s,]/g, '').trim();
+          }
+          return { dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда', propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира', rooms: row["Кімнат"] || row[keys[4]] || '-', price: cleanPrice || 'Договірна', description: row["Опис"] || row[keys[6]] || 'Без опису', phone: row["Телефон"] || row[keys[7]] || 'Не вказано', photos: photoUrls, isVip: (v === 'так' || v === '+' || v === 'true') };
         });
         const localItems = approvedItems.reverse();
         markNewItems(localItems, 'estate', true);
