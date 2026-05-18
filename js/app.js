@@ -1,4 +1,25 @@
 
+// Прогрев Railway-серверов — запускается сразу при загрузке скрипта,
+// чтобы серверы успели проснуться до того как пользователь откроет нужную вкладку
+(function warmupServers() {
+  const urls = [
+    'https://vilnohirsk-alerts-production.up.railway.app/api/alert',
+    'https://vilnohirsk-trains-production.up.railway.app/api/trains',
+    'https://vilnohirsk-phoenix-api-production.up.railway.app/api/phoenix',
+    'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers',
+    'https://vilnohirsk-shops-production.up.railway.app/api/shops',
+    'https://vilnohirsk-promos-api-production.up.railway.app/api/promos',
+    'https://vilnohirsk-photos-production.up.railway.app/api/photos',
+    'https://vilnohirsk-phonebook-production.up.railway.app/api/phonebook',
+    'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides',
+    'https://vilnohirsk-ticker-api-production.up.railway.app/api/ticker',
+    'https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs',
+    'https://vilnohirskbuses-production.up.railway.app/api/buses',
+    'https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule',
+  ];
+  urls.forEach(url => fetch(url, { mode: 'no-cors', cache: 'no-store' }).catch(() => {}));
+})();
+
 const APP_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxRH8Fg2WThVyFqO3AoMS9cNsz_-G8jI4AkP2Pn6i4PrKnWkB3C6sBcc_6Qhnq_LiAR/exec';
 const ESTATE_CSV_URL = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=622618191';
 const PROMOS_API_URL = 'https://vilnohirsk-promos-api-production.up.railway.app/api/promos';
