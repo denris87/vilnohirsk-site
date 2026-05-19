@@ -191,16 +191,16 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 #market-tabs .tab-btn:nth-child(6) { --neon: 0, 255, 234; }       /* 📖 Довідник — бірюзовий */
 
 #schedule-tabs .tab-btn, #market-tabs .tab-btn {
-  border: 1px solid rgba(var(--neon, 255, 255, 255), 0.45);
-  background: linear-gradient(145deg, rgba(var(--neon, 255, 255, 255), 0.10), rgba(0, 0, 0, 0.4));
-  box-shadow: 0 0 10px rgba(var(--neon, 255, 255, 255), 0.25), inset 1px 1px 2px rgba(255, 255, 255, 0.1);
-  text-shadow: 0 0 6px rgba(var(--neon, 255, 255, 255), 0.55);
+  border: 1px solid rgba(var(--neon, 255, 255, 255), 0.65);
+  background: linear-gradient(145deg, rgba(var(--neon, 255, 255, 255), 0.18), rgba(0, 0, 0, 0.4));
+  box-shadow: 0 0 14px rgba(var(--neon, 255, 255, 255), 0.45), 0 0 4px rgba(var(--neon, 255, 255, 255), 0.25), inset 1px 1px 2px rgba(255, 255, 255, 0.12);
+  text-shadow: 0 0 8px rgba(var(--neon, 255, 255, 255), 0.8);
 }
 #schedule-tabs .tab-btn.active, #market-tabs .tab-btn.active {
-  border: 1px solid rgba(var(--neon, 255, 255, 255), 0.95);
-  background: linear-gradient(145deg, rgba(var(--neon, 255, 255, 255), 0.30), rgba(0, 0, 0, 0.5));
-  box-shadow: 0 0 22px rgba(var(--neon, 255, 255, 255), 0.75), 0 4px 12px rgba(0, 0, 0, 0.4), inset 1px 1px 3px rgba(255, 255, 255, 0.2);
-  text-shadow: 0 0 10px rgba(var(--neon, 255, 255, 255), 0.9), 0 1px 4px rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(var(--neon, 255, 255, 255), 1);
+  background: linear-gradient(145deg, rgba(var(--neon, 255, 255, 255), 0.45), rgba(0, 0, 0, 0.5));
+  box-shadow: 0 0 28px rgba(var(--neon, 255, 255, 255), 0.95), 0 0 10px rgba(var(--neon, 255, 255, 255), 0.7), 0 4px 12px rgba(0, 0, 0, 0.4), inset 1px 1px 3px rgba(255, 255, 255, 0.25);
+  text-shadow: 0 0 14px rgba(var(--neon, 255, 255, 255), 1), 0 1px 4px rgba(0, 0, 0, 0.8);
   transform: translateY(-1px);
 }
 
