@@ -2091,7 +2091,7 @@ const initApp = () => {
   loadWeather(); loadAlerts(); loadExchangeRates();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { 
-      loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); /* loadPhonebookData(); — тимчасово відключено (техобслуговування) */ loadGalleryData(); loadVolunteersData(); loadPhoenixData();
+      loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGalleryData(); loadVolunteersData(); loadPhoenixData();
       setTimeout(showDailyVolunteerAlert, 1500); 
   }, 600);
   
