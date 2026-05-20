@@ -570,10 +570,15 @@ async function loadExchangeRates() {
   } catch(e3) {}
 }
 
+const UA_MONTHS = ['СІЧНЯ','ЛЮТОГО','БЕРЕЗНЯ','КВІТНЯ','ТРАВНЯ','ЧЕРВНЯ','ЛИПНЯ','СЕРПНЯ','ВЕРЕСНЯ','ЖОВТНЯ','ЛИСТОПАДА','ГРУДНЯ'];
+
 function updateDateTime(){
   try {
-    const now = getKyivNow(); document.getElementById("date").textContent=`${String(now.getDate()).padStart(2,"0")}.${String(now.getMonth()+1).padStart(2,"0")}.${now.getFullYear()}`;
-    document.getElementById("time").textContent=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+    const now = getKyivNow();
+    document.getElementById("date").textContent = `${now.getDate()} ${UA_MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+    document.getElementById("time-hh").textContent = String(now.getHours()).padStart(2,"0");
+    document.getElementById("time-mm").textContent = String(now.getMinutes()).padStart(2,"0");
+    document.getElementById("time-ss").textContent = String(now.getSeconds()).padStart(2,"0");
     const days=document.querySelectorAll(".day"); days.forEach(d=>d.classList.remove("active")); let i=now.getDay(); i=i===0?6:i-1; days[i].classList.add("active");
   } catch(e) {}
 }
