@@ -38,7 +38,7 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 @keyframes dt-colon-pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
 .weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;width:100%;padding:0 2px;box-sizing:border-box;}
 .day{font-size:clamp(8px,2vw,10px);font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.35);padding:4px 0;border-radius:6px;text-align:center;transition:0.3s ease;border:1px solid transparent;}
-.day.active{color:#fff !important;background:rgba(0,255,156,0.18);border:1px solid rgba(0,255,156,0.5);box-shadow:0 0 12px rgba(0,255,156,0.55),inset 0 1px 1px rgba(255,255,255,0.15);text-shadow:0 0 6px rgba(0,255,156,0.7),0 1px 2px rgba(0,0,0,0.6);}
+.day.active{color:#fff !important;background:rgba(255,77,77,0.2);border:1px solid rgba(255,77,77,0.6);box-shadow:0 0 12px rgba(255,77,77,0.65),inset 0 1px 1px rgba(255,255,255,0.15);text-shadow:0 0 6px rgba(255,77,77,0.8),0 1px 2px rgba(0,0,0,0.6);}
 @media (prefers-reduced-motion: reduce){.dt-colon{animation:none;}}
 .weather-box { position:relative; width:100%; display:flex; align-items:center; justify-content:center; flex: 1; }
 .weather-content { position:absolute; width:100%; transition:all 0.8s cubic-bezier(0.25,1,0.5,1); opacity:0; transform:translateY(10px) scale(0.95); text-align:center; pointer-events:none; display:flex; flex-direction:column; justify-content:center; align-items:center; } .weather-content.active { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
