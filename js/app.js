@@ -525,25 +525,46 @@ document.addEventListener('wheel', (e) => {
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
 function getWeatherEmoji(code){ if(code === 0) return "☀️"; if(code <= 2) return "⛅"; if(code <= 3) return "☁️"; if(code <= 48) return "🌫️"; if(code <= 67) return "🌧️"; if(code <= 77) return "🌨️"; if(code <= 99) return "⛈️"; return "🌡️"; }
+function getTempColor(t){
+  if(t <= -15) return { c:'#a8e6ff', g:'rgba(168,230,255,0.65)' };
+  if(t <= -5)  return { c:'#7fd4ff', g:'rgba(127,212,255,0.6)'  };
+  if(t <= 3)   return { c:'#38bdf8', g:'rgba(56,189,248,0.6)'   };
+  if(t <= 12)  return { c:'#a0e7a8', g:'rgba(160,231,168,0.55)' };
+  if(t <= 19)  return { c:'#00ff9c', g:'rgba(0,255,156,0.6)'    };
+  if(t <= 25)  return { c:'#ffd966', g:'rgba(255,217,102,0.65)' };
+  if(t <= 30)  return { c:'#ff9f43', g:'rgba(255,159,67,0.7)'   };
+  return         { c:'#ff4d4d', g:'rgba(255,77,77,0.75)'        };
+}
 
 async function loadWeather(){
   const coords = [{name: 'Вільногірськ', lat: 48.48, lon: 34.02}, {name: 'Дніпро', lat: 48.45, lon: 34.98}]; let results = [];
-  for(let c of coords){ 
-    try { 
+  for(let c of coords){
+    try {
       const d = await fetchCachedJson(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FKyiv`, 'weather_'+c.name, 30);
-      if (d && d.current) { results.push({ name: c.name, w: { temperature: d.current.temperature_2m, weathercode: d.current.weather_code, windspeed: d.current.wind_speed_10m } }); } 
+      if (d && d.current) { results.push({ name: c.name, w: { temperature: d.current.temperature_2m, weathercode: d.current.weather_code, windspeed: d.current.wind_speed_10m } }); }
       else if (d && d.current_weather) { results.push({name: c.name, w: d.current_weather}); }
-    } catch(e) {} 
+    } catch(e) {}
   }
-  const container = document.getElementById("weather-container"); 
+  const container = document.getElementById("weather-container");
   if(results.length === 0) { container.innerHTML = '<div class="empty-msg" style="font-size:11px;">Дані погоди тимчасово недоступні ☁️</div>'; return; }
-  container.innerHTML = results.map((item, index) => `<div class="weather-content ${index === 0 ? 'active' : ''}" style="width: 100%;"><div class="weather-city">${escapeHTML(item.name)}</div><div class="weather-temp-row"><span class="weather-icon">${getWeatherEmoji(item.w.weathercode)}</span><span class="weather-temp">${Math.round(item.w.temperature)}°C</span></div><div class="weather-wind"><span style="font-size:14px;">🌬️</span> ${Math.round(item.w.windspeed)} м/с</div></div>`).join("");
+  const slidesHtml = results.map((item, index) => {
+    const t = Math.round(item.w.temperature);
+    const tc = getTempColor(t);
+    return `<div class="weather-content ${index === 0 ? 'active' : ''}" style="width: 100%;"><div class="weather-city">${escapeHTML(item.name)}</div><div class="weather-temp-row"><span class="weather-icon">${getWeatherEmoji(item.w.weathercode)}</span><span class="weather-temp" style="color:${tc.c};text-shadow:0 0 18px ${tc.g},0 2px 6px rgba(0,0,0,0.5);">${t}°C</span></div><div class="weather-wind"><span style="font-size:14px;">🌬️</span> ${Math.round(item.w.windspeed)} м/с</div></div>`;
+  }).join("");
+  const dotsHtml = results.length > 1
+    ? `<div class="weather-dots">${results.map((_, i) => `<div class="weather-dot ${i === 0 ? 'active' : ''}"></div>`).join('')}</div>`
+    : '';
+  container.innerHTML = slidesHtml + dotsHtml;
   if (window.weatherInterval) clearInterval(window.weatherInterval); let currentIndex = 0;
-  window.weatherInterval = setInterval(() => { 
+  window.weatherInterval = setInterval(() => {
       if (!isPageVisible) return;
-      const slides = container.querySelectorAll('.weather-content'); if(slides.length < 2) return; 
-      slides[currentIndex].classList.remove('active'); currentIndex = (currentIndex + 1) % slides.length; slides[currentIndex].classList.add('active'); 
-  }, 7000); 
+      const slides = container.querySelectorAll('.weather-content'); if(slides.length < 2) return;
+      const dots = container.querySelectorAll('.weather-dot');
+      slides[currentIndex].classList.remove('active'); if(dots[currentIndex]) dots[currentIndex].classList.remove('active');
+      currentIndex = (currentIndex + 1) % slides.length;
+      slides[currentIndex].classList.add('active'); if(dots[currentIndex]) dots[currentIndex].classList.add('active');
+  }, 7000);
 }
 
 async function loadExchangeRates() {
