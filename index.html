@@ -215,6 +215,11 @@ e.preventDefault();
   <div class="wrapper">
   <div class="container">
 
+    <!-- БЕГУЩАЯ СТРОКА -->
+    <div class="ticker-wrap" id="ticker-container" style="display: none;">
+      <div class="ticker-move" id="ticker-content"></div>
+    </div>
+
     <div class="alert-group" style="display: flex; flex-direction: column; width: 100%; position: relative; z-index: 100;">
         <div class="alert-main-widget liquid-glass" style="padding: 15px;">
             <div id="alert-tabs" style="display: flex; flex-direction: column; gap: 8px;">
@@ -299,11 +304,6 @@ e.preventDefault();
           <div style="text-align: center; padding: 15px 10px 5px 10px; font-size: 11px; color: rgba(255,255,255,0.6);">Для видалення оголошення пишіть: <b style="color:var(--time-green)">@vilnohirsk</b></div>
         </div>
       </div>
-    </div>
-
-    <!-- БЕГУЩАЯ СТРОКА -->
-    <div class="ticker-wrap" id="ticker-container" style="display: none;">
-      <div class="ticker-move" id="ticker-content"></div>
     </div>
 
     <div class="top-row">
