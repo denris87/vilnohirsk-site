@@ -947,6 +947,25 @@ function filterFleaMarket(category, element) {
   renderFleaMarketList(filtered.slice(0, fleaRenderLimit), filtered.length > fleaRenderLimit);
 }
 
+// Стоп-фрази для барахолки: оголошення про пошук працівників/вакансії автоматично ховаємо
+const FLEA_JOB_PATTERNS = [
+  /шука(є|ю|ємо)[а-яії']*\s+(\S+\s+){0,4}?(робіт|працівник|персонал|кадр|команд|майстр|водія|водій|кур'?єр|вантажник|продавц|охоронц|менедж|оператор|спеціаліст|помічник|підсобн|різноробоч|швач|маляр|столяр|муляр|зварник|чобот)/i,
+  /шука(є|ю|ємо)[а-яії']*\s+(\S+\s+){0,4}?на\s+роботу/i,
+  /потріб(ен|на|но|ні)\s+(\S+\s+){0,3}?(робіт|працівник|персонал|майстр|водій|водія|кур'?єр|вантажник|продавц|охоронц|менедж|оператор|спеціаліст|помічник|підсобн|різноробоч|швач|маляр|столяр|муляр|зварник)/i,
+  /(запрошу|пропону|візьм|приймає?м|набирає?м|наймає?м)\S*\s+(\S+\s+){0,3}?(на\s+роботу|працівник|робітник|персонал|команд|кадр)/i,
+  /вакансі/i,
+  /(требу|нужен|нужна|нужны|ищем|ищу)\s+(\S+\s+){0,3}?(работник|сотрудник|персонал|водител|курьер|продавц|охранник)/i,
+  /робота[ -]?вахта/i,
+  /з\.?\s?п\.?\s+\d/i,
+  /(прийом|приём|набір|набор)\s+на\s+роботу/i
+];
+
+function isFleaJobListing(item){
+  if(!item) return false;
+  const text = ((item.title || '') + ' ' + (item.description || '')).toLowerCase();
+  return FLEA_JOB_PATTERNS.some(re => re.test(text));
+}
+
 async function loadFleaMarketData() {
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=111977759';
@@ -959,7 +978,10 @@ async function loadFleaMarketData() {
           const keys = Object.keys(row); let rawPhoto = row['Фото (Тип запитання: Завантаження файлу)'] || row['Фото'] || row['photos'] || row['Photos'] || row[keys[5]] || ''; let photoUrls = String(rawPhoto).split(',').map(p => p.trim()).filter(p => p);
           return { title: row['Назва товару (Коротка відповідь)'] || row['Назва товару'] || row['Title'] || row['title'] || row[keys[1]] || 'Без назви', price: row['Ціна (Коротка відповідь)'] || row['Ціна'] || row['Price'] || row['price'] || row[keys[2]] || '', description: row['Опис (Абзац)'] || row['Опис'] || row['Description'] || row[keys[3]] || 'Без опису', phone: row['Телефон (Коротка відповідь)'] || row['Телефон'] || row['Phone'] || row[keys[4]] || 'Не вказано', photos: photoUrls, category: row['Категорія товару'] || row['Категорія'] || row['Category'] || row['category'] || row[keys[6]] || 'Різне', condition: row['Стан товару'] || row['Стан'] || row['Condition'] || row['condition'] || row[keys[7]] || 'Не вказано', location: row['Місто/Область, де знаходиться товар'] || row['Місто'] || row['Location'] || row['location'] || row[keys[8]] || 'Вільногірськ', vip: row['VIP'] || row['vip'] || row['Vip'] || '' };
         });
-        const localItems = approvedItems.filter(item => isVilnohirsk(item.location)).reverse(); 
+        const localItems = approvedItems
+          .filter(item => isVilnohirsk(item.location))
+          .filter(item => !isFleaJobListing(item))
+          .reverse();
         markNewItems(localItems, 'flea', true);
         checkNotification('flea', localItems);
         allFleaMarketItems = localItems;
