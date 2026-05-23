@@ -1361,6 +1361,14 @@ async function loadVolunteersData() {
   } catch (e) { container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>'; }
 }
 
+function toggleJobsDrawer(drawerId, btn) {
+  const d = document.getElementById(drawerId);
+  if (!d) return;
+  d.classList.toggle('open');
+  const arr = btn && btn.querySelector ? btn.querySelector('.arr') : null;
+  if (arr) arr.textContent = d.classList.contains('open') ? '▴' : '▾';
+}
+
 function renderJobs(jobs) {
   const container = document.getElementById('jobs-list-content'); if (!container) return;
   if (!jobs || jobs.length === 0) { container.innerHTML = '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
@@ -1432,27 +1440,46 @@ function renderJobs(jobs) {
   }
 
   if (dczJobs.length > 0) {
-      html += `<div style="background: linear-gradient(145deg, rgba(56,189,248,0.08), rgba(0,0,0,0.2)); border: 1px solid rgba(56,189,248,0.3); border-radius: 16px; padding: 14px 12px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.2);">
-        <div style="font-size:11px; color:#38bdf8; text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; letter-spacing: 0.5px;">🏛 Державний центр зайнятості <span style="color: rgba(255,255,255,0.5); font-weight: 600;">(${dczJobs.length})</span></div>
-        <div style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500; margin-bottom: 10px; line-height: 1.4;">Офіційні вакансії з державного центру зайнятості Вільногірська</div>
-        <div class="shops-tile-grid">`;
-      dczJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'd'); });
-      html += `</div></div>`;
+      let cards = '';
+      dczJobs.forEach((job, i) => { cards += createJobCardHtml(job, i, 'd'); });
+      html += `<div style="margin-bottom: 10px;">
+        <button onclick="toggleJobsDrawer('dcz-drawer', this)" style="width:100%; background:rgba(56, 189, 248, 0.06); border:1px solid rgba(56, 189, 248, 0.35); padding:12px 15px; border-radius:12px; color:#38bdf8; font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+          <span>🏛 Державний центр зайнятості (${dczJobs.length})</span>
+          <span class="arr" style="font-size:16px;">▾</span>
+        </button>
+        <div id="dcz-drawer" class="jobs-drawer">
+          <div style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500; padding: 10px 4px 8px; line-height: 1.4;">Офіційні вакансії з державного центру зайнятості Вільногірська</div>
+          <div class="shops-tile-grid" style="padding-bottom:10px;">${cards}</div>
+        </div>
+      </div>`;
   }
 
   if (internetJobs.length > 0) {
-      html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button><div id="workua-drawer" class="workua-drawer"><div class="shops-tile-grid" style="padding-bottom:10px;">`;
-      internetJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'i'); }); 
-      html += `</div></div></div>`;
+      let cards = '';
+      internetJobs.forEach((job, i) => { cards += createJobCardHtml(job, i, 'i'); });
+      html += `<div style="margin-bottom: 10px;">
+        <button onclick="toggleJobsDrawer('workua-drawer', this)" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+          <span>🌐 Вакансії з Work.ua (${internetJobs.length})</span>
+          <span class="arr" style="font-size:16px;">▾</span>
+        </button>
+        <div id="workua-drawer" class="jobs-drawer">
+          <div class="shops-tile-grid" style="padding-bottom:10px; padding-top:10px;">${cards}</div>
+        </div>
+      </div>`;
   }
   if (regularJobs.length > 0) {
-      html += `<div style="background: linear-gradient(145deg, rgba(255,204,0,0.06), rgba(0,0,0,0.2)); border: 1px solid rgba(255,204,0,0.25); border-radius: 16px; padding: 14px 12px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.2);">
-        <div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; letter-spacing: 0.5px;">👥 Від місцевих жителів <span style="color: rgba(255,255,255,0.5); font-weight: 600;">(${regularJobs.length})</span></div>
-        <div style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500; margin-bottom: 10px; line-height: 1.4;">Оголошення, які додали місцеві підприємці та роботодавці</div>
-        <div class="shops-tile-grid">`;
-      // Стабильное перемешивание — не прыгает при автообновлении
-      getStableShuffled(regularJobs, 'jobs').forEach((job, i) => { html += createJobCardHtml(job, i, 'r'); });
-      html += `</div></div>`;
+      let cards = '';
+      getStableShuffled(regularJobs, 'jobs').forEach((job, i) => { cards += createJobCardHtml(job, i, 'r'); });
+      html += `<div style="margin-bottom: 10px;">
+        <button onclick="toggleJobsDrawer('local-drawer', this)" style="width:100%; background:rgba(255, 204, 0, 0.05); border:1px solid rgba(255, 204, 0, 0.3); padding:12px 15px; border-radius:12px; color:var(--highlight-color); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+          <span>👥 Від місцевих жителів (${regularJobs.length})</span>
+          <span class="arr" style="font-size:16px;">▾</span>
+        </button>
+        <div id="local-drawer" class="jobs-drawer">
+          <div style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500; padding: 10px 4px 8px; line-height: 1.4;">Оголошення, які додали місцеві підприємці та роботодавці</div>
+          <div class="shops-tile-grid" style="padding-bottom:10px;">${cards}</div>
+        </div>
+      </div>`;
   }
   container.innerHTML = html;
 }
