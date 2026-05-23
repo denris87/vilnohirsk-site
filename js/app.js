@@ -1276,16 +1276,47 @@ async function loadPhoenixData() {
   }
 }
 
+function updateZsuTabIndicator(activeItems) {
+  const tab = document.querySelector('.tab-alert.volunteers');
+  if (!tab) return;
+  if (!activeItems || activeItems.length === 0) {
+    tab.classList.remove('has-active-collection');
+    tab.style.removeProperty('--collection-progress');
+    const oldBadge = tab.querySelector('.zsu-live-badge');
+    if (oldBadge) oldBadge.remove();
+    return;
+  }
+  // Беремо найбільший % серед активних зборів — щоб вкладка відображала загальний прогрес
+  let bestPercent = 0;
+  activeItems.forEach(item => {
+    const goal = item.goal ? parseInt(String(item.goal).replace(/\D/g, ''), 10) : 0;
+    const collected = item.collected ? parseInt(String(item.collected).replace(/\D/g, ''), 10) : 0;
+    if (goal > 0) {
+      const p = Math.min(Math.round((collected / goal) * 100), 100);
+      if (p > bestPercent) bestPercent = p;
+    }
+  });
+  tab.classList.add('has-active-collection');
+  tab.style.setProperty('--collection-progress', bestPercent + '%');
+  if (!tab.querySelector('.zsu-live-badge')) {
+    const badge = document.createElement('span');
+    badge.className = 'zsu-live-badge';
+    badge.textContent = '🔴 ЗБІР';
+    tab.appendChild(badge);
+  }
+}
+
 async function loadVolunteersData() {
   const container = document.getElementById('volunteers-list-content'); if (!container) return;
   try {
     const data = await fetchCachedJson('https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers', 'volunteers_api', 2);
     let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.volunteers) ? data.volunteers : []);
     const activeItems = itemsArray.filter(item => item && item.active !== false);
-    
+
     markNewItems(activeItems, 'volunteers', false);
     checkNotification('volunteers', activeItems);
-    
+    updateZsuTabIndicator(activeItems);
+
     if (!activeItems || activeItems.length === 0) { container.innerHTML = '<div class="empty-msg">Тимчасово немає активних зборів. Слава Україні! 🇺🇦</div>'; return; }
     let html = '';
     activeItems.forEach((item, i) => {
