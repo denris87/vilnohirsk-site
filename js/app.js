@@ -1284,26 +1284,46 @@ function updateZsuTabIndicator(activeItems) {
     tab.style.removeProperty('--collection-progress');
     const oldBadge = tab.querySelector('.zsu-live-badge');
     if (oldBadge) oldBadge.remove();
+    const oldBar = tab.querySelector('.zsu-progress-bar');
+    if (oldBar) oldBar.remove();
     return;
   }
-  // Беремо найбільший % серед активних зборів — щоб вкладка відображала загальний прогрес
-  let bestPercent = 0;
-  activeItems.forEach(item => {
+  // Збираємо прогрес кожного збору окремо (щоб показати сегменти знизу вкладки)
+  const progresses = activeItems.map(item => {
     const goal = item.goal ? parseInt(String(item.goal).replace(/\D/g, ''), 10) : 0;
     const collected = item.collected ? parseInt(String(item.collected).replace(/\D/g, ''), 10) : 0;
-    if (goal > 0) {
-      const p = Math.min(Math.round((collected / goal) * 100), 100);
-      if (p > bestPercent) bestPercent = p;
-    }
+    return goal > 0 ? Math.min(Math.round((collected / goal) * 100), 100) : 0;
   });
+  const bestPercent = progresses.length ? Math.max.apply(null, progresses) : 0;
+
   tab.classList.add('has-active-collection');
   tab.style.setProperty('--collection-progress', bestPercent + '%');
-  if (!tab.querySelector('.zsu-live-badge')) {
-    const badge = document.createElement('span');
+
+  // Бейдж — показуємо кількість, якщо зборів більше одного
+  const n = activeItems.length;
+  let badge = tab.querySelector('.zsu-live-badge');
+  if (!badge) {
+    badge = document.createElement('span');
     badge.className = 'zsu-live-badge';
-    badge.textContent = '🔴 ЗБІР';
     tab.appendChild(badge);
   }
+  if (n === 1) {
+    badge.textContent = '🔴 ЗБІР';
+  } else {
+    const word = (n >= 2 && n <= 4) ? 'ЗБОРИ' : 'ЗБОРІВ';
+    badge.textContent = `🔴 ${word} × ${n}`;
+  }
+
+  // Сегментована прогрес-смуга під вкладкою (один сегмент на збір)
+  let bar = tab.querySelector('.zsu-progress-bar');
+  if (!bar) {
+    bar = document.createElement('span');
+    bar.className = 'zsu-progress-bar';
+    tab.appendChild(bar);
+  }
+  bar.innerHTML = progresses.map(p =>
+    `<span class="zsu-progress-seg"><span class="zsu-progress-fill" style="width:${p}%"></span></span>`
+  ).join('');
 }
 
 async function loadVolunteersData() {
