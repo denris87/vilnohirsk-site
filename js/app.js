@@ -1424,35 +1424,35 @@ function renderJobs(jobs) {
   }
   
   let html = '';
-  if (vipJobs.length > 0) { 
-      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌟 VIP Вакансії</div>'; 
+  if (vipJobs.length > 0) {
+      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🌟 VIP Вакансії</div>';
       html += '<div class="shops-tile-grid" style="margin-bottom: 15px;">';
-      vipJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'v'); }); 
+      vipJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'v'); });
       html += '</div>';
   }
-  if (vipJobs.length > 0 && (dczJobs.length > 0 || internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
 
   if (dczJobs.length > 0) {
-      html += '<div style="font-size:11px; color:#38bdf8; text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🏛 Державний центр зайнятості <span style="color: rgba(255,255,255,0.5); font-weight: 600;">(${dczJobs.length})</span></div>';
-      html += '<div class="shops-tile-grid" style="margin-bottom: 15px;">';
+      html += `<div style="background: linear-gradient(145deg, rgba(56,189,248,0.08), rgba(0,0,0,0.2)); border: 1px solid rgba(56,189,248,0.3); border-radius: 16px; padding: 14px 12px; margin-bottom: 18px; box-shadow: 0 4px 14px rgba(0,0,0,0.2);">
+        <div style="font-size:11px; color:#38bdf8; text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; letter-spacing: 0.5px;">🏛 Державний центр зайнятості <span style="color: rgba(255,255,255,0.5); font-weight: 600;">(${dczJobs.length})</span></div>
+        <div style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500; margin-bottom: 10px; line-height: 1.4;">Офіційні вакансії з державного центру зайнятості Вільногірська</div>
+        <div class="shops-tile-grid">`;
       dczJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'd'); });
-      html += '</div>';
+      html += `</div></div>`;
   }
-  if (dczJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
 
   if (internetJobs.length > 0) {
       html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button><div id="workua-drawer" class="workua-drawer"><div class="shops-tile-grid" style="padding-bottom:10px;">`;
       internetJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'i'); }); 
       html += `</div></div></div>`;
   }
-  if (internetJobs.length > 0 && regularJobs.length > 0) { html += '<div class="section-divider"></div>'; }
-  
   if (regularJobs.length > 0) {
-      html += '<div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">👥 Від місцевих жителів</div>';
-      html += '<div class="shops-tile-grid">';
+      html += `<div style="background: linear-gradient(145deg, rgba(255,204,0,0.06), rgba(0,0,0,0.2)); border: 1px solid rgba(255,204,0,0.25); border-radius: 16px; padding: 14px 12px; margin-bottom: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.2);">
+        <div style="font-size:11px; color:var(--highlight-color); text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; letter-spacing: 0.5px;">👥 Від місцевих жителів <span style="color: rgba(255,255,255,0.5); font-weight: 600;">(${regularJobs.length})</span></div>
+        <div style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500; margin-bottom: 10px; line-height: 1.4;">Оголошення, які додали місцеві підприємці та роботодавці</div>
+        <div class="shops-tile-grid">`;
       // Стабильное перемешивание — не прыгает при автообновлении
-      getStableShuffled(regularJobs, 'jobs').forEach((job, i) => { html += createJobCardHtml(job, i, 'r'); }); 
-      html += '</div>';
+      getStableShuffled(regularJobs, 'jobs').forEach((job, i) => { html += createJobCardHtml(job, i, 'r'); });
+      html += `</div></div>`;
   }
   container.innerHTML = html;
 }
