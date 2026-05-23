@@ -1369,8 +1369,9 @@ function renderJobs(jobs) {
   const safeJobs = jobs.filter(job => { const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase(); return !stopWords.some(word => textToSearch.includes(word)); });
   
   const vipJobs = safeJobs.filter(j => j.isVip || j.vip).reverse();
+  const dczJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source === 'ДЦЗ');
   const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && (j.source === 'Work.ua' || j.date === 'Work.ua'));
-  const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source !== 'Work.ua' && j.date !== 'Work.ua');
+  const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source !== 'Work.ua' && j.date !== 'Work.ua' && j.source !== 'ДЦЗ');
   
   function createJobCardHtml(job, index, prefix) {
     const isTel = job.url && job.url.startsWith('tel:');
@@ -1429,8 +1430,16 @@ function renderJobs(jobs) {
       vipJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'v'); }); 
       html += '</div>';
   }
-  if (vipJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
-  
+  if (vipJobs.length > 0 && (dczJobs.length > 0 || internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
+
+  if (dczJobs.length > 0) {
+      html += '<div style="font-size:11px; color:#38bdf8; text-transform:uppercase; font-weight:800; margin-bottom:10px; text-align:left; padding-left:5px; letter-spacing: 0.5px;">🏛 Державний центр зайнятості <span style="color: rgba(255,255,255,0.5); font-weight: 600;">(${dczJobs.length})</span></div>';
+      html += '<div class="shops-tile-grid" style="margin-bottom: 15px;">';
+      dczJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'd'); });
+      html += '</div>';
+  }
+  if (dczJobs.length > 0 && (internetJobs.length > 0 || regularJobs.length > 0)) { html += '<div class="section-divider"></div>'; }
+
   if (internetJobs.length > 0) {
       html += `<div style="margin-bottom: 10px;"><button onclick="const d = document.getElementById('workua-drawer'); d.classList.toggle('open'); this.querySelector('.arr').textContent = d.classList.contains('open') ? '▴' : '▾';" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);"><span>🌐 Показати вакансії з Work.ua (${internetJobs.length})</span><span class="arr" style="font-size:16px;">▾</span></button><div id="workua-drawer" class="workua-drawer"><div class="shops-tile-grid" style="padding-bottom:10px;">`;
       internetJobs.forEach((job, i) => { html += createJobCardHtml(job, i, 'i'); }); 
