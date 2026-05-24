@@ -48,6 +48,15 @@ function nl2brWithBold(str) {
     return safe.replace(/\n/g, '<br>');
 }
 
+// Гнучка перевірка VIP-прапорця з таблиці: True для будь-якого непорожнього значення, окрім явних "ні"
+function isVipFlag(s) {
+  if (s === true) return true;
+  if (!s) return false;
+  const v = String(s).trim().toLowerCase();
+  if (v === '' || v === 'ні' || v === 'нi' || v === 'no' || v === 'нет' || v === '0' || v === 'false' || v === '-' || v === '—') return false;
+  return true;
+}
+
 // Красивые тост-уведомления вместо alert()
 function showToast(message, type = 'info') {
     let container = document.getElementById('toast-container');
@@ -747,7 +756,7 @@ function renderShops(shopsData) {
   shopsData.forEach((shop, index) => {
     if(!shop) return;
     const safeName = shop.name != null ? String(shop.name).trim() : ""; const displayName = safeName !== "" ? safeName : "Оголошення " + (index + 1);
-    const detailsId = 'shop-detail-' + index; const isVip = shop.vip === true || shop.vip === 'true'; const vipClass = isVip ? 'vip-tile' : ''; const vipBadge = isVip ? '<div class="vip-badge">VIP</div>' : '';
+    const detailsId = 'shop-detail-' + index; const isVip = isVipFlag(shop.vip); const vipClass = isVip ? 'vip-tile' : ''; const vipBadge = isVip ? '<div class="vip-badge">VIP</div>' : '';
     
     let rawPhoto = Array.isArray(shop.photos) && shop.photos.length > 0 ? shop.photos[0] : (shop.photo || shop.image || '');
     let photoUrl = getDriveImageUrl(rawPhoto);
@@ -777,8 +786,8 @@ async function loadShopsData() {
     checkNotification('shopping', activeShops);
     
     if (!activeShops || activeShops.length === 0) { document.getElementById('shopping-list-content').innerHTML = '<div class="empty-msg">Оголошень поки немає</div>'; return; }
-    const vipShops = activeShops.filter(shop => shop.vip === true || shop.vip === 'true'); 
-    const regularShops = activeShops.filter(shop => shop.vip !== true && shop.vip !== 'true');
+    const vipShops = activeShops.filter(shop => isVipFlag(shop.vip));
+    const regularShops = activeShops.filter(shop => !isVipFlag(shop.vip));
     // Стабильное перемешивание — не прыгает при автообновлении
     renderShops([...vipShops, ...getStableShuffled(regularShops, 'shops')]);
   } catch(e) { document.getElementById('shopping-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження магазинів</div>`; }
@@ -835,7 +844,7 @@ function renderPromosList(items) {
         chevronHtml = `<div class="shop-tile-chevron" style="color: #ff9f43; background: rgba(255,159,67,0.1);">Детальніше ▾</div>`;
     }
     
-    const isVip = item.vip === true || item.vip === 'true';
+    const isVip = isVipFlag(item.vip);
     const tileClass = isVip ? 'shop-tile promo-tile vip-tile' : 'shop-tile promo-tile';
     const badgeHtml = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000; box-shadow: 0 4px 10px rgba(255,204,0,0.4);">VIP АКЦІЯ</div>' : '<div class="vip-badge promo-badge">АКЦІЯ</div>';
     
@@ -913,7 +922,7 @@ async function loadEstateData() {
             const priceMatch = descText.match(/(\d[\d\s.,]{2,})\s*(\$|usd|у\.?о\.?|грн|₴)/i);
             if (priceMatch) cleanPrice = priceMatch[1].replace(/[\s,]/g, '').trim();
           }
-          return { dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда', propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира', rooms: row["Кімнат"] || row[keys[4]] || '-', price: cleanPrice || 'Договірна', description: row["Опис"] || row[keys[6]] || 'Без опису', phone: row["Телефон"] || row[keys[7]] || 'Не вказано', photos: photoUrls, isVip: (v === 'так' || v === '+' || v === 'true') };
+          return { dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда', propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира', rooms: row["Кімнат"] || row[keys[4]] || '-', price: cleanPrice || 'Договірна', description: row["Опис"] || row[keys[6]] || 'Без опису', phone: row["Телефон"] || row[keys[7]] || 'Не вказано', photos: photoUrls, isVip: isVipFlag(v) };
         });
         const localItems = approvedItems.reverse();
         markNewItems(localItems, 'estate', true);
@@ -931,7 +940,7 @@ function renderFleaMarketList(items, hasMore = false) {
   const rulesHtml = `<div style="margin-bottom: 12px; background: linear-gradient(145deg, rgba(255, 77, 77, 0.05), rgba(0,0,0,0.2)); border: 1px solid rgba(255, 77, 77, 0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"><div onclick="const content = this.nextElementSibling; const icon = this.querySelector('.rules-icon'); if(content.style.maxHeight === '0px' || !content.style.maxHeight){ content.style.maxHeight = '400px'; content.style.padding = '0 15px 15px 15px'; icon.style.transform = 'rotate(180deg)'; } else { content.style.maxHeight = '0px'; content.style.padding = '0 15px 0 15px'; icon.style.transform = 'rotate(0deg)'; }" style="padding: 12px 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 12px; color: #ff6b6b;"><span style="display: flex; align-items: center; gap: 8px;"><span style="font-size: 16px;">⚠️</span> Що заборонено публікувати?</span><span class="rules-icon" style="font-size: 14px; transition: transform 0.3s;">▼</span></div><div style="max-height: 0px; padding: 0 15px; overflow: hidden; transition: all 0.3s ease; font-size: 11px; color: rgba(255,255,255,0.85); line-height: 1.5;"><div style="border-top: 1px dashed rgba(255, 77, 77, 0.3); padding-top: 10px;"><ul style="margin: 5px 0 10px 0; padding-left: 20px;"><li>Будь-які <b>товари військового призначення</b> (військова форма, амуніція, бронежилети, зброя, тепловізори тощо).</li><li><b>Алкогольні напої</b> та <b>тютюнові вироби</b> (включаючи електронні сигарети, вейпи, рідини).</li><li>Продаж <b>живих тварин</b>.</li><li>Товари, продаж яких порушує <b>законодавство України</b> (ліки, наркотичні речовини, піротехніка, крадені речі, підроблені документи, спецзасоби).</li></ul><div style="color: #ff4d4d; font-weight: 800; text-align: center; margin-bottom: 5px; text-transform: uppercase;">❌ Такі оголошення будуть видалені!</div></div></div></div>`;
   
   if (!items || !items.length) { cont.innerHTML = rulesHtml + '<div class="empty-msg">Оголошень у цій категорії немає</div>'; return; }
-  const sortedItems = [...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return v === 'так' || v === '+' || v === 'true'; }).reverse(), ...items.filter(item => { const v = String(item.vip || '').trim().toLowerCase(); return !(v === 'так' || v === '+' || v === 'true'); })];
+  const sortedItems = [...items.filter(item => isVipFlag(item.vip)).reverse(), ...items.filter(item => !isVipFlag(item.vip))];
   let html = rulesHtml + '<div class="shops-tile-grid">';
   sortedItems.forEach((item, i) => {
     const id = 'flea-detail-' + i; 
@@ -939,7 +948,7 @@ function renderFleaMarketList(items, hasMore = false) {
     const thumb = thumbUrl ? `<img src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">📦</span>`;
     let priceText = item.price ? String(item.price).trim() : 'Ціна договірна'; if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
     let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
-    const v = String(item.vip || '').trim().toLowerCase(); const isVip = v === 'так' || v === '+' || v === 'true';
+    const isVip = isVipFlag(item.vip);
     
     const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '✨', label: 'Стан', value: escapeHTML(item.condition)}, {icon: '📝', label: 'Опис', value: nl2br(item.description)}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
     
@@ -1555,7 +1564,7 @@ async function loadJobsData() {
       header: true, skipEmptyLines: true,
       complete: function(results) {
         const userJobs = results.data.filter(row => { const keys = Object.keys(row); let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]]; return status && String(status).trim().toLowerCase() === 'одобрено'; }).map(row => {
-          const keys = Object.keys(row); const phone = row['Телефон'] || row[keys[6]] || ''; const gender = row['Стать'] || row['gender'] || row[keys[7]] || ''; const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || ''; const vipStatus = row['VIP'] || row[keys[9]] || ''; const isVip = vipStatus.trim().toLowerCase() === 'так' || vipStatus.trim() === '+';
+          const keys = Object.keys(row); const phone = row['Телефон'] || row[keys[6]] || ''; const gender = row['Стать'] || row['gender'] || row[keys[7]] || ''; const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || ''; const vipStatus = row['VIP'] || row[keys[9]] || ''; const isVip = isVipFlag(vipStatus);
           return { title: row['Посада'] || row[keys[2]] || 'Без назви', salary: row['Зарплата'] || row[keys[3]] || '-', company: row['Компанія'] || row[keys[4]] || 'Не вказано', description: row['Опис'] || row[keys[5]] || '', date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно', phone: phone, gender: gender, employment: employment, url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#', isVip: isVip, source: 'User' };
         });
         allJobs = allJobs.concat(userJobs); 
