@@ -1533,7 +1533,7 @@ function renderJobs(jobs) {
       getStableShuffled(regularJobs, 'jobs').forEach((job, i) => { cards += createJobCardHtml(job, i, 'r'); });
       html += `<div style="margin-bottom: 10px;">
         <button onclick="toggleJobsDrawer('local-drawer', this)" style="width:100%; background:rgba(255, 204, 0, 0.05); border:1px solid rgba(255, 204, 0, 0.3); padding:12px 15px; border-radius:12px; color:var(--highlight-color); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-          <span>👥 Від місцевих жителів (${regularJobs.length})</span>
+          <span>👥 Від місцевих підприємців (${regularJobs.length})</span>
           <span class="arr" style="font-size:16px;">▾</span>
         </button>
         <div id="local-drawer" class="jobs-drawer">
