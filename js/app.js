@@ -439,13 +439,24 @@ function closeModalForm(event, modalId) {
 
 function closeAllShopDropdowns() { document.querySelectorAll('.shop-details-dropdown.open').forEach(el => { el.classList.remove('open'); if (el.parentElement) el.parentElement.classList.remove('tile-active'); }); document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; }); }
 
+function closeAllJobsDrawers() {
+  document.querySelectorAll('.jobs-drawer.open').forEach(d => {
+    d.classList.remove('open');
+    const btn = d.previousElementSibling;
+    if (btn && btn.querySelector) {
+      const arr = btn.querySelector('.arr');
+      if (arr) arr.textContent = '▾';
+    }
+  });
+}
+
 document.addEventListener('click', function(e) {
   if (e.target.closest('.image-modal') || e.target.closest('.custom-modal-box')) return;
   if (!e.target.closest('.alert-group')) { const alertDrawer = document.getElementById('alert-drawer'); if (alertDrawer) { alertDrawer.classList.remove('open'); document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active')); } }
   if (!e.target.closest('.train') && !e.target.closest('.details') && !e.target.closest('.pb-category')) { document.querySelectorAll('.details.open').forEach(el => el.classList.remove('open')); document.querySelectorAll('.pb-category.open').forEach(el => el.classList.remove('open')); }
   if (!e.target.closest('.shop-tile')) { closeAllShopDropdowns(); }
   if (!e.target.closest('.schedule-group')) { const transportWidget = document.getElementById('main-list-widget'); if (transportWidget) transportWidget.classList.remove('open'); document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active')); }
-  if (!e.target.closest('.market-group')) { const marketWidget = document.getElementById('market-drawer'); if (marketWidget) marketWidget.classList.remove('open'); document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active')); }
+  if (!e.target.closest('.market-group')) { const marketWidget = document.getElementById('market-drawer'); if (marketWidget) marketWidget.classList.remove('open'); document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active')); closeAllJobsDrawers(); }
 });
 
 function recalcDropdownHeight(imgEl) {
@@ -455,6 +466,7 @@ function recalcDropdownHeight(imgEl) {
 
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
+  closeAllJobsDrawers();
   const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
