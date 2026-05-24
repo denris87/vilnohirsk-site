@@ -1379,6 +1379,18 @@ function parseSalaryNum(s) {
   return m ? parseInt(m[0], 10) : 0;
 }
 
+function parseDczDate(s) {
+  if (!s) return 0;
+  // Очікуваний формат YAML: "10.05.26" або "10.05.2026", але страхуємось будь-якими розділювачами
+  const m = String(s).match(/(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})/);
+  if (!m) return 0;
+  const day = parseInt(m[1], 10);
+  const month = parseInt(m[2], 10) - 1;
+  let year = parseInt(m[3], 10);
+  if (year < 100) year += 2000;
+  return new Date(year, month, day).getTime();
+}
+
 function setDczSort(mode, ev) {
   if (ev && ev.stopPropagation) ev.stopPropagation();
   dczSortMode = mode;
@@ -1390,6 +1402,7 @@ function renderDczDrawerContent() {
   let filtered = allDczJobs.slice();
   if (dczSortMode === 'salary_asc')  filtered.sort((a, b) => parseSalaryNum(a.salary) - parseSalaryNum(b.salary));
   if (dczSortMode === 'salary_desc') filtered.sort((a, b) => parseSalaryNum(b.salary) - parseSalaryNum(a.salary));
+  if (dczSortMode === 'date')        filtered.sort((a, b) => parseDczDate(b.date) - parseDczDate(a.date));
 
   let cards = '';
   filtered.forEach((job, i) => { cards += createJobCardHtml(job, i, 'd'); });
