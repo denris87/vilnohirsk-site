@@ -1440,6 +1440,56 @@ function renderDczDrawerContent() {
   return subtitle + sortBar + empBar + info + grid;
 }
 
+function createJobCardHtml(job, index, prefix) {
+  const isTel = job.url && job.url.startsWith('tel:');
+  let displayPhone = job.phone;
+  if (displayPhone) { let cleanPhone = displayPhone.replace(/\D/g, ''); if (cleanPhone.length >= 10) displayPhone = '0' + cleanPhone.slice(-9); else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone; }
+  const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Відгукнутися 🔗');
+  const targetAttr = isTel ? '_self' : '_blank';
+  let displaySalary = job.salary; if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) { displaySalary = displaySalary.trim() + ' грн'; }
+
+  const isVip = job.isVip || job.vip;
+  const vipBadge = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000;">VIP</div>' : '';
+  const employment = job.employment || 'Не вказано';
+  const safeDesc = job.description ? nl2br(job.description) : 'Без опису';
+  const id = `job-detail-${prefix}-${index}`;
+
+  const callBtnHtml = `<a href="${escapeHTML(job.url)}" target="${targetAttr}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 5px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${escapeHTML(btnText)}</a>`;
+
+  const dropdownHtml = `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
+      <div class="shop-inner-list" style="display: block; padding: 12px; text-align: left;">
+          <div style="font-size: 11px; font-weight: 800; color: #ffcc00; margin-bottom: 6px;">📝 Повний опис:</div>
+          <div style="font-size: 11px; color: rgba(255,255,255,0.9); line-height: 1.4; word-break: break-word; margin-bottom: 12px;">
+              ${safeDesc}
+          </div>
+          ${callBtnHtml}
+      </div>
+  </div>`;
+
+  let tileStyle = "justify-content: flex-start; text-align: left; min-width: 0; box-sizing: border-box;";
+  if (isVip) {
+      tileStyle += " background: linear-gradient(135deg, rgba(255, 170, 0, 0.25), rgba(50, 15, 0, 0.9)) !important; border: 1px solid rgba(255, 204, 0, 0.4) !important; box-shadow: 0 10px 30px rgba(255, 170, 0, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.15) !important;";
+  }
+
+  const dot = job.isNewItem ? NEW_BADGE_HTML : '';
+
+  return `<div class="shop-tile" style="${tileStyle}" onclick="toggleShop('${id}', this)">
+      ${vipBadge}
+      <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 6px; margin-top: 4px;">${escapeHTML(job.title)}${dot}</div>
+      <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 4px;"><b>Роботодавець:</b> ${escapeHTML(job.company) || 'Не вказано'}</div>
+      <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 8px;"><b>Зайнятість:</b> ${escapeHTML(employment)}</div>
+
+      <div class="card-price" style="font-size: 16px; margin-bottom: 8px; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2;">${escapeHTML(displaySalary) || '-'}</div>
+
+      <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 8px;">Дата: ${escapeHTML(job.date)}</div>
+
+      <div style="margin-top: auto; display: flex; justify-content: flex-end; width: 100%;">
+          <div class="shop-tile-chevron" style="background: rgba(0, 255, 156, 0.15); color: var(--time-green); padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; white-space: nowrap; display: flex; align-items: center; gap: 4px; box-shadow: none; text-transform: uppercase;">Деталі <span>▾</span></div>
+      </div>
+      ${dropdownHtml}
+  </div>`;
+}
+
 function renderJobs(jobs) {
   const container = document.getElementById('jobs-list-content'); if (!container) return;
   if (!jobs || jobs.length === 0) { container.innerHTML = '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
@@ -1451,56 +1501,6 @@ function renderJobs(jobs) {
   const dczJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source === 'ДЦЗ');
   const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && (j.source === 'Work.ua' || j.date === 'Work.ua'));
   const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source !== 'Work.ua' && j.date !== 'Work.ua' && j.source !== 'ДЦЗ');
-  
-  function createJobCardHtml(job, index, prefix) {
-    const isTel = job.url && job.url.startsWith('tel:');
-    let displayPhone = job.phone;
-    if (displayPhone) { let cleanPhone = displayPhone.replace(/\D/g, ''); if (cleanPhone.length >= 10) displayPhone = '0' + cleanPhone.slice(-9); else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone; }
-    const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Відгукнутися 🔗');
-    const targetAttr = isTel ? '_self' : '_blank'; 
-    let displaySalary = job.salary; if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) { displaySalary = displaySalary.trim() + ' грн'; }
-    
-    const isVip = job.isVip || job.vip; 
-    const vipBadge = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000;">VIP</div>' : ''; 
-    const employment = job.employment || 'Не вказано'; 
-    const safeDesc = job.description ? nl2br(job.description) : 'Без опису';
-    const id = `job-detail-${prefix}-${index}`;
-
-    const callBtnHtml = `<a href="${escapeHTML(job.url)}" target="${targetAttr}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 5px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${escapeHTML(btnText)}</a>`;
-
-    const dropdownHtml = `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
-        <div class="shop-inner-list" style="display: block; padding: 12px; text-align: left;">
-            <div style="font-size: 11px; font-weight: 800; color: #ffcc00; margin-bottom: 6px;">📝 Повний опис:</div>
-            <div style="font-size: 11px; color: rgba(255,255,255,0.9); line-height: 1.4; word-break: break-word; margin-bottom: 12px;">
-                ${safeDesc}
-            </div>
-            ${callBtnHtml}
-        </div>
-    </div>`;
-
-    let tileStyle = "justify-content: flex-start; text-align: left; min-width: 0; box-sizing: border-box;";
-    if (isVip) {
-        tileStyle += " background: linear-gradient(135deg, rgba(255, 170, 0, 0.25), rgba(50, 15, 0, 0.9)) !important; border: 1px solid rgba(255, 204, 0, 0.4) !important; box-shadow: 0 10px 30px rgba(255, 170, 0, 0.25), inset 0 1px 2px rgba(255, 255, 255, 0.15) !important;";
-    }
-
-    const dot = job.isNewItem ? NEW_BADGE_HTML : '';
-
-    return `<div class="shop-tile" style="${tileStyle}" onclick="toggleShop('${id}', this)">
-        ${vipBadge}
-        <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 6px; margin-top: 4px;">${escapeHTML(job.title)}${dot}</div>
-        <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 4px;"><b>Роботодавець:</b> ${escapeHTML(job.company) || 'Не вказано'}</div>
-        <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 8px;"><b>Зайнятість:</b> ${escapeHTML(employment)}</div>
-        
-        <div class="card-price" style="font-size: 16px; margin-bottom: 8px; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2;">${escapeHTML(displaySalary) || '-'}</div>
-        
-        <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 8px;">Дата: ${escapeHTML(job.date)}</div>
-        
-        <div style="margin-top: auto; display: flex; justify-content: flex-end; width: 100%;">
-            <div class="shop-tile-chevron" style="background: rgba(0, 255, 156, 0.15); color: var(--time-green); padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; white-space: nowrap; display: flex; align-items: center; gap: 4px; box-shadow: none; text-transform: uppercase;">Деталі <span>▾</span></div>
-        </div>
-        ${dropdownHtml}
-    </div>`;
-  }
   
   let html = '';
   if (vipJobs.length > 0) {
