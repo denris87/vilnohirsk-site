@@ -1369,9 +1369,8 @@ function toggleJobsDrawer(drawerId, btn) {
   if (arr) arr.textContent = d.classList.contains('open') ? '▴' : '▾';
 }
 
-// === Стан фільтрів/сортування для ДЦЗ-секції ===
+// === Стан сортування для ДЦЗ-секції ===
 let dczSortMode = 'date'; // 'date' | 'salary_asc' | 'salary_desc'
-let dczEmployerFilter = '';
 let allDczJobs = [];
 
 function parseSalaryNum(s) {
@@ -1380,28 +1379,15 @@ function parseSalaryNum(s) {
   return m ? parseInt(m[0], 10) : 0;
 }
 
-function escapeJsAttr(s) {
-  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-}
-
-function setDczSort(mode) {
+function setDczSort(mode, ev) {
+  if (ev && ev.stopPropagation) ev.stopPropagation();
   dczSortMode = mode;
   const d = document.getElementById('dcz-drawer');
   if (d) d.innerHTML = renderDczDrawerContent();
 }
 
-function setDczEmployer(name) {
-  dczEmployerFilter = name || '';
-  const d = document.getElementById('dcz-drawer');
-  if (d) d.innerHTML = renderDczDrawerContent();
-}
-
 function renderDczDrawerContent() {
-  const employers = Array.from(new Set(allDczJobs.map(j => j.company).filter(Boolean)));
-  if (dczEmployerFilter && !employers.includes(dczEmployerFilter)) dczEmployerFilter = '';
-
   let filtered = allDczJobs.slice();
-  if (dczEmployerFilter) filtered = filtered.filter(j => j.company === dczEmployerFilter);
   if (dczSortMode === 'salary_asc')  filtered.sort((a, b) => parseSalaryNum(a.salary) - parseSalaryNum(b.salary));
   if (dczSortMode === 'salary_desc') filtered.sort((a, b) => parseSalaryNum(b.salary) - parseSalaryNum(a.salary));
 
@@ -1410,34 +1396,17 @@ function renderDczDrawerContent() {
 
   const subtitle = '<div style="font-size: 10px; color: rgba(255,255,255,0.5); padding: 10px 4px 6px; line-height: 1.4;">Офіційні вакансії з державного центру зайнятості Вільногірська</div>';
 
-  const sortBar = `<div class="flea-categories-wrapper" style="padding: 2px 4px 6px;">
-    <div class="flea-category-tag${dczSortMode === 'date' ? ' active' : ''}" onclick="setDczSort('date')">📅 Спочатку нові</div>
-    <div class="flea-category-tag${dczSortMode === 'salary_asc' ? ' active' : ''}" onclick="setDczSort('salary_asc')">💵 Зарплата ↑</div>
-    <div class="flea-category-tag${dczSortMode === 'salary_desc' ? ' active' : ''}" onclick="setDczSort('salary_desc')">💵 Зарплата ↓</div>
+  const sortBar = `<div class="flea-categories-wrapper" style="padding: 2px 4px 8px;">
+    <div class="flea-category-tag${dczSortMode === 'date' ? ' active' : ''}" onclick="setDczSort('date', event)">📅 Спочатку нові</div>
+    <div class="flea-category-tag${dczSortMode === 'salary_asc' ? ' active' : ''}" onclick="setDczSort('salary_asc', event)">💵 Зарплата ↑</div>
+    <div class="flea-category-tag${dczSortMode === 'salary_desc' ? ' active' : ''}" onclick="setDczSort('salary_desc', event)">💵 Зарплата ↓</div>
   </div>`;
-
-  let empBar = '';
-  if (employers.length > 1) {
-    const empTags = employers.map(e =>
-      `<div class="flea-category-tag${dczEmployerFilter === e ? ' active' : ''}" onclick="setDczEmployer('${escapeJsAttr(e)}')">${escapeHTML(e)}</div>`
-    ).join('');
-    empBar = `<div style="font-size: 9px; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 4px 2px; font-weight: 700;">🏢 Роботодавець:</div>
-      <div class="flea-categories-wrapper" style="padding: 2px 4px 8px;">
-        <div class="flea-category-tag${dczEmployerFilter === '' ? ' active' : ''}" onclick="setDczEmployer('')">Усі</div>
-        ${empTags}
-      </div>`;
-  }
-
-  let info = '';
-  if (dczEmployerFilter || dczSortMode !== 'date') {
-    info = `<div style="font-size: 10px; color: rgba(255,255,255,0.55); padding: 4px 6px 6px;">Знайдено: <b style="color:#38bdf8;">${filtered.length}</b> із ${allDczJobs.length}</div>`;
-  }
 
   const grid = filtered.length > 0
     ? `<div class="shops-tile-grid" style="padding-bottom:10px;">${cards}</div>`
-    : '<div class="empty-msg" style="padding: 20px;">Немає вакансій за обраним фільтром</div>';
+    : '<div class="empty-msg" style="padding: 20px;">Немає вакансій</div>';
 
-  return subtitle + sortBar + empBar + info + grid;
+  return subtitle + sortBar + grid;
 }
 
 function createJobCardHtml(job, index, prefix) {
