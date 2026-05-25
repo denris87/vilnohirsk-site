@@ -927,6 +927,9 @@ async function loadEstateData() {
         const localItems = approvedItems.reverse();
         markNewItems(localItems, 'estate', true);
         checkNotification('estate', localItems);
+        const rentCount = localItems.filter(i => i.dealType && i.dealType.toLowerCase().includes('оренд')).length;
+        const saleCount = localItems.filter(i => i.dealType && i.dealType.toLowerCase().includes('продаж')).length;
+        updateEstateTabBadge(rentCount, saleCount, localItems.length);
         allEstateItems = localItems;
         const activeTag = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
       }
@@ -1005,6 +1008,9 @@ async function loadFleaMarketData() {
           .reverse();
         markNewItems(localItems, 'flea', true);
         checkNotification('flea', localItems);
+        const newCount = localItems.filter(i => i.condition && i.condition.toLowerCase().includes('нов')).length;
+        const usedCount = localItems.filter(i => i.condition && (i.condition.toLowerCase().includes('вжив') || i.condition.toLowerCase().includes('б/у'))).length;
+        updateFleaTabBadge(newCount, usedCount, localItems.length);
         allFleaMarketItems = localItems;
         const activeTag = document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
       }
@@ -1206,14 +1212,54 @@ function updateBlaBlaTabBadge(driversCount, passengersCount) {
   badge.className = 'blabla-live-badge';
   let inner = '<span class="bb-dot"></span>';
   if (driversCount > 0 && passengersCount > 0) {
-    inner += `🚘 ${driversCount} · 🙋 ${passengersCount}`;
+    inner += `🚘${driversCount}·🙋${passengersCount}`;
   } else if (driversCount > 0) {
-    inner += `🚘 ${driversCount} ${driversCount === 1 ? 'водій' : 'водіїв'}`;
+    inner += `🚘 ${driversCount}`;
   } else {
-    inner += `🙋 ${passengersCount} ${passengersCount === 1 ? 'пасажир' : 'пасажирів'}`;
+    inner += `🙋 ${passengersCount}`;
   }
   badge.innerHTML = inner;
   badge.title = `Активних поїздок: ${total}`;
+  tab.appendChild(badge);
+}
+
+function updateEstateTabBadge(rentCount, saleCount, total) {
+  const dot = document.getElementById('dot-estate');
+  if (!dot || !dot.parentElement) return;
+  const tab = dot.parentElement;
+  tab.style.position = 'relative';
+  const old = tab.querySelector('.estate-live-badge');
+  if (old) old.remove();
+  if (!total || total === 0) return;
+  const badge = document.createElement('span');
+  badge.className = 'estate-live-badge';
+  let inner = '<span class="ef-dot"></span>';
+  if (rentCount > 0 && saleCount > 0) inner += `🔑${rentCount}·💰${saleCount}`;
+  else if (rentCount > 0 && saleCount === 0 && rentCount === total) inner += `🔑 ${rentCount}`;
+  else if (saleCount > 0 && rentCount === 0 && saleCount === total) inner += `💰 ${saleCount}`;
+  else inner += `🏠 ${total}`;
+  badge.innerHTML = inner;
+  badge.title = `Активних оголошень: ${total}`;
+  tab.appendChild(badge);
+}
+
+function updateFleaTabBadge(newCount, usedCount, total) {
+  const dot = document.getElementById('dot-flea');
+  if (!dot || !dot.parentElement) return;
+  const tab = dot.parentElement;
+  tab.style.position = 'relative';
+  const old = tab.querySelector('.flea-live-badge');
+  if (old) old.remove();
+  if (!total || total === 0) return;
+  const badge = document.createElement('span');
+  badge.className = 'flea-live-badge';
+  let inner = '<span class="ef-dot"></span>';
+  if (newCount > 0 && usedCount > 0) inner += `✨${newCount}·🔧${usedCount}`;
+  else if (newCount > 0 && usedCount === 0 && newCount === total) inner += `✨ ${newCount}`;
+  else if (usedCount > 0 && newCount === 0 && usedCount === total) inner += `🔧 ${usedCount}`;
+  else inner += `📦 ${total}`;
+  badge.innerHTML = inner;
+  badge.title = `Активних оголошень: ${total}`;
   tab.appendChild(badge);
 }
 
@@ -1230,11 +1276,11 @@ function updateLostTabBadge(foundCount, lostCount) {
   badge.className = 'lost-live-badge';
   let inner = '<span class="lf-dot"></span>';
   if (foundCount > 0 && lostCount > 0) {
-    inner += `🔍 ${foundCount} · ❗ ${lostCount}`;
+    inner += `🔍${foundCount}·❗${lostCount}`;
   } else if (foundCount > 0) {
-    inner += `🔍 ${foundCount} ${foundCount === 1 ? 'знахідка' : 'знахідок'}`;
+    inner += `🔍 ${foundCount}`;
   } else {
-    inner += `❗ ${lostCount} ${lostCount === 1 ? 'втрата' : 'втрат'}`;
+    inner += `❗ ${lostCount}`;
   }
   badge.innerHTML = inner;
   badge.title = `Активних оголошень: ${total} (знайдено: ${foundCount}, втрачено: ${lostCount})`;
