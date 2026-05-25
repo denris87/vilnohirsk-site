@@ -1190,14 +1190,49 @@ async function submitBlaBlaForm(event) {
   } catch (error) { showToast('❌ Помилка при відправці: ' + error.message, 'error'); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
 }
 
+function updateBlaBlaTabBadge(driversCount, passengersCount) {
+  const dot = document.getElementById('dot-blablacar');
+  if (!dot || !dot.parentElement) return;
+  const tab = dot.parentElement;
+  tab.style.position = 'relative';
+  const old = tab.querySelector('.blabla-live-badge');
+  if (old) old.remove();
+  const total = driversCount + passengersCount;
+  if (total === 0) return;
+  const badge = document.createElement('span');
+  badge.className = 'blabla-live-badge';
+  let inner = '<span class="bb-dot"></span>';
+  if (driversCount > 0 && passengersCount > 0) {
+    inner += `🚘 ${driversCount} · 🙋 ${passengersCount}`;
+  } else if (driversCount > 0) {
+    inner += `🚘 ${driversCount} ${driversCount === 1 ? 'водій' : 'водіїв'}`;
+  } else {
+    inner += `🙋 ${passengersCount} ${passengersCount === 1 ? 'пасажир' : 'пасажирів'}`;
+  }
+  badge.innerHTML = inner;
+  badge.title = `Активних поїздок: ${total}`;
+  tab.appendChild(badge);
+}
+
+function updateBlaBlaToggleCounts(driversCount, passengersCount) {
+  const btnD = document.getElementById('btn-show-drivers');
+  const btnP = document.getElementById('btn-show-passengers');
+  const dCls = driversCount === 0 ? 'blabla-count zero' : 'blabla-count';
+  const pCls = passengersCount === 0 ? 'blabla-count zero' : 'blabla-count';
+  if (btnD) btnD.innerHTML = `🚘 Пропозиції водіїв <span class="${dCls}">${driversCount}</span>`;
+  if (btnP) btnP.innerHTML = `🙋‍♂️ Запити пасажирів <span class="${pCls}">${passengersCount}</span>`;
+}
+
 async function loadBlaBlaCarData() {
   try {
     const d = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 2);
     markNewItems(d, 'blablacar', false);
     checkNotification('blablacar', d);
-    
+
     const dr = d.filter(x => x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to))).reverse();
     const ps = d.filter(x => x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to))).reverse();
+    updateBlaBlaTabBadge(dr.length, ps.length);
+    updateBlaBlaToggleCounts(dr.length, ps.length);
     
     let htmlD = dr.length ? dr.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b>${x.isNewItem ? NEW_BADGE_HTML : ''}</div><div class="blabla-info-row"><span>💺 Місць: <b>${escapeHTML(x.seats)}</b></span><span>💵 <b>${x.price > 0 ? escapeHTML(x.price) + ' грн' : 'Договірна'}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone.replace(/[^0-9+]/g, '')}" class="blabla-phone">📞 ${escapeHTML(x.phone)}</a></div></div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
     let htmlP = ps.length ? ps.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b>${x.isNewItem ? NEW_BADGE_HTML : ''}</div><div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${escapeHTML(x.seats)}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone.replace(/[^0-9+]/g, '')}" class="blabla-phone">📞 ${escapeHTML(x.phone)}</a></div></div>`).join('') : '<div class="empty-msg">Запитів немає</div>';
