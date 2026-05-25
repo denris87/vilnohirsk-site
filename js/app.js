@@ -1024,10 +1024,13 @@ async function loadLostFoundData() {
           let rawPhoto = getValue(row, ['фото', 'photo', 'photos', 'світлина']); let photoUrls = rawPhoto.split(',').map(p => p.trim()).filter(p => p);
           return { title: getValue(row, ['назва', 'title', 'речі']) || 'Без назви', type: getValue(row, ['що сталося', 'type', 'тип']) || 'Знайдено', description: getValue(row, ['опис', 'обставини', 'desc']) || 'Без опису', phone: getValue(row, ['телефон', 'phone', 'контакт']) || 'Не вказано', photos: photoUrls, category: getValue(row, ['категорія', 'category']) || 'Інше', location: getValue(row, ['локація', 'місто', 'location', 'адреса']) || 'Вільногірськ' };
         });
-        const localItems = approvedItems.reverse(); 
+        const localItems = approvedItems.reverse();
         markNewItems(localItems, 'lost', true);
         checkNotification('lost', localItems);
-        const cont = document.getElementById('lost-found-list-content'); 
+        const foundCount = localItems.filter(i => i.type && i.type.toLowerCase().includes('знайд')).length;
+        const lostCount = localItems.length - foundCount;
+        updateLostTabBadge(foundCount, lostCount);
+        const cont = document.getElementById('lost-found-list-content');
         if (!localItems.length) { cont.innerHTML = '<div class="empty-msg">Оголошень немає</div>'; return; }
         let html = '<div class="shops-tile-grid">';
         localItems.forEach((item, i) => {
@@ -1211,6 +1214,30 @@ function updateBlaBlaTabBadge(driversCount, passengersCount) {
   }
   badge.innerHTML = inner;
   badge.title = `Активних поїздок: ${total}`;
+  tab.appendChild(badge);
+}
+
+function updateLostTabBadge(foundCount, lostCount) {
+  const dot = document.getElementById('dot-lost');
+  if (!dot || !dot.parentElement) return;
+  const tab = dot.parentElement;
+  tab.style.position = 'relative';
+  const old = tab.querySelector('.lost-live-badge');
+  if (old) old.remove();
+  const total = foundCount + lostCount;
+  if (total === 0) return;
+  const badge = document.createElement('span');
+  badge.className = 'lost-live-badge';
+  let inner = '<span class="lf-dot"></span>';
+  if (foundCount > 0 && lostCount > 0) {
+    inner += `🔍 ${foundCount} · ❗ ${lostCount}`;
+  } else if (foundCount > 0) {
+    inner += `🔍 ${foundCount} ${foundCount === 1 ? 'знахідка' : 'знахідок'}`;
+  } else {
+    inner += `❗ ${lostCount} ${lostCount === 1 ? 'втрата' : 'втрат'}`;
+  }
+  badge.innerHTML = inner;
+  badge.title = `Активних оголошень: ${total} (знайдено: ${foundCount}, втрачено: ${lostCount})`;
   tab.appendChild(badge);
 }
 
