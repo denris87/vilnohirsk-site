@@ -15,8 +15,24 @@ window.addEventListener('unhandledrejection', function(e) {
 console.error("Помилка завантаження даних:", e.reason);
 e.preventDefault();
 });
+
+// Блокування pinch-zoom на iOS (де user-scalable=no ігнорується), окрім модалки галереї фото
+['gesturestart','gesturechange','gestureend'].forEach(evt => {
+  document.addEventListener(evt, function(e){
+    if (e.target && e.target.closest && e.target.closest('.image-modal')) return;
+    e.preventDefault();
+  }, { passive: false });
+});
+// Блокуємо double-tap zoom на iOS
+let __lastTouchEnd = 0;
+document.addEventListener('touchend', function(e){
+  if (e.target && e.target.closest && e.target.closest('.image-modal')) return;
+  const now = Date.now();
+  if (now - __lastTouchEnd <= 350) e.preventDefault();
+  __lastTouchEnd = now;
+}, { passive: false });
 </script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta property="og:title" content="Smart Вільногірськ | Усе місто в одному додатку">
 <meta property="og:description" content="Розклад, барахолка, робота, афіші, довідник та важливі новини міста. Завжди під рукою без зайвого!">
 <meta property="og:image" content="https://vilnohirsk.online/IMG_5193.JPG">
