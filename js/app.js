@@ -929,7 +929,7 @@ async function loadEstateData() {
         checkNotification('estate', localItems);
         const rentCount = localItems.filter(i => i.dealType && i.dealType.toLowerCase().includes('оренд')).length;
         const saleCount = localItems.filter(i => i.dealType && i.dealType.toLowerCase().includes('продаж')).length;
-        updateEstateTabBadge(rentCount, saleCount);
+        updateEstateTabBadge(rentCount, saleCount, localItems.length);
         allEstateItems = localItems;
         const activeTag = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
       }
@@ -1010,7 +1010,7 @@ async function loadFleaMarketData() {
         checkNotification('flea', localItems);
         const newCount = localItems.filter(i => i.condition && i.condition.toLowerCase().includes('нов')).length;
         const usedCount = localItems.filter(i => i.condition && (i.condition.toLowerCase().includes('вжив') || i.condition.toLowerCase().includes('б/у'))).length;
-        updateFleaTabBadge(newCount, usedCount);
+        updateFleaTabBadge(newCount, usedCount, localItems.length);
         allFleaMarketItems = localItems;
         const activeTag = document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
       }
@@ -1223,43 +1223,43 @@ function updateBlaBlaTabBadge(driversCount, passengersCount) {
   tab.appendChild(badge);
 }
 
-function updateEstateTabBadge(rentCount, saleCount) {
+function updateEstateTabBadge(rentCount, saleCount, total) {
   const dot = document.getElementById('dot-estate');
   if (!dot || !dot.parentElement) return;
   const tab = dot.parentElement;
   tab.style.position = 'relative';
   const old = tab.querySelector('.estate-live-badge');
   if (old) old.remove();
-  const total = rentCount + saleCount;
-  if (total === 0) return;
+  if (!total || total === 0) return;
   const badge = document.createElement('span');
   badge.className = 'estate-live-badge';
   let inner = '<span class="ef-dot"></span>';
   if (rentCount > 0 && saleCount > 0) inner += `🔑${rentCount}·💰${saleCount}`;
-  else if (rentCount > 0) inner += `🔑 ${rentCount}`;
-  else inner += `💰 ${saleCount}`;
+  else if (rentCount > 0 && saleCount === 0 && rentCount === total) inner += `🔑 ${rentCount}`;
+  else if (saleCount > 0 && rentCount === 0 && saleCount === total) inner += `💰 ${saleCount}`;
+  else inner += `🏠 ${total}`;
   badge.innerHTML = inner;
-  badge.title = `Активних оголошень: ${total} (оренда: ${rentCount}, продаж: ${saleCount})`;
+  badge.title = `Активних оголошень: ${total}`;
   tab.appendChild(badge);
 }
 
-function updateFleaTabBadge(newCount, usedCount) {
+function updateFleaTabBadge(newCount, usedCount, total) {
   const dot = document.getElementById('dot-flea');
   if (!dot || !dot.parentElement) return;
   const tab = dot.parentElement;
   tab.style.position = 'relative';
   const old = tab.querySelector('.flea-live-badge');
   if (old) old.remove();
-  const total = newCount + usedCount;
-  if (total === 0) return;
+  if (!total || total === 0) return;
   const badge = document.createElement('span');
   badge.className = 'flea-live-badge';
   let inner = '<span class="ef-dot"></span>';
   if (newCount > 0 && usedCount > 0) inner += `✨${newCount}·🔧${usedCount}`;
-  else if (newCount > 0) inner += `✨ ${newCount}`;
-  else inner += `🔧 ${usedCount}`;
+  else if (newCount > 0 && usedCount === 0 && newCount === total) inner += `✨ ${newCount}`;
+  else if (usedCount > 0 && newCount === 0 && usedCount === total) inner += `🔧 ${usedCount}`;
+  else inner += `📦 ${total}`;
   badge.innerHTML = inner;
-  badge.title = `Активних оголошень: ${total} (нове: ${newCount}, вживане: ${usedCount})`;
+  badge.title = `Активних оголошень: ${total}`;
   tab.appendChild(badge);
 }
 
