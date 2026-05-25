@@ -1206,11 +1206,11 @@ function updateBlaBlaTabBadge(driversCount, passengersCount) {
   badge.className = 'blabla-live-badge';
   let inner = '<span class="bb-dot"></span>';
   if (driversCount > 0 && passengersCount > 0) {
-    inner += `🚘 ${driversCount} · 🙋 ${passengersCount}`;
+    inner += `🚘${driversCount}·🙋${passengersCount}`;
   } else if (driversCount > 0) {
-    inner += `🚘 ${driversCount} ${driversCount === 1 ? 'водій' : 'водіїв'}`;
+    inner += `🚘 ${driversCount}`;
   } else {
-    inner += `🙋 ${passengersCount} ${passengersCount === 1 ? 'пасажир' : 'пасажирів'}`;
+    inner += `🙋 ${passengersCount}`;
   }
   badge.innerHTML = inner;
   badge.title = `Активних поїздок: ${total}`;
@@ -1230,11 +1230,11 @@ function updateLostTabBadge(foundCount, lostCount) {
   badge.className = 'lost-live-badge';
   let inner = '<span class="lf-dot"></span>';
   if (foundCount > 0 && lostCount > 0) {
-    inner += `🔍 ${foundCount} · ❗ ${lostCount}`;
+    inner += `🔍${foundCount}·❗${lostCount}`;
   } else if (foundCount > 0) {
-    inner += `🔍 ${foundCount} ${foundCount === 1 ? 'знахідка' : 'знахідок'}`;
+    inner += `🔍 ${foundCount}`;
   } else {
-    inner += `❗ ${lostCount} ${lostCount === 1 ? 'втрата' : 'втрат'}`;
+    inner += `❗ ${lostCount}`;
   }
   badge.innerHTML = inner;
   badge.title = `Активних оголошень: ${total} (знайдено: ${foundCount}, втрачено: ${lostCount})`;
