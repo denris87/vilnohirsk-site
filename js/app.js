@@ -1233,15 +1233,21 @@ function pluralizeUA(n, one, few, many) {
 
 function updateEventsTabBadge(total) {
   const dot = document.getElementById('dot-events');
-  if (!dot) return;
-  if (dot.parentElement) {
-    const oldBadge = dot.parentElement.querySelector('.events-live-badge');
-    if (oldBadge) oldBadge.remove();
-  }
+  if (!dot || !dot.parentElement) return;
+  const tab = dot.parentElement;
+  tab.style.position = 'relative';
+  const old = tab.querySelector('.events-live-badge');
+  if (old) old.remove();
   if (typeof total === 'number') {
     try { localStorage.setItem('events_active_count', String(total)); } catch(e) {}
   }
-  dot.style.display = (total && total > 0) ? 'block' : 'none';
+  if (!total || total === 0) return;
+  const word = pluralizeUA(total, 'афіша', 'афіші', 'афіш');
+  const badge = document.createElement('span');
+  badge.className = 'events-live-badge';
+  badge.innerHTML = `<span class="ef-dot"></span>${total} ${word}`;
+  badge.title = `Активних афіш: ${total}`;
+  tab.appendChild(badge);
 }
 
 function updateEstateTabBadge(rentCount, saleCount, total) {
