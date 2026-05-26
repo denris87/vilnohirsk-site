@@ -476,7 +476,7 @@ function recalcDropdownHeight(imgEl) {
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
   closeAllJobsDrawers();
-  const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
+  const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
   if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
