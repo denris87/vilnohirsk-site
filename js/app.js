@@ -476,7 +476,7 @@ function recalcDropdownHeight(imgEl) {
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
   closeAllJobsDrawers();
-  const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
+  const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
   if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
@@ -1233,21 +1233,15 @@ function pluralizeUA(n, one, few, many) {
 
 function updateEventsTabBadge(total) {
   const dot = document.getElementById('dot-events');
-  if (!dot || !dot.parentElement) return;
-  const tab = dot.parentElement;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.events-live-badge');
-  if (old) old.remove();
+  if (!dot) return;
+  if (dot.parentElement) {
+    const oldBadge = dot.parentElement.querySelector('.events-live-badge');
+    if (oldBadge) oldBadge.remove();
+  }
   if (typeof total === 'number') {
     try { localStorage.setItem('events_active_count', String(total)); } catch(e) {}
   }
-  if (!total || total === 0) return;
-  const word = pluralizeUA(total, 'афіша', 'афіші', 'афіш');
-  const badge = document.createElement('span');
-  badge.className = 'events-live-badge';
-  badge.innerHTML = `<span class="ef-dot"></span>${total} ${word}`;
-  badge.title = `Активних афіш: ${total}`;
-  tab.appendChild(badge);
+  dot.style.display = (total && total > 0) ? 'block' : 'none';
 }
 
 function updateEstateTabBadge(rentCount, saleCount, total) {
