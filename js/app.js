@@ -690,7 +690,8 @@ async function loadEventsData() {
     
     markNewItems(activeEvents, 'events', true);
     checkNotification('events', activeEvents);
-    
+    updateEventsTabBadge(activeEvents.length);
+
     windowEventImages = activeEvents.map(ev => getDriveImageUrl(ev.photo || ev.image || ev.url)).filter(Boolean);
     document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#FF3366', 'events', true);
   } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
@@ -1220,6 +1221,21 @@ function updateBlaBlaTabBadge(driversCount, passengersCount) {
   }
   badge.innerHTML = inner;
   badge.title = `Активних поїздок: ${total}`;
+  tab.appendChild(badge);
+}
+
+function updateEventsTabBadge(total) {
+  const dot = document.getElementById('dot-events');
+  if (!dot || !dot.parentElement) return;
+  const tab = dot.parentElement;
+  tab.style.position = 'relative';
+  const old = tab.querySelector('.events-live-badge');
+  if (old) old.remove();
+  if (!total || total === 0) return;
+  const badge = document.createElement('span');
+  badge.className = 'events-live-badge';
+  badge.innerHTML = `<span class="ef-dot"></span>🎉 ${total}`;
+  badge.title = `Активних афіш: ${total}`;
   tab.appendChild(badge);
 }
 
