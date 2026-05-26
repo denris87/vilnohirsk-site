@@ -1224,6 +1224,13 @@ function updateBlaBlaTabBadge(driversCount, passengersCount) {
   tab.appendChild(badge);
 }
 
+function pluralizeUA(n, one, few, many) {
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return one;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
+  return many;
+}
+
 function updateEventsTabBadge(total) {
   const dot = document.getElementById('dot-events');
   if (!dot || !dot.parentElement) return;
@@ -1231,10 +1238,14 @@ function updateEventsTabBadge(total) {
   tab.style.position = 'relative';
   const old = tab.querySelector('.events-live-badge');
   if (old) old.remove();
+  if (typeof total === 'number') {
+    try { localStorage.setItem('events_active_count', String(total)); } catch(e) {}
+  }
   if (!total || total === 0) return;
+  const word = pluralizeUA(total, 'афіша', 'афіші', 'афіш');
   const badge = document.createElement('span');
   badge.className = 'events-live-badge';
-  badge.innerHTML = `<span class="ef-dot"></span>🎉 ${total}`;
+  badge.innerHTML = `<span class="ef-dot"></span>${total} ${word}`;
   badge.title = `Активних афіш: ${total}`;
   tab.appendChild(badge);
 }
@@ -2407,7 +2418,8 @@ function showIOSInstructions() {
 // =========================================================================
 
 const initApp = () => {
-  updateDateTime(); setInterval(updateDateTime, 1000); 
+  updateDateTime(); setInterval(updateDateTime, 1000);
+  try { const cached = parseInt(localStorage.getItem('events_active_count') || '0', 10); if (cached > 0) updateEventsTabBadge(cached); } catch(e) {}
   loadWeather(); loadAlerts(); loadExchangeRates();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { 
