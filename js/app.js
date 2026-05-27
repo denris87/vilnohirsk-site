@@ -1238,8 +1238,7 @@ function updateEventsTabBadge(total) {
   if (!total || total === 0) return;
   const badge = document.createElement('span');
   badge.className = 'events-live-badge';
-  const word = total === 1 ? 'афіша' : (total >= 2 && total <= 4 ? 'афіші' : 'афіш');
-  badge.innerHTML = `<span class="ef-dot"></span>🎉 ${total} ${word}`;
+  badge.innerHTML = `🎉 ${total}`;
   badge.title = `Активних афіш: ${total}`;
   tab.appendChild(badge);
 }
