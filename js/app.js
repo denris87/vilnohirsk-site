@@ -476,7 +476,7 @@ function recalcDropdownHeight(imgEl) {
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
   closeAllJobsDrawers();
-  const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
+  const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
   if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
@@ -691,8 +691,7 @@ async function loadEventsData() {
     
     markNewItems(activeEvents, 'events', true);
     checkNotification('events', activeEvents);
-    updateEventsTabBadge(activeEvents.length);
-
+    
     windowEventImages = activeEvents.map(ev => getDriveImageUrl(ev.photo || ev.image || ev.url)).filter(Boolean);
     document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#FF3366', 'events', true);
   } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
@@ -1223,13 +1222,6 @@ function updateBlaBlaTabBadge(driversCount, passengersCount) {
   badge.innerHTML = inner;
   badge.title = `Активних поїздок: ${total}`;
   tab.appendChild(badge);
-}
-
-function pluralizeUA(n, one, few, many) {
-  const mod10 = n % 10, mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return one;
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few;
-  return many;
 }
 
 function updateEventsTabBadge(total) {
@@ -2424,8 +2416,7 @@ function showIOSInstructions() {
 // =========================================================================
 
 const initApp = () => {
-  updateDateTime(); setInterval(updateDateTime, 1000);
-  try { const cached = parseInt(localStorage.getItem('events_active_count') || '0', 10); if (cached > 0) updateEventsTabBadge(cached); } catch(e) {}
+  updateDateTime(); setInterval(updateDateTime, 1000); 
   loadWeather(); loadAlerts(); loadExchangeRates();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { 
