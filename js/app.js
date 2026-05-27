@@ -691,7 +691,8 @@ async function loadEventsData() {
     
     markNewItems(activeEvents, 'events', true);
     checkNotification('events', activeEvents);
-    
+    updateEventsTabBadge(activeEvents.length);
+
     windowEventImages = activeEvents.map(ev => getDriveImageUrl(ev.photo || ev.image || ev.url)).filter(Boolean);
     document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#FF3366', 'events', true);
   } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
