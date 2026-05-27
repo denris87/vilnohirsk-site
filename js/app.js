@@ -1243,10 +1243,9 @@ function updateEventsTabBadge(total) {
     try { localStorage.setItem('events_active_count', String(total)); } catch(e) {}
   }
   if (!total || total === 0) return;
-  const word = pluralizeUA(total, 'афіша', 'афіші', 'афіш');
   const badge = document.createElement('span');
   badge.className = 'events-live-badge';
-  badge.innerHTML = `<span class="ef-dot"></span>${total} ${word}`;
+  badge.innerHTML = `<span class="ef-dot"></span>🎉 ${total}`;
   badge.title = `Активних афіш: ${total}`;
   tab.appendChild(badge);
 }
