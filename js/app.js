@@ -691,7 +691,8 @@ async function loadEventsData() {
     
     markNewItems(activeEvents, 'events', true);
     checkNotification('events', activeEvents);
-    
+    updateEventsTabBadge(activeEvents.length);
+
     windowEventImages = activeEvents.map(ev => getDriveImageUrl(ev.photo || ev.image || ev.url)).filter(Boolean);
     document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#FF3366', 'events', true);
   } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
@@ -1237,7 +1238,8 @@ function updateEventsTabBadge(total) {
   if (!total || total === 0) return;
   const badge = document.createElement('span');
   badge.className = 'events-live-badge';
-  badge.innerHTML = `<span class="ef-dot"></span>🎉 ${total}`;
+  const word = total === 1 ? 'афіша' : (total >= 2 && total <= 4 ? 'афіші' : 'афіш');
+  badge.innerHTML = `<span class="ef-dot"></span>🎉 ${total} ${word}`;
   badge.title = `Активних афіш: ${total}`;
   tab.appendChild(badge);
 }
