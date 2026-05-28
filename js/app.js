@@ -1193,6 +1193,18 @@ async function submitBlaBlaForm(event) {
   } catch (error) { showToast('❌ Помилка при відправці: ' + error.message, 'error'); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
 }
 
+// Сегментований бейдж: одна половинка з іконкою-типом і лічильником
+function tabSeg(icon, count) {
+  return `<span class="tab-seg">${icon}<b>${count}</b></span>`;
+}
+// Дві половинки з вертикальним розділювачем; якщо активний лише один тип — показуємо одну
+function buildTwoTypeBadge(a, b) {
+  if (a.count > 0 && b.count > 0) return tabSeg(a.icon, a.count) + '<span class="tab-seg-div"></span>' + tabSeg(b.icon, b.count);
+  if (a.count > 0) return tabSeg(a.icon, a.count);
+  if (b.count > 0) return tabSeg(b.icon, b.count);
+  return '';
+}
+
 function updateBlaBlaTabBadge(driversCount, passengersCount) {
   const tab = document.querySelector('.tab-btn[onclick*="\'blablacar\'"]');
   if (!tab) return;
@@ -1203,16 +1215,8 @@ function updateBlaBlaTabBadge(driversCount, passengersCount) {
   if (total === 0) return;
   const badge = document.createElement('span');
   badge.className = 'blabla-live-badge';
-  let inner = '<span class="bb-dot"></span>';
-  if (driversCount > 0 && passengersCount > 0) {
-    inner += `🚘${driversCount}·🙋${passengersCount}`;
-  } else if (driversCount > 0) {
-    inner += `🚘 ${driversCount}`;
-  } else {
-    inner += `🙋 ${passengersCount}`;
-  }
-  badge.innerHTML = inner;
-  badge.title = `Активних поїздок: ${total}`;
+  badge.innerHTML = '<span class="bb-dot"></span>' + buildTwoTypeBadge({icon:'🚘', count:driversCount}, {icon:'🙋', count:passengersCount});
+  badge.title = `Активних поїздок: ${total} (водії: ${driversCount}, пасажири: ${passengersCount})`;
   tab.appendChild(badge);
 }
 
@@ -1243,12 +1247,13 @@ function updateEstateTabBadge(rentCount, saleCount, total) {
   const badge = document.createElement('span');
   badge.className = 'estate-live-badge';
   let inner = '<span class="ef-dot"></span>';
-  if (rentCount > 0 && saleCount > 0) inner += `🔑${rentCount}·💰${saleCount}`;
-  else if (rentCount > 0 && saleCount === 0 && rentCount === total) inner += `🔑 ${rentCount}`;
-  else if (saleCount > 0 && rentCount === 0 && saleCount === total) inner += `💰 ${saleCount}`;
-  else inner += `🏠 ${total}`;
+  if ((rentCount > 0 || saleCount > 0) && rentCount + saleCount === total) {
+    inner += buildTwoTypeBadge({icon:'🔑', count:rentCount}, {icon:'💰', count:saleCount});
+  } else {
+    inner += tabSeg('🏠', total);
+  }
   badge.innerHTML = inner;
-  badge.title = `Активних оголошень: ${total}`;
+  badge.title = `Активних оголошень: ${total} (оренда: ${rentCount}, продаж: ${saleCount})`;
   tab.appendChild(badge);
 }
 
@@ -1262,12 +1267,13 @@ function updateFleaTabBadge(newCount, usedCount, total) {
   const badge = document.createElement('span');
   badge.className = 'flea-live-badge';
   let inner = '<span class="ef-dot"></span>';
-  if (newCount > 0 && usedCount > 0) inner += `✨${newCount}·🔧${usedCount}`;
-  else if (newCount > 0 && usedCount === 0 && newCount === total) inner += `✨ ${newCount}`;
-  else if (usedCount > 0 && newCount === 0 && usedCount === total) inner += `🔧 ${usedCount}`;
-  else inner += `📦 ${total}`;
+  if ((newCount > 0 || usedCount > 0) && newCount + usedCount === total) {
+    inner += buildTwoTypeBadge({icon:'✨', count:newCount}, {icon:'🔧', count:usedCount});
+  } else {
+    inner += tabSeg('📦', total);
+  }
   badge.innerHTML = inner;
-  badge.title = `Активних оголошень: ${total}`;
+  badge.title = `Активних оголошень: ${total} (нові: ${newCount}, вживані: ${usedCount})`;
   tab.appendChild(badge);
 }
 
@@ -1281,15 +1287,7 @@ function updateLostTabBadge(foundCount, lostCount) {
   if (total === 0) return;
   const badge = document.createElement('span');
   badge.className = 'lost-live-badge';
-  let inner = '<span class="lf-dot"></span>';
-  if (foundCount > 0 && lostCount > 0) {
-    inner += `🔍${foundCount}·❗${lostCount}`;
-  } else if (foundCount > 0) {
-    inner += `🔍 ${foundCount}`;
-  } else {
-    inner += `❗ ${lostCount}`;
-  }
-  badge.innerHTML = inner;
+  badge.innerHTML = '<span class="lf-dot"></span>' + buildTwoTypeBadge({icon:'🔍', count:foundCount}, {icon:'❗', count:lostCount});
   badge.title = `Активних оголошень: ${total} (знайдено: ${foundCount}, втрачено: ${lostCount})`;
   tab.appendChild(badge);
 }
