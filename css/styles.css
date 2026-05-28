@@ -48,8 +48,7 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .tab-alert.promos{color:#ff9f43;border-bottom:3px solid #ff9f43;background:linear-gradient(145deg,rgba(255,159,67,0.15),rgba(10,15,30,0.95))} .tab-alert.promos.active{background:rgba(255,159,67,0.3);box-shadow:0 0 15px rgba(255,159,67,0.6);color:#fff}
 @keyframes neonPulse{0%{box-shadow:0 0 5px rgba(255,51,102,0.1)}100%{box-shadow:0 0 12px rgba(255,51,102,0.5)}}
 @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.9); } 70% { box-shadow: 0 0 0 8px rgba(255, 0, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); } }
-.notification-dot, .train-alert-dot { position: absolute; top: -2px; right: -2px; background: #ff0000; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.2); animation: pulseAlert 1.5s infinite; z-index: 10; }
-.notification-dot { width: 10px; height: 10px; display: none; } .train-alert-dot { width: 8px; height: 8px; z-index: 5; }
+.train-alert-dot { position: absolute; top: -2px; right: -2px; background: #ff0000; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.2); animation: pulseAlert 1.5s infinite; z-index: 10; width: 8px; height: 8px; }
 .carousel-wrapper{width:100%;position:relative}.carousel-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:15px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding-bottom:5px;align-items:center}.carousel-container::-webkit-scrollbar{display:none}
 .alert-item{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:15px;flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;max-height:55vh;overflow-y:auto;}
 .alert-item::-webkit-scrollbar { width: 4px; } .alert-item::-webkit-scrollbar-track { background: transparent; } .alert-item::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }

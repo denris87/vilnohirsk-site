@@ -112,27 +112,19 @@ function markNewItems(array, key, newestFirst = true) {
     return array;
 }
 
+// Ведёт счётчик seen_<key> для пометок «Нове» на карточках.
+// Красная точка на вкладках полностью убрана — здесь только бухгалтерия.
 function checkNotification(key, dataArray) {
   const currentLength = (dataArray && dataArray.length) ? dataArray.length : 0;
   currentDataSignature[key] = String(currentLength);
-  const dot = document.getElementById('dot-' + key);
-  const seenSignature = localStorage.getItem('seen_' + key);
-  
-  if (!seenSignature) { 
-    localStorage.setItem('seen_' + key, String(currentLength)); 
-  } else {
-    const seenCount = parseInt(seenSignature, 10);
-    if (currentLength > seenCount && dot) { 
-      dot.style.display = 'block'; 
-    }
+  if (!localStorage.getItem('seen_' + key)) {
+    localStorage.setItem('seen_' + key, String(currentLength));
   }
 }
 
 function clearNotification(key) {
-  const dot = document.getElementById('dot-' + key); 
-  if (dot) dot.style.display = 'none';
-  if (currentDataSignature[key] !== undefined) { 
-    localStorage.setItem('seen_' + key, currentDataSignature[key]); 
+  if (currentDataSignature[key] !== undefined) {
+    localStorage.setItem('seen_' + key, currentDataSignature[key]);
   }
 }
 
@@ -1202,9 +1194,8 @@ async function submitBlaBlaForm(event) {
 }
 
 function updateBlaBlaTabBadge(driversCount, passengersCount) {
-  const dot = document.getElementById('dot-blablacar');
-  if (!dot || !dot.parentElement) return;
-  const tab = dot.parentElement;
+  const tab = document.querySelector('.tab-btn[onclick*="\'blablacar\'"]');
+  if (!tab) return;
   tab.style.position = 'relative';
   const old = tab.querySelector('.blabla-live-badge');
   if (old) old.remove();
@@ -1226,9 +1217,8 @@ function updateBlaBlaTabBadge(driversCount, passengersCount) {
 }
 
 function updateEventsTabBadge(total) {
-  const dot = document.getElementById('dot-events');
-  if (!dot || !dot.parentElement) return;
-  const tab = dot.parentElement;
+  const tab = document.querySelector('.tab-alert.events');
+  if (!tab) return;
   tab.style.position = 'relative';
   const old = tab.querySelector('.events-live-badge');
   if (old) old.remove();
@@ -1244,9 +1234,8 @@ function updateEventsTabBadge(total) {
 }
 
 function updateEstateTabBadge(rentCount, saleCount, total) {
-  const dot = document.getElementById('dot-estate');
-  if (!dot || !dot.parentElement) return;
-  const tab = dot.parentElement;
+  const tab = document.querySelector('.tab-btn[onclick*="\'estate-tab\'"]');
+  if (!tab) return;
   tab.style.position = 'relative';
   const old = tab.querySelector('.estate-live-badge');
   if (old) old.remove();
@@ -1264,9 +1253,8 @@ function updateEstateTabBadge(rentCount, saleCount, total) {
 }
 
 function updateFleaTabBadge(newCount, usedCount, total) {
-  const dot = document.getElementById('dot-flea');
-  if (!dot || !dot.parentElement) return;
-  const tab = dot.parentElement;
+  const tab = document.querySelector('.tab-btn[onclick*="\'flea-market-tab\'"]');
+  if (!tab) return;
   tab.style.position = 'relative';
   const old = tab.querySelector('.flea-live-badge');
   if (old) old.remove();
@@ -1284,9 +1272,8 @@ function updateFleaTabBadge(newCount, usedCount, total) {
 }
 
 function updateLostTabBadge(foundCount, lostCount) {
-  const dot = document.getElementById('dot-lost');
-  if (!dot || !dot.parentElement) return;
-  const tab = dot.parentElement;
+  const tab = document.querySelector('.tab-btn[onclick*="\'lost-found-tab\'"]');
+  if (!tab) return;
   tab.style.position = 'relative';
   const old = tab.querySelector('.lost-live-badge');
   if (old) old.remove();
