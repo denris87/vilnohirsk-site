@@ -1193,105 +1193,84 @@ async function submitBlaBlaForm(event) {
   } catch (error) { showToast('❌ Помилка при відправці: ' + error.message, 'error'); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
 }
 
-function updateBlaBlaTabBadge(driversCount, passengersCount) {
-  const tab = document.querySelector('.tab-btn[onclick*="\'blablacar\'"]');
+// Единый рендер сегментированного бейджа вкладки.
+// segments: [{icon, count, tint}] — сегменты с count>0 показываются с разделителем.
+function renderTabBadge(tab, segments, title) {
   if (!tab) return;
   tab.style.position = 'relative';
-  const old = tab.querySelector('.blabla-live-badge');
+  const old = tab.querySelector('.tab-seg-badge');
   if (old) old.remove();
-  const total = driversCount + passengersCount;
-  if (total === 0) return;
+  const active = segments.filter(s => s.count > 0);
+  if (!active.length) return;
   const badge = document.createElement('span');
-  badge.className = 'blabla-live-badge';
-  let inner = '<span class="bb-dot"></span>';
-  if (driversCount > 0 && passengersCount > 0) {
-    inner += `🚘${driversCount}·🙋${passengersCount}`;
-  } else if (driversCount > 0) {
-    inner += `🚘 ${driversCount}`;
-  } else {
-    inner += `🙋 ${passengersCount}`;
-  }
-  badge.innerHTML = inner;
-  badge.title = `Активних поїздок: ${total}`;
+  badge.className = 'tab-seg-badge';
+  badge.innerHTML = '<span class="seg-live"></span>' + active.map(s =>
+    `<span class="seg" style="background:${s.tint}"><span class="seg-ico">${s.icon}</span><span class="seg-num">${s.count}</span></span>`
+  ).join('');
+  if (title) badge.title = title;
   tab.appendChild(badge);
 }
 
+function updateBlaBlaTabBadge(driversCount, passengersCount) {
+  const tab = document.querySelector('.tab-btn[onclick*="\'blablacar\'"]');
+  renderTabBadge(tab, [
+    { icon: '🚘', count: driversCount, tint: 'rgba(0,200,130,0.28)' },
+    { icon: '🙋', count: passengersCount, tint: 'rgba(0,140,220,0.30)' }
+  ], `Активних поїздок: ${driversCount + passengersCount}`);
+}
+
 function updateEventsTabBadge(total) {
-  const tab = document.querySelector('.tab-alert.events');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.events-live-badge');
-  if (old) old.remove();
   if (typeof total === 'number') {
     try { localStorage.setItem('events_active_count', String(total)); } catch(e) {}
   }
-  if (!total || total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'events-live-badge';
-  badge.innerHTML = `🎉 ${total}`;
-  badge.title = `Активних афіш: ${total}`;
-  tab.appendChild(badge);
+  const tab = document.querySelector('.tab-alert.events');
+  renderTabBadge(tab, [
+    { icon: '🎉', count: total || 0, tint: 'rgba(255,51,102,0.30)' }
+  ], `Активних афіш: ${total || 0}`);
 }
 
 function updateEstateTabBadge(rentCount, saleCount, total) {
   const tab = document.querySelector('.tab-btn[onclick*="\'estate-tab\'"]');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.estate-live-badge');
-  if (old) old.remove();
-  if (!total || total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'estate-live-badge';
-  let inner = '<span class="ef-dot"></span>';
-  if (rentCount > 0 && saleCount > 0) inner += `🔑${rentCount}·💰${saleCount}`;
-  else if (rentCount > 0 && saleCount === 0 && rentCount === total) inner += `🔑 ${rentCount}`;
-  else if (saleCount > 0 && rentCount === 0 && saleCount === total) inner += `💰 ${saleCount}`;
-  else inner += `🏠 ${total}`;
-  badge.innerHTML = inner;
-  badge.title = `Активних оголошень: ${total}`;
-  tab.appendChild(badge);
+  let segs;
+  if (rentCount > 0 && saleCount > 0) {
+    segs = [
+      { icon: '🔑', count: rentCount, tint: 'rgba(0,180,220,0.30)' },
+      { icon: '💰', count: saleCount, tint: 'rgba(230,140,60,0.30)' }
+    ];
+  } else if (rentCount > 0 && rentCount === total) {
+    segs = [{ icon: '🔑', count: rentCount, tint: 'rgba(0,180,220,0.30)' }];
+  } else if (saleCount > 0 && saleCount === total) {
+    segs = [{ icon: '💰', count: saleCount, tint: 'rgba(230,140,60,0.30)' }];
+  } else {
+    segs = [{ icon: '🏠', count: total, tint: 'rgba(230,140,60,0.30)' }];
+  }
+  renderTabBadge(tab, segs, `Активних оголошень: ${total}`);
 }
 
 function updateFleaTabBadge(newCount, usedCount, total) {
   const tab = document.querySelector('.tab-btn[onclick*="\'flea-market-tab\'"]');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.flea-live-badge');
-  if (old) old.remove();
-  if (!total || total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'flea-live-badge';
-  let inner = '<span class="ef-dot"></span>';
-  if (newCount > 0 && usedCount > 0) inner += `✨${newCount}·🔧${usedCount}`;
-  else if (newCount > 0 && usedCount === 0 && newCount === total) inner += `✨ ${newCount}`;
-  else if (usedCount > 0 && newCount === 0 && usedCount === total) inner += `🔧 ${usedCount}`;
-  else inner += `📦 ${total}`;
-  badge.innerHTML = inner;
-  badge.title = `Активних оголошень: ${total}`;
-  tab.appendChild(badge);
+  let segs;
+  if (newCount > 0 && usedCount > 0) {
+    segs = [
+      { icon: '✨', count: newCount, tint: 'rgba(0,200,130,0.28)' },
+      { icon: '🔧', count: usedCount, tint: 'rgba(120,130,160,0.32)' }
+    ];
+  } else if (newCount > 0 && newCount === total) {
+    segs = [{ icon: '✨', count: newCount, tint: 'rgba(0,200,130,0.28)' }];
+  } else if (usedCount > 0 && usedCount === total) {
+    segs = [{ icon: '🔧', count: usedCount, tint: 'rgba(120,130,160,0.32)' }];
+  } else {
+    segs = [{ icon: '📦', count: total, tint: 'rgba(0,140,200,0.30)' }];
+  }
+  renderTabBadge(tab, segs, `Активних оголошень: ${total}`);
 }
 
 function updateLostTabBadge(foundCount, lostCount) {
   const tab = document.querySelector('.tab-btn[onclick*="\'lost-found-tab\'"]');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.lost-live-badge');
-  if (old) old.remove();
-  const total = foundCount + lostCount;
-  if (total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'lost-live-badge';
-  let inner = '<span class="lf-dot"></span>';
-  if (foundCount > 0 && lostCount > 0) {
-    inner += `🔍${foundCount}·❗${lostCount}`;
-  } else if (foundCount > 0) {
-    inner += `🔍 ${foundCount}`;
-  } else {
-    inner += `❗ ${lostCount}`;
-  }
-  badge.innerHTML = inner;
-  badge.title = `Активних оголошень: ${total} (знайдено: ${foundCount}, втрачено: ${lostCount})`;
-  tab.appendChild(badge);
+  renderTabBadge(tab, [
+    { icon: '🔍', count: foundCount, tint: 'rgba(120,180,90,0.30)' },
+    { icon: '❗', count: lostCount, tint: 'rgba(190,80,220,0.30)' }
+  ], `Знайдено: ${foundCount}, втрачено: ${lostCount}`);
 }
 
 function updateBlaBlaToggleCounts(driversCount, passengersCount) {
