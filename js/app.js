@@ -1193,9 +1193,25 @@ async function submitBlaBlaForm(event) {
   } catch (error) { showToast('❌ Помилка при відправці: ' + error.message, 'error'); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
 }
 
+// Компактні монохромні SVG-іконки типів для бейджів вкладок (успадковують колір тексту)
+const TAB_ICONS = {
+  car: '<path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>',
+  person: '<path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>',
+  key: '<path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>',
+  sell: '<path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>',
+  star: '<path d="M12 2l2.6 6.6L22 9.2l-5.5 4.4L18.2 21 12 16.9 5.8 21l1.7-7.4L2 9.2l7.4-.6z"/>',
+  wrench: '<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>',
+  search: '<path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>',
+  warn: '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>',
+  home: '<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>',
+  box: '<path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/>'
+};
+function tabIco(name) {
+  return TAB_ICONS[name] ? `<svg class="tab-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${TAB_ICONS[name]}</svg>` : '';
+}
 // Сегментований бейдж: одна половинка з іконкою-типом і лічильником
 function tabSeg(icon, count) {
-  return `<span class="tab-seg">${icon}<b>${count}</b></span>`;
+  return `<span class="tab-seg">${tabIco(icon)}<b>${count}</b></span>`;
 }
 // Дві половинки з вертикальним розділювачем; якщо активний лише один тип — показуємо одну
 function buildTwoTypeBadge(a, b) {
@@ -1215,7 +1231,7 @@ function updateBlaBlaTabBadge(driversCount, passengersCount) {
   if (total === 0) return;
   const badge = document.createElement('span');
   badge.className = 'blabla-live-badge';
-  badge.innerHTML = '<span class="bb-dot"></span>' + buildTwoTypeBadge({icon:'🚘', count:driversCount}, {icon:'🙋', count:passengersCount});
+  badge.innerHTML = '<span class="bb-dot"></span>' + buildTwoTypeBadge({icon:'car', count:driversCount}, {icon:'person', count:passengersCount});
   badge.title = `Активних поїздок: ${total} (водії: ${driversCount}, пасажири: ${passengersCount})`;
   tab.appendChild(badge);
 }
@@ -1248,9 +1264,9 @@ function updateEstateTabBadge(rentCount, saleCount, total) {
   badge.className = 'estate-live-badge';
   let inner = '<span class="ef-dot"></span>';
   if ((rentCount > 0 || saleCount > 0) && rentCount + saleCount === total) {
-    inner += buildTwoTypeBadge({icon:'🔑', count:rentCount}, {icon:'💰', count:saleCount});
+    inner += buildTwoTypeBadge({icon:'key', count:rentCount}, {icon:'sell', count:saleCount});
   } else {
-    inner += tabSeg('🏠', total);
+    inner += tabSeg('home', total);
   }
   badge.innerHTML = inner;
   badge.title = `Активних оголошень: ${total} (оренда: ${rentCount}, продаж: ${saleCount})`;
@@ -1268,9 +1284,9 @@ function updateFleaTabBadge(newCount, usedCount, total) {
   badge.className = 'flea-live-badge';
   let inner = '<span class="ef-dot"></span>';
   if ((newCount > 0 || usedCount > 0) && newCount + usedCount === total) {
-    inner += buildTwoTypeBadge({icon:'✨', count:newCount}, {icon:'🔧', count:usedCount});
+    inner += buildTwoTypeBadge({icon:'star', count:newCount}, {icon:'wrench', count:usedCount});
   } else {
-    inner += tabSeg('📦', total);
+    inner += tabSeg('box', total);
   }
   badge.innerHTML = inner;
   badge.title = `Активних оголошень: ${total} (нові: ${newCount}, вживані: ${usedCount})`;
@@ -1287,7 +1303,7 @@ function updateLostTabBadge(foundCount, lostCount) {
   if (total === 0) return;
   const badge = document.createElement('span');
   badge.className = 'lost-live-badge';
-  badge.innerHTML = '<span class="lf-dot"></span>' + buildTwoTypeBadge({icon:'🔍', count:foundCount}, {icon:'❗', count:lostCount});
+  badge.innerHTML = '<span class="lf-dot"></span>' + buildTwoTypeBadge({icon:'search', count:foundCount}, {icon:'warn', count:lostCount});
   badge.title = `Активних оголошень: ${total} (знайдено: ${foundCount}, втрачено: ${lostCount})`;
   tab.appendChild(badge);
 }
