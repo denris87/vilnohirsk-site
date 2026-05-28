@@ -1459,8 +1459,14 @@ function updateZsuTabIndicator(activeItems) {
     badge.className = 'zsu-live-badge';
     tab.appendChild(badge);
   }
-  badge.innerHTML = tabSeg('volunteer', n);
-  badge.title = n === 1 ? 'Активний збір' : `Активних зборів: ${n}`;
+  if (n === 1) {
+    badge.innerHTML = `<span class="tab-seg">${tabIco('volunteer')}<b>ЗБІР</b></span>`;
+    badge.title = 'Активний збір';
+  } else {
+    const word = (n >= 2 && n <= 4) ? 'ЗБОРИ' : 'ЗБОРІВ';
+    badge.innerHTML = `<span class="tab-seg">${tabIco('volunteer')}<b>${word} ×${n}</b></span>`;
+    badge.title = `Активних зборів: ${n}`;
+  }
 
   // Сегментована прогрес-смуга під вкладкою (один сегмент на збір)
   let bar = tab.querySelector('.zsu-progress-bar');
