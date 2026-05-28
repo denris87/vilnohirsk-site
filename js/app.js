@@ -1204,7 +1204,9 @@ const TAB_ICONS = {
   search: '<path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>',
   warn: '<path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>',
   home: '<path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>',
-  box: '<path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/>'
+  box: '<path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/>',
+  event: '<path d="M20 12c0-1.1.9-2 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2zm-4.42 4.8L12 14.5l-3.58 2.3 1.08-4.12-3.29-2.69 4.24-.25L12 5.8l1.54 3.95 4.24.25-3.29 2.69 1.09 4.11z"/>',
+  volunteer: '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>'
 };
 function tabIco(name) {
   return TAB_ICONS[name] ? `<svg class="tab-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${TAB_ICONS[name]}</svg>` : '';
@@ -1248,7 +1250,7 @@ function updateEventsTabBadge(total) {
   if (!total || total === 0) return;
   const badge = document.createElement('span');
   badge.className = 'events-live-badge';
-  badge.innerHTML = `🎉 ${total}`;
+  badge.innerHTML = tabSeg('event', total);
   badge.title = `Активних афіш: ${total}`;
   tab.appendChild(badge);
 }
@@ -1458,10 +1460,12 @@ function updateZsuTabIndicator(activeItems) {
     tab.appendChild(badge);
   }
   if (n === 1) {
-    badge.textContent = '🔴 ЗБІР';
+    badge.innerHTML = `<span class="tab-seg">${tabIco('volunteer')}<b>ЗБІР</b></span>`;
+    badge.title = 'Активний збір';
   } else {
     const word = (n >= 2 && n <= 4) ? 'ЗБОРИ' : 'ЗБОРІВ';
-    badge.textContent = `🔴 ${word} × ${n}`;
+    badge.innerHTML = `<span class="tab-seg">${tabIco('volunteer')}<b>${word} ×${n}</b></span>`;
+    badge.title = `Активних зборів: ${n}`;
   }
 
   // Сегментована прогрес-смуга під вкладкою (один сегмент на збір)
