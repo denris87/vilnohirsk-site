@@ -1118,7 +1118,7 @@ async function loadTrainsData(){
 
       const changed = d.trains.filter(x => x && x.note && x.note !== "змін немає...");
       checkNotification('trains', changed);
-      updateTrainsTabBadge(d.trains.filter(x => x).length);
+      updateTrainsTabBadge(changed.length);
     }
   } catch(e){ document.getElementById("list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
 }
@@ -1267,7 +1267,7 @@ function updateTrainsTabBadge(total) {
   const badge = document.createElement('span');
   badge.className = 'trains-live-badge';
   badge.innerHTML = '<span class="tr-dot"></span>' + tabSeg('train', total);
-  badge.title = `Електричок у розкладі: ${total}`;
+  badge.title = `Електричок зі змінами в розкладі: ${total}`;
   tab.appendChild(badge);
 }
 
