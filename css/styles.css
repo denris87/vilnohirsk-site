@@ -130,6 +130,9 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .blabla-count.zero{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4);border-color:rgba(255,255,255,0.08);box-shadow:none;}
 .blabla-live-badge{position:absolute;top:3px;right:4px;display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,rgba(0,200,130,0.85),rgba(0,140,200,0.85));color:#0b1d3a;font-size:8px;font-weight:800;padding:2px 6px;border-radius:7px;letter-spacing:0.2px;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,0.4),0 0 6px rgba(0,255,156,0.3);white-space:nowrap;pointer-events:none;z-index:12;animation:badgeSoftPulse 2.4s ease-in-out infinite;text-shadow:none;}
 .blabla-live-badge .bb-dot{width:4px;height:4px;border-radius:50%;background:#ff3b3b;box-shadow:0 0 4px rgba(255,59,59,0.7);}
+.trains-live-badge{position:absolute;top:3px;right:4px;display:inline-flex;align-items:center;gap:3px;background:linear-gradient(135deg,rgba(56,189,248,0.9),rgba(42,82,152,0.9));color:#fff;font-size:8px;font-weight:800;padding:2px 6px;border-radius:7px;letter-spacing:0.2px;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,0.4),0 0 6px rgba(56,189,248,0.3);white-space:nowrap;pointer-events:none;z-index:12;animation:badgeSoftPulse 2.4s ease-in-out infinite;text-shadow:none;}
+.trains-live-badge .tr-dot{width:4px;height:4px;border-radius:50%;background:#ffcc00;box-shadow:0 0 5px rgba(255,204,0,0.8);}
+@media (prefers-reduced-motion: reduce){.trains-live-badge{animation:none !important;}}
 .tab-seg{display:inline-flex;align-items:center;gap:2px;line-height:1;}
 .tab-seg b{font-weight:800;font-variant-numeric:tabular-nums;}
 .tab-seg .tab-ico{width:10px;height:10px;display:block;flex:0 0 auto;}
