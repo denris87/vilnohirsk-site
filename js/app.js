@@ -1208,7 +1208,8 @@ const TAB_ICONS = {
   box: '<path d="M20 2H4c-1 0-2 .9-2 2v3.01c0 .72.43 1.34 1 1.69V20c0 1.1 1.1 2 2 2h14c.9 0 2-.9 2-2V8.7c.57-.35 1-.97 1-1.69V4c0-1.1-1-2-2-2zm-5 12H9v-2h6v2zm5-7H4V4h16v3z"/>',
   event: '<path d="M20 12c0-1.1.9-2 2-2V6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v4c1.1 0 2 .9 2 2s-.9 2-2 2v4c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2v-4c-1.1 0-2-.9-2-2zm-4.42 4.8L12 14.5l-3.58 2.3 1.08-4.12-3.29-2.69 4.24-.25L12 5.8l1.54 3.95 4.24.25-3.29 2.69 1.09 4.11z"/>',
   volunteer: '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
-  train: '<path d="M12 2c-4.42 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>'
+  train: '<path d="M12 2c-4.42 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>',
+  briefcase: '<path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>'
 };
 function tabIco(name) {
   return TAB_ICONS[name] ? `<svg class="tab-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${TAB_ICONS[name]}</svg>` : '';
@@ -1268,6 +1269,20 @@ function updateTrainsTabBadge(total) {
   badge.className = 'trains-live-badge';
   badge.innerHTML = '<span class="tr-dot"></span>' + tabSeg('train', total);
   badge.title = `Електричок зі змінами в розкладі: ${total}`;
+  tab.appendChild(badge);
+}
+
+function updateJobsTabBadge(total) {
+  const tab = document.querySelector('.tab-btn[onclick*="\'jobs-tab\'"]');
+  if (!tab) return;
+  tab.style.position = 'relative';
+  const old = tab.querySelector('.jobs-live-badge');
+  if (old) old.remove();
+  if (!total || total === 0) return;
+  const badge = document.createElement('span');
+  badge.className = 'jobs-live-badge';
+  badge.innerHTML = '<span class="jb-dot"></span>' + tabSeg('briefcase', total);
+  badge.title = `Активних вакансій: ${total}`;
   tab.appendChild(badge);
 }
 
@@ -1722,16 +1737,18 @@ async function loadJobsData() {
           const keys = Object.keys(row); const phone = row['Телефон'] || row[keys[6]] || ''; const gender = row['Стать'] || row['gender'] || row[keys[7]] || ''; const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || ''; const vipStatus = row['VIP'] || row[keys[9]] || ''; const isVip = isVipFlag(vipStatus);
           return { title: row['Посада'] || row[keys[2]] || 'Без назви', salary: row['Зарплата'] || row[keys[3]] || '-', company: row['Компанія'] || row[keys[4]] || 'Не вказано', description: row['Опис'] || row[keys[5]] || '', date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно', phone: phone, gender: gender, employment: employment, url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#', isVip: isVip, source: 'User' };
         });
-        allJobs = allJobs.concat(userJobs); 
+        allJobs = allJobs.concat(userJobs);
         markNewItems(allJobs, 'jobs', false);
-        checkNotification('jobs', allJobs); 
+        checkNotification('jobs', allJobs);
+        updateJobsTabBadge(allJobs.length);
         renderJobs(allJobs);
       }
     });
-  } catch (e) { 
+  } catch (e) {
     markNewItems(allJobs, 'jobs', false);
-    checkNotification('jobs', allJobs); 
-    renderJobs(allJobs); 
+    checkNotification('jobs', allJobs);
+    updateJobsTabBadge(allJobs.length);
+    renderJobs(allJobs);
   }
 }
 
