@@ -412,19 +412,34 @@ document.addEventListener('touchend', function(e){
       </div>
     </div>
 
-    <!-- КНОПКА ВІДГУКІВ + КНОПКА PUSH-СПОВІЩЕНЬ -->
-    <div style="display: flex; gap: 8px; align-items: stretch; position: relative; margin-top: 10px; margin-bottom: 20px; z-index: 70; width: 100%; flex-wrap: wrap;">
-      <div class="liquid-glass" style="flex: 1; min-width: 250px; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(0, 255, 156, 0.3); background: rgba(0, 255, 156, 0.05); border-radius: 24px;" onclick="openModalForm('custom-feedback-form', 'feedback-modal')">
-        <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">👋 Ваші відгуки, ідеї та пропозиції пишіть нам (Зв'язок з адмінами)</div>
-      </div>
-      <div class="liquid-glass" id="push-subscribe-btn" style="flex: 1; min-width: 250px; padding: 12px; min-height: 56px; display: flex; flex-direction: column; justify-content: center; text-align: center; cursor: pointer; border: 1px solid rgba(255, 204, 0, 0.4); background: rgba(255, 204, 0, 0.05); border-radius: 24px;" onclick="handlePushButtonClick()">
-        <div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">🔔 Отримувати важливі сповіщення<br><span style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500;">Світло, ЗСУ, новини міста</span></div>
-      </div>
-    </div>
+    <!-- ОБ'ЄДНАНА КАРТКА ЗВ'ЯЗКУ: відгуки + сповіщення + соцмережі -->
+    <div class="connect-card">
+      <div class="connect-head">Залишайся на зв'язку 💙💛</div>
 
-    <!-- МИ В СОЦМЕРЕЖАХ -->
-    <div class="social-block">
-      <div class="social-block-title">Ми в соцмережах</div>
+      <div class="connect-actions">
+        <div class="connect-btn feedback" onclick="openModalForm('custom-feedback-form', 'feedback-modal')">
+          <div class="connect-btn-ico">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 11H6V9h2v2zm5 0h-2V9h2v2zm5 0h-2V9h2v2z"/></svg>
+          </div>
+          <div class="connect-btn-txt">
+            <span class="connect-btn-title">Зв'язок з адмінами</span>
+            <span class="connect-btn-sub">Відгуки, ідеї та пропозиції</span>
+          </div>
+        </div>
+
+        <div class="connect-btn push" id="push-subscribe-btn" onclick="handlePushButtonClick()">
+          <div class="connect-btn-ico">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          </div>
+          <div class="connect-btn-txt">
+            <span class="connect-btn-title">Важливі сповіщення</span>
+            <span class="connect-btn-sub">Світло, ЗСУ, новини міста</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="connect-divider">Ми в соцмережах</div>
+
       <div class="social-links">
         <a class="social-link tg" href="https://t.me/volnogorsk" target="_blank" rel="noopener" aria-label="Telegram" title="Telegram">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 4.39 18.6 20.1c-.25 1.11-.92 1.39-1.86.86l-5.14-3.79-2.48 2.39c-.27.27-.5.5-1.03.5l.37-5.23 9.52-8.6c.41-.37-.09-.57-.64-.2L5.1 13.18l-5.07-1.59c-1.1-.34-1.12-1.1.23-1.63L20.52 2.8c.92-.34 1.72.2 1.42 1.59Z"/></svg>
