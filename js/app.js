@@ -2160,23 +2160,25 @@ async function unsubscribeFromPush() {
 function updatePushButtonState() {
   const btn = document.getElementById('push-subscribe-btn');
   if (!btn) return;
-  
+
+  const bellIco = '<div class="connect-btn-ico"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg></div>';
+
   const isSubscribed = localStorage.getItem('push_subscribed') === '1';
   const permission = ('Notification' in window) ? Notification.permission : 'default';
-  
+
   if (isSubscribed && permission === 'granted') {
     const cats = getCurrentCategories();
-    btn.innerHTML = `<div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">🔔 Підписано: ${cats.length} категорій<br><span style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500;">Натисніть щоб налаштувати</span></div>`;
-    btn.style.border = '1px solid rgba(0, 255, 156, 0.5)';
+    btn.innerHTML = `${bellIco}<div class="connect-btn-txt"><span class="connect-btn-title">Підписано: ${cats.length} категорій</span><span class="connect-btn-sub">Натисніть щоб налаштувати</span></div>`;
+    btn.style.borderColor = 'rgba(0, 255, 156, 0.5)';
     btn.style.background = 'rgba(0, 255, 156, 0.1)';
   } else if (permission === 'denied') {
-    btn.innerHTML = '<div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); line-height: 1.3;">🔕 Сповіщення заблоковано<br><span style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500;">Дозвольте у налаштуваннях браузера</span></div>';
-    btn.style.border = '1px solid rgba(255, 77, 77, 0.4)';
+    btn.innerHTML = `${bellIco}<div class="connect-btn-txt"><span class="connect-btn-title">Сповіщення заблоковано</span><span class="connect-btn-sub">Дозвольте у налаштуваннях браузера</span></div>`;
+    btn.style.borderColor = 'rgba(255, 77, 77, 0.4)';
     btn.style.background = 'rgba(255, 77, 77, 0.05)';
   } else {
-    btn.innerHTML = '<div style="font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.3;">🔔 Отримувати важливі сповіщення<br><span style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500;">Світло, ЗСУ, новини міста</span></div>';
-    btn.style.border = '1px solid rgba(255, 204, 0, 0.4)';
-    btn.style.background = 'rgba(255, 204, 0, 0.05)';
+    btn.innerHTML = `${bellIco}<div class="connect-btn-txt"><span class="connect-btn-title">Важливі сповіщення</span><span class="connect-btn-sub">Світло, ЗСУ, новини міста</span></div>`;
+    btn.style.borderColor = 'rgba(255, 204, 0, 0.4)';
+    btn.style.background = 'rgba(255, 204, 0, 0.06)';
   }
 }
 
