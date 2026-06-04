@@ -858,7 +858,8 @@ async function loadPromosData() {
     
     markNewItems(activeItems, 'promos', false);
     checkNotification('promos', activeItems);
-    
+    updatePromosTabBadge(activeItems.length);
+
     allPromoItems = [...activeItems.filter(item => item.vip).reverse(), ...activeItems.filter(item => !item.vip).reverse()];
     renderPromosList(allPromoItems);
   } catch (e) { document.getElementById('promos-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d; line-height: 1.4;">Помилка зв'язку з сервером акцій</div>`; }
@@ -1211,7 +1212,8 @@ const TAB_ICONS = {
   volunteer: '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
   train: '<path d="M12 2c-4.42 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>',
   briefcase: '<path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>',
-  bolt: '<path d="M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66.19-.34.05-.08.07-.12C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.96 17.55 11 21 11 21z"/>'
+  bolt: '<path d="M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66.19-.34.05-.08.07-.12C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.96 17.55 11 21 11 21z"/>',
+  tag: '<path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>'
 };
 function tabIco(name) {
   return TAB_ICONS[name] ? `<svg class="tab-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${TAB_ICONS[name]}</svg>` : '';
@@ -1254,6 +1256,20 @@ function updateCommunalTabBadge(total) {
   badge.className = 'communal-live-badge';
   badge.innerHTML = tabSeg('bolt', total);
   badge.title = `Активних комунальних повідомлень: ${total}`;
+  tab.appendChild(badge);
+}
+
+function updatePromosTabBadge(total) {
+  const tab = document.querySelector('.tab-alert.promos');
+  if (!tab) return;
+  tab.style.position = 'relative';
+  const old = tab.querySelector('.promos-live-badge');
+  if (old) old.remove();
+  if (!total || total === 0) return;
+  const badge = document.createElement('span');
+  badge.className = 'promos-live-badge';
+  badge.innerHTML = tabSeg('tag', total);
+  badge.title = `Активних акцій: ${total}`;
   tab.appendChild(badge);
 }
 
