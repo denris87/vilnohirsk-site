@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Вільногірськ — концепт iOS-застосунку</title>
+<style>
+  :root{
+    --mint:#00ff9c; --gold:#ffcc00; --azure:#009ffd; --pink:#ff3366;
+    --blue:#38bdf8; --purple:#a18cd1; --orange:#ff9f43;
+    --g-bg:rgba(10,16,30,.55); --g-bd:rgba(255,255,255,.10);
+    --ink:#fff;
+    --font:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Color Emoji",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+  html,body{background:#070d1a;font-family:var(--font);color:var(--ink)}
+
+  /* ---------- STAGE ---------- */
+  .stage{
+    position:relative;width:1700px;height:1180px;overflow:hidden;
+    background:linear-gradient(135deg,#16335f 0%,#1e3c72 28%,#1d5fa8 55%,#0c8f9b 80%,#10b07e 100%);
+  }
+  /* glow orbs + texture */
+  .orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;pointer-events:none}
+  .orb.a{width:620px;height:620px;background:#00ff9c;left:-160px;top:-160px;opacity:.30}
+  .orb.b{width:560px;height:560px;background:#009ffd;right:-140px;top:120px;opacity:.40}
+  .orb.c{width:680px;height:680px;background:#2af598;right:120px;bottom:-260px;opacity:.22}
+  .orb.d{width:480px;height:480px;background:#7b5cff;left:380px;bottom:-200px;opacity:.28}
+  .grid-tex{position:absolute;inset:0;opacity:.05;pointer-events:none;
+    background-image:linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px);
+    background-size:46px 46px;mask-image:radial-gradient(circle at 60% 45%,#000,transparent 75%)}
+  /* faint city skyline */
+  .skyline{position:absolute;left:0;right:0;bottom:0;height:200px;opacity:.13;pointer-events:none;
+    background:
+      linear-gradient(to top,rgba(0,0,0,.5),transparent),
+      repeating-linear-gradient(90deg,transparent 0 18px,#04223f 18px 22px),
+      url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="200"><g fill="%2304223f"><rect x="40" y="80" width="70" height="120"/><rect x="130" y="40" width="50" height="160"/><rect x="200" y="110" width="90" height="90"/><rect x="320" y="60" width="60" height="140"/><rect x="400" y="120" width="110" height="80"/><rect x="540" y="30" width="46" height="170"/><rect x="610" y="90" width="80" height="110"/><rect x="720" y="50" width="64" height="150"/><rect x="810" y="100" width="120" height="100"/><rect x="960" y="70" width="54" height="130"/><rect x="1040" y="120" width="100" height="80"/><rect x="1170" y="46" width="58" height="154"/><rect x="1250" y="96" width="92" height="104"/><rect x="1370" y="64" width="62" height="136"/><rect x="1460" y="116" width="120" height="84"/><rect x="1600" y="76" width="60" height="124"/></g></svg>') bottom/1700px 200px no-repeat;
+  }
+
+  /* ---------- LEFT INTRO ---------- */
+  .intro{position:absolute;left:64px;top:96px;width:392px;z-index:90}
+  .intro .topline{display:flex;align-items:center;gap:16px;margin-bottom:22px}
+  .appicon{width:104px;height:104px;border-radius:25px;flex:0 0 auto;position:relative;
+    background:radial-gradient(120% 120% at 25% 18%,#2af598 0%,#00c2ff 45%,#1e3c72 100%);
+    box-shadow:0 18px 38px -8px rgba(0,0,0,.6),inset 0 2px 6px rgba(255,255,255,.5),inset 0 -10px 22px rgba(0,40,90,.6);
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .appicon::after{content:"";position:absolute;left:0;right:0;top:0;height:48%;background:linear-gradient(rgba(255,255,255,.34),transparent);border-radius:25px 25px 60% 60%}
+  .appicon .mark{font-size:58px;font-weight:900;color:#fff;text-shadow:0 3px 10px rgba(0,30,70,.55);letter-spacing:-2px;z-index:2;line-height:1}
+  .appicon .flag{position:absolute;bottom:11px;right:11px;font-size:18px;z-index:3;filter:drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+  .intro h1{font-size:40px;font-weight:900;letter-spacing:-1.2px;line-height:1.02}
+  .intro .sub{font-size:16px;font-weight:600;color:rgba(255,255,255,.72);margin-top:4px}
+  .kicker{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;
+    color:#031b14;background:linear-gradient(135deg,#2af598,#00d0ff);padding:7px 13px;border-radius:30px;margin-bottom:20px;
+    box-shadow:0 6px 18px rgba(0,255,156,.35)}
+  .rating{display:flex;align-items:center;gap:9px;margin:18px 0 16px;font-size:13.5px;font-weight:700;color:rgba(255,255,255,.8)}
+  .rating .stars{color:var(--gold);letter-spacing:2px;font-size:15px;text-shadow:0 0 10px rgba(255,204,0,.5)}
+  .lede{font-size:15px;line-height:1.62;color:rgba(255,255,255,.82);font-weight:500}
+  .lede b{color:#fff;font-weight:800}
+  .feat-h{margin:26px 0 13px;font-size:12px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.55)}
+  .pills{display:flex;flex-wrap:wrap;gap:9px}
+  .pill{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:700;padding:9px 14px;border-radius:30px;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.92);
+    backdrop-filter:blur(8px);box-shadow:0 4px 14px rgba(0,0,0,.18)}
+  .pill .d{width:7px;height:7px;border-radius:50%;box-shadow:0 0 8px currentColor}
+  .store{display:inline-flex;align-items:center;gap:13px;margin-top:30px;background:#000;border:1px solid rgba(255,255,255,.22);
+    padding:11px 22px 11px 18px;border-radius:16px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+  .store svg{width:30px;height:30px;fill:#fff;flex:0 0 auto}
+  .store .t1{font-size:11px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.3px;line-height:1.1}
+  .store .t2{font-size:21px;font-weight:800;letter-spacing:-.3px;line-height:1.15}
+
+  /* ---------- PHONE ---------- */
+  .phone{position:absolute;width:274px;height:582px;border-radius:46px;padding:10px;
+    background:linear-gradient(155deg,#23262e,#0a0c11 60%,#16181f);
+    box-shadow:0 50px 90px -24px rgba(0,0,0,.78),0 0 0 2px rgba(255,255,255,.05) inset,0 0 0 7px rgba(0,0,0,.35);
+  }
+  .phone .scr{position:relative;width:100%;height:100%;border-radius:38px;overflow:hidden;
+    background:linear-gradient(168deg,#1e3c72 0%,#21508f 42%,#0c1f3e 100%);}
+  .scr::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:30;border-radius:38px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)}
+  .di{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:88px;height:25px;background:#000;border-radius:14px;z-index:25}
+  .di::after{content:"";position:absolute;right:9px;top:50%;transform:translateY(-50%);width:7px;height:7px;border-radius:50%;background:#10212f;box-shadow:inset 0 0 3px rgba(80,160,255,.6)}
+  .sb{position:absolute;top:0;left:0;right:0;height:46px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:20}
+  .sb .clk{font-size:14px;font-weight:800;letter-spacing:.3px}
+  .sb .ic{display:flex;align-items:center;gap:6px}
+  .sb svg{display:block;fill:#fff}
+  .body{position:absolute;top:46px;left:0;right:0;bottom:62px;overflow:hidden;padding:8px 13px 0}
+  .tabbar{position:absolute;bottom:0;left:0;right:0;height:62px;display:flex;z-index:20;
+    background:rgba(7,12,24,.62);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);border-top:1px solid rgba(255,255,255,.09)}
+  .tabbar .ti{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:rgba(255,255,255,.42)}
+  .tabbar .ti svg{width:23px;height:23px;fill:currentColor}
+  .tabbar .ti span{font-size:9.5px;font-weight:700;letter-spacing:.2px}
+  .tabbar .ti.on{color:var(--mint)}
+  .tabbar .ti.on svg{filter:drop-shadow(0 0 6px rgba(0,255,156,.6))}
+
+  /* generic screen ui */
+  .scr-h{display:flex;align-items:baseline;justify-content:space-between;margin:4px 2px 12px}
+  .scr-h .t{font-size:23px;font-weight:900;letter-spacing:-.6px}
+  .scr-h .s{font-size:11px;font-weight:700;color:rgba(255,255,255,.55)}
+  .gc{background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(0,0,0,.20));border:1px solid rgba(255,255,255,.12);
+    border-radius:20px;padding:13px 14px;margin-bottom:11px;box-shadow:0 8px 22px rgba(0,0,0,.25),inset 0 1px 1px rgba(255,255,255,.10)}
+  .rowb{display:flex;align-items:center;justify-content:space-between}
+  .muted{color:rgba(255,255,255,.6)}
+  .tagi{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:4px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px}
+  .bar{height:8px;border-radius:6px;background:rgba(255,255,255,.14);overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:6px}
+  .qgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .q{display:flex;flex-direction:column;align-items:center;gap:7px;padding:13px 4px;border-radius:17px;
+    background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(0,0,0,.20));border:1px solid rgba(255,255,255,.10)}
+  .q .ico{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 6px 14px rgba(0,0,0,.3)}
+  .q span{font-size:10.5px;font-weight:700;color:rgba(255,255,255,.9)}
+
+  /* floating cards */
+  .float{position:absolute;z-index:70;filter:drop-shadow(0 30px 50px rgba(0,0,0,.45))}
+  .glassflo{background:rgba(10,16,30,.72);backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);
+    border:1px solid rgba(255,255,255,.14);border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.5),inset 0 1px 1px rgba(255,255,255,.14)}
+
+  /* dynamic island live activity */
+  .liveact{width:330px;border-radius:34px;background:#000;border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 26px 60px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05);padding:15px 19px;color:#fff}
+  .liveact .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+  .liveact .who{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800;color:rgba(255,255,255,.8)}
+  .liveact .dot{width:9px;height:9px;border-radius:50%;background:#00ff9c;box-shadow:0 0 10px #00ff9c}
+  .liveact .mid{display:flex;align-items:center;justify-content:space-between;gap:14px}
+  .liveact .leftbox{display:flex;align-items:center;gap:12px}
+  .liveact .glyph{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#00d0ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:24px}
+  .liveact .big{font-size:30px;font-weight:900;letter-spacing:-1px;line-height:1}
+  .liveact .cap{font-size:11px;font-weight:700;color:rgba(255,255,255,.6);margin-top:3px}
+  .liveact .eta{text-align:right}
+  .liveact .eta .n{font-size:26px;font-weight:900;color:#00ff9c;line-height:1}
+  .liveact .eta .u{font-size:10px;font-weight:700;color:rgba(255,255,255,.55)}
+
+  /* lock-screen notification */
+  .notif{width:336px;padding:14px 15px;display:flex;gap:13px;align-items:flex-start}
+  .notif .ni{width:40px;height:40px;border-radius:11px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:21px;
+    background:radial-gradient(120% 120% at 25% 18%,#2af598,#00c2ff 45%,#1e3c72);box-shadow:inset 0 1px 3px rgba(255,255,255,.5)}
+  .notif .nt1{display:flex;justify-content:space-between;font-size:11px;font-weight:800;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+  .notif .nt2{font-size:14px;font-weight:800;margin-bottom:2px}
+  .notif .nt3{font-size:12.5px;color:rgba(255,255,255,.78);line-height:1.4}
+
+  /* home-screen widget */
+  .widget{width:300px;padding:17px 18px;color:#fff;position:relative;overflow:hidden}
+  .widget .wbg{position:absolute;inset:0;background:linear-gradient(150deg,rgba(0,209,255,.22),rgba(0,255,156,.10),transparent);pointer-events:none}
+  .widget .wh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;position:relative}
+  .widget .wh .nm{display:flex;align-items:center;gap:9px;font-size:12px;font-weight:800}
+  .widget .wh .mi{width:24px;height:24px;border-radius:7px;background:radial-gradient(120% 120% at 25% 18%,#2af598,#00c2ff 45%,#1e3c72);display:flex;align-items:center;justify-content:center;font-size:13px}
+  .widget .wbig{font-size:40px;font-weight:900;letter-spacing:-1.5px;line-height:1;position:relative}
+  .widget .wsub{font-size:12.5px;font-weight:700;color:rgba(255,255,255,.82);margin-top:4px;position:relative}
+  .widget .wfoot{display:flex;gap:10px;margin-top:14px;position:relative}
+  .widget .wf{flex:1;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.10);border-radius:13px;padding:8px 10px;text-align:center}
+  .widget .wf .a{font-size:14px;font-weight:900}
+  .widget .wf .b{font-size:9px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
+
+  /* apple watch */
+  .watch{position:absolute;z-index:66;width:178px;filter:drop-shadow(0 26px 44px rgba(0,0,0,.5))}
+  .watch .band{position:absolute;left:50%;transform:translateX(-50%);width:104px;background:linear-gradient(#2b2f37,#15171c);z-index:0}
+  .watch .band.up{top:-46px;height:90px;border-radius:26px 26px 8px 8px}
+  .watch .band.dn{bottom:-46px;height:90px;border-radius:8px 8px 26px 26px}
+  .watch .case{position:relative;z-index:2;width:178px;height:212px;border-radius:52px;padding:13px;
+    background:linear-gradient(150deg,#3a3e47,#0c0d11);box-shadow:0 18px 40px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.06)}
+  .watch .wface{width:100%;height:100%;border-radius:40px;background:#000;overflow:hidden;position:relative;padding:13px 14px}
+  .watch .wtime{font-size:13px;font-weight:800;color:#00ff9c;text-align:right;letter-spacing:.5px}
+  .watch .wbig{font-size:21px;font-weight:900;letter-spacing:-.5px;margin-top:8px;line-height:1.05}
+  .watch .wrow{display:flex;align-items:center;gap:7px;margin-top:11px;font-size:11px;font-weight:700;color:rgba(255,255,255,.85)}
+  .watch .wcomp{margin-top:11px;background:linear-gradient(135deg,rgba(0,255,156,.2),rgba(0,0,0,.3));border:1px solid rgba(0,255,156,.4);border-radius:13px;padding:8px 10px;font-size:10.5px;font-weight:800;color:#9affd2;display:flex;align-items:center;gap:6px}
+
+  /* small emoji bubbles for collage texture */
+  .bub{position:absolute;z-index:60;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;
+    background:rgba(10,16,30,.55);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.16);
+    box-shadow:0 14px 30px rgba(0,0,0,.4),inset 0 1px 1px rgba(255,255,255,.16)}
+
+  .badge-soon{position:absolute;z-index:80;right:64px;top:104px;display:inline-flex;align-items:center;gap:9px;
+    font-size:13px;font-weight:800;letter-spacing:.5px;color:#04231a;
+    background:linear-gradient(135deg,#ffd84d,#ffb300);padding:11px 18px;border-radius:30px;
+    box-shadow:0 14px 30px rgba(255,180,0,.4);transform:rotate(3deg)}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="orb a"></div><div class="orb b"></div><div class="orb c"></div><div class="orb d"></div>
+  <div class="grid-tex"></div>
+  <div class="skyline"></div>
+
+  <!-- ===================== LEFT INTRO ===================== -->
+  <div class="intro">
+    <span class="kicker">◍ iOS · Концепт 2026</span>
+    <div class="topline">
+      <div class="appicon"><span class="mark">В</span><span class="flag">💙💛</span></div>
+      <div>
+        <h1>Smart<br>Вільногірськ</h1>
+        <div class="sub">Рідне місто у твоїй кишені</div>
+      </div>
+    </div>
+    <div class="rating"><span class="stars">★★★★★</span> 4.9 · Утиліти · Безкоштовно</div>
+    <p class="lede">Нативний застосунок для iPhone: <b>розклад транспорту наживо</b>, графік відключень світла, барахолка, робота, новини, афіші та збори для <b>ЗСУ</b> — швидко, офлайн і завжди під рукою.</p>
+
+    <div class="feat-h">Нове у нативній версії</div>
+    <div class="pills">
+      <span class="pill"><span class="d" style="color:#00ff9c"></span>Live Activities</span>
+      <span class="pill"><span class="d" style="color:#38bdf8"></span>Dynamic Island</span>
+      <span class="pill"><span class="d" style="color:#ffcc00"></span>Віджети екрана</span>
+      <span class="pill"><span class="d" style="color:#ff3366"></span>Розумні сповіщення</span>
+      <span class="pill"><span class="d" style="color:#a18cd1"></span>Face ID</span>
+      <span class="pill"><span class="d" style="color:#ff9f43"></span>Apple Maps</span>
+      <span class="pill"><span class="d" style="color:#00ffd0"></span>Siri Shortcuts</span>
+      <span class="pill"><span class="d" style="color:#9aff7b"></span>Офлайн-режим</span>
+      <span class="pill"><span class="d" style="color:#5ad0ff"></span>Apple Watch</span>
+    </div>
+
+    <div class="store">
+      <svg viewBox="0 0 24 24"><path d="M17.05 12.04c-.03-2.6 2.12-3.85 2.22-3.91-1.21-1.77-3.09-2.01-3.76-2.04-1.6-.16-3.12.94-3.93.94-.81 0-2.06-.92-3.39-.89-1.74.03-3.35 1.01-4.25 2.57-1.81 3.14-.46 7.79 1.3 10.34.86 1.25 1.88 2.65 3.22 2.6 1.29-.05 1.78-.83 3.34-.83 1.56 0 2 .83 3.37.81 1.39-.03 2.27-1.27 3.12-2.53.98-1.45 1.39-2.85 1.41-2.92-.03-.01-2.71-1.04-2.74-4.13zM14.6 4.7c.71-.86 1.19-2.06 1.06-3.25-1.02.04-2.26.68-2.99 1.54-.66.76-1.23 1.98-1.08 3.15 1.14.09 2.3-.58 3.01-1.44z"/></svg>
+      <div><div class="t1">Незабаром в</div><div class="t2">App Store</div></div>
+    </div>
+  </div>
+
+  <div class="badge-soon">✨ Concept Preview</div>
+
+  <!-- ===================== PHONES ===================== -->
+
+  <!-- P1 — TRANSPORT -->
+  <div class="phone" style="left:486px;top:380px;transform:rotate(-6deg);z-index:30">
+    <div class="scr"><div class="di"></div>
+      <div class="sb" data-clk="9:41"></div>
+      <div class="body">
+        <div class="scr-h"><div class="t">Розклад</div><div class="s">наживо ●</div></div>
+        <div style="display:flex;gap:6px;margin-bottom:11px">
+          <span class="tagi" style="background:rgba(0,255,156,.22);color:#9affd2;border:1px solid rgba(0,255,156,.4);flex:1;justify-content:center;padding:8px">🚆 Електрички</span>
+          <span class="tagi" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);flex:1;justify-content:center;padding:8px">🚌 Автобуси</span>
+          <span class="tagi" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);flex:1;justify-content:center;padding:8px">🚗 BlaBla</span>
+        </div>
+        <div class="gc" style="border-color:rgba(0,255,156,.35);background:linear-gradient(160deg,rgba(0,255,156,.16),rgba(0,0,0,.25))">
+          <div class="rowb" style="margin-bottom:8px"><span class="tagi" style="background:rgba(0,255,156,.25);color:#9affd2">найближча</span><span class="muted" style="font-size:11px;font-weight:700">платформа 2</span></div>
+          <div class="rowb">
+            <div><div style="font-size:13px;font-weight:800">Вільногірськ → Дніпро</div><div class="muted" style="font-size:11px;margin-top:2px">приміський електропоїзд</div></div>
+            <div style="text-align:right"><div style="font-size:24px;font-weight:900;color:#00ff9c;line-height:1">14:32</div><div class="muted" style="font-size:10px;font-weight:700">через 18 хв</div></div>
+          </div>
+        </div>
+        <div class="gc" style="padding:6px 4px">
+          <div class="rowb" style="padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.07)"><span style="font-size:12px;font-weight:700">→ П'ятихатки</span><span style="font-size:13px;font-weight:800">15:10</span></div>
+          <div class="rowb" style="padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.07)"><span style="font-size:12px;font-weight:700">→ Запоріжжя</span><span style="font-size:13px;font-weight:800">16:45</span></div>
+          <div class="rowb" style="padding:8px 11px"><span style="font-size:12px;font-weight:700">→ Кривий Ріг</span><span style="font-size:13px;font-weight:800">18:05</span></div>
+        </div>
+        <div class="gc" style="padding:0;height:78px;overflow:hidden;position:relative;border-color:rgba(56,189,248,.3)">
+          <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(56,189,248,.2),rgba(0,0,0,.3))"></div>
+          <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.12) 1px,transparent 1px);background-size:22px 22px"></div>
+          <div style="position:absolute;left:30px;top:46px;font-size:18px">🚉</div>
+          <div style="position:absolute;right:34px;top:20px;font-size:18px">📍</div>
+          <svg viewBox="0 0 260 78" style="position:absolute;inset:0;width:100%;height:100%"><path d="M40 56 Q120 30 210 24" stroke="#00ff9c" stroke-width="3" fill="none" stroke-dasharray="6 5" opacity=".9"/></svg>
+          <span class="tagi" style="position:absolute;right:9px;bottom:8px;background:rgba(0,0,0,.5);color:#fff">Apple Maps</span>
+        </div>
+      </div>
+      <div class="tabbar" data-tab="train"></div>
+    </div>
+  </div>
+
+  <!-- P2 — INFORMER (power / alerts) -->
+  <div class="phone" style="left:706px;top:320px;transform:rotate(-3deg);z-index:40">
+    <div class="scr"><div class="di"></div>
+      <div class="sb" data-clk="9:41"></div>
+      <div class="body">
+        <div class="scr-h"><div class="t">Інформер</div><div class="s">Вільногірськ</div></div>
+        <div class="gc" style="border-color:rgba(0,255,156,.4);background:linear-gradient(160deg,rgba(0,255,156,.16),rgba(0,0,0,.25))">
+          <div class="rowb"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:22px">🟢</span><div><div style="font-size:14px;font-weight:800">Повітряна тривога</div><div class="muted" style="font-size:11px;margin-top:1px">Дніпропетровська обл.</div></div></div><span class="tagi" style="background:rgba(0,255,156,.25);color:#9affd2">відбій</span></div>
+        </div>
+        <div class="gc">
+          <div class="rowb" style="margin-bottom:11px"><div style="font-size:13px;font-weight:800">💡 Графік світла</div><span class="tagi" style="background:rgba(0,255,156,.22);color:#9affd2">зараз є</span></div>
+          <div style="display:flex;gap:3px;height:34px;align-items:flex-end;margin-bottom:7px">
+            <i style="flex:1;height:100%;background:#00ff9c;border-radius:3px;opacity:.85"></i>
+            <i style="flex:1;height:100%;background:#00ff9c;border-radius:3px;opacity:.85"></i>
+            <i style="flex:1;height:100%;background:#ff4d4d;border-radius:3px"></i>
+            <i style="flex:1;height:100%;background:#ff4d4d;border-radius:3px"></i>
+            <i style="flex:1;height:100%;background:#00ff9c;border-radius:3px;opacity:.85"></i>
+            <i style="flex:1;height:100%;background:#00ff9c;border-radius:3px;box-shadow:0 0 0 2px #fff inset"></i>
+            <i style="flex:1;height:100%;background:#00ff9c;border-radius:3px;opacity:.85"></i>
+            <i style="flex:1;height:100%;background:#ff4d4d;border-radius:3px"></i>
+            <i style="flex:1;height:100%;background:#ff4d4d;border-radius:3px"></i>
+            <i style="flex:1;height:100%;background:#00ff9c;border-radius:3px;opacity:.85"></i>
+            <i style="flex:1;height:100%;background:#00ff9c;border-radius:3px;opacity:.85"></i>
+            <i style="flex:1;height:100%;background:#00ff9c;border-radius:3px;opacity:.85"></i>
+          </div>
+          <div class="rowb muted" style="font-size:10px;font-weight:700"><span>00:00</span><span>12:00</span><span>24:00</span></div>
+          <div style="margin-top:10px;font-size:11.5px;font-weight:700;color:#ffd0d0;background:rgba(255,77,77,.14);border:1px solid rgba(255,77,77,.3);border-radius:11px;padding:8px 11px">⚠️ Наступне відключення: 18:00 – 21:00</div>
+        </div>
+        <div style="display:flex;gap:11px">
+          <div class="gc" style="flex:1;margin-bottom:0;text-align:center"><div style="font-size:20px">🚰</div><div style="font-size:11.5px;font-weight:800;margin-top:4px">Вода</div><div class="tagi" style="background:rgba(0,255,156,.22);color:#9affd2;margin-top:5px">є</div></div>
+          <div class="gc" style="flex:1;margin-bottom:0;text-align:center"><div style="font-size:20px">🔥</div><div style="font-size:11.5px;font-weight:800;margin-top:4px">Газ</div><div class="tagi" style="background:rgba(0,255,156,.22);color:#9affd2;margin-top:5px">є</div></div>
+        </div>
+      </div>
+      <div class="tabbar" data-tab="bell"></div>
+    </div>
+  </div>
+
+  <!-- P3 — HOME (HERO) -->
+  <div class="phone" style="left:926px;top:250px;transform:rotate(0deg) scale(1.05);z-index:55">
+    <div class="scr"><div class="di"></div>
+      <div class="sb" data-clk="9:41"></div>
+      <div class="body">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:2px 2px 13px">
+          <div><div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.65)">Доброго ранку 👋</div><div style="font-size:22px;font-weight:900;letter-spacing:-.5px">Вільногірськ</div></div>
+          <div style="text-align:right;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:7px 11px"><div style="font-size:18px;font-weight:900;line-height:1">☀️ +24°</div><div style="font-size:9.5px;font-weight:700;color:rgba(255,255,255,.6)">ясно</div></div>
+        </div>
+        <div class="gc" style="background:linear-gradient(135deg,rgba(0,159,253,.25),rgba(0,0,0,.25));border-color:rgba(56,189,248,.3)">
+          <div class="rowb">
+            <div><div style="font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.6)">СУБОТА, 7 ЧЕР</div><div style="font-size:30px;font-weight:900;letter-spacing:1px;text-shadow:0 0 14px rgba(0,255,156,.4)">09:41<span style="color:#00ff9c">:32</span></div></div>
+            <div style="text-align:right;font-size:11px;font-weight:800;line-height:1.7">
+              <div>🇺🇸 USD <span style="color:#00ff9c">41.8</span></div>
+              <div>🇪🇺 EUR <span style="color:#00ff9c">45.2</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="qgrid">
+          <div class="q"><div class="ico" style="background:linear-gradient(135deg,#00ff9c,#00b36b)">🚆</div><span>Розклад</span></div>
+          <div class="q"><div class="ico" style="background:linear-gradient(135deg,#00ff9c,#00b8ff)">🛒</div><span>Барахолка</span></div>
+          <div class="q"><div class="ico" style="background:linear-gradient(135deg,#00b8ff,#0055ff)">💼</div><span>Робота</span></div>
+          <div class="q"><div class="ico" style="background:linear-gradient(135deg,#ff9f43,#ff6b6b)">🏠</div><span>Нерухомість</span></div>
+          <div class="q"><div class="ico" style="background:linear-gradient(135deg,#ff3366,#ff6b9d)">🎭</div><span>Афіша</span></div>
+          <div class="q"><div class="ico" style="background:linear-gradient(135deg,#0057b7,#ffd700)">🇺🇦</div><span>ЗСУ</span></div>
+        </div>
+        <div class="gc" style="margin-top:11px;display:flex;align-items:center;gap:11px;background:linear-gradient(135deg,rgba(255,51,102,.18),rgba(0,0,0,.25));border-color:rgba(255,51,102,.3)">
+          <div style="width:38px;height:38px;border-radius:50%;background:rgba(255,51,102,.25);display:flex;align-items:center;justify-content:center;font-size:18px">📰</div>
+          <div style="flex:1"><div style="font-size:9px;font-weight:800;letter-spacing:.6px;color:#ff8fab;text-transform:uppercase">Новина міста</div><div style="font-size:12px;font-weight:700;line-height:1.3;margin-top:2px">Оновлено графік руху електричок з 7 червня</div></div>
+        </div>
+      </div>
+      <div class="tabbar" data-tab="home"></div>
+    </div>
+  </div>
+
+  <!-- P4 — MARKET -->
+  <div class="phone" style="left:1146px;top:320px;transform:rotate(3deg);z-index:40">
+    <div class="scr"><div class="di"></div>
+      <div class="sb" data-clk="9:41"></div>
+      <div class="body">
+        <div class="scr-h"><div class="t">Маркет</div><div class="s">312 оголошень</div></div>
+        <div class="gc" style="display:flex;align-items:center;gap:9px;padding:11px 13px;margin-bottom:10px">
+          <span style="font-size:15px;opacity:.7">🔍</span><span class="muted" style="font-size:13px;font-weight:600">Пошук у Вільногірську…</span>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:11px;overflow:hidden">
+          <span class="tagi" style="background:rgba(0,255,156,.22);color:#9affd2;border:1px solid rgba(0,255,156,.4);padding:7px 11px">Барахолка</span>
+          <span class="tagi" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.65);padding:7px 11px">Нерухомість</span>
+          <span class="tagi" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.65);padding:7px 11px">Авто</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="gc" style="padding:0;overflow:hidden;margin:0">
+            <div style="height:74px;background:linear-gradient(135deg,#3a6df0,#21305f);display:flex;align-items:center;justify-content:center;font-size:30px">📱</div>
+            <div style="padding:8px 9px"><div style="font-size:11px;font-weight:700;line-height:1.2">iPhone 12, 128 ГБ</div><div style="font-size:13px;font-weight:900;color:#00ff9c;margin-top:3px">8 500 ₴</div></div>
+          </div>
+          <div class="gc" style="padding:0;overflow:hidden;margin:0">
+            <div style="height:74px;background:linear-gradient(135deg,#ff9f43,#ff6b6b);display:flex;align-items:center;justify-content:center;font-size:30px">🚲</div>
+            <div style="padding:8px 9px"><div style="font-size:11px;font-weight:700;line-height:1.2">Велосипед Trek</div><div style="font-size:13px;font-weight:900;color:#00ff9c;margin-top:3px">4 200 ₴</div></div>
+          </div>
+          <div class="gc" style="padding:0;overflow:hidden;margin:0">
+            <div style="height:74px;background:linear-gradient(135deg,#a18cd1,#7b5cff);display:flex;align-items:center;justify-content:center;font-size:30px">🛋️</div>
+            <div style="padding:8px 9px"><div style="font-size:11px;font-weight:700;line-height:1.2">Диван, як новий</div><div style="font-size:13px;font-weight:900;color:#00ff9c;margin-top:3px">3 000 ₴</div></div>
+          </div>
+          <div class="gc" style="padding:0;overflow:hidden;margin:0">
+            <div style="height:74px;background:linear-gradient(135deg,#00d0ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:30px">👟</div>
+            <div style="padding:8px 9px"><div style="font-size:11px;font-weight:700;line-height:1.2">Nike, розмір 42</div><div style="font-size:13px;font-weight:900;color:#00ff9c;margin-top:3px">1 100 ₴</div></div>
+          </div>
+        </div>
+        <div style="position:absolute;right:18px;bottom:14px;width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#00ff9c,#00b8ff);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:300;color:#06231a;box-shadow:0 10px 24px rgba(0,255,156,.45)">+</div>
+      </div>
+      <div class="tabbar" data-tab="bag"></div>
+    </div>
+  </div>
+
+  <!-- P5 — ZSU -->
+  <div class="phone" style="left:1366px;top:380px;transform:rotate(6deg);z-index:30">
+    <div class="scr"><div class="di"></div>
+      <div class="sb" data-clk="9:41"></div>
+      <div class="body">
+        <div class="scr-h"><div class="t">Допомога ЗСУ</div><div class="s">🇺🇦</div></div>
+        <div class="gc" style="border-color:rgba(255,215,0,.4);background:linear-gradient(160deg,rgba(0,87,183,.25),rgba(255,215,0,.12))">
+          <div class="rowb" style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:17px">🛸</span><span style="font-size:13px;font-weight:800">Збір на FPV-дрони</span></div><span class="tagi" style="background:rgba(255,51,102,.3);color:#fff">● live</span></div>
+          <div class="bar" style="margin-bottom:8px"><i style="width:72%;background:linear-gradient(90deg,#0057b7,#ffd700)"></i></div>
+          <div class="rowb"><span style="font-size:14px;font-weight:900;color:#ffd700">72 400 ₴</span><span class="muted" style="font-size:11px;font-weight:700">з 100 000 ₴</span></div>
+          <div style="margin-top:11px;background:linear-gradient(135deg,#00ff9c,#00b8ff);color:#06231a;text-align:center;font-weight:800;font-size:13px;padding:10px;border-radius:12px">💳 Підтримати збір</div>
+        </div>
+        <div class="gc">
+          <div class="rowb" style="margin-bottom:9px"><div style="font-size:12.5px;font-weight:800">🚗 Авто для 93-ї бригади</div></div>
+          <div class="bar" style="margin-bottom:7px"><i style="width:45%;background:linear-gradient(90deg,#0057b7,#ffd700)"></i></div>
+          <div class="rowb"><span style="font-size:12px;font-weight:900;color:#ffd700">45 000 ₴</span><span class="muted" style="font-size:10.5px;font-weight:700">з 100 000 ₴</span></div>
+        </div>
+        <div class="gc" style="text-align:center;padding:14px 12px">
+          <div style="font-size:11.5px;font-weight:700;color:rgba(255,255,255,.85);line-height:1.5">Перевірені збори від місцевих<br>волонтерів. Слава Україні! 🇺🇦</div>
+        </div>
+      </div>
+      <div class="tabbar" data-tab="heart"></div>
+    </div>
+  </div>
+
+  <!-- ===================== FLOATING ELEMENTS ===================== -->
+
+  <!-- Dynamic Island live activity -->
+  <div class="float liveact" style="left:836px;top:96px">
+    <div class="top"><div class="who"><span class="dot"></span>Live Activity · Dynamic Island</div><div style="font-size:11px;font-weight:800;color:#00ff9c">● у дорозі</div></div>
+    <div class="mid">
+      <div class="leftbox"><div class="glyph">🚆</div><div><div class="big">14:32</div><div class="cap">Вільногірськ → Дніпро · платф. 2</div></div></div>
+      <div class="eta"><div class="n">18</div><div class="u">хвилин</div></div>
+    </div>
+  </div>
+
+  <!-- Lock screen notification -->
+  <div class="float glassflo notif" style="left:556px;top:150px;transform:rotate(-6deg)">
+    <div class="ni">💡</div>
+    <div style="flex:1">
+      <div class="nt1"><span>Smart Вільногірськ</span><span>зараз</span></div>
+      <div class="nt2">Світло повертається ⚡</div>
+      <div class="nt3">Електроенергію планують подати орієнтовно о 18:00. Зарядіть пристрої заздалегідь.</div>
+    </div>
+  </div>
+
+  <!-- Home-screen widget -->
+  <div class="float glassflo widget" style="left:806px;top:986px;transform:rotate(3deg)">
+    <div class="wbg"></div>
+    <div class="wh"><div class="nm"><span class="mi">В</span>Вільногірськ</div><span style="font-size:18px">🚆</span></div>
+    <div class="wbig">14:32</div>
+    <div class="wsub">Найближча електричка → Дніпро</div>
+    <div class="wfoot">
+      <div class="wf"><div class="a">☀️ +24°</div><div class="b">погода</div></div>
+      <div class="wf"><div class="a" style="color:#00ff9c">є 💡</div><div class="b">світло</div></div>
+      <div class="wf"><div class="a">41.8</div><div class="b">USD</div></div>
+    </div>
+  </div>
+
+  <!-- Apple Watch -->
+  <div class="watch" style="left:150px;top:872px;transform:rotate(-5deg)">
+    <div class="band up"></div><div class="band dn"></div>
+    <div class="case">
+      <div class="wface">
+        <div class="wtime">9:41</div>
+        <div class="wbig">🚆 14:32<br>→ Дніпро</div>
+        <div class="wrow">🟢 Тривоги немає</div>
+        <div class="wcomp">💡 Світло є · до 18:00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- texture bubbles -->
+  <div class="bub" style="width:62px;height:62px;left:466px;top:292px">🎭</div>
+  <div class="bub" style="width:54px;height:54px;left:1616px;top:326px">📻</div>
+  <div class="bub" style="width:58px;height:58px;left:1296px;top:996px">🛒</div>
+  <div class="bub" style="width:50px;height:50px;left:430px;top:756px">💼</div>
+
+</div>
+
+<script>
+  // ---- status bar icons ----
+  const SIGNAL = '<svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>';
+  const WIFI = '<svg width="17" height="12" viewBox="0 0 17 12"><path d="M8.5 9.6a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM8.5 5.1c1.9 0 3.7.74 5 2.07l-1.45 1.45A4.9 4.9 0 0 0 8.5 7.1a4.9 4.9 0 0 0-3.55 1.52L3.5 7.17A7.1 7.1 0 0 1 8.5 5.1zM8.5 1c3 0 5.83 1.17 7.95 3.27l-1.45 1.45A8.95 8.95 0 0 0 8.5 3a8.95 8.95 0 0 0-6.5 2.72L.55 4.27A12.95 12.95 0 0 1 8.5 1z"/></svg>';
+  const BATT = '<svg width="27" height="13" viewBox="0 0 27 13"><rect x="0.6" y="0.6" width="22" height="11.8" rx="3.4" fill="none" stroke="#fff" stroke-opacity=".45"/><rect x="2.2" y="2.2" width="18.8" height="8.6" rx="2" fill="#fff"/><rect x="23.6" y="4" width="2" height="5" rx="1" fill="#fff" fill-opacity=".55"/></svg>';
+
+  document.querySelectorAll('.sb').forEach(sb=>{
+    const clk = sb.getAttribute('data-clk') || '9:41';
+    sb.innerHTML = '<span class="clk">'+clk+'</span><span class="ic">'+SIGNAL+WIFI+BATT+'</span>';
+  });
+
+  // ---- tab bars ----
+  const ICONS = {
+    home:'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
+    train:'M12 2c-4.42 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z',
+    bag:'M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2z',
+    heart:'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z',
+    bell:'M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z'
+  };
+  const TABS = [['home','Головна'],['train','Розклад'],['bag','Маркет'],['heart','ЗСУ'],['bell','Сповіщення']];
+  document.querySelectorAll('.tabbar').forEach(tb=>{
+    const active = tb.getAttribute('data-tab');
+    tb.innerHTML = TABS.map(([k,label])=>(
+      '<div class="ti'+(k===active?' on':'')+'"><svg viewBox="0 0 24 24"><path d="'+ICONS[k]+'"/></svg><span>'+label+'</span></div>'
+    )).join('');
+  });
+</script>
+</body>
+</html>
