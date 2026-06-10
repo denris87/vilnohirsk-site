@@ -48,6 +48,12 @@ function nl2brWithBold(str) {
     return safe.replace(/\n/g, '<br>');
 }
 
+// Безпечне пакування даних в onclick-атрибут: encodeURIComponent не кодує апостроф,
+// тому доекрануємо його вручну (інакше ' у даних розриває JS-рядок всередині атрибута)
+function packForAttr(obj) {
+    return encodeURIComponent(JSON.stringify(obj)).replace(/'/g, '%27');
+}
+
 // Гнучка перевірка VIP-прапорця з таблиці: True для будь-якого непорожнього значення, окрім явних "ні"
 function isVipFlag(s) {
   if (s === true) return true;
@@ -224,7 +230,7 @@ function formatUAPhone(input) {
     input.value = '+380' + body.substring(0, 9);
 }
 
-let currentGallery = []; let currentGalleryIndex = 0; let windowEventImages = [];
+let currentGallery = []; let currentGalleryIndex = 0; let windowEventImages = []; let currentVilnohirskPhotos = [];
 let touchStartX = 0; let touchStartY = 0; let touchEndX = 0; 
 let currentZoom = 1; let minZoom = 1; let maxZoom = 4;
 let panX = 0; let panY = 0; let startPanX = 0; let startPanY = 0;
@@ -385,8 +391,10 @@ const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
             if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
             else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
             canvas.width = width; canvas.height = height;
-            const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height); resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]); 
+            const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height); resolve(canvas.toDataURL('image/jpeg', 0.8).split(',')[1]);
         };
+        // Без цього обробника промис завис би назавжди на пошкодженому/непідтримуваному файлі (напр. HEIC)
+        img.onerror = () => reject(new Error('Не вдалося обробити фото. Спробуйте інший файл (JPG або PNG).'));
     }; reader.onerror = error => reject(error);
 });
 
@@ -416,10 +424,12 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
   } catch (e) { showToast('❌ Помилка: ' + e.message, 'error'); } finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
 }
 
-function openModalForm(formId, modalId) { 
+function openModalForm(formId, modalId) {
   if (modalId) {
     const form = document.getElementById(formId); if(form) form.reset(); if(formId) setupCaptcha(formId);
-    document.getElementById(modalId).classList.add('active'); 
+    // Не даємо вибрати минулу дату (поїздка BlaBlaCar, термін дії акції тощо)
+    if (form) form.querySelectorAll('input[type="date"]').forEach(d => { d.min = getKyivDateISO(); });
+    document.getElementById(modalId).classList.add('active');
   } else {
     document.getElementById(formId).classList.add('active');
   }
@@ -538,6 +548,7 @@ document.addEventListener('wheel', (e) => {
 }, { passive: false });
 
 function getKyivNow(){ return new Date(new Date().toLocaleString("en-US",{timeZone:"Europe/Kyiv"})); }
+function getKyivDateISO(){ const n = getKyivNow(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0'); }
 function getWeatherEmoji(code){ if(code === 0) return "☀️"; if(code <= 2) return "⛅"; if(code <= 3) return "☁️"; if(code <= 48) return "🌫️"; if(code <= 67) return "🌧️"; if(code <= 77) return "🌨️"; if(code <= 99) return "⛈️"; return "🌡️"; }
 
 async function loadWeather(){
@@ -572,9 +583,9 @@ async function loadWeather(){
 
 async function loadExchangeRates() {
   try {
-    const pbRes = await fetch('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=5');
-    if (pbRes.ok) {
-        const pb = await pbRes.json(); const usd = pb.find(c => c.ccy === 'USD'); const eur = pb.find(c => c.ccy === 'EUR');
+    const pb = await fetchCachedJson('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=5', 'pb_rates', 30);
+    if (Array.isArray(pb)) {
+        const usd = pb.find(c => c.ccy === 'USD'); const eur = pb.find(c => c.ccy === 'EUR');
         if (usd && eur) { document.getElementById('usd-buy').textContent = Number(usd.buy).toFixed(2); document.getElementById('usd-sell').textContent = Number(usd.sale).toFixed(2); document.getElementById('eur-buy').textContent = Number(eur.buy).toFixed(2); document.getElementById('eur-sell').textContent = Number(eur.sale).toFixed(2); return; }
     }
   } catch (e) {}
@@ -681,18 +692,22 @@ async function loadEventsData() {
     const API_URL = atob('aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2RlbnJpczg3L3ZpbG5vaGlyc2stZXZlbnRzL21haW4vZXZlbnRzLmpzb24=');
     const eventAlerts = await fetchCachedJson(API_URL, 'events_api', 5);
     const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i.show !== false) : [];
-    
-    markNewItems(activeEvents, 'events', true);
-    checkNotification('events', activeEvents);
-    updateEventsTabBadge(activeEvents.length);
+    // Афіша без фото не рендерить слайд — працюємо лише з тими, де є зображення,
+    // інакше індекси модалки та точки каруселі з'їжджають відносно слайдів
+    const eventsWithPhotos = activeEvents.filter(ev => ev && (ev.photo || ev.image || ev.url));
 
-    windowEventImages = activeEvents.map(ev => getDriveImageUrl(ev.photo || ev.image || ev.url)).filter(Boolean);
-    document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(activeEvents, '#FF3366', 'events', true);
+    markNewItems(eventsWithPhotos, 'events', true);
+    checkNotification('events', eventsWithPhotos);
+    updateEventsTabBadge(eventsWithPhotos.length);
+
+    windowEventImages = eventsWithPhotos.map(ev => getDriveImageUrl(ev.photo || ev.image || ev.url));
+    document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(eventsWithPhotos, '#FF3366', 'events', true);
   } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
 }
 
 async function loadPhonebookData() {
   const container = document.getElementById('city-guide-list-content');
+  if (!container) return; // розділ тимчасово вимкнено — блока може не бути в розмітці
   try {
     const data = await fetchCachedJson('https://vilnohirsk-phonebook-production.up.railway.app/api/phonebook', 'phonebook_api', 30);
     const categoriesData = data.categories || data; if (!categoriesData || !Array.isArray(categoriesData)) throw new Error('Invalid format');
@@ -703,7 +718,8 @@ async function loadPhonebookData() {
 }
 
 function renderPhonebook(categories, searchQuery = '') {
-  const container = document.getElementById('city-guide-list-content'); let html = ''; let hasResults = false; const query = searchQuery.toLowerCase().trim();
+  const container = document.getElementById('city-guide-list-content'); if (!container) return;
+  let html = ''; let hasResults = false; const query = searchQuery.toLowerCase().trim();
   if (!Array.isArray(categories)) return;
   categories.forEach((cat) => {
      if (!cat || !cat.items || !Array.isArray(cat.items)) return;
@@ -763,7 +779,7 @@ function renderShops(shopsData) {
     
     const isContactless = shop.contactless === true || shop.contactless === 'true' || shop.contactless === '✅';
     let photosHtml = ''; let photosArray = Array.isArray(shop.photos) ? shop.photos : (photoUrl ? [photoUrl] : []);
-    if (photosArray.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(photosArray.map(getDriveImageUrl)))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(photosArray[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
+    if (photosArray.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(photosArray.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(photosArray[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
     
     const dot = shop.isNewItem ? NEW_BADGE_HTML : '';
     const dropdownHtml = buildDropdown(detailsId, photosHtml, [ {icon: '📍', label: 'Адреса', value: escapeHTML(shop.address) || "Не вказано"}, {icon: '🕒', label: 'Графік роботи', value: shop.schedule ? nl2br(String(shop.schedule)) : 'Не вказано'}, {icon: '💳', label: 'Термінал', value: isContactless ? '✅' : '❌'}, {icon: '📞', label: 'Телефон(и)', value: phoneHtml} ]);
@@ -797,15 +813,15 @@ function renderPromosList(items) {
     let thumbUrl = item.photos && item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
     const thumb = thumbUrl ? `<img src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="object-fit: contain; width: 100%; height: 100%; opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🔥</span>`;
     let photosHtml = '';
-    if (item.photos && item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
+    if (item.photos && item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
     
     let rawDesc = nl2br(String(item.description || ''));
     let extractedLink = '';
     
     let finalDesc = rawDesc.replace(/(https?:\/\/[^\s<]+)/g, function(match) {
-        extractedLink = match;
-        return ''; 
-    }).replace(/^(<br>|\s)+/, '').replace(/(<br>|\s)+$/, '').trim(); 
+        if (!extractedLink) extractedLink = match; // у кнопку йде ПЕРШЕ посилання з опису
+        return '';
+    }).replace(/^(<br>|\s)+/, '').replace(/(<br>|\s)+$/, '').trim();
 
     let buttonHtml = '';
     if (extractedLink) {
@@ -875,7 +891,7 @@ function renderEstateList(items, hasMore = false) {
     let thumbUrl = item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
     const thumb = thumbUrl ? `<img src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🏠</span>`;
     let photosHtml = '';
-    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const dealColor = item.dealType.toLowerCase() === 'оренда' ? '#00b8ff' : '#ff3366';
     let displayPrice = item.price ? String(item.price).trim() : 'Договірна';
     if (displayPrice !== 'Договірна' && !displayPrice.includes('$')) { displayPrice += ' $'; }
@@ -946,7 +962,7 @@ function renderFleaMarketList(items, hasMore = false) {
     let thumbUrl = item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
     const thumb = thumbUrl ? `<img src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">📦</span>`;
     let priceText = item.price ? String(item.price).trim() : 'Ціна договірна'; if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
-    let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+    let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const isVip = isVipFlag(item.vip);
     
     const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '✨', label: 'Стан', value: escapeHTML(item.condition)}, {icon: '📝', label: 'Опис', value: nl2br(item.description)}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
@@ -1040,7 +1056,7 @@ async function loadLostFoundData() {
           let thumbUrl = item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
           const thumb = thumbUrl ? `<img src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🔍</span>`; 
           const badgeColor = item.type.toLowerCase().includes('знайд') ? '#00ff9c' : '#ff4d4d';
-          let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+          let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
           
           const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '📝', label: 'Опис', value: nl2br(item.description)}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
           
@@ -1429,7 +1445,7 @@ function renderPhoenixList(items) {
     
     let photoClickAttr = '';
     if (item.photos && item.photos.length > 0) {
-      photoClickAttr = `onclick="openImageModal(JSON.parse(decodeURIComponent('${encodeURIComponent(JSON.stringify(item.photos.map(getDriveImageUrl)))}')), 0, event)"`;
+      photoClickAttr = `onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"`;
     }
 
     const thumb = thumbUrl 
@@ -1565,7 +1581,9 @@ async function loadVolunteersData(opts) {
     let html = useGrid ? '<div class="zsu-grid">' : '';
     activeItems.forEach((item, i) => {
         const title = item.title || 'ЗБІР НА ЗСУ'; const desc = item.description ? nl2br(item.description) : 'Підтримайте наших захисників!';
-        const jarUrl = item.jar_url || ''; const cardNumber = item.card_number || ''; const id = Math.random().toString(36).substr(2, 5);
+        // Посилання на банку — лише http(s), щоб у href не потрапило щось небезпечне
+        const jarUrl = /^https?:\/\//i.test(String(item.jar_url || '').trim()) ? String(item.jar_url).trim() : '';
+        const cardNumber = item.card_number || ''; const id = Math.random().toString(36).substr(2, 5);
         const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0; const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
         let progressHtml = '';
         if (goal > 0) {
@@ -1574,7 +1592,7 @@ async function loadVolunteersData(opts) {
         }
         let reqsHtml = '';
         if (jarUrl) reqsHtml += `<a class="zsu-req-jar" href="${escapeHTML(jarUrl)}" target="_blank" style="display: block; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 10px; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(0,0,0,0.25)'"><div class="zsu-req-jar-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">🏦</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Посилання на Банку</span></div><div class="zsu-req-jar-url" style="font-size: 13px; color: var(--time-green); font-weight: 800; word-break: break-all; line-height: 1.4;" id="jar-${id}">${escapeHTML(jarUrl)}</div></a>`;
-        if (cardNumber) reqsHtml += `<div class="zsu-req-card" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px;"><div class="zsu-req-card-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">💳</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Номер картки</span></div><div class="zsu-req-card-num" style="font-size: 18px; font-weight: 800; font-family: monospace; letter-spacing: 1px; color: #fff; margin-bottom: 12px; text-align: center;" id="card-${id}">${escapeHTML(cardNumber)}</div><button class="zsu-req-card-btn" onclick="copyToClipboardBtn('${cardNumber.replace(/\s/g, '')}', this)" style="width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">📋 Копіювати номер</button></div>`;
+        if (cardNumber) reqsHtml += `<div class="zsu-req-card" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px;"><div class="zsu-req-card-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">💳</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Номер картки</span></div><div class="zsu-req-card-num" style="font-size: 18px; font-weight: 800; font-family: monospace; letter-spacing: 1px; color: #fff; margin-bottom: 12px; text-align: center;" id="card-${id}">${escapeHTML(cardNumber)}</div><button class="zsu-req-card-btn" onclick="copyToClipboardBtn('${String(cardNumber).replace(/\D/g, '')}', this)" style="width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">📋 Копіювати номер</button></div>`;
 
         const dot = item.isNewItem ? NEW_BADGE_HTML : '';
         html += `<div class="zsu-card" style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;"><div class="zsu-card-header" style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding-right: 15px;"><div style="width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.6); margin-top: 4px; flex-shrink: 0; animation: pulseAlert 2s infinite;"></div><div class="zsu-card-title" style="font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; text-align: left;">${escapeHTML(title)}${dot}</div></div><div class="zsu-card-desc" style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.6; text-align: left; margin-bottom: 15px; word-break: break-word;">${desc}</div>${progressHtml}<div class="zsu-card-reqs" style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;"><div class="zsu-card-reqs-title" style="font-size: 10px; font-weight: 700; color: var(--highlight-color); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: left;">Реквізити для допомоги:</div>${reqsHtml}</div></div>`;
@@ -1646,7 +1664,10 @@ function renderDczDrawerContent() {
 }
 
 function createJobCardHtml(job, index, prefix) {
-  const isTel = job.url && job.url.startsWith('tel:');
+  // У href пускаємо лише http(s)/tel — інше замінюємо на «пустишку»
+  const rawJobUrl = String(job.url || '');
+  const jobUrl = /^(https?:\/\/|tel:)/i.test(rawJobUrl) ? rawJobUrl : '#';
+  const isTel = jobUrl.startsWith('tel:');
   let displayPhone = job.phone;
   if (displayPhone) { let cleanPhone = displayPhone.replace(/\D/g, ''); if (cleanPhone.length >= 10) displayPhone = '0' + cleanPhone.slice(-9); else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone; }
   const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Відгукнутися 🔗');
@@ -1659,7 +1680,7 @@ function createJobCardHtml(job, index, prefix) {
   const safeDesc = job.description ? nl2br(job.description) : 'Без опису';
   const id = `job-detail-${prefix}-${index}`;
 
-  const callBtnHtml = `<a href="${escapeHTML(job.url)}" target="${targetAttr}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 5px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${escapeHTML(btnText)}</a>`;
+  const callBtnHtml = `<a href="${escapeHTML(jobUrl)}" target="${targetAttr}" style="display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, #007aff, #005bb5); color: #fff; font-weight: 800; font-size: 13px; text-decoration: none; margin-top: 5px; box-shadow: 0 4px 10px rgba(0, 122, 255, 0.3);" onclick="event.stopPropagation();">${escapeHTML(btnText)}</a>`;
 
   const dropdownHtml = `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()">
       <div class="shop-inner-list" style="display: block; padding: 12px; text-align: left;">
@@ -1821,7 +1842,8 @@ function toggleRadio() {
 }
 
 async function showDailyVolunteerAlert() {
-    const today = new Date().toDateString(); const lastSeen = localStorage.getItem('last_zsu_alert_date'); if (lastSeen === today) return;
+    // Доба рахується за Києвом, як і весь інший час на сайті
+    const today = getKyivNow().toDateString(); const lastSeen = localStorage.getItem('last_zsu_alert_date'); if (lastSeen === today) return;
     try {
         const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers'; const data = await fetchCachedJson(API_URL, 'volunteers_api', 2); 
         let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.volunteers) ? data.volunteers : []);
@@ -1830,7 +1852,7 @@ async function showDailyVolunteerAlert() {
             const cardsHtml = activeItems.map((item, idx) => {
                 const title = item.title || 'ЗБІР НА ЗСУ';
                 const desc = item.description ? nl2br(item.description) : '';
-                const jarUrl = item.jar_url || '';
+                const jarUrl = /^https?:\/\//i.test(String(item.jar_url || '').trim()) ? String(item.jar_url).trim() : '';
                 const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0;
                 const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
                 let progressHtml = '';
@@ -1875,6 +1897,19 @@ async function submitBetaFeedback(event) {
     if (contactEl) contactEl.value = '';
     closeModalForm(null, 'feedback-modal'); setupCaptcha('custom-feedback-form');
   } catch(e) { showToast('❌ Помилка: ' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
+}
+
+// Ховаємо мигаючу стрілку-підказку «❯», коли вкладки догорнуті до кінця
+// або горизонтальна прокрутка взагалі не потрібна (десктоп)
+function setupScrollHints() {
+  [['schedule-tabs', 'hint-schedule'], ['market-tabs', 'hint-market']].forEach(([navId, hintId]) => {
+    const nav = document.getElementById(navId); const hint = document.getElementById(hintId);
+    if (!nav || !hint) return;
+    const update = () => hint.classList.toggle('hidden', nav.scrollLeft + nav.clientWidth >= nav.scrollWidth - 5);
+    nav.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  });
 }
 
 // === УМНОЕ АВТООБНОВЛЕНИЕ: разнесли по группам, чтобы не грузить всё разом ===
@@ -2002,22 +2037,15 @@ async function initFirebase() {
   return firebaseMessaging;
 }
 
-// Регистрация Service Worker для Firebase (только когда нужен)
+// Регистрация Service Worker (единый /sw.js: PWA + Firebase push).
+// Повторная регистрация идемпотентна. Старые регистрации firebase-messaging-sw.js
+// живут на том же scope '/', поэтому браузер сам обновит их на /sw.js,
+// а push-подписка при этом сохраняется (она привязана к scope, не к файлу).
 async function registerFirebaseSW() {
   if (!('serviceWorker' in navigator)) {
     throw new Error('Service Worker не підтримується');
   }
-  
-  // Проверяем что SW ещё не зарегистрирован
-  const regs = await navigator.serviceWorker.getRegistrations();
-  for (let r of regs) {
-    if (r.active && r.active.scriptURL && r.active.scriptURL.includes('firebase-messaging-sw')) {
-      return r;
-    }
-  }
-  
-  // Регистрируем
-  const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+  const registration = await navigator.serviceWorker.register('/sw.js');
   await navigator.serviceWorker.ready;
   return registration;
 }
@@ -2527,19 +2555,22 @@ const initApp = () => {
   });
   
   document.querySelectorAll('.form-input').forEach(input => { input.addEventListener('focus', function() { setTimeout(() => { this.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300); }); });
-  
+
+  setupScrollHints();
+
   // === PUSH-УВЕДОМЛЕНИЯ: инициализация состояния кнопки ===
   setTimeout(() => {
     updatePushButtonState();
-    // Если юзер уже подписан — тихо перерегистрируем SW чтобы он был активный
-    if (localStorage.getItem('push_subscribed') === '1' && isPushSupported()) {
-      registerFirebaseSW().catch(() => {});
+    // Регистрируем единый Service Worker для всех: даёт PWA активный SW
+    // и мигрирует старые регистрации firebase-messaging-sw.js на /sw.js
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
   }, 1000);
 };
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initApp); } else { initApp(); }
 
-// === PUSH SW регистрируется по запросу пользователя через subscribeToPush() ===
-// Старый код который unregister-ил SW удалён — теперь firebase-messaging-sw.js
-// активно используется для пушей. Регистрация делается лениво по клику.
+// === Service Worker: единый /sw.js (PWA-заглушка + Firebase push). ===
+// Регистрируется для всех при старте; firebase-messaging-sw.js оставлен
+// тонкой обёрткой (importScripts('/sw.js')) для старых регистраций.
