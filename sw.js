@@ -13,13 +13,16 @@ firebase.initializeApp({
   appId: "1:676865197841:web:5d53065b2bb211bf77eeb0"
 });
 
-const messaging = firebase.messaging();
+// У браузерах із SW, але без Push API (старі Safari/WebView) firebase.messaging()
+// кидає виняток — без try/catch це завалило б встановлення всього SW разом із PWA-частиною
+let messaging = null;
+try { messaging = firebase.messaging(); } catch (e) {}
 
 // Повідомлення з блоком notification браузер/SDK показує у фоні САМ —
 // якщо викликати showNotification ще раз, користувач отримує дубль.
 // Тому тут обробляємо лише data-повідомлення (раніше на них був краш:
 // код читав payload.notification.title без перевірки).
-messaging.onBackgroundMessage((payload) => {
+if (messaging) messaging.onBackgroundMessage((payload) => {
   if (!payload || payload.notification) return;
   const d = payload.data || {};
   if (!d.title && !d.body) return;
