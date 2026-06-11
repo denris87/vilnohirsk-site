@@ -1169,9 +1169,10 @@ async function loadLongTrainsData() {
         let infoHtml = "";
         if (x.periodicityText) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність:</b><br><span style="color:inherit; font-weight:500;">${escapeHTML(x.periodicityText)}</span></div>`;
         if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500;">${x.changes.map(c => `<li>${escapeHTML(c)}</li>`).join('')}</ul></div>`;
-        const dateLabel = startDate ? `<span class="train-new-date">з ${startDate.getDate()} ${UA_MONTHS[startDate.getMonth()]} ${startDate.getFullYear()}</span>` : '';
-        const newBadge = isNew ? `<span class="train-new-tag">🆕 НОВИЙ${dateLabel}</span>` : '';
-        h += `<div class="train${isNew ? ' train-new' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div><div class="route-text">${escapeHTML(x.route)}${newBadge}</div><div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
+        const dateLabel = startDate ? ` <span class="train-new-date">з ${startDate.getDate()} ${UA_MONTHS[startDate.getMonth()]} ${startDate.getFullYear()}</span>` : '';
+        const newBadge = isNew ? `<div class="train-new-tag">🆕 НОВИЙ${dateLabel}</div>` : '';
+        const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${newBadge}</div>`;
+        h += `<div class="train${isNew ? ' train-new' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
       });
       document.getElementById("long-trains-list").innerHTML = h;
     }
