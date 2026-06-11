@@ -1171,9 +1171,9 @@ async function loadLongTrainsData() {
         if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500;">${x.changes.map(c => `<li>${escapeHTML(c)}</li>`).join('')}</ul></div>`;
         const dateLabel = startDate ? ` <span class="train-new-date">з ${startDate.getDate()} ${UA_MONTHS[startDate.getMonth()]} ${startDate.getFullYear()}</span>` : '';
         const newBadge = isNew ? `<div class="train-new-tag">🆕 НОВИЙ${dateLabel}</div>` : '';
-        // Поїзди, що скоро скасовуються (за номером)
+        // Поїзди 41/42 зі старим розкладом, що скоро скасовуються (нові варіанти з 28 червня лишаються зеленими)
         const trainNum = parseInt(String(x.number).replace(/\D/g, ''), 10);
-        const isEnding = (trainNum === 41 || trainNum === 42);
+        const isEnding = (trainNum === 41 || trainNum === 42) && !isNew;
         const endBadge = isEnding ? `<div class="train-end-tag">⛔ КУРСУЄ <span class="train-end-date">до 27 червня 2026</span></div>` : '';
         const extraBadge = newBadge || endBadge;
         const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${extraBadge}</div>`;
