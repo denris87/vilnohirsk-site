@@ -1146,25 +1146,31 @@ async function loadLongTrainsData() {
     const d = await fetchCachedJson("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule", 'long_trains_api', 30);
     if(d&&d.trains) {
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div>`;
-      // Поїзд вважається новим, якщо бекенд проставив прапорець АБО дата запуску (з «Періодичності») у межах останніх/найближчих ~45 днів
-      const isNewLongTrain = (x) => {
-        if (x.isNew === true || x.new === true) return true;
-        const txt = x.periodicityText || '';
-        const m = txt.match(/(\d{1,2})[./](\d{1,2})[./](\d{4})/);
-        if (!m) return false;
+      const UA_MONTHS = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
+      // Повертає дату запуску з «Періодичності» або null
+      const getStartDate = (x) => {
+        const m = (x.periodicityText || '').match(/(\d{1,2})[./](\d{1,2})[./](\d{4})/);
+        if (!m) return null;
         const start = new Date(+m[3], +m[2] - 1, +m[1]);
-        if (isNaN(start)) return false;
+        return isNaN(start) ? null : start;
+      };
+      // Поїзд вважається новим, якщо бекенд проставив прапорець АБО дата запуску у межах останніх/найближчих ~45 днів
+      const isNewLongTrain = (x, start) => {
+        if (x.isNew === true || x.new === true) return true;
+        if (!start) return false;
         const now = new Date(); now.setHours(0,0,0,0);
         const days = Math.round((start - now) / 86400000);
         return days >= -7 && days <= 45; // нещодавно введений або скоро запускається
       };
       d.trains.forEach((x,i) => {
         if(!x) return; const id = "lt-" + i; const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : []; const hasChanges = x.changes && Array.isArray(x.changes) && x.changes.length > 0;
-        const isNew = isNewLongTrain(x);
+        const startDate = getStartDate(x);
+        const isNew = isNewLongTrain(x, startDate);
         let infoHtml = "";
         if (x.periodicityText) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність:</b><br><span style="color:inherit; font-weight:500;">${escapeHTML(x.periodicityText)}</span></div>`;
         if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500;">${x.changes.map(c => `<li>${escapeHTML(c)}</li>`).join('')}</ul></div>`;
-        const newBadge = isNew ? '<span class="train-new-tag">🆕 НОВИЙ</span>' : '';
+        const dateLabel = startDate ? `<span class="train-new-date">з ${startDate.getDate()} ${UA_MONTHS[startDate.getMonth()]} ${startDate.getFullYear()}</span>` : '';
+        const newBadge = isNew ? `<span class="train-new-tag">🆕 НОВИЙ${dateLabel}</span>` : '';
         h += `<div class="train${isNew ? ' train-new' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div><div class="route-text">${escapeHTML(x.route)}${newBadge}</div><div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
       });
       document.getElementById("long-trains-list").innerHTML = h;
