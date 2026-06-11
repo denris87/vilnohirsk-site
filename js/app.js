@@ -1155,8 +1155,13 @@ async function loadLongTrainsData() {
         if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500;">${x.changes.map(c => `<li>${escapeHTML(c)}</li>`).join('')}</ul></div>`;
         const dateLabel = startDate ? ` <span class="train-new-date">з ${startDate.getDate()} ${UA_MONTHS[startDate.getMonth()]} ${startDate.getFullYear()}</span>` : '';
         const newBadge = isNew ? `<div class="train-new-tag">🆕 НОВИЙ${dateLabel}</div>` : '';
-        const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${newBadge}</div>`;
-        h += `<div class="train${isNew ? ' train-new' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
+        // Поїзди, що скоро скасовуються (за номером)
+        const trainNum = parseInt(String(x.number).replace(/\D/g, ''), 10);
+        const isEnding = (trainNum === 41 || trainNum === 42);
+        const endBadge = isEnding ? `<div class="train-end-tag">⛔ КУРСУЄ <span class="train-end-date">до 27 червня 2026</span></div>` : '';
+        const extraBadge = newBadge || endBadge;
+        const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${extraBadge}</div>`;
+        h += `<div class="train${isNew ? ' train-new' : ''}${isEnding ? ' train-ending' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
       });
       document.getElementById("long-trains-list").innerHTML = h;
     }
