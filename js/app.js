@@ -488,9 +488,9 @@ function initCityMap() {
   if (cityMapInstance) { setTimeout(() => cityMapInstance.invalidateSize(), 50); return; }
   const VILNOHIRSK = [48.4790, 34.0180];
   cityMapInstance = L.map(el, { center: VILNOHIRSK, zoom: 14, scrollWheelZoom: true, attributionControl: true });
-  // Темні тайли під дизайн сайту (CARTO Dark Matter) з фолбеком на стандартний OSM
+  // Світлі тайли (CARTO Voyager) з фолбеком на стандартний OSM
   let fellBack = false;
-  const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,
     subdomains: 'abcd',
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
