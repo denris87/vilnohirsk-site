@@ -12,7 +12,7 @@
     { "name": "Зупинка «маг. Простір»", "lat": 48.476800384157684, "lng": 34.01151014884159, "category": "transport", "address": "вул. Центральна, 55/57", "show": true },
     { "name": "Зупинка «маг. Гастроном»", "lat": 48.48225910719875, "lng": 34.013317217705826, "category": "transport", "address": "вул. Юрія Устенка, 20", "show": true },
     { "name": "Зупинка «маг. Браво»", "lat": 48.48645192989747, "lng": 34.00921352821582, "category": "transport", "address": "вул. Юрія Устенка, 40", "show": true },
-    { "name": "Зупинка»", "lat": 48.48692019863716, "lng": 34.005775175339195, "category": "transport", "address": "вул. Юрія Устенка, 58", "show": true },
+    { "name": "Зупинка", "lat": 48.48692019863716, "lng": 34.005775175339195, "category": "transport", "address": "вул. Юрія Устенка, 58", "show": true },
     { "name": "Зупинка «стара лікарня»", "lat": 48.48583905521366, "lng": 34.0137901978094, "category": "transport", "address": "вул. Центральна, 39", "show": true },
     { "name": "Автостанція Вільногірськ", "lat": 48.4795, "lng": 34.0205, "category": "transport", "address": "вул. Центральна", "show": false },
     { "name": "Міська лікарня", "lat": 48.4760, "lng": 34.0240, "category": "medicine", "address": "вул. Лікарняна", "phone": "", "show": false },
