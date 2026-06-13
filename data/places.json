@@ -8,7 +8,7 @@
   ], 
   "places": [
     { "name": "Залізнична станція Вільногірськ", "lat": 48.46516135027659, "lng": 34.0135311090012, "category": "transport", "address": "Привокзальна площа", "show": true },
-    { "name": "Зупинка «Новий ринок»", "lat": 48.473578633374075, "lng": 34.01057050603412, "category": "transport", "address": "вул. Центральна, 67", "show": true },
+    { "name": "Зупинка «Новий ринок»", "lat": 48.47354213632509, "lng": 34.010550926009685, "category": "transport", "address": "вул. Центральна, 67", "show": true },
     { "name": "Автостанція Вільногірськ", "lat": 48.4795, "lng": 34.0205, "category": "transport", "address": "вул. Центральна", "show": false },
     { "name": "Міська лікарня", "lat": 48.4760, "lng": 34.0240, "category": "medicine", "address": "вул. Лікарняна", "phone": "", "show": false },
     { "name": "Аптека (центр)", "lat": 48.4802, "lng": 34.0178, "category": "medicine", "address": "вул. Центральна", "show": false },
