@@ -3,7 +3,7 @@
   "categories": [
     { "id": "transport", "name": "Зупинки", "icon": "🚌", "color": "#38bdf8" },
     { "id": "medicine",  "name": "Медицина", "icon": "🏥", "color": "#ff4d4d" },
-    { "id": "services",  "name": "Послуги",  "icon": "🏛", "color": "#ffcc00" },
+    { "id": "services",  "name": "Послуги",  "icon": "📦", "color": "#ffcc00" },
     { "id": "shops",     "name": "Магазини", "icon": "🛍", "color": "#00ff9c" }
   ], 
   "places": [
