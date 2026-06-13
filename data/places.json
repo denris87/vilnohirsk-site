@@ -17,8 +17,8 @@
     { "name": "Зупинка «Нова лікарня»", "lat": 48.487706127536626, "lng": 34.000949841394956, "category": "transport", "address": "вул. Юрія Устенка, 72", "show": true },
     { "name": "Міська лікарня", "lat": 48.4760, "lng": 34.0240, "category": "medicine", "address": "вул. Лікарняна", "phone": "", "show": false },
     { "name": "Аптека (центр)", "lat": 48.4802, "lng": 34.0178, "category": "medicine", "address": "вул. Центральна", "show": false },
-    { "name": "Укрпошта (відділення)", "lat": 48.47730557327518, "lng": 34.009240999566855, "category": "services", "address": "вул. Центральна, 54", "show": true },
-    { "name": "Нова пошта №1", "lat": 48.472708001347186, "lng": 34.00958336239834, "category": "services", "address": "бульвар Миру, 12", "show": true },
+    { "name": "Укрпошта (відділення)", "lat": 48.47730557327518, "lng": 34.009240999566855, "category": "services", "address": "бульвар Миру, 12", "show": true },
+    { "name": "Нова пошта №1", "lat": 48.472708001347186, "lng": 34.00958336239834, "category": "services", "address": "вул. Центральна, 54", "show": true },
     { "name": "Нова пошта №2", "lat": 48.482470581124474, "lng": 34.01497182270586, "category": "services", "address": "вул. Захисників України, 11", "show": true },
     { "name": "Центр надання послуг (ЦНАП)", "lat": 48.4775, "lng": 34.0190, "category": "services", "address": "вул. Центральна", "show": false }
   ]
