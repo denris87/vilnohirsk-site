@@ -513,12 +513,28 @@ function initCityMap() {
   });
 
   mapLayer.addTo(cityMapInstance);
-  // Перемикач базових шарів Карта / Супутник
-  L.control.layers(
-    { '🗺 Карта': mapLayer, '🛰 Супутник': satLayer },
-    null,
-    { position: 'topright', collapsed: false }
-  ).addTo(cityMapInstance);
+
+  // Компактний сегментний перемикач Карта / Супутник
+  const SwitchControl = L.Control.extend({
+    options: { position: 'topright' },
+    onAdd: function() {
+      const box = L.DomUtil.create('div', 'map-basemap-switch');
+      box.innerHTML = '<button type="button" class="map-bm-btn active" data-layer="map">🗺 Карта</button>'
+                    + '<button type="button" class="map-bm-btn" data-layer="sat">🛰 Супутник</button>';
+      L.DomEvent.disableClickPropagation(box);
+      box.querySelectorAll('.map-bm-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const isSat = btn.dataset.layer === 'sat';
+          if (isSat) { cityMapInstance.removeLayer(mapLayer); satLayer.addTo(cityMapInstance); }
+          else { cityMapInstance.removeLayer(satLayer); mapLayer.addTo(cityMapInstance); }
+          box.querySelectorAll('.map-bm-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+      return box;
+    }
+  });
+  cityMapInstance.addControl(new SwitchControl());
 
   // Карта могла ініціалізуватись у прихованому контейнері — перерахуємо розмір
   setTimeout(() => cityMapInstance.invalidateSize(), 60);
