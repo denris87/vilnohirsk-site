@@ -519,7 +519,8 @@ async function loadMapPlaces() {
     if (!res.ok) return;
     const data = await res.json();
     const cats = Array.isArray(data.categories) ? data.categories : [];
-    const places = Array.isArray(data.places) ? data.places : [];
+    // show: false — мітка вимкнена; show: true або відсутнє — показуємо
+    const places = (Array.isArray(data.places) ? data.places : []).filter(p => p && p.show !== false);
     const catMap = {};
     cats.forEach(c => { catMap[c.id] = c; });
 
