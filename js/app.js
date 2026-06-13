@@ -513,7 +513,7 @@ function initCityMap() {
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
   closeAllJobsDrawers();
-  const notifs = {'alert-communal':'communal', 'alert-news':'news', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
+  const notifs = {'alert-feed':'communal', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
   if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
@@ -521,7 +521,7 @@ function switchAppTab(tabId, btn, group) {
   document.querySelectorAll('.tab-btn, .tab-alert').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
   const drawer = document.getElementById(drawers[group]);
-  if (drawer) { drawer.classList.remove('drawer-events', 'drawer-communal'); if(tabId === 'alert-events') drawer.classList.add('drawer-events'); if(tabId === 'alert-communal') drawer.classList.add('drawer-communal'); drawer.classList.add('open'); }
+  if (drawer) { drawer.classList.remove('drawer-events', 'drawer-communal'); if(tabId === 'alert-events') drawer.classList.add('drawer-events'); if(tabId === 'alert-feed') drawer.classList.add('drawer-communal'); drawer.classList.add('open'); }
   btn.classList.add('active'); const targetSection = document.getElementById(tabId); if (targetSection) targetSection.classList.add('active');
   if (tabId === 'alert-volunteers') { try { loadVolunteersData({forceRefresh: true}); } catch(e) {} }
   if (tabId === 'map-tab') { try { initCityMap(); } catch(e) {} }
@@ -663,10 +663,15 @@ function buildCarouselHtml(items, typeColor, typeId, isEvent = false) {
         const dotHtml = item.isNewItem ? '<div style="position:absolute; top:10px; right:10px; width:12px; height:12px; border-radius:50%; background:#ff3366; box-shadow:0 0 10px #ff3366; animation:pulseAlert 2s infinite; z-index:10;" title="Нове"></div>' : '';
         return `<div class="alert-item" style="padding:0; background:transparent; border:none; display:flex; justify-content:center; align-items:center; position:relative;"><img src="${escapeHTML(getDriveImageUrl(photoUrl))}" loading="lazy" decoding="async" style="max-width:100%; max-height:350px; object-fit:contain; border-radius:12px; box-shadow: 0 4px 15px rgba(224, 86, 253, 0.4); cursor:pointer;" alt="Афіша" onclick="openImageModal(windowEventImages, ${index}, event)">${dotHtml}</div>`; 
     } 
-    else { 
+    else {
         const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-        const textHtml = item.text ? nl2brWithBold(String(item.text)) : ''; 
-        return `<div class="alert-item">${item.title ? `<div class="alert-card-title" style="color: ${typeColor};">${escapeHTML(item.title)}${dot}</div>` : ''}<div class="alert-card-text">${textHtml}</div></div>`; 
+        const textHtml = item.text ? nl2brWithBold(String(item.text)) : '';
+        let kindBadge = '';
+        if (item._kind === 'communal') kindBadge = '<span class="alert-kind-badge communal" title="Комунальне">🔧</span>';
+        else if (item._kind === 'news') kindBadge = '<span class="alert-kind-badge news" title="Новина">📰</span>';
+        const titleColor = item._kind === 'news' ? '#00ff9c' : (item._kind === 'communal' ? '#ffcc00' : typeColor);
+        const titlePad = kindBadge ? 'padding-right:30px;' : '';
+        return `<div class="alert-item">${kindBadge}${item.title ? `<div class="alert-card-title" style="color: ${titleColor}; ${titlePad}">${escapeHTML(item.title)}${dot}</div>` : ''}<div class="alert-card-text">${textHtml}</div></div>`;
     }
   }).join("");
   if (items.length === 1) return `<div class="carousel-wrapper"><div class="carousel-container">${slidesHtml}</div></div>`;
@@ -708,19 +713,23 @@ function isVilnohirsk(str) { if (!str) return false; const lower = String(str).t
 async function loadAlerts() {
   try {
     const d = await fetchCachedJson('https://vilnohirsk-alerts-production.up.railway.app/api/alert', 'alerts_api', 5);
-    const communalAlerts = (d && Array.isArray(d.communal)) ? d.communal.filter(i => i && i.show) : []; 
+    const communalAlerts = (d && Array.isArray(d.communal)) ? d.communal.filter(i => i && i.show) : [];
     const newsAlerts = (d && Array.isArray(d.news)) ? d.news.filter(i => i && i.show) : [];
-    
+
     markNewItems(communalAlerts, 'communal', true);
     markNewItems(newsAlerts, 'news', true);
-    
+
+    // Об'єднана стрічка: спочатку комунальні, потім новини; кожному проставляємо тип для іконки-мітки
+    communalAlerts.forEach(i => i._kind = 'communal');
+    newsAlerts.forEach(i => i._kind = 'news');
+    const feedAlerts = [...communalAlerts, ...newsAlerts];
+
     checkNotification('communal', communalAlerts);
     checkNotification('news', newsAlerts);
-    updateCommunalTabBadge(communalAlerts.length);
-    
-    document.getElementById("alert-communal-content").innerHTML = buildCarouselHtml(communalAlerts, '#ffcc00', 'communal'); 
-    document.getElementById("alert-news-content").innerHTML = buildCarouselHtml(newsAlerts, '#00ff9c', 'news');
-  } catch(e) { document.getElementById("alert-communal-content").innerHTML = `<div class="empty-msg">Помилка завантаження</div>`; document.getElementById("alert-news-content").innerHTML = `<div class="empty-msg">Помилка завантаження</div>`; }
+    updateCommunalTabBadge(feedAlerts.length);
+
+    document.getElementById("alert-feed-content").innerHTML = buildCarouselHtml(feedAlerts, '#ffcc00', 'feed');
+  } catch(e) { const fc = document.getElementById("alert-feed-content"); if (fc) fc.innerHTML = `<div class="empty-msg">Помилка завантаження</div>`; }
 }
 
 async function loadEventsData() {
