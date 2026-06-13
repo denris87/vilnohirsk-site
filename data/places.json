@@ -1,0 +1,17 @@
+{
+  "_comment": "Точки на карті міста. Координати (lat,lng) можна уточнити: відкрийте openstreetmap.org, знайдіть місце, ПКМ -> 'Показати адресу' або скопіюйте з URL. category має збігатися з id у categories.",
+  "categories": [
+    { "id": "transport", "name": "Зупинки", "icon": "🚌", "color": "#38bdf8" },
+    { "id": "medicine",  "name": "Медицина", "icon": "🏥", "color": "#ff4d4d" },
+    { "id": "services",  "name": "Послуги",  "icon": "🏛", "color": "#ffcc00" },
+    { "id": "shops",     "name": "Магазини", "icon": "🛍", "color": "#00ff9c" }
+  ],
+  "places": [
+    { "name": "Залізнична станція Вільногірськ", "lat": 48.4868, "lng": 34.0103, "category": "transport", "address": "Привокзальна площа" },
+    { "name": "Автостанція Вільногірськ", "lat": 48.4795, "lng": 34.0205, "category": "transport", "address": "вул. Центральна" },
+    { "name": "Міська лікарня", "lat": 48.4760, "lng": 34.0240, "category": "medicine", "address": "вул. Лікарняна", "phone": "" },
+    { "name": "Аптека (центр)", "lat": 48.4802, "lng": 34.0178, "category": "medicine", "address": "вул. Центральна" },
+    { "name": "Укрпошта (відділення)", "lat": 48.4788, "lng": 34.0165, "category": "services", "address": "вул. Центральна" },
+    { "name": "Центр надання послуг (ЦНАП)", "lat": 48.4775, "lng": 34.0190, "category": "services", "address": "вул. Центральна" }
+  ]
+}
