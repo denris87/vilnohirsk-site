@@ -7,19 +7,19 @@
     { "id": "shops",     "name": "Магазини", "icon": "🛍", "color": "#00ff9c" }
   ], 
   "places": [
-    { "name": "Залізнична станція Вільногірськ", "lat": 48.46516135027659, "lng": 34.0135311090012, "category": "transport", "address": "Привокзальна площа", "show": true },
-    { "name": "Зупинка «Новий ринок»", "lat": 48.47354213632509, "lng": 34.010550926009685, "category": "transport", "address": "вул. Центральна, 67", "show": true },
-    { "name": "Зупинка «маг. Простір»", "lat": 48.476800384157684, "lng": 34.01151014884159, "category": "transport", "address": "вул. Центральна, 55/57", "show": true },
-    { "name": "Зупинка «маг. Гастроном»", "lat": 48.48225910719875, "lng": 34.013317217705826, "category": "transport", "address": "вул. Центральна, 39", "show": true },
-    { "name": "Зупинка «стара лікарня»", "lat": 48.48583905521366, "lng": 34.0137901978094, "category": "transport", "address": "вул. Юрія Устенка, 20", "show": true },
-    { "name": "Зупинка «маг. Браво»", "lat": 48.48645192989747, "lng": 34.00921352821582, "category": "transport", "address": "вул. Юрія Устенка, 40", "show": true },
-    { "name": "Зупинка", "lat": 48.48692019863716, "lng": 34.005775175339195, "category": "transport", "address": "вул. Юрія Устенка, 58", "show": true },
-    { "name": "Зупинка «Нова лікарня»", "lat": 48.487706127536626, "lng": 34.000949841394956, "category": "transport", "address": "вул. Юрія Устенка, 72", "show": true },
+    { "name": "Залізнична станція Вільногірськ", "lat": 48.465161, "lng": 34.013531, "category": "transport", "address": "Привокзальна площа", "show": true },
+    { "name": "Зупинка «Новий ринок»", "lat": 48.473542, "lng": 34.010550, "category": "transport", "address": "вул. Центральна, 67", "show": true },
+    { "name": "Зупинка «маг. Простір»", "lat": 48.476800, "lng": 34.011510, "category": "transport", "address": "вул. Центральна, 55/57", "show": true },
+    { "name": "Зупинка «маг. Гастроном»", "lat": 48.482259, "lng": 34.013317, "category": "transport", "address": "вул. Центральна, 39", "show": true },
+    { "name": "Зупинка «стара лікарня»", "lat": 48.485839, "lng": 34.013790, "category": "transport", "address": "вул. Юрія Устенка, 20", "show": true },
+    { "name": "Зупинка «маг. Браво»", "lat": 48.486451, "lng": 34.009213, "category": "transport", "address": "вул. Юрія Устенка, 40", "show": true },
+    { "name": "Зупинка", "lat": 48.486920, "lng": 34.005775, "category": "transport", "address": "вул. Юрія Устенка, 58", "show": true },
+    { "name": "Зупинка «Нова лікарня»", "lat": 48.487706, "lng": 34.000949, "category": "transport", "address": "вул. Юрія Устенка, 72", "show": true },
     { "name": "Міська лікарня", "lat": 48.4760, "lng": 34.0240, "category": "medicine", "address": "вул. Лікарняна", "phone": "", "show": false },
     { "name": "Аптека (центр)", "lat": 48.4802, "lng": 34.0178, "category": "medicine", "address": "вул. Центральна", "show": false },
-    { "name": "Укрпошта", "lat": 48.47730557327518, "lng": 34.009240999566855, "category": "services", "address": "бульвар Миру, 12", "show": true },
-    { "name": "Нова пошта №1", "lat": 48.472708001347186, "lng": 34.00958336239834, "category": "services", "address": "вул. Центральна, 54", "show": true },
-    { "name": "Нова пошта №2", "lat": 48.482470581124474, "lng": 34.01497182270586, "category": "services", "address": "вул. Захисників України, 11", "show": true },
+    { "name": "Укрпошта", "lat": 48.4773055, "lng": 34.009240, "category": "services", "address": "бульвар Миру, 12", "show": true },
+    { "name": "Нова пошта №1", "lat": 48.472708, "lng": 34.009583, "category": "services", "address": "вул. Центральна, 54", "show": true },
+    { "name": "Нова пошта №2", "lat": 48.482470, "lng": 34.014971, "category": "services", "address": "вул. Захисників України, 11", "show": true },
     { "name": "Центр надання послуг (ЦНАП)", "lat": 48.4775, "lng": 34.0190, "category": "services", "address": "вул. Центральна", "show": false }
   ]
 }
