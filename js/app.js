@@ -508,6 +508,65 @@ function initCityMap() {
   // Карта могла ініціалізуватись у прихованому контейнері — перерахуємо розмір
   setTimeout(() => cityMapInstance.invalidateSize(), 60);
   setTimeout(() => cityMapInstance.invalidateSize(), 400);
+  loadMapPlaces();
+}
+
+// Шари міток за категоріями + панель фільтрів
+let cityMapLayers = {};
+async function loadMapPlaces() {
+  try {
+    const res = await fetch('./data/places.json?v=' + Date.now());
+    if (!res.ok) return;
+    const data = await res.json();
+    const cats = Array.isArray(data.categories) ? data.categories : [];
+    const places = Array.isArray(data.places) ? data.places : [];
+    const catMap = {};
+    cats.forEach(c => { catMap[c.id] = c; });
+
+    // Створюємо шар на кожну категорію
+    cityMapLayers = {};
+    cats.forEach(c => { cityMapLayers[c.id] = L.layerGroup().addTo(cityMapInstance); });
+
+    places.forEach(p => {
+      if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
+      const c = catMap[p.category] || { icon: '📍', color: '#38bdf8', name: '' };
+      const icon = L.divIcon({
+        className: 'map-pin',
+        html: `<div class="map-pin-inner" style="background:${c.color};"><span>${c.icon || '📍'}</span></div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -28]
+      });
+      const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
+      const popup = `<div class="map-popup"><div class="map-popup-title">${escapeHTML(p.name || '')}</div>`
+        + (p.address ? `<div class="map-popup-addr">📍 ${escapeHTML(p.address)}</div>` : '')
+        + (p.phone ? `<div class="map-popup-addr">📞 <a href="tel:${String(p.phone).replace(/[^0-9+]/g,'')}">${escapeHTML(p.phone)}</a></div>` : '')
+        + `<a class="map-popup-route" href="${routeUrl}" target="_blank" rel="noopener">🧭 Прокласти маршрут</a></div>`;
+      L.marker([p.lat, p.lng], { icon }).bindPopup(popup).addTo(cityMapLayers[p.category] || cityMapInstance);
+    });
+
+    buildMapFilters(cats);
+  } catch (e) {}
+}
+
+function buildMapFilters(cats) {
+  const host = document.getElementById('map-filters');
+  if (!host || !cats.length) return;
+  host.innerHTML = cats.map(c =>
+    `<button class="map-filter-btn active" data-cat="${c.id}" style="--fc:${c.color};" onclick="toggleMapCategory('${c.id}', this)">${c.icon || ''} ${escapeHTML(c.name)}</button>`
+  ).join('');
+}
+
+function toggleMapCategory(catId, btn) {
+  const layer = cityMapLayers[catId];
+  if (!layer || !cityMapInstance) return;
+  if (cityMapInstance.hasLayer(layer)) {
+    cityMapInstance.removeLayer(layer);
+    btn.classList.remove('active');
+  } else {
+    cityMapInstance.addLayer(layer);
+    btn.classList.add('active');
+  }
 }
 
 function switchAppTab(tabId, btn, group) {
