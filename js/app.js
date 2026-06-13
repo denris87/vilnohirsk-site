@@ -538,11 +538,10 @@ async function loadMapPlaces() {
         iconAnchor: [15, 30],
         popupAnchor: [0, -28]
       });
-      const routeUrl = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
       const popup = `<div class="map-popup"><div class="map-popup-title">${escapeHTML(p.name || '')}</div>`
         + (p.address ? `<div class="map-popup-addr">📍 ${escapeHTML(p.address)}</div>` : '')
         + (p.phone ? `<div class="map-popup-addr">📞 <a href="tel:${String(p.phone).replace(/[^0-9+]/g,'')}">${escapeHTML(p.phone)}</a></div>` : '')
-        + `<a class="map-popup-route" href="${routeUrl}" target="_blank" rel="noopener">🧭 Прокласти маршрут</a></div>`;
+        + `</div>`;
       L.marker([p.lat, p.lng], { icon }).bindPopup(popup).addTo(cityMapLayers[p.category] || cityMapInstance);
     });
 
