@@ -11,7 +11,7 @@
     { "name": "Автостанція Вільногірськ", "lat": 48.4795, "lng": 34.0205, "category": "transport", "address": "вул. Центральна", "show": false },
     { "name": "Міська лікарня", "lat": 48.4760, "lng": 34.0240, "category": "medicine", "address": "вул. Лікарняна", "phone": "", "show": false },
     { "name": "Аптека (центр)", "lat": 48.4802, "lng": 34.0178, "category": "medicine", "address": "вул. Центральна", "show": false },
-    { "name": "Укрпошта (відділення)", "lat": 48.47730557327518, "lng": 34.009240999566855, "category": "services", "address": "вул. Центральна", "show": true },
+    { "name": "Укрпошта (відділення)", "lat": 48.47730557327518, "lng": 34.009240999566855, "category": "services", "address": "бульвар Миру, 12", "show": true },
     { "name": "Центр надання послуг (ЦНАП)", "lat": 48.4775, "lng": 34.0190, "category": "services", "address": "вул. Центральна", "show": false }
   ]
 }
