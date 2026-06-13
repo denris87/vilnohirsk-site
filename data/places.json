@@ -7,7 +7,7 @@
     { "id": "shops",     "name": "Магазини", "icon": "🛍", "color": "#00ff9c" }
   ], 
   "places": [
-    { "name": "Залізнична станція Вільногірськ", "lat": 48.465161, "lng": 34.013531, "category": "transport", "address": "Привокзальна площа", "show": true },
+    { "name": "Залізнична станція Вільногірськ", "lat": 48.465481, "lng": 34.013248, "category": "transport", "address": "Привокзальна площа", "show": true },
     { "name": "Зупинка «Новий ринок»", "lat": 48.473542, "lng": 34.010550, "category": "transport", "address": "вул. Центральна, 67", "show": true },
     { "name": "Зупинка «маг. Простір»", "lat": 48.476800, "lng": 34.011510, "category": "transport", "address": "вул. Центральна, 55/57", "show": true },
     { "name": "Зупинка «маг. Гастроном»", "lat": 48.482259, "lng": 34.013317, "category": "transport", "address": "вул. Центральна, 39", "show": true },
@@ -18,7 +18,7 @@
     { "name": "Міська лікарня", "lat": 48.4760, "lng": 34.0240, "category": "medicine", "address": "вул. Лікарняна", "phone": "", "show": false },
     { "name": "Аптека (центр)", "lat": 48.4802, "lng": 34.0178, "category": "medicine", "address": "вул. Центральна", "show": false },
     { "name": "Укрпошта", "lat": 48.4773055, "lng": 34.009240, "category": "services", "address": "бульвар Миру, 12", "show": true },
-    { "name": "Нова пошта №1", "lat": 48.472708, "lng": 34.009583, "category": "services", "address": "вул. Центральна, 54", "show": true },
+    { "name": "Нова пошта №1", "lat": 48.4728217, "lng": 34.0097056, "category": "services", "address": "вул. Центральна, 54", "show": true },
     { "name": "Нова пошта №2", "lat": 48.482331, "lng": 34.014809, "category": "services", "address": "вул. Захисників України, 11", "show": true },
     { "name": "Центр надання послуг (ЦНАП)", "lat": 48.4775, "lng": 34.0190, "category": "services", "address": "вул. Центральна", "show": false }
   ]
