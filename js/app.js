@@ -476,23 +476,38 @@ function recalcDropdownHeight(imgEl) {
 }
 
 let cityMapInstance = null;
+let cityMapTries = 0;
 function initCityMap() {
-  if (typeof L === 'undefined') { // Leaflet ще не завантажився — спробуємо трохи згодом
-    setTimeout(initCityMap, 300);
-    return;
-  }
   const el = document.getElementById('city-map');
   if (!el) return;
+  if (typeof L === 'undefined') { // Leaflet ще не завантажився — почекаємо, але не вічно
+    if (cityMapTries++ < 40) { setTimeout(initCityMap, 250); return; }
+    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;text-align:center;padding:20px;color:rgba(255,255,255,0.7);font-size:13px;font-weight:600;">Не вдалося завантажити карту 😕<br>Перевірте інтернет та оновіть сторінку.</div>';
+    return;
+  }
   if (cityMapInstance) { setTimeout(() => cityMapInstance.invalidateSize(), 50); return; }
   const VILNOHIRSK = [48.4790, 34.0180];
   cityMapInstance = L.map(el, { center: VILNOHIRSK, zoom: 14, scrollWheelZoom: true, attributionControl: true });
-  // Темні тайли під дизайн сайту (CARTO Dark Matter)
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  // Темні тайли під дизайн сайту (CARTO Dark Matter) з фолбеком на стандартний OSM
+  let fellBack = false;
+  const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,
+    subdomains: 'abcd',
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  }).addTo(cityMapInstance);
+  });
+  tiles.on('tileerror', function() {
+    if (fellBack) return;
+    fellBack = true;
+    cityMapInstance.removeLayer(tiles);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(cityMapInstance);
+  });
+  tiles.addTo(cityMapInstance);
   // Карта могла ініціалізуватись у прихованому контейнері — перерахуємо розмір
   setTimeout(() => cityMapInstance.invalidateSize(), 60);
+  setTimeout(() => cityMapInstance.invalidateSize(), 400);
 }
 
 function switchAppTab(tabId, btn, group) {
