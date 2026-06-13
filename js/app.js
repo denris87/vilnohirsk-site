@@ -488,23 +488,38 @@ function initCityMap() {
   if (cityMapInstance) { setTimeout(() => cityMapInstance.invalidateSize(), 50); return; }
   const VILNOHIRSK = [48.4790, 34.0180];
   cityMapInstance = L.map(el, { center: VILNOHIRSK, zoom: 14, scrollWheelZoom: true, attributionControl: true });
-  // Світлі тайли (CARTO Voyager) з фолбеком на стандартний OSM
+
+  // Базовий шар «Карта» (світлі тайли CARTO Voyager) з фолбеком на стандартний OSM
   let fellBack = false;
-  const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  const mapLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,
     subdomains: 'abcd',
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
   });
-  tiles.on('tileerror', function() {
+  mapLayer.on('tileerror', function() {
     if (fellBack) return;
     fellBack = true;
-    cityMapInstance.removeLayer(tiles);
+    cityMapInstance.removeLayer(mapLayer);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(cityMapInstance);
   });
-  tiles.addTo(cityMapInstance);
+
+  // Базовий шар «Супутник» (Esri World Imagery — безкоштовно, без ключа)
+  const satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics'
+  });
+
+  mapLayer.addTo(cityMapInstance);
+  // Перемикач базових шарів Карта / Супутник
+  L.control.layers(
+    { '🗺 Карта': mapLayer, '🛰 Супутник': satLayer },
+    null,
+    { position: 'topright', collapsed: false }
+  ).addTo(cityMapInstance);
+
   // Карта могла ініціалізуватись у прихованому контейнері — перерахуємо розмір
   setTimeout(() => cityMapInstance.invalidateSize(), 60);
   setTimeout(() => cityMapInstance.invalidateSize(), 400);
