@@ -85,6 +85,13 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .tab-btn{flex:0 0 auto;padding:10px 14px;border:1px solid rgba(255,255,255,0.1);background:linear-gradient(145deg,rgba(255,255,255,0.1),rgba(0,0,0,0.25));box-shadow:2px 4px 8px rgba(0,0,0,0.2),inset 1px 1px 2px rgba(255,255,255,0.15);color:#fff;font-weight:600;cursor:pointer;border-radius:12px;transition:all 0.3s ease;font-size:clamp(11px,3.2vw,13px);white-space:nowrap;position:relative; color:rgba(255,255,255,0.9);}
 .tab-btn.active{background:linear-gradient(145deg,rgba(255,255,255,0.3),rgba(255,255,255,0.1));color:#fff;border:1px solid rgba(255,255,255,0.3);text-shadow:0 1px 4px rgba(0,0,0,0.8);box-shadow:0 4px 12px rgba(0,0,0,0.4),inset 1px 1px 3px rgba(255,255,255,0.4);transform:translateY(-1px)}
 .tt-ico{width:1.05em;height:1.05em;vertical-align:-0.16em;margin-right:5px;flex:0 0 auto;}
+.city-map{width:100%;height:65vh;min-height:340px;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,0.12);box-shadow:0 8px 24px rgba(0,0,0,0.3);background:#0b1d3a;}
+.city-map .leaflet-control-attribution{background:rgba(11,29,58,0.7);color:rgba(255,255,255,0.6);}
+.city-map .leaflet-control-attribution a{color:rgba(120,185,255,0.8);}
+.city-map .leaflet-bar a{background:#13294f;color:#fff;border-bottom:1px solid rgba(255,255,255,0.12);}
+.city-map .leaflet-bar a:hover{background:#1c3a6b;}
+.city-map .leaflet-popup-content-wrapper,.city-map .leaflet-popup-tip{background:#13294f;color:#fff;box-shadow:0 4px 14px rgba(0,0,0,0.4);}
+.city-map .leaflet-popup-content{font-weight:600;font-size:13px;}
 .social-block{margin:4px 0 22px;padding:16px;border-radius:24px;text-align:center;background:linear-gradient(145deg,rgba(255,255,255,0.06),rgba(0,0,0,0.2));border:1px solid rgba(255,255,255,0.08);box-shadow:inset 0 1px 2px rgba(255,255,255,0.06),0 4px 15px rgba(0,0,0,0.2);}
 .social-block-title{font-size:12px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:0.4px;margin-bottom:12px;text-transform:uppercase;}
 .social-links{display:flex;justify-content:center;gap:14px;}
@@ -309,6 +316,7 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 #market-tabs .tab-btn:nth-child(4) { --neon: 56, 189, 248; }      /* 💼 Вакансії — блакитний */
 #market-tabs .tab-btn:nth-child(5) { --neon: 224, 86, 253; }      /* 🔍 Знахідки — фіолетовий */
 #market-tabs .tab-btn:nth-child(6) { --neon: 0, 255, 234; }       /* 📖 Довідник — бірюзовий */
+#market-tabs .tab-btn:nth-child(7) { --neon: 120, 220, 120; }     /* 🗺 Карта — зелено-салатовий */
 
 #schedule-tabs .tab-btn, #market-tabs .tab-btn {
   border: 1px solid rgba(var(--neon, 255, 255, 255), 0.65);
