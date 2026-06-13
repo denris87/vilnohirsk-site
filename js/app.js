@@ -465,6 +465,26 @@ function recalcDropdownHeight(imgEl) {
   if (dropdown && dropdown.classList.contains('open') && grid) { grid.style.paddingBottom = (dropdown.scrollHeight + 15) + 'px'; }
 }
 
+let cityMapInstance = null;
+function initCityMap() {
+  if (typeof L === 'undefined') { // Leaflet ще не завантажився — спробуємо трохи згодом
+    setTimeout(initCityMap, 300);
+    return;
+  }
+  const el = document.getElementById('city-map');
+  if (!el) return;
+  if (cityMapInstance) { setTimeout(() => cityMapInstance.invalidateSize(), 50); return; }
+  const VILNOHIRSK = [48.4790, 34.0180];
+  cityMapInstance = L.map(el, { center: VILNOHIRSK, zoom: 14, scrollWheelZoom: true, attributionControl: true });
+  // Темні тайли під дизайн сайту (CARTO Dark Matter)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  }).addTo(cityMapInstance);
+  // Карта могла ініціалізуватись у прихованому контейнері — перерахуємо розмір
+  setTimeout(() => cityMapInstance.invalidateSize(), 60);
+}
+
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
   closeAllJobsDrawers();
@@ -479,6 +499,7 @@ function switchAppTab(tabId, btn, group) {
   if (drawer) { drawer.classList.remove('drawer-events', 'drawer-communal'); if(tabId === 'alert-events') drawer.classList.add('drawer-events'); if(tabId === 'alert-communal') drawer.classList.add('drawer-communal'); drawer.classList.add('open'); }
   btn.classList.add('active'); const targetSection = document.getElementById(tabId); if (targetSection) targetSection.classList.add('active');
   if (tabId === 'alert-volunteers') { try { loadVolunteersData({forceRefresh: true}); } catch(e) {} }
+  if (tabId === 'map-tab') { try { initCityMap(); } catch(e) {} }
   window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
 }
 
