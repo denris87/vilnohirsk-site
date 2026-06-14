@@ -542,41 +542,57 @@ function initCityMap() {
   loadMapPlaces();
 }
 
-// Шари міток за категоріями + панель фільтрів
+// Шари міток за категоріями + панель фільтрів. Дані — data/places.yaml
+// Структура: categories: [ { id, name, icon, color, show, places: [ { name, lat, lng, address, phone, show } ] } ]
 let cityMapLayers = {};
+let mapYamlTries = 0;
 async function loadMapPlaces() {
+  // YAML-парсер підключений з defer і може ще не завантажитись — трохи зачекаємо
+  if (typeof jsyaml === 'undefined') {
+    if (mapYamlTries++ < 40) { setTimeout(loadMapPlaces, 250); }
+    return;
+  }
   try {
-    const res = await fetch('./data/places.json?v=' + Date.now());
+    const res = await fetch('./data/places.yaml?v=' + Date.now());
     if (!res.ok) return;
-    const data = await res.json();
+    const data = jsyaml.load(await res.text()) || {};
     const cats = Array.isArray(data.categories) ? data.categories : [];
-    // show: false — мітка вимкнена; show: true або відсутнє — показуємо
-    const places = (Array.isArray(data.places) ? data.places : []).filter(p => p && p.show !== false);
-    const catMap = {};
-    cats.forEach(c => { catMap[c.id] = c; });
 
-    // Створюємо шар на кожну категорію
     cityMapLayers = {};
-    cats.forEach(c => { cityMapLayers[c.id] = L.layerGroup().addTo(cityMapInstance); });
+    const visibleCats = []; // лише категорії з видимими точками — для панелі фільтрів
 
-    places.forEach(p => {
-      if (typeof p.lat !== 'number' || typeof p.lng !== 'number') return;
-      const c = catMap[p.category] || { icon: '📍', color: '#38bdf8', name: '' };
-      const icon = L.divIcon({
-        className: 'map-pin',
-        html: `<div class="map-pin-inner" style="background:${c.color};"><span>${c.icon || '📍'}</span></div>`,
-        iconSize: [30, 30],
-        iconAnchor: [15, 30],
-        popupAnchor: [0, -28]
+    cats.forEach(c => {
+      // show: false у категорії — ховаємо весь блок
+      if (!c || !c.id || c.show === false) return;
+      // show: false у точці — ховаємо окрему мітку; пропускаємо точки без координат
+      const places = (Array.isArray(c.places) ? c.places : []).filter(p =>
+        p && p.show !== false && typeof p.lat === 'number' && typeof p.lng === 'number');
+      if (!places.length) return; // порожню категорію не показуємо
+
+      const layer = L.layerGroup().addTo(cityMapInstance);
+      cityMapLayers[c.id] = layer;
+      const color = c.color || '#38bdf8';
+      const emoji = c.icon || '📍';
+
+      places.forEach(p => {
+        const icon = L.divIcon({
+          className: 'map-pin',
+          html: `<div class="map-pin-inner" style="background:${color};"><span>${emoji}</span></div>`,
+          iconSize: [30, 30],
+          iconAnchor: [15, 30],
+          popupAnchor: [0, -28]
+        });
+        const popup = `<div class="map-popup"><div class="map-popup-title">${escapeHTML(p.name || '')}</div>`
+          + (p.address ? `<div class="map-popup-addr">📍 ${escapeHTML(p.address)}</div>` : '')
+          + (p.phone ? `<div class="map-popup-addr">📞 <a href="tel:${String(p.phone).replace(/[^0-9+]/g,'')}">${escapeHTML(p.phone)}</a></div>` : '')
+          + `</div>`;
+        L.marker([p.lat, p.lng], { icon }).bindPopup(popup).addTo(layer);
       });
-      const popup = `<div class="map-popup"><div class="map-popup-title">${escapeHTML(p.name || '')}</div>`
-        + (p.address ? `<div class="map-popup-addr">📍 ${escapeHTML(p.address)}</div>` : '')
-        + (p.phone ? `<div class="map-popup-addr">📞 <a href="tel:${String(p.phone).replace(/[^0-9+]/g,'')}">${escapeHTML(p.phone)}</a></div>` : '')
-        + `</div>`;
-      L.marker([p.lat, p.lng], { icon }).bindPopup(popup).addTo(cityMapLayers[p.category] || cityMapInstance);
+
+      visibleCats.push(c);
     });
 
-    buildMapFilters(cats);
+    buildMapFilters(visibleCats);
   } catch (e) {}
 }
 
