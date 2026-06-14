@@ -110,7 +110,12 @@ categories:
     icon: "🛒"
     color: "#84cc16"
     show: true
-    places: []   # додай точки сюди
+    places: 
+      - name: "Супермаркет АТБ"
+        lat: 48.475304 
+        lng: 34.010067
+        address: "провулок Соборний, 2"
+        show: true
 
   # 🛍 Магазини
   - id: shops
