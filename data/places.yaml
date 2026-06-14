@@ -121,6 +121,16 @@ categories:
         lng: 34.012808
         address: "вул. Центральна, 26"
         show: true
+      - name: "Супермаркет «Маркет Опт»"
+        lat: 48.481175
+        lng: 34.013449
+        address: "вул. Центральна, 41"
+        show: true
+      - name: "Супермаркет «Маркет Опт Express»"
+        lat: 48.475855
+        lng: 34.017760
+        address: "вул. Промислова, 20"
+        show: true
 
   # 🛍 Магазини
   - id: shops
