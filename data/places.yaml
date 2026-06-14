@@ -186,6 +186,11 @@ categories:
         lng: 34.017596
         address: "вул. Промислова, 20"
         show: true
+      - name: "Поштомат 56054"
+        lat: 48.481296 
+        lng: 34.013296
+        address: "вул. Центральна, 41"
+        show: true
 
   # 🏛 Міські служби, бюджетні установи
   - id: municipal
