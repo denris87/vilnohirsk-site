@@ -59,6 +59,11 @@ categories:
         lng: 34.000949
         address: "вул. Юрія Устенка, 72"
         show: true
+      - name: "Залізничний вокзал»"
+        lat: 48.465493
+        lng: 34.013283
+        address: "Привокзальна площа"
+        show: true
 
   # 🚉 Залізничний вокзал
   - id: railway
@@ -68,8 +73,8 @@ categories:
     show: true
     places:
       - name: "Залізнична станція Вільногірськ"
-        lat: 48.465481
-        lng: 34.013248
+        lat: 48.465143
+        lng: 34.013430
         address: "Привокзальна площа"
         show: true
 
