@@ -111,10 +111,15 @@ categories:
     color: "#84cc16"
     show: true
     places: 
-      - name: "Супермаркет АТБ"
+      - name: "Супермаркет «АТБ»"
         lat: 48.475304 
         lng: 34.010067
         address: "провулок Соборний, 2"
+        show: true
+      - name: "Супермаркет «ВАРУС»"
+        lat: 48.482455
+        lng: 34.012808
+        address: "вул. Центральна, 26"
         show: true
 
   # 🛍 Магазини
