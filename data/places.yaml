@@ -214,6 +214,11 @@ categories:
         lng: 34.010646
         address: "Площа Героїв"
         show: true
+      - name: "Бювет"
+        lat: 48.478834
+        lng: 34.015423
+        address: "вул. Центральна, 49-В"
+        show: true
     
   # 📮 Пошти (Укрпошта, Нова пошта тощо)
   - id: post
