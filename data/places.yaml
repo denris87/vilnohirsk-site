@@ -203,8 +203,13 @@ categories:
     icon: "💧"
     color: "#2dd4bf"
     show: true
-    places: []   # додай точки сюди
-
+    places: 
+      - name: "Бювет"
+        lat: 48.470439, 
+        lng: 34.012226
+        address: 
+        show: true
+    
   # 📮 Пошти (Укрпошта, Нова пошта тощо)
   - id: post
     name: "Пошти"
