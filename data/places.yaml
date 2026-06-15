@@ -205,8 +205,8 @@ categories:
     show: true
     places: 
       - name: "Бювет"
-        lat: 48.470305
-        lng: 34.012379
+        lat: 48.470206
+        lng: 34.012387
         address: "вул. Центральна, 79-А"
         show: true
       - name: "Бювет"
