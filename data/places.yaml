@@ -205,9 +205,9 @@ categories:
     show: true
     places: 
       - name: "Бювет"
-        lat: 48.470439 
-        lng: 34.012226
-        address: 
+        lat: 48.470320
+        lng: 34.012350
+        address: "вул. Центральна, 79-А"
         show: true
     
   # 📮 Пошти (Укрпошта, Нова пошта тощо)
