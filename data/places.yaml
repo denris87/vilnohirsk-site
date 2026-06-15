@@ -205,7 +205,7 @@ categories:
     show: true
     places: 
       - name: "Бювет"
-        lat: 48.470439, 
+        lat: 48.470439 
         lng: 34.012226
         address: 
         show: true
