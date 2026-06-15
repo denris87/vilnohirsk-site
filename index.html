@@ -26,6 +26,12 @@ function __allowZoomTarget(e){
     e.preventDefault();
   }, { passive: false });
 });
+// Блокуємо мультитач-жест (pinch) одразу, щоб масштаб взагалі не змінювався
+document.addEventListener('touchmove', function(e){
+  if (e.touches && e.touches.length > 1 && !__allowZoomTarget(e)) {
+    e.preventDefault();
+  }
+}, { passive: false });
 // Блокуємо double-tap zoom на iOS
 let __lastTouchEnd = 0;
 document.addEventListener('touchend', function(e){
@@ -34,24 +40,6 @@ document.addEventListener('touchend', function(e){
   if (now - __lastTouchEnd <= 350) e.preventDefault();
   __lastTouchEnd = now;
 }, { passive: false });
-// Примусове повернення масштабу до 1, якщо сторінку випадково збільшили (крім карти)
-function __resetZoomIfNeeded(){
-  if (window.visualViewport && window.visualViewport.scale > 1.01){
-    const vp = document.querySelector('meta[name=viewport]');
-    if (!vp) return;
-    const locked = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover';
-    // «Поштовх»: тимчасово дозволяємо зум, далі знову блокуємо на масштабі 1 — Safari скидає збільшення
-    vp.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=10, minimum-scale=1.0, user-scalable=yes, viewport-fit=cover');
-    setTimeout(function(){ vp.setAttribute('content', locked); }, 50);
-  }
-}
-if (window.visualViewport){
-  let __zTimer;
-  window.visualViewport.addEventListener('resize', function(){
-    clearTimeout(__zTimer);
-    __zTimer = setTimeout(__resetZoomIfNeeded, 350);
-  });
-}
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta property="og:title" content="Smart Вільногірськ | Усе місто в одному додатку">
@@ -98,7 +86,7 @@ if (window.visualViewport){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260614a">
+<link rel="stylesheet" href="./css/styles.css?v=20260615a">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -496,6 +484,6 @@ if (window.visualViewport){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260614a" defer></script>
+<script src="./js/app.js?v=20260615a" defer></script>
 </body>
 </html>
