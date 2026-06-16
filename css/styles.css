@@ -166,10 +166,11 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .donate-jar-sub{font-size:11px;color:rgba(255,255,255,0.55);}
 .donate-jar-ico{flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;border:1px solid rgba(255,255,255,0.15);}
 .donate-jar-ico svg{width:22px;height:22px;}
+.donate-jar-uah{font-size:22px;font-weight:800;line-height:1;}
 .donate-or{margin:18px 0 10px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.45);}
 .donate-card{padding:14px 16px;border-radius:16px;background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.1);}
 .donate-card-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.donate-card-num{font-size:19px;font-weight:800;font-family:monospace;letter-spacing:1px;color:#fff !important;text-decoration:none !important;word-break:break-all;}
+.donate-card-num{font-size:15px;font-weight:800;font-family:monospace;letter-spacing:0.5px;color:#fff !important;text-decoration:none !important;word-break:break-all;}
 .donate-card-num a{color:#fff !important;text-decoration:none !important;}
 .donate-card-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;}
 .donate-card-copy{flex:0 0 auto;min-width:42px;height:42px;padding:0 10px;white-space:nowrap;font-size:11px;font-weight:700;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.12);color:#fff;transition:background 0.2s ease,transform 0.15s ease;}
