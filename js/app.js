@@ -1901,10 +1901,15 @@ function renderJobs(jobs) {
   const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
   const safeJobs = jobs.filter(job => { const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase(); return !stopWords.some(word => textToSearch.includes(word)); });
   
+  // Стійке визначення джерела Work.ua: будь-який регістр/написання ("work.ua", "WorkUA", "work ua")
+  const isWorkUa = (j) => {
+    const s = ((j.source || '') + ' ' + (j.date || '')).toLowerCase().replace(/[\s._-]/g, '');
+    return s.includes('workua');
+  };
   const vipJobs = safeJobs.filter(j => j.isVip || j.vip).reverse();
   const dczJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source === 'ДЦЗ');
-  const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && (j.source === 'Work.ua' || j.date === 'Work.ua'));
-  const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source !== 'Work.ua' && j.date !== 'Work.ua' && j.source !== 'ДЦЗ');
+  const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && isWorkUa(j));
+  const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && !isWorkUa(j) && j.source !== 'ДЦЗ');
   
   let html = '';
   if (vipJobs.length > 0) {
