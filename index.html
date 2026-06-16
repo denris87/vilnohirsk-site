@@ -86,7 +86,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260616b">
+<link rel="stylesheet" href="./css/styles.css?v=20260616c">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -207,6 +207,46 @@ document.addEventListener('touchend', function(e){
   <div class="custom-modal-box" onclick="event.stopPropagation()" style="background: linear-gradient(145deg, #1a2a42, #0d1b2a); border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(56,189,248,0.2);">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'daily-zsu-modal')">&times;</div>
     <div id="daily-zsu-content"></div>
+  </div>
+</div>
+
+<!-- Модалка підтримки проєкту (донат) -->
+<div class="custom-modal-overlay" id="donate-modal" onclick="closeModalForm(event, 'donate-modal')" style="z-index: 100006; background: rgba(0,0,0,0.85);">
+  <div class="custom-modal-box" onclick="event.stopPropagation()" style="background: linear-gradient(145deg, #1a2330, #0d141d); border: 1px solid rgba(255,77,77,0.3); box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 22px rgba(255,77,77,0.18);">
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'donate-modal')">&times;</div>
+    <div class="donate-hero">
+      <div class="donate-hero-ico">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </div>
+    </div>
+    <h3 class="donate-title">Підтримайте проєкт 💙💛</h3>
+    <p class="donate-text">Smart Вільногірськ — волонтерський проєкт, створений для нашого міста. Ваші донати допомагають оплачувати сервери, додавати нові розділи та розвивати застосунок. Дякуємо, що ви поруч!</p>
+
+    <a class="donate-jar" href="https://send.monobank.ua/jar/2moGKZnAE4" target="_blank" rel="noopener">
+      <div class="donate-jar-txt">
+        <span class="donate-jar-title">Банка Monobank</span>
+        <span class="donate-jar-sub">Швидкий донат в 1 клік</span>
+      </div>
+      <div class="donate-jar-ico">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+      </div>
+    </a>
+
+    <div class="donate-or">Або за реквізитами картки:</div>
+
+    <div class="donate-card">
+      <div class="donate-card-row">
+        <div style="min-width:0;">
+          <div class="donate-card-num" id="donate-card-num">4874 1000 3918 2863</div>
+          <div class="donate-card-sub">Гривня, Monobank</div>
+        </div>
+        <button class="donate-card-copy" onclick="copyToClipboardBtn('4874100039182863', this)" title="Скопіювати номер">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="donate-thanks">Слава Україні! 🇺🇦</div>
   </div>
 </div>
 
@@ -460,6 +500,13 @@ document.addEventListener('touchend', function(e){
         </div>
       </div>
 
+      <button type="button" class="donate-btn" onclick="openModalForm(null, 'donate-modal')">
+        <span class="donate-btn-heart">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </span>
+        <span class="donate-btn-txt">Підтримати проєкт</span>
+      </button>
+
       <div class="connect-divider">Ми в соцмережах</div>
 
       <div class="social-links">
@@ -484,6 +531,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260616b" defer></script>
+<script src="./js/app.js?v=20260616c" defer></script>
 </body>
 </html>
