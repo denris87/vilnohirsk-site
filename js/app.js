@@ -756,7 +756,7 @@ function updateDateTime(){
     document.getElementById("time-hh").textContent = String(now.getHours()).padStart(2,"0");
     document.getElementById("time-mm").textContent = String(now.getMinutes()).padStart(2,"0");
     document.getElementById("time-ss").textContent = String(now.getSeconds()).padStart(2,"0");
-    const days=document.querySelectorAll(".day"); days.forEach(d=>d.classList.remove("active")); let i=now.getDay(); i=i===0?6:i-1; days[i].classList.add("active");
+    const days=document.querySelectorAll(".day"); days.forEach(d=>d.classList.remove("active")); let i=now.getDay(); i=i===0?6:i-1; if(days[i]) days[i].classList.add("active");
   } catch(e) {}
 }
 
@@ -1577,12 +1577,13 @@ function updateBlaBlaToggleCounts(driversCount, passengersCount) {
 
 async function loadBlaBlaCarData() {
   try {
-    const d = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 2);
+    const raw = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 2);
+    const d = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.rides) ? raw.rides : []);
     markNewItems(d, 'blablacar', false);
     checkNotification('blablacar', d);
 
-    const dr = d.filter(x => x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to))).reverse();
-    const ps = d.filter(x => x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to))).reverse();
+    const dr = d.filter(x => x && x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to))).reverse();
+    const ps = d.filter(x => x && x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to))).reverse();
     updateBlaBlaTabBadge(dr.length, ps.length);
     updateBlaBlaToggleCounts(dr.length, ps.length);
     
@@ -1999,6 +2000,7 @@ async function updateRadioStats() {
 
 function toggleRadio() {
     const audio = document.getElementById('radio-audio'); const icon = document.getElementById('radio-icon'); const status = document.getElementById('radio-status'); const eq = document.getElementById('equalizer');
+    if (!audio || !icon || !status || !eq) return;
     if (audio.paused) {
         status.innerText = 'ЗАВАНТАЖЕННЯ...'; status.style.color = '#38bdf8'; eq.classList.add('playing');
         audio.src = "https://myradio24.org/muzdance?t=" + new Date().getTime(); audio.load();
