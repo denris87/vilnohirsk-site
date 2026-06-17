@@ -1254,22 +1254,14 @@ async function loadTrainsData(){
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div><div id="trains-content">`;
       let changedTrains = [];
 
-      // Електричка вважається «новою», якщо бекенд проставив прапорець isNew/new
-      // АБО в полях note/periodicityText є дата запуску в межах ~останніх 7 / найближчих 45 днів
-      const __ua_months = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
-      const getTrainStart = (x) => {
-        const txt = (x.periodicityText || '') + ' ' + (x.note || '');
-        const m = txt.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
-        if (!m) return null;
-        const s = new Date(+m[3], +m[2] - 1, +m[1]);
-        return isNaN(s) ? null : s;
-      };
-      const isNewTrain = (x, start) => {
-        if (x.isNew === true || x.new === true) return true;
-        if (!start) return false;
-        const now = new Date(); now.setHours(0,0,0,0);
-        const days = Math.round((start - now) / 86400000);
-        return days >= -7 && days <= 45;
+      // Електричка «нова», якщо API віддав newSchedule (нове розклад з певної дати).
+      // Дату витягуємо з newScheduleNote (напр. "з 28 червня 2026 ...").
+      const isNewTrain = (x) => x.isNew === true || x.new === true || (Array.isArray(x.newSchedule) && x.newSchedule.length > 0);
+      const getTrainDateLabel = (x) => {
+        const txt = x.newScheduleNote || '';
+        // "з 28 червня 2026" — день + місяць словом + рік
+        const m = txt.match(/з\s+(\d{1,2}\s+[а-яіїєґ']+\s+\d{4})/i);
+        return m ? `з ${m[1]}` : 'НОВИЙ розклад';
       };
 
       d.trains.forEach((x, i) => {
@@ -1284,13 +1276,18 @@ async function loadTrainsData(){
             changedTrains.push(x.number);
         }
 
-        const startDate = getTrainStart(x);
-        const isNew = isNewTrain(x, startDate);
-        const dateLabel = startDate ? ` <span class="train-new-date">з ${startDate.getDate()} ${__ua_months[startDate.getMonth()]} ${startDate.getFullYear()}</span>` : '';
-        const newBadge = isNew ? `<div class="train-new-tag">🆕 НОВИЙ${dateLabel}</div>` : '';
+        const isNew = isNewTrain(x);
+        const newBadge = isNew ? `<div class="train-new-tag">🆕 <span class="train-new-date">${escapeHTML(getTrainDateLabel(x))}</span></div>` : '';
         const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${newBadge}</div>`;
 
-        h += `<div class="train${isNew ? ' train-new' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${hc ? ' has-changes' : ''}">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val ${sc}">${escapeHTML(dt)}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}</div>`;
+        // Блок нового розкладу в деталях (зелений), якщо є
+        let newSchedHtml = '';
+        if (isNew && Array.isArray(x.newSchedule) && x.newSchedule.length) {
+          const noteTxt = x.newScheduleNote ? String(x.newScheduleNote).trim() : 'Новий розклад:';
+          newSchedHtml = `<div class="details-divider"></div><div class="details-note" style="color:#00ff9c; background:rgba(0,255,156,0.1); border-color:rgba(0,255,156,0.2);"><b>🆕 ${escapeHTML(noteTxt)}</b></div>${renderGrid(x.newSchedule)}`;
+        }
+
+        h += `<div class="train${isNew ? ' train-new' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${hc ? ' has-changes' : ''}">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val ${sc}">${escapeHTML(dt)}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}${newSchedHtml}</div>`;
       });
       document.getElementById("list").innerHTML = h + `</div>`;
       
