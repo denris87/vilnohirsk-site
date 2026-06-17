@@ -1254,19 +1254,43 @@ async function loadTrainsData(){
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div><div id="trains-content">`;
       let changedTrains = [];
 
+      // Електричка вважається «новою», якщо бекенд проставив прапорець isNew/new
+      // АБО в полях note/periodicityText є дата запуску в межах ~останніх 7 / найближчих 45 днів
+      const __ua_months = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
+      const getTrainStart = (x) => {
+        const txt = (x.periodicityText || '') + ' ' + (x.note || '');
+        const m = txt.match(/(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
+        if (!m) return null;
+        const s = new Date(+m[3], +m[2] - 1, +m[1]);
+        return isNaN(s) ? null : s;
+      };
+      const isNewTrain = (x, start) => {
+        if (x.isNew === true || x.new === true) return true;
+        if (!start) return false;
+        const now = new Date(); now.setHours(0,0,0,0);
+        const days = Math.round((start - now) / 86400000);
+        return days >= -7 && days <= 45;
+      };
+
       d.trains.forEach((x, i) => {
         if (!x) return; const id = "train-" + i; const now = getKyivNow(); let sc = "future", dt = x.time;
         if (x.time && x.time.includes(':')) {
           const [hh, mm] = x.time.split(':').map(Number); const tt = new Date(now); tt.setHours(hh, mm, 0, 0); const diff = Math.floor((tt - now) / 60000);
           if (diff < 0) sc = "passed"; else if (diff <= 10) { sc = "soon"; dt = `≈ ${diff} хв`; }
         } else sc = "passed";
-        
+
         const hc = x.note && x.note !== "змін немає...";
         if (hc) {
             changedTrains.push(x.number);
         }
-        
-        h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${hc ? ' has-changes' : ''}">${escapeHTML(x.number)}</div><div class="route-text">${escapeHTML(x.route)}</div><div class="time-val ${sc}">${escapeHTML(dt)}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}</div>`;
+
+        const startDate = getTrainStart(x);
+        const isNew = isNewTrain(x, startDate);
+        const dateLabel = startDate ? ` <span class="train-new-date">з ${startDate.getDate()} ${__ua_months[startDate.getMonth()]} ${startDate.getFullYear()}</span>` : '';
+        const newBadge = isNew ? `<div class="train-new-tag">🆕 НОВИЙ${dateLabel}</div>` : '';
+        const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${newBadge}</div>`;
+
+        h += `<div class="train${isNew ? ' train-new' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${hc ? ' has-changes' : ''}">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val ${sc}">${escapeHTML(dt)}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}</div>`;
       });
       document.getElementById("list").innerHTML = h + `</div>`;
       
