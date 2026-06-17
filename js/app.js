@@ -1256,12 +1256,21 @@ async function loadTrainsData(){
 
       // Електричка «нова», якщо API віддав newSchedule (нове розклад з певної дати).
       // Дату витягуємо з newScheduleNote (напр. "з 28 червня 2026 ...").
+      const __ua_months = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
       const isNewTrain = (x) => x.isNew === true || x.new === true || (Array.isArray(x.newSchedule) && x.newSchedule.length > 0);
+      // Дата старту нового розкладу -> Date | null
+      const getNewStartDate = (x) => {
+        const m = (x.newScheduleNote || '').match(/з\s+(\d{1,2})\s+([а-яіїєґ']+)\s+(\d{4})/i);
+        if (!m) return null;
+        const mi = __ua_months.indexOf(m[2].toLowerCase());
+        if (mi < 0) return null;
+        const d2 = new Date(+m[3], mi, +m[1]);
+        return isNaN(d2) ? null : d2;
+      };
+      const fmtUaDate = (d2) => `${d2.getDate()} ${__ua_months[d2.getMonth()]} ${d2.getFullYear()}`;
       const getTrainDateLabel = (x) => {
-        const txt = x.newScheduleNote || '';
-        // "з 28 червня 2026" — день + місяць словом + рік
-        const m = txt.match(/з\s+(\d{1,2}\s+[а-яіїєґ']+\s+\d{4})/i);
-        return m ? `з ${m[1]}` : 'НОВИЙ розклад';
+        const d2 = getNewStartDate(x);
+        return d2 ? `з ${fmtUaDate(d2)}` : 'НОВИЙ розклад';
       };
 
       d.trains.forEach((x, i) => {
@@ -1280,14 +1289,26 @@ async function loadTrainsData(){
         const newBadge = isNew ? `<div class="train-new-tag">🆕 <span class="train-new-date">${escapeHTML(getTrainDateLabel(x))}</span></div>` : '';
         const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${newBadge}</div>`;
 
-        // Блок нового розкладу в деталях (зелений), якщо є
+        const hasNewSched = isNew && Array.isArray(x.newSchedule) && x.newSchedule.length;
+
+        // Поточний (старий) розклад — з позначкою «Діє до <день перед стартом нового>»
+        const startNew = hasNewSched ? getNewStartDate(x) : null;
+        let oldLabelHtml = '';
+        if (hasNewSched && startNew) {
+          const endOld = new Date(startNew); endOld.setDate(endOld.getDate() - 1);
+          oldLabelHtml = `<div class="details-note" style="color:#ff7a7a; background:rgba(255,77,77,0.1); border-color:rgba(255,77,77,0.25); margin-bottom:8px;"><b>⛔ Діє до ${escapeHTML(fmtUaDate(endOld))}</b></div>`;
+        }
+
+        // Новий розклад (зелений) — «З <дата>»
         let newSchedHtml = '';
-        if (isNew && Array.isArray(x.newSchedule) && x.newSchedule.length) {
-          const noteTxt = x.newScheduleNote ? String(x.newScheduleNote).trim() : 'Новий розклад:';
+        if (hasNewSched) {
+          const noteTxt = startNew ? `З ${fmtUaDate(startNew)} приміський поїзд курсує за цим розкладом:` : (x.newScheduleNote ? String(x.newScheduleNote).trim() : 'Новий розклад:');
           newSchedHtml = `<div class="details-divider"></div><div class="details-note" style="color:#00ff9c; background:rgba(0,255,156,0.1); border-color:rgba(0,255,156,0.2);"><b>🆕 ${escapeHTML(noteTxt)}</b></div>${renderGrid(x.newSchedule)}`;
         }
 
-        h += `<div class="train${isNew ? ' train-new' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${hc ? ' has-changes' : ''}">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val ${sc}">${escapeHTML(dt)}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}${newSchedHtml}</div>`;
+        const mainSched = x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних";
+
+        h += `<div class="train${isNew ? ' train-new' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${hc ? ' has-changes' : ''}">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val ${sc}">${escapeHTML(dt)}</div></div><div class="details" id="${id}">${oldLabelHtml}${mainSched}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}${newSchedHtml}</div>`;
       });
       document.getElementById("list").innerHTML = h + `</div>`;
       
