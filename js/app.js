@@ -1254,20 +1254,17 @@ async function loadTrainsData(){
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div><div id="trains-content">`;
       let changedTrains = [];
 
-      // Електричка «нова», якщо API віддав newSchedule (нове розклад з певної дати).
-      // Дату витягуємо з newScheduleNote (напр. "з 28 червня 2026 ...").
-      const __ua_months = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
-      const isNewTrain = (x) => x.isNew === true || x.new === true || (Array.isArray(x.newSchedule) && x.newSchedule.length > 0);
-      // Дата старту нового розкладу -> Date | null
-      const getNewStartDate = (x) => {
-        const m = (x.newScheduleNote || '').match(/з\s+(\d{1,2})\s+([а-яіїєґ']+)\s+(\d{4})/i);
-        if (!m) return null;
-        const mi = __ua_months.indexOf(m[2].toLowerCase());
-        if (mi < 0) return null;
-        const d2 = new Date(+m[3], mi, +m[1]);
-        return isNaN(d2) ? null : d2;
-      };
-      const fmtUaDate = (d2) => `${d2.getDate()} ${__ua_months[d2.getMonth()]} ${d2.getFullYear()}`;
+      // ЛОГІКА (як у поїздів 41/42):
+      //  • номер містить "new"  → ЗЕЛЕНА картка "НОВИЙ з 28 червня 2026" ("new" з номера прибираємо).
+      //  • така сама електричка з тим самим номером без "new" → ЧЕРВОНА "КУРСУЄ до 27 червня 2026".
+      const NEW_FROM = 'з 28 червня 2026';
+      const OLD_UNTIL = 'до 27 червня 2026';
+      const hasNewFlag = (num) => /new/i.test(String(num || ''));
+      const cleanNum = (num) => String(num || '').replace(/new/ig, '').replace(/[\s\-_]+$/,'').trim();
+
+      // Збираємо чисті номери, у яких є "new"-версія — щоб позначити парну стару червоним
+      const newNumbers = new Set();
+      d.trains.forEach(x => { if (x && hasNewFlag(x.number)) newNumbers.add(cleanNum(x.number)); });
 
       // Час відправлення зі станції Вільногірськ у заданому розкладі
       const stationName = d.station || 'Вільногірськ';
@@ -1287,37 +1284,30 @@ async function loadTrainsData(){
         } else sc = 'passed';
         return { sc, dt };
       };
-      // Рендер однієї картки електрички
-      const renderTrainCard = (opts) => {
-        const { id, number, route, sched, badgeHtml, rowClass, numClass, time } = opts;
-        const st = statusFor(time);
-        const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(route)}</div>${badgeHtml || ''}</div>`;
-        const body = Array.isArray(sched) && sched.length ? renderGrid(sched) : 'Немає даних';
-        return `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${numClass}">${escapeHTML(number)}</div>${routeCell}<div class="time-val ${st.sc}">${escapeHTML(st.dt)}</div></div><div class="details" id="${id}">${body}</div>`;
-      };
 
       d.trains.forEach((x, i) => {
         if (!x) return; const id = "train-" + i;
         const hc = x.note && x.note !== "змін немає...";
         if (hc) { changedTrains.push(x.number); }
 
-        const hasNewSched = isNewTrain(x) && Array.isArray(x.newSchedule) && x.newSchedule.length;
-        const startNew = hasNewSched ? getNewStartDate(x) : null;
+        const number = cleanNum(x.number);
+        const isNew = hasNewFlag(x.number);
+        const isEnding = !isNew && newNumbers.has(number); // стара версія, що скоро скасується
 
-        if (hasNewSched && startNew) {
-          // Дві окремі картки: стара (до 27.06, червона) + нова (з 28.06, зелена)
-          const endOld = new Date(startNew); endOld.setDate(endOld.getDate() - 1);
-          const endTag = `<div class="train-end-tag">⛔ КУРСУЄ <span class="train-end-date">до ${escapeHTML(fmtUaDate(endOld))}</span></div>`;
-          const newTag = `<div class="train-new-tag">🆕 НОВИЙ <span class="train-new-date">з ${escapeHTML(fmtUaDate(startNew))}</span></div>`;
-
-          h += renderTrainCard({ id: id + '-old', number: x.number, route: x.route, sched: x.fullSchedule, badgeHtml: endTag, rowClass: ' train-ending', numClass: ' has-changes', time: x.time });
-          h += renderTrainCard({ id: id + '-new', number: x.number, route: x.route, sched: x.newSchedule, badgeHtml: newTag, rowClass: ' train-new', numClass: '', time: timeFromSchedule(x.newSchedule) });
-        } else {
-          // Звичайна електричка (одна картка)
-          const st = statusFor(x.time);
-          const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div></div>`;
-          h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${hc ? ' has-changes' : ''}">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val ${st.sc}">${escapeHTML(st.dt)}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}</div>`;
+        let badgeHtml = '', rowClass = '', numClass = hc ? ' has-changes' : '';
+        if (isNew) {
+          badgeHtml = `<div class="train-new-tag">🆕 НОВИЙ <span class="train-new-date">${NEW_FROM}</span></div>`;
+          rowClass = ' train-new'; numClass = '';
+        } else if (isEnding) {
+          badgeHtml = `<div class="train-end-tag">⛔ КУРСУЄ <span class="train-end-date">${OLD_UNTIL}</span></div>`;
+          rowClass = ' train-ending'; numClass = ' has-changes';
         }
+
+        const st = statusFor(x.time);
+        const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${badgeHtml}</div>`;
+        const details = `${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}`;
+
+        h += `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${numClass}">${escapeHTML(number)}</div>${routeCell}<div class="time-val ${st.sc}">${escapeHTML(st.dt)}</div></div><div class="details" id="${id}">${details}</div>`;
       });
       document.getElementById("list").innerHTML = h + `</div>`;
       
