@@ -1304,10 +1304,12 @@ async function loadTrainsData(){
         }
 
         const st = statusFor(x.time);
+        // Для нового розкладу (з 28 червня) тимчасово не підсвічуємо час зупинок і час відправлення — все нейтральним
+        const timeSc = isNew ? '' : st.sc;
         const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${badgeHtml}</div>`;
-        const details = `${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}`;
+        const details = `${x.fullSchedule ? renderGrid(x.fullSchedule, false, isNew) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}`;
 
-        h += `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${numClass}">${escapeHTML(number)}</div>${routeCell}<div class="time-val ${st.sc}">${escapeHTML(st.dt)}</div></div><div class="details" id="${id}">${details}</div>`;
+        h += `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${numClass}">${escapeHTML(number)}</div>${routeCell}<div class="time-val ${timeSc}">${escapeHTML(isNew ? (x.time || '—') : st.dt)}</div></div><div class="details" id="${id}">${details}</div>`;
       });
       document.getElementById("list").innerHTML = h + `</div>`;
       
