@@ -1268,47 +1268,56 @@ async function loadTrainsData(){
         return isNaN(d2) ? null : d2;
       };
       const fmtUaDate = (d2) => `${d2.getDate()} ${__ua_months[d2.getMonth()]} ${d2.getFullYear()}`;
-      const getTrainDateLabel = (x) => {
-        const d2 = getNewStartDate(x);
-        return d2 ? `з ${fmtUaDate(d2)}` : 'НОВИЙ розклад';
+
+      // Час відправлення зі станції Вільногірськ у заданому розкладі
+      const stationName = d.station || 'Вільногірськ';
+      const timeFromSchedule = (sched) => {
+        if (!Array.isArray(sched)) return '—';
+        const stop = sched.find(s => Array.isArray(s) && String(s[0]).includes(stationName));
+        return stop ? stop[1] : '—';
+      };
+      // Клас статусу (future/soon/passed) і відображуваний час для рядка
+      const statusFor = (timeStr) => {
+        let sc = 'future', dt = timeStr || '—';
+        if (timeStr && String(timeStr).includes(':')) {
+          const now = getKyivNow(); const [hh, mm] = timeStr.split(':').map(Number);
+          const tt = new Date(now); tt.setHours(hh, mm, 0, 0);
+          const diff = Math.floor((tt - now) / 60000);
+          if (diff < 0) sc = 'passed'; else if (diff <= 10) { sc = 'soon'; dt = `≈ ${diff} хв`; }
+        } else sc = 'passed';
+        return { sc, dt };
+      };
+      // Рендер однієї картки електрички
+      const renderTrainCard = (opts) => {
+        const { id, number, route, sched, badgeHtml, rowClass, numClass, time } = opts;
+        const st = statusFor(time);
+        const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(route)}</div>${badgeHtml || ''}</div>`;
+        const body = Array.isArray(sched) && sched.length ? renderGrid(sched) : 'Немає даних';
+        return `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${numClass}">${escapeHTML(number)}</div>${routeCell}<div class="time-val ${st.sc}">${escapeHTML(st.dt)}</div></div><div class="details" id="${id}">${body}</div>`;
       };
 
       d.trains.forEach((x, i) => {
-        if (!x) return; const id = "train-" + i; const now = getKyivNow(); let sc = "future", dt = x.time;
-        if (x.time && x.time.includes(':')) {
-          const [hh, mm] = x.time.split(':').map(Number); const tt = new Date(now); tt.setHours(hh, mm, 0, 0); const diff = Math.floor((tt - now) / 60000);
-          if (diff < 0) sc = "passed"; else if (diff <= 10) { sc = "soon"; dt = `≈ ${diff} хв`; }
-        } else sc = "passed";
-
+        if (!x) return; const id = "train-" + i;
         const hc = x.note && x.note !== "змін немає...";
-        if (hc) {
-            changedTrains.push(x.number);
-        }
+        if (hc) { changedTrains.push(x.number); }
 
-        const isNew = isNewTrain(x);
-        const newBadge = isNew ? `<div class="train-new-tag">🆕 <span class="train-new-date">${escapeHTML(getTrainDateLabel(x))}</span></div>` : '';
-        const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${newBadge}</div>`;
-
-        const hasNewSched = isNew && Array.isArray(x.newSchedule) && x.newSchedule.length;
-
-        // Поточний (старий) розклад — з позначкою «Діє до <день перед стартом нового>»
+        const hasNewSched = isNewTrain(x) && Array.isArray(x.newSchedule) && x.newSchedule.length;
         const startNew = hasNewSched ? getNewStartDate(x) : null;
-        let oldLabelHtml = '';
+
         if (hasNewSched && startNew) {
+          // Дві окремі картки: стара (до 27.06, червона) + нова (з 28.06, зелена)
           const endOld = new Date(startNew); endOld.setDate(endOld.getDate() - 1);
-          oldLabelHtml = `<div class="details-note" style="color:#ff7a7a; background:rgba(255,77,77,0.1); border-color:rgba(255,77,77,0.25); margin-bottom:8px;"><b>⛔ Діє до ${escapeHTML(fmtUaDate(endOld))}</b></div>`;
+          const endTag = `<div class="train-end-tag">⛔ КУРСУЄ <span class="train-end-date">до ${escapeHTML(fmtUaDate(endOld))}</span></div>`;
+          const newTag = `<div class="train-new-tag">🆕 НОВИЙ <span class="train-new-date">з ${escapeHTML(fmtUaDate(startNew))}</span></div>`;
+
+          h += renderTrainCard({ id: id + '-old', number: x.number, route: x.route, sched: x.fullSchedule, badgeHtml: endTag, rowClass: ' train-ending', numClass: ' has-changes', time: x.time });
+          h += renderTrainCard({ id: id + '-new', number: x.number, route: x.route, sched: x.newSchedule, badgeHtml: newTag, rowClass: ' train-new', numClass: '', time: timeFromSchedule(x.newSchedule) });
+        } else {
+          // Звичайна електричка (одна картка)
+          const st = statusFor(x.time);
+          const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div></div>`;
+          h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${hc ? ' has-changes' : ''}">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val ${st.sc}">${escapeHTML(st.dt)}</div></div><div class="details" id="${id}">${x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}</div>`;
         }
-
-        // Новий розклад (зелений) — «З <дата>»
-        let newSchedHtml = '';
-        if (hasNewSched) {
-          const noteTxt = startNew ? `З ${fmtUaDate(startNew)} приміський поїзд курсує за цим розкладом:` : (x.newScheduleNote ? String(x.newScheduleNote).trim() : 'Новий розклад:');
-          newSchedHtml = `<div class="details-divider"></div><div class="details-note" style="color:#00ff9c; background:rgba(0,255,156,0.1); border-color:rgba(0,255,156,0.2);"><b>🆕 ${escapeHTML(noteTxt)}</b></div>${renderGrid(x.newSchedule)}`;
-        }
-
-        const mainSched = x.fullSchedule ? renderGrid(x.fullSchedule) : "Немає даних";
-
-        h += `<div class="train${isNew ? ' train-new' : ''}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${hc ? ' has-changes' : ''}">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val ${sc}">${escapeHTML(dt)}</div></div><div class="details" id="${id}">${oldLabelHtml}${mainSched}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}${newSchedHtml}</div>`;
       });
       document.getElementById("list").innerHTML = h + `</div>`;
       
