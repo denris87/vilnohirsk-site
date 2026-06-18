@@ -1783,10 +1783,22 @@ function updateZsuTabIndicator(activeItems) {
 async function loadVolunteersData(opts) {
   const container = document.getElementById('volunteers-list-content'); if (!container) return;
   const forceRefresh = opts && opts.forceRefresh;
-  if (forceRefresh) {
+  const attempt = (opts && opts.attempt) || 0;
+  const MAX_AUTO = 5; // автоматичних спроб «розбудити» сервер
+  if (forceRefresh && attempt === 0) {
     try { delete memoryDataCache['volunteers_api']; } catch(e) {}
     container.innerHTML = '<div class="empty-msg" style="padding: 30px;"><div style="font-size:32px; margin-bottom:8px;">⏳</div>Оновлюємо збори...</div>';
   }
+  // Повідомлення під час автопробудження сервера
+  const wakingHtml = `<div class="empty-msg" style="padding: 30px; line-height:1.5;"><div style="font-size:32px; margin-bottom:8px;">⏳</div>Пробуджуємо сервер зборів…<br><span style="font-size:11px; color:rgba(255,255,255,0.6);">Зачекайте кілька секунд, це автоматично</span></div>`;
+  // Авто-повтор: чекаємо й тихо пробуємо ще раз
+  const scheduleRetry = (showWaking) => {
+    if (attempt >= MAX_AUTO) return false;
+    if (showWaking) container.innerHTML = wakingHtml;
+    const delay = Math.min(2500 + attempt * 1500, 8000); // 2.5с, 4с, 5.5с, 7с, 8с
+    setTimeout(() => loadVolunteersData({ forceRefresh: true, attempt: attempt + 1 }), delay);
+    return true;
+  };
   try {
     const data = await fetchCachedJson('https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers', 'volunteers_api', 1);
     let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.volunteers) ? data.volunteers : []);
@@ -1797,7 +1809,12 @@ async function loadVolunteersData(opts) {
     updateZsuTabIndicator(activeItems);
 
     const emptyZsuHtml = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(56, 189, 248, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.06);"><div style="font-size: 44px; margin-bottom: 8px;">💙💛</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px; line-height: 1.3;">Активних зборів зараз немає</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Можливо сервер ще прокидається. Спробуйте ще раз через декілька секунд:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Оновити збори</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Ви волонтер? Маєте офіційний збір?<br>Напишіть нам у Telegram: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800; font-size: 13px;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255,204,0,0.4);">Слава Україні! 🇺🇦</div></div>`;
-    if (!activeItems || activeItems.length === 0) { container.innerHTML = emptyZsuHtml; return; }
+    if (!activeItems || activeItems.length === 0) {
+      // Порожньо може бути через сон сервера — тихо пробуємо ще раз кілька разів
+      if (scheduleRetry(attempt === 0 && forceRefresh)) return;
+      container.innerHTML = emptyZsuHtml;
+      return;
+    }
     const useGrid = activeItems.length >= 2;
     let html = useGrid ? '<div class="zsu-grid">' : '';
     activeItems.forEach((item, i) => {
@@ -1820,7 +1837,11 @@ async function loadVolunteersData(opts) {
     });
     if (useGrid) html += '</div>';
     container.innerHTML = html;
-  } catch (e) { container.innerHTML = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(255, 77, 77, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(255, 77, 77, 0.35); border-radius: 18px;"><div style="font-size: 44px; margin-bottom: 8px;">⚠️</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px;">Не вдалося завантажити збори</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Можливо сервер ще прокидається. Спробуйте ще раз:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Спробувати ще раз</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Маєте офіційний збір? Напишіть: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00;">Слава Україні! 🇺🇦</div></div>`; }
+  } catch (e) {
+    // Сервер спить / таймаут — тихо пробуємо розбудити ще раз
+    if (scheduleRetry(true)) return;
+    container.innerHTML = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(255, 77, 77, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(255, 77, 77, 0.35); border-radius: 18px;"><div style="font-size: 44px; margin-bottom: 8px;">⚠️</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px;">Не вдалося завантажити збори</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Можливо сервер ще прокидається. Спробуйте ще раз:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Спробувати ще раз</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Маєте офіційний збір? Напишіть: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00;">Слава Україні! 🇺🇦</div></div>`;
+  }
 }
 
 function toggleJobsDrawer(drawerId, btn) {
