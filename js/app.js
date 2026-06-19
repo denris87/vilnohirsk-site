@@ -842,7 +842,7 @@ async function loadEventsData() {
   try {
     const API_URL = atob('aHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL2RlbnJpczg3L3ZpbG5vaGlyc2stZXZlbnRzL21haW4vZXZlbnRzLmpzb24=');
     const eventAlerts = await fetchCachedJson(API_URL, 'events_api', 5);
-    const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i.show !== false) : [];
+    const activeEvents = Array.isArray(eventAlerts) ? eventAlerts.filter(i => i && i.show !== false) : [];
     // Афіша без фото не рендерить слайд — працюємо лише з тими, де є зображення,
     // інакше індекси модалки та точки каруселі з'їжджають відносно слайдів
     const eventsWithPhotos = activeEvents.filter(ev => ev && (ev.photo || ev.image || ev.url));
@@ -1060,8 +1060,8 @@ function renderEstateList(items, hasMore = false) {
 function filterEstate(category, element) {
   document.querySelectorAll('#estate-categories .flea-category-tag').forEach(tag => { tag.classList.remove('active'); }); if(element) { element.classList.add('active'); }
   let filtered = allEstateItems.filter(item => category === 'Всі' || (item.dealType && item.dealType.includes(category)));
-  if (currentEstateSort === 'cheap') filtered.sort((a,b) => (parseInt(a.price.replace(/\D/g,''))||0) - (parseInt(b.price.replace(/\D/g,''))||0));
-  else if (currentEstateSort === 'expensive') filtered.sort((a,b) => (parseInt(b.price.replace(/\D/g,''))||0) - (parseInt(a.price.replace(/\D/g,''))||0));
+  if (currentEstateSort === 'cheap') filtered.sort((a,b) => (parseInt(String(a.price||"").replace(/\D/g,""))||0) - (parseInt(String(b.price||"").replace(/\D/g,""))||0));
+  else if (currentEstateSort === 'expensive') filtered.sort((a,b) => (parseInt(String(b.price||"").replace(/\D/g,""))||0) - (parseInt(String(a.price||"").replace(/\D/g,""))||0));
   renderEstateList(filtered.slice(0, estateRenderLimit), filtered.length > estateRenderLimit);
 }
 
@@ -1129,8 +1129,8 @@ function renderFleaMarketList(items, hasMore = false) {
 function filterFleaMarket(category, element) {
   document.querySelectorAll('#flea-categories .flea-category-tag').forEach(tag => { tag.classList.remove('active'); }); if(element) { element.classList.add('active'); }
   let filtered = allFleaMarketItems.filter(item => category === 'Всі' || (item.category && item.category.includes(category)));
-  if (currentFleaSort === 'cheap') filtered.sort((a,b) => (parseInt(a.price.replace(/\D/g,''))||0) - (parseInt(b.price.replace(/\D/g,''))||0));
-  else if (currentFleaSort === 'expensive') filtered.sort((a,b) => (parseInt(b.price.replace(/\D/g,''))||0) - (parseInt(a.price.replace(/\D/g,''))||0));
+  if (currentFleaSort === 'cheap') filtered.sort((a,b) => (parseInt(String(a.price||"").replace(/\D/g,""))||0) - (parseInt(String(b.price||"").replace(/\D/g,""))||0));
+  else if (currentFleaSort === 'expensive') filtered.sort((a,b) => (parseInt(String(b.price||"").replace(/\D/g,""))||0) - (parseInt(String(a.price||"").replace(/\D/g,""))||0));
   renderFleaMarketList(filtered.slice(0, fleaRenderLimit), filtered.length > fleaRenderLimit);
 }
 
@@ -1287,7 +1287,7 @@ async function loadTrainsData(){
 
       d.trains.forEach((x, i) => {
         if (!x) return; const id = "train-" + i;
-        const hc = x.note && x.note !== "змін немає...";
+        const hc = x.note && String(x.note).trim() && String(x.note).trim() !== "змін немає...";
         if (hc) { changedTrains.push(x.number); }
 
         const number = cleanNum(x.number);
@@ -1328,7 +1328,7 @@ async function loadTrainsData(){
           }
       }
 
-      const changed = d.trains.filter(x => x && x.note && x.note !== "змін немає...");
+      const changed = d.trains.filter(x => x && x.note && String(x.note).trim() !== "змін немає...");
       checkNotification('trains', changed);
       updateTrainsTabBadge(changed.length);
     }
