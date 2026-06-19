@@ -72,7 +72,7 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .day.active{color:#fff !important;font-weight:800;background:linear-gradient(135deg,#ff6b6b,#ff4d6d);border-color:transparent;box-shadow:0 2px 12px rgba(255,77,109,0.5);transform:translateY(-1px);}
 @media (prefers-reduced-motion: reduce){.dt-colon{animation:none;}}
 .weather-box { position:relative; width:100%; display:flex; align-items:center; justify-content:center; flex: 1; }
-.weather-content { position:absolute; top:0; width:100%; transition:all 0.8s cubic-bezier(0.25,1,0.5,1); opacity:0; transform:translateY(10px) scale(0.95); text-align:center; pointer-events:none; display:flex; flex-direction:column; justify-content:flex-start; align-items:center; } .weather-content.active { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+.weather-content { position:absolute; top:50%; width:100%; transition:all 0.8s cubic-bezier(0.25,1,0.5,1); opacity:0; transform:translateY(calc(-50% + 10px)) scale(0.95); text-align:center; pointer-events:none; display:flex; flex-direction:column; justify-content:center; align-items:center; } .weather-content.active { opacity:1; transform:translateY(-50%) scale(1); pointer-events:auto; }
 .weather-city { font-size:clamp(10px,2.6vw,12px); font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(255,255,255,0.7); text-shadow:0 1px 2px rgba(0,0,0,0.5); white-space:nowrap; margin-bottom:4px; }
 .weather-temp-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 2px 0; }
 .weather-icon { font-size: 34px; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4)); animation: weather-float 3.5s ease-in-out infinite; }
