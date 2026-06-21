@@ -728,16 +728,18 @@ let fuelYamlTries = 0;
 async function loadFuelData() {
   const host = document.getElementById('fuel-widget');
   if (!host) return;
+  const divider = document.getElementById('fuel-divider');
+  const hideFuel = () => { host.style.display = 'none'; if (divider) divider.style.display = 'none'; };
   if (typeof jsyaml === 'undefined') { // YAML-парсер ще не завантажився
     if (fuelYamlTries++ < 40) { setTimeout(loadFuelData, 250); }
     return;
   }
   try {
     const res = await fetch('./data/fuel.yaml?v=' + Date.now());
-    if (!res.ok) { host.style.display = 'none'; return; }
+    if (!res.ok) { hideFuel(); return; }
     const data = jsyaml.load(await res.text()) || {};
     const fuels = Array.isArray(data.fuels) ? data.fuels : [];
-    if (data.show === false || fuels.length === 0) { host.style.display = 'none'; return; }
+    if (data.show === false || fuels.length === 0) { hideFuel(); return; }
 
     const items = fuels.map(f => {
       if (!f) return '';
@@ -752,10 +754,11 @@ async function loadFuelData() {
       return `<div class="fuel-item"><span class="fuel-bar" style="background:${color};"></span><span class="fuel-name">${name}${sub}</span><span class="fuel-price" style="color:${color};">${priceHtml}</span></div>`;
     }).join('');
 
-    const updated = data.updated ? `<span class="fuel-updated">станом на ${escapeHTML(String(data.updated))}</span>` : '';
-    host.innerHTML = `<div class="fuel-head"><span class="fuel-title"><span class="fuel-ico">⛽</span> Пальне «Укрнафта», грн/л</span>${updated}</div><div class="fuel-grid">${items}</div>`;
+    const updated = data.updated ? `<span class="fuel-updated">${escapeHTML(String(data.updated))}</span>` : '';
+    host.innerHTML = `<div class="fuel-head"><span class="fuel-title">⛽ Укрнафта <span style="font-weight:600;color:rgba(255,255,255,0.5);">грн/л</span></span>${updated}</div><div class="fuel-grid">${items}</div>`;
     host.style.display = 'block';
-  } catch (e) { host.style.display = 'none'; }
+    if (divider) divider.style.display = 'block';
+  } catch (e) { hideFuel(); }
 }
 
 async function loadExchangeRates() {
