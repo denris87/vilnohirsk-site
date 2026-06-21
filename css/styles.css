@@ -364,11 +364,11 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 
 /* === НЕОНОВІ ВКЛАДКИ (транспорт + маркет) === */
 /* Кожній вкладці — свій акцентний неоновий колір через CSS-змінну */
-#schedule-tabs .tab-btn:nth-child(1) { --neon: 120, 220, 120; }   /* 🗺 Карта — зелено-салатовий */
-#schedule-tabs .tab-btn:nth-child(2) { --neon: 0, 255, 156; }     /* 🚗 BlaBlaCar — зелений */
-#schedule-tabs .tab-btn:nth-child(3) { --neon: 56, 189, 248; }    /* 🚆 Електрички — блакитний */
-#schedule-tabs .tab-btn:nth-child(4) { --neon: 255, 204, 0; }     /* 🚌 Автобуси — жовтий */
-#schedule-tabs .tab-btn:nth-child(5) { --neon: 161, 140, 209; }   /* 🛤️ Потяги — фіолетовий */
+#schedule-tabs .tab-btn:nth-child(1) { --neon: 56, 189, 248; }    /* 🚆 Електрички — блакитний */
+#schedule-tabs .tab-btn:nth-child(2) { --neon: 161, 140, 209; }   /* 🛤️ Потяги — фіолетовий */
+#schedule-tabs .tab-btn:nth-child(3) { --neon: 255, 204, 0; }     /* 🚌 Автобуси — жовтий */
+#schedule-tabs .tab-btn:nth-child(4) { --neon: 0, 255, 156; }     /* 🚗 BlaBlaCar — зелений */
+#schedule-tabs .tab-btn:nth-child(5) { --neon: 120, 220, 120; }   /* 🗺 Карта — зелено-салатовий */
 
 #market-tabs .tab-btn:nth-child(1) { --neon: 255, 159, 67; }      /* 🏠 Нерухомість — помаранчевий */
 #market-tabs .tab-btn:nth-child(2) { --neon: 255, 51, 102; }      /* 🛍 Шопінг — рожевий */
