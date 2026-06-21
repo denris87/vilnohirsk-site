@@ -723,6 +723,41 @@ async function loadWeather(){
   }, 7000);
 }
 
+// Ціни на пальне АЗС «Укрнафта» — ручні дані з data/fuel.yaml
+let fuelYamlTries = 0;
+async function loadFuelData() {
+  const host = document.getElementById('fuel-widget');
+  if (!host) return;
+  if (typeof jsyaml === 'undefined') { // YAML-парсер ще не завантажився
+    if (fuelYamlTries++ < 40) { setTimeout(loadFuelData, 250); }
+    return;
+  }
+  try {
+    const res = await fetch('./data/fuel.yaml?v=' + Date.now());
+    if (!res.ok) { host.style.display = 'none'; return; }
+    const data = jsyaml.load(await res.text()) || {};
+    const fuels = Array.isArray(data.fuels) ? data.fuels : [];
+    if (data.show === false || fuels.length === 0) { host.style.display = 'none'; return; }
+
+    const items = fuels.map(f => {
+      if (!f) return '';
+      const color = /^#[0-9a-f]{3,8}$/i.test(String(f.color || '')) ? f.color : '#00ff9c';
+      const name = escapeHTML(String(f.name || ''));
+      const sub = f.sub ? `<span class="fuel-sub">${escapeHTML(String(f.sub))}</span>` : '';
+      // Ціну ділимо на гривні та копійки (копійки — маленьким верхнім індексом)
+      const raw = f.price != null ? String(f.price) : '—';
+      let priceHtml;
+      const pm = raw.match(/^(\d+)[.,](\d{1,2})$/);
+      if (pm) priceHtml = `${pm[1]}<sup>${pm[2]}</sup>`; else priceHtml = escapeHTML(raw);
+      return `<div class="fuel-item"><span class="fuel-bar" style="background:${color};"></span><span class="fuel-name">${name}${sub}</span><span class="fuel-price" style="color:${color};">${priceHtml}</span></div>`;
+    }).join('');
+
+    const updated = data.updated ? `<span class="fuel-updated">станом на ${escapeHTML(String(data.updated))}</span>` : '';
+    host.innerHTML = `<div class="fuel-head"><span class="fuel-title"><span class="fuel-ico">⛽</span> Пальне «Укрнафта», грн/л</span>${updated}</div><div class="fuel-grid">${items}</div>`;
+    host.style.display = 'block';
+  } catch (e) { host.style.display = 'none'; }
+}
+
 async function loadExchangeRates() {
   try {
     const pb = await fetchCachedJson('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=5', 'pb_rates', 30);
@@ -2781,7 +2816,7 @@ function showIOSInstructions() {
 
 const initApp = () => {
   updateDateTime(); setInterval(updateDateTime, 1000); 
-  loadWeather(); loadAlerts(); loadExchangeRates();
+  loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { 
       loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); /* loadPhonebookData(); — тимчасово відключено (техобслуговування) */ loadGalleryData(); loadVolunteersData(); loadPhoenixData();
