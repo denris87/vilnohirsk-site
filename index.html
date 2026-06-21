@@ -88,7 +88,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260617i">
+<link rel="stylesheet" href="./css/styles.css?v=20260617j">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -427,6 +427,8 @@ document.addEventListener('touchend', function(e){
       </div>
     </div>
 
+    <div id="fuel-widget" class="fuel-widget liquid-glass" style="display:none;"></div>
+
     <div class="market-group">
       <div class="tabs-wrapper">
         <div class="tabs-nav" id="market-tabs">
@@ -533,6 +535,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260617i" defer></script>
+<script src="./js/app.js?v=20260617j" defer></script>
 </body>
 </html>

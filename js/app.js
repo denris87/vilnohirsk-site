@@ -723,6 +723,35 @@ async function loadWeather(){
   }, 7000);
 }
 
+// Ціни на пальне АЗС «Укрнафта» — ручні дані з data/fuel.yaml
+let fuelYamlTries = 0;
+async function loadFuelData() {
+  const host = document.getElementById('fuel-widget');
+  if (!host) return;
+  if (typeof jsyaml === 'undefined') { // YAML-парсер ще не завантажився
+    if (fuelYamlTries++ < 40) { setTimeout(loadFuelData, 250); }
+    return;
+  }
+  try {
+    const res = await fetch('./data/fuel.yaml?v=' + Date.now());
+    if (!res.ok) { host.style.display = 'none'; return; }
+    const data = jsyaml.load(await res.text()) || {};
+    const fuels = Array.isArray(data.fuels) ? data.fuels : [];
+    if (data.show === false || fuels.length === 0) { host.style.display = 'none'; return; }
+
+    const items = fuels.map(f => {
+      const isGas = f && (f.id === 'gas' || /газ|lpg/i.test(String(f.name || '')));
+      const name = escapeHTML(f && (f.short || f.name) || '');
+      const price = escapeHTML(f && f.price != null ? String(f.price) : '—');
+      return `<div class="fuel-item${isGas ? ' gas' : ''}"><span class="fuel-name">${name}</span><span class="fuel-price">${price}</span></div>`;
+    }).join('');
+
+    const updated = data.updated ? `<span class="fuel-updated">станом на ${escapeHTML(String(data.updated))}</span>` : '';
+    host.innerHTML = `<div class="fuel-head"><span class="fuel-title"><span class="fuel-ico">⛽</span> Пальне «Укрнафта», грн/л</span>${updated}</div><div class="fuel-grid">${items}</div>`;
+    host.style.display = 'block';
+  } catch (e) { host.style.display = 'none'; }
+}
+
 async function loadExchangeRates() {
   try {
     const pb = await fetchCachedJson('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=5', 'pb_rates', 30);
@@ -2781,7 +2810,7 @@ function showIOSInstructions() {
 
 const initApp = () => {
   updateDateTime(); setInterval(updateDateTime, 1000); 
-  loadWeather(); loadAlerts(); loadExchangeRates();
+  loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { 
       loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); /* loadPhonebookData(); — тимчасово відключено (техобслуговування) */ loadGalleryData(); loadVolunteersData(); loadPhoenixData();
