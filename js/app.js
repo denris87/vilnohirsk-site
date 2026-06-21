@@ -1367,7 +1367,10 @@ async function loadLongTrainsData() {
         if (x.periodicityText) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність:</b><br><span style="color:inherit; font-weight:500;">${escapeHTML(x.periodicityText)}</span></div>`;
         if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500;">${x.changes.map(c => `<li>${escapeHTML(c)}</li>`).join('')}</ul></div>`;
         const newBadge = `<div class="train-new-tag">🆕 НОВИЙ розклад <span class="train-new-date">з 28 червня 2026</span></div>`;
-        const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${newBadge}</div>`;
+        // Поїзд №79 прямує через Київ — додаємо позначку до маршруту
+        const trainNum79 = parseInt(String(x.number || '').replace(/\D/g, ''), 10);
+        const routeText = trainNum79 === 79 ? `${escapeHTML(x.route)} <span style="font-size:0.85em; color:rgba(255,255,255,0.6); font-weight:600;">(через Київ)</span>` : escapeHTML(x.route);
+        const routeCell = `<div class="route-cell"><div class="route-text">${routeText}</div>${newBadge}</div>`;
         h += `<div class="train train-new" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
       });
       document.getElementById("long-trains-list").innerHTML = h;
