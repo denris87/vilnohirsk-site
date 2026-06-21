@@ -1356,7 +1356,10 @@ async function loadLongTrainsData() {
         const days = Math.round((start - now) / 86400000);
         return days >= -7 && days <= 45; // нещодавно введений або скоро запускається
       };
-      d.trains.forEach((x,i) => {
+      // Сортуємо поїзди за часом відправлення (00:01, 04:04, ...)
+      const toMin = (t) => { const m = String(t || '').match(/(\d{1,2}):(\d{2})/); return m ? (+m[1]) * 60 + (+m[2]) : 99999; };
+      const sortedTrains = Array.isArray(d.trains) ? d.trains.filter(Boolean).slice().sort((a, b) => toMin(a.time) - toMin(b.time)) : [];
+      sortedTrains.forEach((x,i) => {
         if(!x) return; const id = "lt-" + i; const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : []; const hasChanges = x.changes && Array.isArray(x.changes) && x.changes.length > 0;
         // Повне оновлення розкладу: всі поїзди — новий розклад з 28 червня 2026
         const isNew = true;
