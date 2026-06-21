@@ -745,13 +745,13 @@ async function loadFuelData() {
       if (!f) return '';
       const color = /^#[0-9a-f]{3,8}$/i.test(String(f.color || '')) ? f.color : '#00ff9c';
       const name = escapeHTML(String(f.name || ''));
-      const sub = f.sub ? `<span class="fuel-sub">${escapeHTML(String(f.sub))}</span>` : '';
       // Ціну ділимо на гривні та копійки (копійки — маленьким верхнім індексом)
       const raw = f.price != null ? String(f.price) : '—';
       let priceHtml;
       const pm = raw.match(/^(\d+)[.,](\d{1,2})$/);
       if (pm) priceHtml = `${pm[1]}<sup>${pm[2]}</sup>`; else priceHtml = escapeHTML(raw);
-      return `<div class="fuel-item"><span class="fuel-bar" style="background:${color};"></span><span class="fuel-name">${name}${sub}</span><span class="fuel-price" style="color:${color};">${priceHtml}</span></div>`;
+      // Назва пального — у кольорі, ціна — біла
+      return `<div class="fuel-item"><span class="fuel-name" style="color:${color};">${name}</span><span class="fuel-price">${priceHtml}</span></div>`;
     }).join('');
 
     const updated = data.updated ? `<span class="fuel-updated">${escapeHTML(String(data.updated))}</span>` : '';
