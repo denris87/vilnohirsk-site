@@ -119,6 +119,24 @@ categories:
         address: "Привокзальна площа"
         show: true
 
+  # ⚡ Зарядні станції для електромобілів
+  - id: charging
+    name: "Зарядні станції"
+    icon: "⚡"
+    color: "#22c55e"
+    show: true
+    places:
+      - name: "Зарядна станція №1"
+        lat: 48.487876
+        lng: 34.021598
+        address: "вул. Степова, 12"
+        show: true
+      - name: "Зарядна станція №2"
+        lat: 48.470773
+        lng: 34.016944
+        address: "вул. Молодіжна, 48-В"
+        show: true
+
   # 🏥 Медицина (лікарні, поліклініки)
   - id: medicine
     name: "Медицина"
