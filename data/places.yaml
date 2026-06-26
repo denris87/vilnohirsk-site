@@ -132,8 +132,8 @@ categories:
         address: "вул. Степова, 12"
         show: true
       - name: "Зарядна станція №2"
-        lat: 48.470773
-        lng: 34.016944
+        lat: 48.470755
+        lng: 34.016290
         address: "вул. Молодіжна, 48-В"
         show: true
 
