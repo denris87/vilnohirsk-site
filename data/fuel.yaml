@@ -13,7 +13,7 @@
 # ───────────────────────────────────────────────────────────────
 
 show: true
-updated: "21.06.2026"
+updated: "26.06.2026"
 
 fuels:
   - name: "95E"
@@ -26,8 +26,8 @@ fuels:
     price: "68.90"
     color: "#ffcc00"
   - name: "ДП"
-    price: "77.90"
+    price: "75.40"
     color: "#2ecc8f"
   - name: "Газ"
-    price: "40.90"
+    price: "39.40"
     color: "#58c4f5"
