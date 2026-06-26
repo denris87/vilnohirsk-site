@@ -88,7 +88,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260617o">
+<link rel="stylesheet" href="./css/styles.css?v=20260626a">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -209,6 +209,13 @@ document.addEventListener('touchend', function(e){
   <div class="custom-modal-box" onclick="event.stopPropagation()" style="background: linear-gradient(145deg, #1a2a42, #0d1b2a); border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(56,189,248,0.2);">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'daily-zsu-modal')">&times;</div>
     <div id="daily-zsu-content"></div>
+  </div>
+</div>
+
+<div class="custom-modal-overlay" id="zoom-modal" onclick="closeModalForm(event, 'zoom-modal')" style="z-index: 100006; background: rgba(0,0,0,0.88);">
+  <div class="custom-modal-box" onclick="event.stopPropagation()" style="background: linear-gradient(145deg, #1a2a42, #0d1b2a); border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 20px rgba(56,189,248,0.2);">
+    <div class="close-modal-btn" onclick="closeModalForm(null, 'zoom-modal')">&times;</div>
+    <div id="zoom-modal-content"></div>
   </div>
 </div>
 
@@ -393,7 +400,7 @@ document.addEventListener('touchend', function(e){
           <div id="time" class="dt-time"><span id="time-hh">00</span><span class="dt-colon">:</span><span id="time-mm">00</span><span class="dt-secs"><span id="time-ss">00</span></span></div>
           <div class="weekdays"><div class="day">Пн</div><div class="day">Вт</div><div class="day">Ср</div><div class="day">Чт</div><div class="day">Пт</div><div class="day">Сб</div><div class="day">Нд</div></div>
           <div style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto;"></div>
-          <div id="exchange-rates" style="display:flex; flex-direction:column; width:100%; box-sizing:border-box; gap:6px; font-size:clamp(9px, 3vw, 12px); font-weight:700; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.2); padding:8px 6px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);">
+          <div id="exchange-rates" onclick="openZoomModal('rates')" title="Натисніть, щоб збільшити" style="cursor:pointer; display:flex; flex-direction:column; width:100%; box-sizing:border-box; gap:6px; font-size:clamp(9px, 3vw, 12px); font-weight:700; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.2); padding:8px 6px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);">
             <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
               <span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇺🇸</span> USD</span>
               <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="usd-buy" style="color:var(--time-green);">--</span> <span style="color:rgba(255,255,255,0.5); margin:0 2px;">/</span> <span id="usd-sell" style="color:var(--highlight-color);">--</span></span>
@@ -426,7 +433,7 @@ document.addEventListener('touchend', function(e){
         </div>
 
         <div id="fuel-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto; display:none;"></div>
-        <div id="fuel-widget" class="fuel-widget" style="display:none;"></div>
+        <div id="fuel-widget" class="fuel-widget" onclick="openZoomModal('fuel')" title="Натисніть, щоб збільшити" style="cursor:pointer; display:none;"></div>
       </div>
     </div>
 
@@ -536,6 +543,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260617o" defer></script>
+<script src="./js/app.js?v=20260626a" defer></script>
 </body>
 </html>
