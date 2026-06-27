@@ -776,8 +776,10 @@ async function loadFuelData() {
       if (!f) return '';
       const color = /^#[0-9a-f]{3,8}$/i.test(String(f.color || '')) ? f.color : '#00ff9c';
       const name = escapeHTML(String(f.name || ''));
-      // Ціна повним розміром (копійки нормально видно)
-      const priceHtml = escapeHTML(f.price != null ? String(f.price).replace(',', '.') : '—');
+      // Копійки — маленьким верхнім індексом (компактно у вузькому блоці)
+      const raw = f.price != null ? String(f.price).replace(',', '.') : '—';
+      const pm = raw.match(/^(\d+)\.(\d{1,2})$/);
+      const priceHtml = pm ? `${escapeHTML(pm[1])}<sup>${escapeHTML(pm[2])}</sup>` : escapeHTML(raw);
       // Назва пального — у кольорі, ціна — біла
       return `<div class="fuel-item"><span class="fuel-name" style="color:${color};">${name}</span><span class="fuel-price">${priceHtml}</span></div>`;
     }).join('');
