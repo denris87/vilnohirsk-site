@@ -448,36 +448,6 @@ function closeModalForm(event, modalId) {
     } 
 }
 
-// Збільшене спливаюче вікно для курсів валют / цін на пальне (для тих, хто погано бачить)
-function openZoomModal(kind) {
-  const host = document.getElementById('zoom-modal-content');
-  const modal = document.getElementById('zoom-modal');
-  if (!host || !modal) return;
-  let html = '';
-  if (kind === 'rates') {
-    const g = (id) => { const el = document.getElementById(id); return el ? el.textContent : '--'; };
-    html = `<div class="zoom-title">💱 Курс валют</div>
-      <div class="zoom-rate-row"><span class="zoom-rate-cur">🇺🇸 USD</span><span class="zoom-rate-val"><span style="color:var(--time-green);">${escapeHTML(g('usd-buy'))}</span> / <span style="color:var(--highlight-color);">${escapeHTML(g('usd-sell'))}</span></span></div>
-      <div class="zoom-rate-row"><span class="zoom-rate-cur">🇪🇺 EUR</span><span class="zoom-rate-val"><span style="color:var(--time-green);">${escapeHTML(g('eur-buy'))}</span> / <span style="color:var(--highlight-color);">${escapeHTML(g('eur-sell'))}</span></span></div>
-      <div class="zoom-hint">Купівля / Продаж, грн</div>`;
-  } else if (kind === 'fuel') {
-    const fd = window.__fuelData;
-    if (!fd || !Array.isArray(fd.fuels) || !fd.fuels.length) return;
-    const rows = fd.fuels.map(f => {
-      if (!f) return '';
-      const color = /^#[0-9a-f]{3,8}$/i.test(String(f.color || '')) ? f.color : '#00ff9c';
-      const name = escapeHTML(String(f.name || ''));
-      const price = escapeHTML(f.price != null ? String(f.price).replace(',', '.') : '—');
-      return `<div class="zoom-fuel-row"><span class="zoom-fuel-name" style="color:${color};">${name}</span><span class="zoom-fuel-price">${price} <span class="zoom-fuel-unit">грн/л</span></span></div>`;
-    }).join('');
-    const upd = fd.updated ? `<div class="zoom-hint">станом на ${escapeHTML(String(fd.updated))}</div>` : '';
-    html = `<div class="zoom-title">⛽ Пальне «Укрнафта»</div>${rows}${upd}`;
-  } else { return; }
-  host.innerHTML = html;
-  modal.classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-
 function closeAllShopDropdowns() { document.querySelectorAll('.shop-details-dropdown.open').forEach(el => { el.classList.remove('open'); if (el.parentElement) el.parentElement.classList.remove('tile-active'); }); document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; }); }
 
 function closeAllJobsDrawers() {
@@ -770,14 +740,16 @@ async function loadFuelData() {
     const data = jsyaml.load(await res.text()) || {};
     const fuels = Array.isArray(data.fuels) ? data.fuels : [];
     if (data.show === false || fuels.length === 0) { hideFuel(); return; }
-    window.__fuelData = { fuels: fuels, updated: data.updated || '' };
 
     const items = fuels.map(f => {
       if (!f) return '';
       const color = /^#[0-9a-f]{3,8}$/i.test(String(f.color || '')) ? f.color : '#00ff9c';
       const name = escapeHTML(String(f.name || ''));
-      // Ціна повним розміром (копійки нормально видно)
-      const priceHtml = escapeHTML(f.price != null ? String(f.price).replace(',', '.') : '—');
+      // Ціну ділимо на гривні та копійки (копійки — маленьким верхнім індексом)
+      const raw = f.price != null ? String(f.price) : '—';
+      let priceHtml;
+      const pm = raw.match(/^(\d+)[.,](\d{1,2})$/);
+      if (pm) priceHtml = `${pm[1]}<sup>${pm[2]}</sup>`; else priceHtml = escapeHTML(raw);
       // Назва пального — у кольорі, ціна — біла
       return `<div class="fuel-item"><span class="fuel-name" style="color:${color};">${name}</span><span class="fuel-price">${priceHtml}</span></div>`;
     }).join('');
