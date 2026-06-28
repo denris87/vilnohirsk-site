@@ -749,7 +749,9 @@ async function loadFuelData() {
       const raw = f.price != null ? String(f.price) : '—';
       let priceHtml;
       const pm = raw.match(/^(\d+)[.,](\d{1,2})$/);
-      if (pm) priceHtml = `${pm[1]}<sup>${pm[2]}</sup>`; else priceHtml = escapeHTML(raw);
+      // Прихована дзеркальна копія копійок зліва центрує ціле число рівно під назвою
+      // (копійки лишаються у потоці й не виходять за межі клітинки на вузьких екранах)
+      if (pm) priceHtml = `<sup class="fuel-kop-ghost">${pm[2]}</sup>${pm[1]}<sup>${pm[2]}</sup>`; else priceHtml = escapeHTML(raw);
       // Назва пального — у кольорі, ціна — біла
       return `<div class="fuel-item"><span class="fuel-name" style="color:${color};">${name}</span><span class="fuel-price">${priceHtml}</span></div>`;
     }).join('');
