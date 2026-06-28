@@ -787,7 +787,7 @@ async function loadDelaysData() {
       // Затримок немає — показуємо спокійний зелений статус замість порожнечі
       host.className = 'trains-status-ok';
       host.innerHTML = `<span class="ok-ico">🚆</span><span class="ok-txt"><span class="ok-title">Усі електрички — за розкладом</span><span class="ok-sub">Затримок зараз немає, гарної дороги!</span></span>`;
-      host.style.display = 'block';
+      host.style.display = 'flex'; // .trains-status-ok — flex; block тут ламав вирівнювання іконки
       return;
     }
 
