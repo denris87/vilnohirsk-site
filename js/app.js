@@ -1292,10 +1292,8 @@ async function loadTrainsData(){
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div><div id="trains-content">`;
       let changedTrains = [];
 
-      // ЛОГІКА (як у поїздів 41/42):
-      //  • номер містить "new"  → ЗЕЛЕНА картка "НОВИЙ з 28 червня 2026" ("new" з номера прибираємо).
-      //  • така сама електричка з тим самим номером без "new" → ЧЕРВОНА "КУРСУЄ до 27 червня 2026".
-      const NEW_FROM = 'з 28 червня 2026';
+      // Зелену позначку "НОВИЙ з 28 червня 2026" прибрано — новий розклад уже діє.
+      // Лишилась тільки ЧЕРВОНА "КУРСУЄ до 27 червня 2026" для старих парних рейсів.
       const OLD_UNTIL = 'до 27 червня 2026';
       const hasNewFlag = (num) => /new/i.test(String(num || ''));
       const cleanNum = (num) => String(num || '').replace(/new/ig, '').replace(/[\s\-_]+$/,'').trim();
@@ -1333,10 +1331,7 @@ async function loadTrainsData(){
         const isEnding = !isNew && newNumbers.has(number); // стара версія, що скоро скасується
 
         let badgeHtml = '', rowClass = '', numClass = hc ? ' has-changes' : '';
-        if (isNew) {
-          badgeHtml = `<div class="train-new-tag">🆕 НОВИЙ <span class="train-new-date">${NEW_FROM}</span></div>`;
-          rowClass = ' train-new'; numClass = '';
-        } else if (isEnding) {
+        if (isEnding) {
           badgeHtml = `<div class="train-end-tag">⛔ КУРСУЄ <span class="train-end-date">${OLD_UNTIL}</span></div>`;
           rowClass = ' train-ending'; numClass = ' has-changes';
         }
@@ -1399,17 +1394,14 @@ async function loadLongTrainsData() {
       const sortedTrains = Array.isArray(d.trains) ? d.trains.filter(Boolean).slice().sort((a, b) => toMin(a.time) - toMin(b.time)) : [];
       sortedTrains.forEach((x,i) => {
         if(!x) return; const id = "lt-" + i; const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : []; const hasChanges = x.changes && Array.isArray(x.changes) && x.changes.length > 0;
-        // Повне оновлення розкладу: всі поїзди — новий розклад з 28 червня 2026
-        const isNew = true;
         let infoHtml = "";
         if (x.periodicityText) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність:</b><br><span style="color:inherit; font-weight:500;">${escapeHTML(x.periodicityText)}</span></div>`;
         if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500;">${x.changes.map(c => `<li>${escapeHTML(c)}</li>`).join('')}</ul></div>`;
-        const newBadge = `<div class="train-new-tag">🆕 НОВИЙ розклад <span class="train-new-date">з 28 червня 2026</span></div>`;
         // Поїзд №79 прямує через Київ — додаємо позначку до маршруту
         const trainNum79 = parseInt(String(x.number || '').replace(/\D/g, ''), 10);
         const routeText = trainNum79 === 79 ? `${escapeHTML(x.route)} <span style="font-size:0.85em; color:rgba(255,255,255,0.6); font-weight:600;">(через Київ)</span>` : escapeHTML(x.route);
-        const routeCell = `<div class="route-cell"><div class="route-text">${routeText}</div>${newBadge}</div>`;
-        h += `<div class="train train-new" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
+        const routeCell = `<div class="route-cell"><div class="route-text">${routeText}</div></div>`;
+        h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
       });
       document.getElementById("long-trains-list").innerHTML = h;
     }
