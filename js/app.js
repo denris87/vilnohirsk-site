@@ -761,6 +761,42 @@ async function loadFuelData() {
   } catch (e) { hideFuel(); }
 }
 
+// Затримки електричок — ручні дані з data/delays.yaml
+// (яскравий банер угорі вкладки «Електрички»). Незалежний від API розкладу.
+let delaysYamlTries = 0;
+async function loadDelaysData() {
+  const host = document.getElementById('trains-delays-banner');
+  if (!host) return;
+  const hide = () => { host.style.display = 'none'; host.innerHTML = ''; };
+  if (typeof jsyaml === 'undefined') { // YAML-парсер ще не завантажився
+    if (delaysYamlTries++ < 40) { setTimeout(loadDelaysData, 250); }
+    return;
+  }
+  try {
+    const res = await fetch('./data/delays.yaml?v=' + Date.now());
+    if (!res.ok) { hide(); return; }
+    const data = jsyaml.load(await res.text()) || {};
+    const list = Array.isArray(data.delays) ? data.delays : [];
+    const parseMin = (v) => parseInt(String(v == null ? '' : v).replace(/\D/g, ''), 10) || 0;
+    // Лишаємо тільки валідні затримки: увімкнена (show !== false), є номер і додатні хвилини.
+    // show: false у рядку ховає саме цю затримку, не видаляючи її з файлу.
+    const delays = list.filter(d => d && d.show !== false && d.number != null && String(d.number).trim() !== '' && parseMin(d.delay) > 0);
+    if (data.show === false || delays.length === 0) { hide(); return; }
+
+    const updated = data.updated ? `<span class="trains-delays-upd">оновлено ${escapeHTML(String(data.updated))}</span>` : '';
+    const rows = delays.map(d => {
+      const min = parseMin(d.delay);
+      const route = d.route ? `<div class="delay-route">${escapeHTML(String(d.route))}</div>` : '';
+      const station = d.station ? `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує зі ст.</span> <b>${escapeHTML(String(d.station))}</b></div>` : '';
+      const note = (d.note && String(d.note).trim()) ? `<div class="delay-note">⚠️ ${escapeHTML(String(d.note))}</div>` : '';
+      return `<div class="delay-row"><div class="delay-num">№${escapeHTML(String(d.number))}</div><div class="delay-body">${route}${station}${note}</div><div class="delay-min"><b>+${min}</b><span>хв</span></div></div>`;
+    }).join('');
+
+    host.innerHTML = `<div class="trains-delays-head"><span class="trains-delays-title"><span class="delay-live-dot"></span>⏱️ Затримки електричок</span>${updated}</div>${rows}`;
+    host.style.display = 'block';
+  } catch (e) { hide(); }
+}
+
 async function loadExchangeRates() {
   try {
     const pb = await fetchCachedJson('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=5', 'pb_rates', 30);
@@ -2195,6 +2231,7 @@ function setupScrollHints() {
 function refreshGroupA() {
     if (!isPageVisible) return;
     loadTrainsData();
+    loadDelaysData();
     loadAlerts();
     loadPromosData();
     loadExchangeRates();
@@ -2811,7 +2848,7 @@ function showIOSInstructions() {
 
 const initApp = () => {
   updateDateTime(); setInterval(updateDateTime, 1000); 
-  loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData();
+  loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData(); loadDelaysData();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { 
       loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); /* loadPhonebookData(); — тимчасово відключено (техобслуговування) */ loadGalleryData(); loadVolunteersData(); loadPhoenixData();

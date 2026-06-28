@@ -88,7 +88,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260628a">
+<link rel="stylesheet" href="./css/styles.css?v=20260628c">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -357,6 +357,8 @@ document.addEventListener('touchend', function(e){
           <div id="city-map" class="city-map"></div>
         </div>
         <div id="trains" class="content-section">
+            <!-- Банер затримок електричок (ручні дані з data/delays.yaml) -->
+            <div id="trains-delays-banner" class="trains-delays-banner" style="display:none;"></div>
             <!-- Баннер изменений и отмен в розкладі електричок -->
             <div id="trains-changes-banner" style="display: none; margin-bottom: 12px; background: linear-gradient(135deg, rgba(255, 159, 67, 0.15), rgba(255, 51, 102, 0.15)); border: 1px solid rgba(255, 159, 67, 0.4); border-radius: 12px; padding: 10px; text-align: center; box-shadow: 0 4px 15px rgba(255, 51, 102, 0.15);">
                 <div style="font-size: 12px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; gap: 6px;">
@@ -536,6 +538,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260628a" defer></script>
+<script src="./js/app.js?v=20260628c" defer></script>
 </body>
 </html>
