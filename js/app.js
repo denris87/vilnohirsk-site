@@ -776,13 +776,22 @@ async function loadDelaysData() {
     const res = await fetch('./data/delays.yaml?v=' + Date.now());
     if (!res.ok) { hide(); return; }
     const data = jsyaml.load(await res.text()) || {};
+    if (data.show === false) { hide(); return; } // весь блок затримок вимкнено вручну
     const list = Array.isArray(data.delays) ? data.delays : [];
     const parseMin = (v) => parseInt(String(v == null ? '' : v).replace(/\D/g, ''), 10) || 0;
     // Лишаємо тільки валідні затримки: увімкнена (show !== false), є номер і додатні хвилини.
     // show: false у рядку ховає саме цю затримку, не видаляючи її з файлу.
     const delays = list.filter(d => d && d.show !== false && d.number != null && String(d.number).trim() !== '' && parseMin(d.delay) > 0);
-    if (data.show === false || delays.length === 0) { hide(); return; }
 
+    if (delays.length === 0) {
+      // Затримок немає — показуємо спокійний зелений статус замість порожнечі
+      host.className = 'trains-status-ok';
+      host.innerHTML = `<span class="ok-ico">✅</span><span class="ok-txt"><span class="ok-title">Затримок на даний момент немає</span><span class="ok-sub">Електрички йдуть за розкладом</span></span>`;
+      host.style.display = 'block';
+      return;
+    }
+
+    host.className = 'trains-delays-banner';
     const updated = data.updated ? `<span class="trains-delays-upd">оновлено ${escapeHTML(String(data.updated))}</span>` : '';
     const rows = delays.map(d => {
       const min = parseMin(d.delay);
@@ -1385,15 +1394,19 @@ async function loadTrainsData(){
       // Обновляем баннер изменений без перезаписи всей разметки (фикс дубля)
       const banner = document.getElementById("trains-changes-banner");
       const list = document.getElementById("trains-changes-list");
+      const emptyBox = document.getElementById("trains-changes-empty");
       if (banner && list) {
           if (changedTrains.length > 0) {
               banner.style.display = 'block';
+              if (emptyBox) emptyBox.style.display = 'none';
               list.innerHTML = changedTrains.map(num =>
                 `<span class="train-change-tag">${escapeHTML(num)}</span>`
               ).join('');
           } else {
               banner.style.display = 'none';
               list.innerHTML = '';
+              // Змін немає — показуємо спокійний зелений статус
+              if (emptyBox) emptyBox.style.display = 'flex';
           }
       }
 

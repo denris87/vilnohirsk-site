@@ -447,3 +447,10 @@ a,
 .delay-min b{font-size:16px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;}
 .delay-min span{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;margin-top:1px;}
 @media (prefers-reduced-motion: reduce){.delay-live-dot{animation:none;}}
+
+/* === СПОКІЙНИЙ СТАТУС «все добре»: немає змін / немає затримок === */
+.trains-status-ok{display:flex;align-items:center;gap:11px;margin-bottom:12px;background:linear-gradient(135deg,rgba(0,255,156,0.10),rgba(56,189,248,0.07));border:1px solid rgba(0,255,156,0.30);border-radius:14px;padding:11px 14px;box-shadow:0 4px 14px rgba(0,255,156,0.10),inset 0 1px 1px rgba(255,255,255,0.05);}
+.trains-status-ok .ok-ico{flex:0 0 auto;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;background:rgba(0,255,156,0.14);border:1px solid rgba(0,255,156,0.40);box-shadow:0 0 10px rgba(0,255,156,0.18);}
+.trains-status-ok .ok-txt{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:left;}
+.trains-status-ok .ok-title{font-size:12.5px;font-weight:800;color:#fff;line-height:1.25;}
+.trains-status-ok .ok-sub{font-size:10px;font-weight:600;color:rgba(255,255,255,0.55);line-height:1.2;}
