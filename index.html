@@ -88,7 +88,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260628c">
+<link rel="stylesheet" href="./css/styles.css?v=20260628f">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -368,6 +368,11 @@ document.addEventListener('touchend', function(e){
                 <div id="trains-changes-list" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-bottom: 8px;"></div>
                 <div style="font-size: 9px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase;">👇 Натисніть на рейс нижче для деталей</div>
             </div>
+            <!-- Статус «змін у розкладі немає» (показується, коли немає змін) -->
+            <div id="trains-changes-empty" class="trains-status-ok" style="display:none;">
+              <span class="ok-ico">📅</span>
+              <span class="ok-txt"><span class="ok-title">Розклад актуальний</span><span class="ok-sub">Змін наразі немає — усе за планом</span></span>
+            </div>
             <div id="list" class="empty-msg">Завантаження...</div>
         </div>
         <div id="long-trains" class="content-section"><div id="long-trains-list" class="empty-msg">Завантаження...</div></div>
@@ -538,6 +543,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260628c" defer></script>
+<script src="./js/app.js?v=20260628f" defer></script>
 </body>
 </html>
