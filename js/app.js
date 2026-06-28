@@ -786,7 +786,7 @@ async function loadDelaysData() {
     if (delays.length === 0) {
       // Затримок немає — показуємо спокійний зелений статус замість порожнечі
       host.className = 'trains-status-ok';
-      host.innerHTML = `<span class="ok-ico">✅</span><span class="ok-txt"><span class="ok-title">Усі електрички — за розкладом</span><span class="ok-sub">Затримок зараз немає, гарної дороги!</span></span>`;
+      host.innerHTML = `<span class="ok-ico">🚆</span><span class="ok-txt"><span class="ok-title">Усі електрички — за розкладом</span><span class="ok-sub">Затримок зараз немає, гарної дороги!</span></span>`;
       host.style.display = 'block';
       return;
     }
