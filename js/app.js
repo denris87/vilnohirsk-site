@@ -778,8 +778,9 @@ async function loadDelaysData() {
     const data = jsyaml.load(await res.text()) || {};
     const list = Array.isArray(data.delays) ? data.delays : [];
     const parseMin = (v) => parseInt(String(v == null ? '' : v).replace(/\D/g, ''), 10) || 0;
-    // Лишаємо тільки валідні затримки: є номер і додатна кількість хвилин
-    const delays = list.filter(d => d && d.number != null && String(d.number).trim() !== '' && parseMin(d.delay) > 0);
+    // Лишаємо тільки валідні затримки: увімкнена (show !== false), є номер і додатні хвилини.
+    // show: false у рядку ховає саме цю затримку, не видаляючи її з файлу.
+    const delays = list.filter(d => d && d.show !== false && d.number != null && String(d.number).trim() !== '' && parseMin(d.delay) > 0);
     if (data.show === false || delays.length === 0) { hide(); return; }
 
     const updated = data.updated ? `<span class="trains-delays-upd">оновлено ${escapeHTML(String(data.updated))}</span>` : '';
