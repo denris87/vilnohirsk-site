@@ -787,7 +787,7 @@ async function loadDelaysData() {
     const rows = delays.map(d => {
       const min = parseMin(d.delay);
       const route = d.route ? `<div class="delay-route">${escapeHTML(String(d.route))}</div>` : '';
-      const station = d.station ? `<div class="delay-station">📍 ${escapeHTML(String(d.station))}</div>` : '';
+      const station = d.station ? `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує зі ст.</span> <b>${escapeHTML(String(d.station))}</b></div>` : '';
       const note = (d.note && String(d.note).trim()) ? `<div class="delay-note">⚠️ ${escapeHTML(String(d.note))}</div>` : '';
       return `<div class="delay-row"><div class="delay-num">№${escapeHTML(String(d.number))}</div><div class="delay-body">${route}${station}${note}</div><div class="delay-min"><b>+${min}</b><span>хв</span></div></div>`;
     }).join('');
