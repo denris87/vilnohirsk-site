@@ -88,7 +88,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260628n">
+<link rel="stylesheet" href="./css/styles.css?v=20260629a">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -416,9 +416,10 @@ document.addEventListener('touchend', function(e){
       <div class="widget liquid-glass" style="padding: 12px 12px; justify-content: space-between; display: flex; flex-direction: column;">
         <div class="weather-box" id="weather-container" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 72px;"></div>
 
-        <div style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 6px auto;"></div>
+        <div id="svitlo-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 6px auto; display:none;"></div>
 
-        <div class="radio-container" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 0 4px;">
+        <!-- Радіо тимчасово сховане (замінене блоком графіка відключень). Щоб повернути — display:none → flex і прибрати svitlo-блок. -->
+        <div class="radio-container" style="display: none; align-items: center; gap: 10px; width: 100%; padding: 0 4px;">
           <button id="radio-btn" onclick="toggleRadio()" style="width: 34px; height: 34px; border-radius: 50%; border: none; background: #88dec6; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); flex-shrink: 0; padding: 0; outline: none; transition: transform 0.2s;">
             <span id="radio-icon" style="display: flex; align-items: center; justify-content: center; transform: translateX(1px);"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg></span>
           </button>
@@ -431,6 +432,9 @@ document.addEventListener('touchend', function(e){
           </div>
           <audio id="radio-audio" preload="none"></audio>
         </div>
+
+        <!-- Графік відключень світла (дані з data/svitlo.yaml) -->
+        <div id="svitlo-widget" class="svitlo-widget" style="display:none;"></div>
 
         <div id="fuel-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto; display:none;"></div>
         <div id="fuel-widget" class="fuel-widget" style="display:none;"></div>
@@ -543,6 +547,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260628n" defer></script>
+<script src="./js/app.js?v=20260629a" defer></script>
 </body>
 </html>
