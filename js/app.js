@@ -855,7 +855,8 @@ async function loadSvitloData() {
       return `<div class="svitlo-row"><span class="svitlo-prov" style="color:${color};border:1px solid ${color}80;background:${color}26;">${escapeHTML(String(p.name))}</span><span class="svitlo-chips">${chips}</span></div>`;
     }).join('');
 
-    host.innerHTML = `<div class="svitlo-head"><span class="svitlo-title">💡 Відключення світла</span><span class="svitlo-hint">🔍 Графік</span></div>${rows}<div class="svitlo-legend"><i><span class="svitlo-dot" style="background:#ff4d4d;"></span> є відключення</i><i><span class="svitlo-dot" style="background:#00ff9c;"></span> без відключень</i></div>`;
+    const dateLabel = currentSvitloData.updated ? ` <span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
+    host.innerHTML = `<div class="svitlo-head"><span class="svitlo-title">💡 Відключення світла${dateLabel}</span><span class="svitlo-hint">🔍 Графік</span></div>${rows}<div class="svitlo-legend"><i><span class="svitlo-dot" style="background:#ff4d4d;"></span> є відключення</i><i><span class="svitlo-dot" style="background:#00ff9c;"></span> без відключень</i></div>`;
     host.style.display = 'block';
     host.style.cursor = 'pointer';
     host.onclick = openSvitloModal;
