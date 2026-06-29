@@ -88,7 +88,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260629a">
+<link rel="stylesheet" href="./css/styles.css?v=20260629b">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -394,29 +394,29 @@ document.addEventListener('touchend', function(e){
     </div>
 
     <div class="top-row">
-      <div class="widget liquid-glass" style="justify-content: center;">
-        <div class="datetime">
-          <div id="date" class="dt-date"></div>
+      <div class="widget liquid-glass combined-card" style="width:100%; flex:1; flex-direction:column; align-items:stretch; justify-content:flex-start; padding:16px;">
+        <div class="cc-top">
+          <div class="cc-col">
+            <div class="datetime" style="gap:8px;">
+              <div id="date" class="dt-date"></div>
           <div id="time" class="dt-time"><span id="time-hh">00</span><span class="dt-colon">:</span><span id="time-mm">00</span><span class="dt-secs"><span id="time-ss">00</span></span></div>
           <div class="weekdays"><div class="day">Пн</div><div class="day">Вт</div><div class="day">Ср</div><div class="day">Чт</div><div class="day">Пт</div><div class="day">Сб</div><div class="day">Нд</div></div>
-          <div style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto;"></div>
-          <div id="exchange-rates" style="display:flex; flex-direction:column; width:100%; box-sizing:border-box; gap:6px; font-size:clamp(9px, 3vw, 12px); font-weight:700; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.2); padding:8px 6px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);">
-            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-              <span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇺🇸</span> USD</span>
-              <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="usd-buy" style="color:var(--time-green);">--</span> <span style="color:rgba(255,255,255,0.5); margin:0 2px;">/</span> <span id="usd-sell" style="color:var(--highlight-color);">--</span></span>
-            </div>
-            <div style="width:100%; height:1px; background:rgba(255,255,255,0.1);"></div>
-            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-              <span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇪🇺</span> EUR</span>
-              <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="eur-buy" style="color:var(--time-green);">--</span> <span style="color:rgba(255,255,255,0.5); margin:0 2px;">/</span> <span id="eur-sell" style="color:var(--highlight-color);">--</span></span>
             </div>
           </div>
+          <div class="cc-col">
+            <div class="weather-box" id="weather-container" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 72px; width: 100%;"></div>
+          </div>
         </div>
-      </div>
-      <div class="widget liquid-glass" style="padding: 12px 12px; justify-content: space-between; display: flex; flex-direction: column;">
-        <div class="weather-box" id="weather-container" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 72px;"></div>
 
-        <div id="svitlo-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 6px auto; display:none;"></div>
+        <div class="cc-div"></div>
+
+        <!-- Курси валют (USD / EUR) -->
+        <div id="exchange-rates" style="display:flex; gap:10px; width:100%; box-sizing:border-box; font-size:clamp(10px,3vw,13px); font-weight:700; color:rgba(255,255,255,0.85);">
+          <div style="flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:6px; background:rgba(0,0,0,0.2); padding:9px 11px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);"><span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇺🇸</span> USD</span><span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="usd-buy" style="color:var(--time-green);">--</span> <span style="color:rgba(255,255,255,0.5); margin:0 2px;">/</span> <span id="usd-sell" style="color:var(--highlight-color);">--</span></span></div>
+          <div style="flex:1; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:6px; background:rgba(0,0,0,0.2); padding:9px 11px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);"><span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇪🇺</span> EUR</span><span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="eur-buy" style="color:var(--time-green);">--</span> <span style="color:rgba(255,255,255,0.5); margin:0 2px;">/</span> <span id="eur-sell" style="color:var(--highlight-color);">--</span></span></div>
+        </div>
+
+        <div id="svitlo-divider" class="cc-div" style="display:none;"></div>
 
         <!-- Радіо тимчасово сховане (замінене блоком графіка відключень). Щоб повернути — display:none → flex і прибрати svitlo-блок. -->
         <div class="radio-container" style="display: none; align-items: center; gap: 10px; width: 100%; padding: 0 4px;">
@@ -436,7 +436,7 @@ document.addEventListener('touchend', function(e){
         <!-- Графік відключень світла (дані з data/svitlo.yaml) -->
         <div id="svitlo-widget" class="svitlo-widget" style="display:none;"></div>
 
-        <div id="fuel-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto; display:none;"></div>
+        <div id="fuel-divider" class="cc-div" style="display:none;"></div>
         <div id="fuel-widget" class="fuel-widget" style="display:none;"></div>
       </div>
     </div>
@@ -547,6 +547,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260629a" defer></script>
+<script src="./js/app.js?v=20260629b" defer></script>
 </body>
 </html>
