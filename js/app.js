@@ -822,6 +822,95 @@ function closeFuelModal() {
   }
 }
 
+// === ГРАФІК ВІДКЛЮЧЕНЬ СВІТЛА — дані з data/svitlo.yaml (показується замість радіо) ===
+let svitloYamlTries = 0;
+let currentSvitloData = null;
+function svitloColor(p) { return /^#[0-9a-f]{3,8}$/i.test(String((p && p.color) || '')) ? p.color : '#ffcc00'; }
+
+async function loadSvitloData() {
+  const host = document.getElementById('svitlo-widget');
+  if (!host) return;
+  const divider = document.getElementById('svitlo-divider');
+  const hide = () => { host.style.display = 'none'; if (divider) divider.style.display = 'none'; };
+  if (typeof jsyaml === 'undefined') { if (svitloYamlTries++ < 40) setTimeout(loadSvitloData, 250); return; }
+  try {
+    const res = await fetch('./data/svitlo.yaml?v=' + Date.now());
+    if (!res.ok) { hide(); return; }
+    const data = jsyaml.load(await res.text()) || {};
+    if (data.show === false) { hide(); return; }
+    const providers = (Array.isArray(data.providers) ? data.providers : []).filter(p => p && p.name != null);
+    if (!providers.length) { hide(); return; }
+    currentSvitloData = { providers: providers, updated: data.updated || '' };
+
+    // Згорнутий вид: по кожному постачальнику — черги; ⚡ червона = є відключення, зелена = без
+    const rows = providers.map(p => {
+      const color = svitloColor(p);
+      const queues = Array.isArray(p.queues) ? p.queues : [];
+      const chips = queues.map(q => {
+        if (!q) return '';
+        const has = Array.isArray(q.slots) && q.slots.filter(Boolean).length > 0;
+        const label = escapeHTML(String(q.queue != null ? q.queue : ''));
+        return has ? `<span class="svitlo-chip has">⚡ ${label}</span>` : `<span class="svitlo-chip no">${label}</span>`;
+      }).join('');
+      return `<div class="svitlo-row"><span class="svitlo-prov" style="color:${color};border:1px solid ${color}80;background:${color}26;">${escapeHTML(String(p.name))}</span><span class="svitlo-chips">${chips}</span></div>`;
+    }).join('');
+
+    host.innerHTML = `<div class="svitlo-head"><span class="svitlo-title">💡 Відключення світла</span><span class="svitlo-hint">🔍 Графік</span></div>${rows}<div class="svitlo-legend"><i><span class="svitlo-dot" style="background:#ff4d4d;"></span> є відключення</i><i><span class="svitlo-dot" style="background:#00ff9c;"></span> без відключень</i></div>`;
+    host.style.display = 'block';
+    host.style.cursor = 'pointer';
+    host.onclick = openSvitloModal;
+    host.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSvitloModal(); } };
+    host.setAttribute('role', 'button');
+    host.setAttribute('tabindex', '0');
+    host.setAttribute('aria-label', 'Графік відключень світла — натисніть, щоб побачити час');
+    if (divider) divider.style.display = 'block';
+  } catch (e) { hide(); }
+}
+
+function openSvitloModal() {
+  if (!currentSvitloData || !Array.isArray(currentSvitloData.providers)) return;
+  const modalId = 'svitlo-modal';
+  const old = document.getElementById(modalId); if (old) old.remove();
+
+  const sections = currentSvitloData.providers.map(p => {
+    const color = svitloColor(p);
+    const queues = Array.isArray(p.queues) ? p.queues : [];
+    const qrows = queues.map(q => {
+      if (!q) return '';
+      const slots = (Array.isArray(q.slots) ? q.slots : []).filter(Boolean);
+      const times = slots.length
+        ? slots.map(s => `<span class="svitlo-ot">${escapeHTML(String(s)).replace(/-/g, '–')}</span>`).join('')
+        : `<span class="svitlo-ot-none">без відключень</span>`;
+      return `<div class="svitlo-oq"><span class="svitlo-oq-label">${escapeHTML(String(q.queue != null ? q.queue : ''))} черга</span><span class="svitlo-oq-times">${times}</span></div>`;
+    }).join('');
+    return `<div class="svitlo-op"><span class="svitlo-op-name" style="color:${color};border:1px solid ${color}8c;background:${color}29;">${escapeHTML(String(p.name))}</span>${qrows}</div>`;
+  }).join('');
+
+  const upd = currentSvitloData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:16px;">станом на ${escapeHTML(String(currentSvitloData.updated))}</div>` : '';
+
+  const modal = document.createElement('div');
+  modal.id = modalId;
+  modal.className = 'custom-modal-overlay active';
+  modal.onclick = (e) => { if (e.target.id === modalId) closeSvitloModal(); };
+  modal.innerHTML = `
+    <div class="custom-modal-box" onclick="event.stopPropagation()" style="max-width:430px;">
+      <div class="close-modal-btn" onclick="closeSvitloModal()" style="width:42px;height:42px;font-size:28px;">&times;</div>
+      <h3 class="form-title" style="color:#ffcc00;margin-bottom:4px;font-size:19px;padding-right:30px;">💡 Графік відключень</h3>
+      ${upd}
+      <div>${sections}</div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeSvitloModal() {
+  const m = document.getElementById('svitlo-modal');
+  if (m) m.remove();
+  if (!document.querySelector('.custom-modal-overlay.active') && !document.querySelector('.image-modal.active')) {
+    document.body.style.overflow = '';
+  }
+}
+
 // Затримки електричок — ручні дані з data/delays.yaml
 // (яскравий банер угорі вкладки «Електрички»). Незалежний від API розкладу.
 let delaysYamlTries = 0;
@@ -2306,6 +2395,7 @@ function refreshGroupA() {
     if (!isPageVisible) return;
     loadTrainsData();
     loadDelaysData();
+    loadSvitloData();
     loadAlerts();
     loadPromosData();
     loadExchangeRates();
@@ -2922,7 +3012,7 @@ function showIOSInstructions() {
 
 const initApp = () => {
   updateDateTime(); setInterval(updateDateTime, 1000); 
-  loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData(); loadDelaysData();
+  loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData(); loadDelaysData(); loadSvitloData();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { 
       loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); /* loadPhonebookData(); — тимчасово відключено (техобслуговування) */ loadGalleryData(); loadVolunteersData(); loadPhoenixData();
