@@ -886,7 +886,7 @@ function openSvitloModal() {
     return `<div class="svitlo-op"><span class="svitlo-op-name" style="color:${color};border:1px solid ${color}8c;background:${color}29;">${escapeHTML(String(p.name))}</span>${qrows}</div>`;
   }).join('');
 
-  const upd = currentSvitloData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:16px;">станом на ${escapeHTML(String(currentSvitloData.updated))}</div>` : '';
+  const upd = currentSvitloData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:16px;">на ${escapeHTML(String(currentSvitloData.updated))}</div>` : '';
 
   const modal = document.createElement('div');
   modal.id = modalId;
