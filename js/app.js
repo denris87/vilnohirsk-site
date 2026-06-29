@@ -760,7 +760,7 @@ async function loadFuelData() {
     const updated = data.updated ? `<span class="fuel-updated">${escapeHTML(String(data.updated))}</span>` : '';
     // Зберігаємо дані для збільшеного перегляду (для людей зі слабким зором)
     currentFuelData = { fuels: fuels, updated: data.updated || '' };
-    host.innerHTML = `<div class="fuel-head"><span class="fuel-title">⛽ Укрнафта <span style="font-weight:600;color:rgba(255,255,255,0.5);">грн/л</span></span>${updated}</div><div class="fuel-grid">${items}</div><div class="fuel-tap-hint">🔍 Натисніть, щоб збільшити</div>`;
+    host.innerHTML = `<div class="fuel-head"><span class="fuel-title">⛽ Укрнафта <span style="font-weight:600;color:rgba(255,255,255,0.5);">грн/л</span></span>${updated}</div><div class="fuel-grid">${items}</div><div class="fuel-tap-hint">🔍 Збільшити</div>`;
     host.style.display = 'block';
     host.style.cursor = 'pointer';
     host.onclick = openFuelModal;
