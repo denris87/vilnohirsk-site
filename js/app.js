@@ -724,6 +724,7 @@ async function loadWeather(){
 }
 
 // Ціни на пальне АЗС «Укрнафта» — ручні дані з data/fuel.yaml
+let currentFuelData = null; // збережені дані для збільшеного перегляду
 let fuelYamlTries = 0;
 async function loadFuelData() {
   const host = document.getElementById('fuel-widget');
@@ -757,10 +758,68 @@ async function loadFuelData() {
     }).join('');
 
     const updated = data.updated ? `<span class="fuel-updated">${escapeHTML(String(data.updated))}</span>` : '';
-    host.innerHTML = `<div class="fuel-head"><span class="fuel-title">⛽ Укрнафта <span style="font-weight:600;color:rgba(255,255,255,0.5);">грн/л</span></span>${updated}</div><div class="fuel-grid">${items}</div>`;
+    // Зберігаємо дані для збільшеного перегляду (для людей зі слабким зором)
+    currentFuelData = { fuels: fuels, updated: data.updated || '' };
+    host.innerHTML = `<div class="fuel-head"><span class="fuel-title">⛽ Укрнафта <span style="font-weight:600;color:rgba(255,255,255,0.5);">грн/л</span></span>${updated}</div><div class="fuel-grid">${items}</div><div class="fuel-tap-hint">🔍 Натисніть, щоб збільшити</div>`;
     host.style.display = 'block';
+    host.style.cursor = 'pointer';
+    host.onclick = openFuelModal;
+    host.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFuelModal(); } };
+    host.setAttribute('role', 'button');
+    host.setAttribute('tabindex', '0');
+    host.setAttribute('aria-label', 'Збільшити ціни на пальне для кращої видимості');
     if (divider) divider.style.display = 'block';
   } catch (e) { hideFuel(); }
+}
+
+// === ЗБІЛЬШЕНИЙ ПЕРЕГЛЯД ЦІН НА ПАЛЬНЕ (для людей зі слабким зором) ===
+function buildBigFuelPrice(raw) {
+  const s = raw != null ? String(raw) : '—';
+  const m = s.match(/^(\d+)[.,](\d{1,2})$/);
+  if (m) return `<span style="font-size:38px;font-weight:900;">${escapeHTML(m[1])}</span><span style="font-size:25px;font-weight:800;">,${escapeHTML(m[2])}</span> <span style="font-size:20px;font-weight:700;color:rgba(255,255,255,0.55);">₴</span>`;
+  return `<span style="font-size:34px;font-weight:900;">${escapeHTML(s)}</span>`;
+}
+
+function openFuelModal() {
+  if (!currentFuelData || !Array.isArray(currentFuelData.fuels)) return;
+  const fuels = currentFuelData.fuels.filter(f => f && f.name != null && String(f.name).trim() !== '');
+  if (!fuels.length) return;
+  const modalId = 'fuel-zoom-modal';
+  const old = document.getElementById(modalId);
+  if (old) old.remove();
+
+  const rows = fuels.map(f => {
+    const color = /^#[0-9a-f]{3,8}$/i.test(String(f.color || '')) ? f.color : '#00ff9c';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;border-radius:16px;background:rgba(0,0,0,0.28);border:1px solid ${color}55;margin-bottom:12px;box-shadow:0 4px 12px rgba(0,0,0,0.25);">`
+      + `<span style="font-size:32px;font-weight:900;color:${color};line-height:1;letter-spacing:0.5px;">${escapeHTML(String(f.name))}</span>`
+      + `<span style="color:#fff;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;">${buildBigFuelPrice(f.price)}</span>`
+      + `</div>`;
+  }).join('');
+
+  const upd = currentFuelData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:16px;">Станом на ${escapeHTML(String(currentFuelData.updated))}</div>` : '';
+
+  const modal = document.createElement('div');
+  modal.id = modalId;
+  modal.className = 'custom-modal-overlay active';
+  modal.onclick = (e) => { if (e.target.id === modalId) closeFuelModal(); };
+  modal.innerHTML = `
+    <div class="custom-modal-box" onclick="event.stopPropagation()" style="max-width:430px;">
+      <div class="close-modal-btn" onclick="closeFuelModal()" style="width:42px;height:42px;font-size:28px;">&times;</div>
+      <h3 class="form-title" style="color:#ffcc00;margin-bottom:4px;font-size:19px;padding-right:30px;">⛽ Ціни на пальне</h3>
+      <div style="text-align:center;font-size:14px;color:rgba(255,255,255,0.7);font-weight:700;margin-bottom:16px;">«Укрнафта» · грн/л</div>
+      ${upd}
+      <div>${rows}</div>
+    </div>`;
+  document.body.appendChild(modal);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFuelModal() {
+  const m = document.getElementById('fuel-zoom-modal');
+  if (m) m.remove();
+  if (!document.querySelector('.custom-modal-overlay.active') && !document.querySelector('.image-modal.active')) {
+    document.body.style.overflow = '';
+  }
 }
 
 // Затримки електричок — ручні дані з data/delays.yaml
