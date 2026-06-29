@@ -41,4 +41,4 @@ providers:
     color: "#38bdf8"
     queues:
       - queue: "1.1"
-        slots: ["16:00-19:00"]
+        slots: ["17:00-19:00"]
