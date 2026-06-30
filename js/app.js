@@ -842,21 +842,9 @@ async function loadSvitloData() {
     if (!providers.length) { hide(); return; }
     currentSvitloData = { providers: providers, updated: data.updated || '' };
 
-    // Згорнутий вид: по кожному постачальнику — черги; ⚡ червона = є відключення, зелена = без
-    const rows = providers.map(p => {
-      const color = svitloColor(p);
-      const queues = Array.isArray(p.queues) ? p.queues : [];
-      const chips = queues.map(q => {
-        if (!q) return '';
-        const has = Array.isArray(q.slots) && q.slots.filter(Boolean).length > 0;
-        const label = escapeHTML(String(q.queue != null ? q.queue : ''));
-        return has ? `<span class="svitlo-chip has">⚡ ${label}</span>` : `<span class="svitlo-chip no">${label}</span>`;
-      }).join('');
-      return `<div class="svitlo-row"><span class="svitlo-prov" style="color:${color};border:1px solid ${color}80;background:${color}26;">${escapeHTML(String(p.name))}</span><span class="svitlo-chips">${chips}</span></div>`;
-    }).join('');
-
+    // Згорнутий вид: лише заголовок з датою + лупа. Повний графік — у вікні по тапу.
     const dateLabel = currentSvitloData.updated ? ` <span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
-    host.innerHTML = `<div class="svitlo-head"><span class="svitlo-title">💡 Відключення світла${dateLabel}</span><span class="svitlo-hint">🔍 Графік</span></div>${rows}<div class="svitlo-legend"><i><span class="svitlo-dot" style="background:#ff4d4d;"></span> є відключення</i><i><span class="svitlo-dot" style="background:#00ff9c;"></span> без відключень</i></div>`;
+    host.innerHTML = `<div class="svitlo-head"><span class="svitlo-title">💡 Відключення світла${dateLabel}</span><span class="svitlo-hint" aria-hidden="true">🔍</span></div>`;
     host.style.display = 'block';
     host.style.cursor = 'pointer';
     host.onclick = openSvitloModal;
