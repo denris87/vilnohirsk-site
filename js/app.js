@@ -877,6 +877,11 @@ function openSvitloModal() {
 
   const upd = currentSvitloData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:16px;">на ${escapeHTML(String(currentSvitloData.updated))}</div>` : '';
 
+  // «Дізнатися свою чергу» — посилання на офіційні документи постачальників
+  const docLink = (color, name, desc, tag, url) =>
+    `<a class="svitlo-link" href="${url}" target="_blank" rel="noopener" style="background:${color}1f;border:1px solid ${color}59;"><span class="svitlo-link-txt"><b style="color:${color};">${name}</b> · ${desc}${tag ? ` <span class="svitlo-link-tag" style="color:${color};border-color:${color}80;">${tag}</span>` : ''}</span><span class="svitlo-link-go" style="color:${color};">↗</span></a>`;
+  const queueLinks = `<div class="svitlo-links"><div class="svitlo-links-title">🔎 Дізнатися свою чергу</div><div class="svitlo-links-sub">Перевірте, до якої черги належить ваша адреса</div>${docLink('#ff9f43', 'ЦЕК', 'перелік черг', 'PDF', 'https://cek.dp.ua/images/cherga/Vilnogirsk.pdf')}${docLink('#38bdf8', 'ДТЕК', 'графік відключень', '', 'https://www.dtek-dnem.com.ua/ua/shutdowns')}</div>`;
+
   const modal = document.createElement('div');
   modal.id = modalId;
   modal.className = 'custom-modal-overlay active';
@@ -887,6 +892,7 @@ function openSvitloModal() {
       <h3 class="form-title" style="color:#ffcc00;margin-bottom:4px;font-size:19px;padding-right:30px;">💡 Графік відключень</h3>
       ${upd}
       <div>${sections}</div>
+      ${queueLinks}
     </div>`;
   document.body.appendChild(modal);
   document.body.style.overflow = 'hidden';
