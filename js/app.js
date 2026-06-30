@@ -826,6 +826,15 @@ function closeFuelModal() {
 let svitloYamlTries = 0;
 let currentSvitloData = null;
 function svitloColor(p) { return /^#[0-9a-f]{3,8}$/i.test(String((p && p.color) || '')) ? p.color : '#ffcc00'; }
+// Посилання на офіційний документ постачальника (для кнопки «Знайти свою чергу»).
+// Спершу — поле url з svitlo.yaml, інакше — за назвою (ЦЕК / ДТЕК).
+function svitloDocUrl(p) {
+  if (p && typeof p.url === 'string' && /^https?:\/\//i.test(p.url)) return p.url;
+  const n = String((p && p.name) || '').toUpperCase();
+  if (n.includes('ЦЕК')) return 'https://cek.dp.ua/images/cherga/Vilnogirsk.pdf';
+  if (n.includes('ДТЕК')) return 'https://www.dtek-dnem.com.ua/ua/shutdowns';
+  return '';
+}
 
 async function loadSvitloData() {
   const host = document.getElementById('svitlo-widget');
@@ -872,15 +881,12 @@ function openSvitloModal() {
         : `<span class="svitlo-ot-none">без відключень</span>`;
       return `<div class="svitlo-oq"><span class="svitlo-oq-label">${escapeHTML(String(q.queue != null ? q.queue : ''))} черга</span><span class="svitlo-oq-times">${times}</span></div>`;
     }).join('');
-    return `<div class="svitlo-op"><span class="svitlo-op-name" style="color:${color};border:1px solid ${color}8c;background:${color}29;">${escapeHTML(String(p.name))}</span>${qrows}</div>`;
+    const url = svitloDocUrl(p);
+    const find = url ? `<a class="svitlo-find" href="${escapeHTML(url)}" target="_blank" rel="noopener" style="color:${color};background:${color}1a;border:1px solid ${color}55;">🔎 Знайти свою чергу <span class="svitlo-find-go">↗</span></a>` : '';
+    return `<div class="svitlo-op"><span class="svitlo-op-name" style="color:${color};border:1px solid ${color}8c;background:${color}29;">${escapeHTML(String(p.name))}</span>${qrows}${find}</div>`;
   }).join('');
 
   const upd = currentSvitloData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:16px;">на ${escapeHTML(String(currentSvitloData.updated))}</div>` : '';
-
-  // «Дізнатися свою чергу» — посилання на офіційні документи постачальників
-  const docLink = (color, name, desc, tag, url) =>
-    `<a class="svitlo-link" href="${url}" target="_blank" rel="noopener" style="background:${color}1f;border:1px solid ${color}59;"><span class="svitlo-link-txt"><b style="color:${color};">${name}</b> · ${desc}${tag ? ` <span class="svitlo-link-tag" style="color:${color};border-color:${color}80;">${tag}</span>` : ''}</span><span class="svitlo-link-go" style="color:${color};">↗</span></a>`;
-  const queueLinks = `<div class="svitlo-links"><div class="svitlo-links-title">🔎 Дізнатися свою чергу</div><div class="svitlo-links-sub">Перевірте, до якої черги належить ваша адреса</div>${docLink('#ff9f43', 'ЦЕК', 'перелік черг', 'PDF', 'https://cek.dp.ua/images/cherga/Vilnogirsk.pdf')}${docLink('#38bdf8', 'ДТЕК', 'графік відключень', '', 'https://www.dtek-dnem.com.ua/ua/shutdowns')}</div>`;
 
   const modal = document.createElement('div');
   modal.id = modalId;
@@ -892,7 +898,6 @@ function openSvitloModal() {
       <h3 class="form-title" style="color:#ffcc00;margin-bottom:4px;font-size:19px;padding-right:30px;">💡 Графік відключень</h3>
       ${upd}
       <div>${sections}</div>
-      ${queueLinks}
     </div>`;
   document.body.appendChild(modal);
   document.body.style.overflow = 'hidden';
