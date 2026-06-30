@@ -17,7 +17,7 @@ updated: "30.06.2026"
 
 fuels:
   - name: "95E"
-    price: "73.90"
+    price: "76.90"
     color: "#c8ccd2"
   - name: "95"
     price: "73.90"
