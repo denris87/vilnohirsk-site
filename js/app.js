@@ -849,11 +849,12 @@ async function loadSvitloData() {
     if (data.show === false) { hide(); return; }
     const providers = (Array.isArray(data.providers) ? data.providers : []).filter(p => p && p.name != null);
     if (!providers.length) { hide(); return; }
-    currentSvitloData = { providers: providers, updated: data.updated || '' };
+    currentSvitloData = { providers: providers, updated: data.updated || '', revised: data.revised || '' };
 
-    // Згорнута плашка у стилі цін на пальне: назва в один рядок + дата. Повний графік — у вікні по тапу.
+    // Згорнута плашка: назва + дата (+ «Оновлено о…», якщо графік змінювали протягом дня). Повний графік — у вікні по тапу.
     const dateLine = currentSvitloData.updated ? `<span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
-    host.innerHTML = `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}</div>`;
+    const revLine = currentSvitloData.revised ? `<span class="svitlo-rev">🔄 Оновлено о ${escapeHTML(String(currentSvitloData.revised))}</span>` : '';
+    host.innerHTML = `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}${revLine}</div>`;
     host.style.display = 'block';
     host.style.cursor = 'pointer';
     host.onclick = openSvitloModal;
@@ -886,7 +887,8 @@ function openSvitloModal() {
     return `<div class="svitlo-op"><div class="svitlo-op-head"><span class="svitlo-op-name" style="color:${color};border:1px solid ${color}8c;background:${color}29;">${escapeHTML(String(p.name))}</span>${find}</div>${qrows}</div>`;
   }).join('');
 
-  const upd = currentSvitloData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:16px;">на ${escapeHTML(String(currentSvitloData.updated))}</div>` : '';
+  const upd = currentSvitloData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:${currentSvitloData.revised ? '6px' : '16px'};">на ${escapeHTML(String(currentSvitloData.updated))}</div>` : '';
+  const rev = currentSvitloData.revised ? `<div style="text-align:center;font-size:12.5px;color:#ffcc00;font-weight:700;margin-bottom:16px;">🔄 Оновлено о ${escapeHTML(String(currentSvitloData.revised))}</div>` : '';
 
   const modal = document.createElement('div');
   modal.id = modalId;
@@ -897,6 +899,7 @@ function openSvitloModal() {
       <div class="close-modal-btn" onclick="closeSvitloModal()" style="width:42px;height:42px;font-size:28px;">&times;</div>
       <h3 class="form-title" style="color:#ffcc00;margin-bottom:4px;font-size:19px;padding-right:30px;">💡 Графік відключень</h3>
       ${upd}
+      ${rev}
       <div>${sections}</div>
     </div>`;
   document.body.appendChild(modal);
