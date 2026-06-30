@@ -79,10 +79,10 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 
 /* === ГРАФІК ВІДКЛЮЧЕНЬ СВІТЛА (замість радіо) === */
 .svitlo-widget{width:100%;box-sizing:border-box;}
-.svitlo-head{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
-.svitlo-title{display:flex;flex-wrap:wrap;align-items:center;gap:2px 5px;font-size:11.5px;font-weight:800;color:#fff;line-height:1.25;}
+.svitlo-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.svitlo-title{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 5px;font-size:11.5px;font-weight:800;color:#fff;line-height:1.25;}
 .svitlo-date{font-weight:700;color:rgba(255,255,255,0.5);font-size:0.92em;white-space:nowrap;}
-.svitlo-hint{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;color:#ffcc00;background:rgba(255,204,0,0.12);border:1px solid rgba(255,204,0,0.35);padding:4px 9px;border-radius:9px;white-space:nowrap;}
+.svitlo-hint{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;font-size:16px;color:#ffcc00;background:rgba(255,204,0,0.14);border:1px solid rgba(255,204,0,0.4);border-radius:10px;}
 /* у вузькій колонці: назва постачальника зверху, черги під нею */
 .svitlo-row{display:flex;align-items:center;gap:10px;padding:6px 0;}
 .svitlo-prov{flex:0 0 auto;display:inline-block;font-size:10.5px;font-weight:900;letter-spacing:0.5px;padding:3px 9px;border-radius:8px;text-align:center;min-width:48px;}
