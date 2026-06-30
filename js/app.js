@@ -883,7 +883,7 @@ function openSvitloModal() {
     }).join('');
     const url = svitloDocUrl(p);
     const find = url ? `<a class="svitlo-find" href="${escapeHTML(url)}" target="_blank" rel="noopener" style="color:${color};background:${color}1a;border:1px solid ${color}55;">🔎 Знайти свою чергу <span class="svitlo-find-go">↗</span></a>` : '';
-    return `<div class="svitlo-op"><span class="svitlo-op-name" style="color:${color};border:1px solid ${color}8c;background:${color}29;">${escapeHTML(String(p.name))}</span>${qrows}${find}</div>`;
+    return `<div class="svitlo-op"><div class="svitlo-op-head"><span class="svitlo-op-name" style="color:${color};border:1px solid ${color}8c;background:${color}29;">${escapeHTML(String(p.name))}</span>${find}</div>${qrows}</div>`;
   }).join('');
 
   const upd = currentSvitloData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:16px;">на ${escapeHTML(String(currentSvitloData.updated))}</div>` : '';
