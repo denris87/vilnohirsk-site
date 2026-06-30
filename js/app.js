@@ -842,9 +842,9 @@ async function loadSvitloData() {
     if (!providers.length) { hide(); return; }
     currentSvitloData = { providers: providers, updated: data.updated || '' };
 
-    // Згорнутий вид: лише заголовок з датою + лупа. Повний графік — у вікні по тапу.
-    const dateLabel = currentSvitloData.updated ? ` <span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
-    host.innerHTML = `<div class="svitlo-head"><span class="svitlo-title">💡 Відключення світла${dateLabel}</span><span class="svitlo-hint" aria-hidden="true">🔍</span></div>`;
+    // Згорнута плашка у стилі цін на пальне: назва в один рядок + дата. Повний графік — у вікні по тапу.
+    const dateLine = currentSvitloData.updated ? `<span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
+    host.innerHTML = `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}</div>`;
     host.style.display = 'block';
     host.style.cursor = 'pointer';
     host.onclick = openSvitloModal;
