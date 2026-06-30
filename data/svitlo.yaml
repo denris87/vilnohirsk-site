@@ -24,14 +24,14 @@
 # ───────────────────────────────────────────────────────────────
 
 show: true
-updated: "30.06.2026"
+updated: "01.07.2026"
 
 providers:
   - name: "ЦЕК"
     color: "#ff9f43"
     queues:
       - queue: "2.2"
-        slots: []
+        slots: ["17:00-19:00"]
       - queue: "4.2"
         slots: []
       - queue: "6.2"
@@ -41,4 +41,4 @@ providers:
     color: "#38bdf8"
     queues:
       - queue: "1.1"
-        slots: ["17:00-19:00"]
+        slots: []
