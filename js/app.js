@@ -849,12 +849,16 @@ async function loadSvitloData() {
     if (data.show === false) { hide(); return; }
     const providers = (Array.isArray(data.providers) ? data.providers : []).filter(p => p && p.name != null);
     if (!providers.length) { hide(); return; }
-    currentSvitloData = { providers: providers, updated: data.updated || '', revised: data.revised || '' };
+    // «Чистий» день: у жодній черзі жодного постачальника немає відключень.
+    const noOutages = !providers.some(p => Array.isArray(p.queues) && p.queues.some(q => q && Array.isArray(q.slots) && q.slots.filter(Boolean).length > 0));
+    currentSvitloData = { providers: providers, updated: data.updated || '', revised: data.revised || '', noOutages: noOutages };
 
     // Згорнута плашка: назва + дата (+ «Оновлено о…», якщо графік змінювали протягом дня). Повний графік — у вікні по тапу.
     const dateLine = currentSvitloData.updated ? `<span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
     const revLine = currentSvitloData.revised ? `<span class="svitlo-rev">🔄 Оновлено о ${escapeHTML(String(currentSvitloData.revised))}</span>` : '';
-    host.innerHTML = `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}${revLine}</div>`;
+    host.innerHTML = noOutages
+      ? `<div class="svitlo-box svitlo-box-ok"><span class="svitlo-name">✅ Сьогодні відключень немає</span>${dateLine}${revLine}</div>`
+      : `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}${revLine}</div>`;
     host.style.display = 'block';
     host.style.cursor = 'pointer';
     host.onclick = openSvitloModal;
@@ -889,6 +893,7 @@ function openSvitloModal() {
 
   const upd = currentSvitloData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:${currentSvitloData.revised ? '6px' : '16px'};">на ${escapeHTML(String(currentSvitloData.updated))}</div>` : '';
   const rev = currentSvitloData.revised ? `<div style="text-align:center;font-size:12.5px;color:#ffcc00;font-weight:700;margin-bottom:16px;">🔄 Оновлено о ${escapeHTML(String(currentSvitloData.revised))}</div>` : '';
+  const okBanner = currentSvitloData.noOutages ? `<div class="svitlo-okbanner"><span class="svitlo-okbanner-title">✅ Сьогодні відключень немає</span><span class="svitlo-okbanner-sub">світло має бути цілий день</span></div>` : '';
 
   const modal = document.createElement('div');
   modal.id = modalId;
@@ -900,6 +905,7 @@ function openSvitloModal() {
       <h3 class="form-title" style="color:#ffcc00;margin-bottom:4px;font-size:19px;padding-right:30px;">💡 Графік відключень</h3>
       ${upd}
       ${rev}
+      ${okBanner}
       <div>${sections}</div>
     </div>`;
   document.body.appendChild(modal);
