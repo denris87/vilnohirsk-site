@@ -919,9 +919,10 @@ function openSvitloModal() {
   modal.innerHTML = `
     <div class="custom-modal-box" onclick="event.stopPropagation()" style="max-width:430px;">
       <div class="close-modal-btn" onclick="closeSvitloModal()" style="width:42px;height:42px;font-size:28px;">&times;</div>
-      <h3 class="form-title" style="color:#ffcc00;margin-bottom:4px;font-size:19px;padding-right:30px;">💡 Графік відключень</h3>
+      <h3 class="form-title" style="color:#ffcc00;margin-bottom:4px;font-size:19px;padding-right:40px;">💡 Графік відключень</h3>
       ${upd}
       ${rev}
+      ${(upd || rev) ? '' : '<div style="height:14px;"></div>'}
       ${okBanner}
       <div>${sections}</div>
     </div>`;
