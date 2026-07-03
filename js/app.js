@@ -624,7 +624,7 @@ function switchAppTab(tabId, btn, group) {
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
   if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
   document.querySelectorAll('.main-list-widget, .shopping-drawer, .alert-drawer').forEach(d => d.classList.remove('open'));
-  document.querySelectorAll('.tab-btn, .tab-alert, .htile').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn, .tab-alert').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
   const drawer = document.getElementById(drawers[group]);
   if (drawer) { drawer.classList.remove('drawer-events', 'drawer-communal'); if(tabId === 'alert-events') drawer.classList.add('drawer-events'); if(tabId === 'alert-feed') drawer.classList.add('drawer-communal'); drawer.classList.add('open'); }
@@ -632,45 +632,6 @@ function switchAppTab(tabId, btn, group) {
   if (tabId === 'alert-volunteers') { try { loadVolunteersData({forceRefresh: true}); } catch(e) {} }
   if (tabId === 'map-tab') { try { initCityMap(); } catch(e) {} }
   window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
-}
-
-// === ГОЛОВНА 2.0: плитки-розділи ===
-// Плитка поводиться як вкладка (другий тап закриває), плюс плавно підкручує до відкритої шторки.
-function tileTab(tabId, btn, group) {
-  switchAppTab(tabId, btn, group);
-  if (btn.classList.contains('active')) {
-    const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
-    const d = document.getElementById(drawers[group]);
-    if (d) setTimeout(() => { try { d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }, 150);
-  }
-}
-
-// === БІГУЧИЙ РЯДОК: локальні частини (світло/затримки/курс/пальне) + повідомлення з API ===
-const tickerParts = { svitlo: '', delays: '', rates: '', fuel: '', api: [] };
-function setTickerPart(key, html) { tickerParts[key] = html; renderTicker(); }
-function renderTicker() {
-  const container = document.getElementById('ticker-container');
-  const content = document.getElementById('ticker-content');
-  if (!container || !content) return;
-  const items = [tickerParts.svitlo, tickerParts.delays, tickerParts.rates, tickerParts.fuel]
-    .filter(Boolean)
-    .concat(Array.isArray(tickerParts.api) ? tickerParts.api : []);
-  if (!items.length) { container.style.display = 'none'; return; }
-  content.innerHTML = items.map(m => `<span class="ticker-item">${m}</span>`).join('<span class="ticker-divider">🟢</span>');
-  // Швидкість: що довший текст, то довша анімація (інакше довгий рядок пролітає надто швидко)
-  const len = content.textContent.length;
-  content.style.animationDuration = Math.max(14, Math.round(len * 0.35)) + 's';
-  container.style.display = 'block';
-}
-
-// Бейдж на плитці (наприклад, «затримка» на Електричках чи «без відкл.» на Світлі)
-function setTileBadge(id, text, cls) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  if (!text) { el.style.display = 'none'; return; }
-  el.className = 'hbdg ' + cls;
-  el.textContent = text;
-  el.style.display = 'inline-block';
 }
 
 // === ДРАГ-СВАЙП (ГОРТАННЯ МИШКОЮ НА ПК) ===
@@ -766,7 +727,10 @@ async function loadWeather(){
 let currentFuelData = null; // збережені дані для збільшеного перегляду
 let fuelYamlTries = 0;
 async function loadFuelData() {
-  const hideFuel = () => { setTickerPart('fuel', ''); };
+  const host = document.getElementById('fuel-widget');
+  if (!host) return;
+  const divider = document.getElementById('fuel-divider');
+  const hideFuel = () => { host.style.display = 'none'; if (divider) divider.style.display = 'none'; };
   if (typeof jsyaml === 'undefined') { // YAML-парсер ще не завантажився
     if (fuelYamlTries++ < 40) { setTimeout(loadFuelData, 250); }
     return;
@@ -778,17 +742,33 @@ async function loadFuelData() {
     const fuels = Array.isArray(data.fuels) ? data.fuels : [];
     if (data.show === false || fuels.length === 0) { hideFuel(); return; }
 
+    const items = fuels.map(f => {
+      if (!f) return '';
+      const color = /^#[0-9a-f]{3,8}$/i.test(String(f.color || '')) ? f.color : '#00ff9c';
+      const name = escapeHTML(String(f.name || ''));
+      // Ціну ділимо на гривні та копійки (копійки — маленьким верхнім індексом)
+      const raw = f.price != null ? String(f.price) : '—';
+      let priceHtml;
+      const pm = raw.match(/^(\d+)[.,](\d{1,2})$/);
+      // Прихована дзеркальна копія копійок зліва центрує ціле число рівно під назвою
+      // (копійки лишаються у потоці й не виходять за межі клітинки на вузьких екранах)
+      if (pm) priceHtml = `<sup class="fuel-kop-ghost">${pm[2]}</sup>${pm[1]}<sup>${pm[2]}</sup>`; else priceHtml = escapeHTML(raw);
+      // Назва пального — у кольорі, ціна — біла
+      return `<div class="fuel-item"><span class="fuel-name" style="color:${color};">${name}</span><span class="fuel-price">${priceHtml}</span></div>`;
+    }).join('');
+
+    const updated = data.updated ? `<span class="fuel-updated">${escapeHTML(String(data.updated))}</span>` : '';
     // Зберігаємо дані для збільшеного перегляду (для людей зі слабким зором)
     currentFuelData = { fuels: fuels, updated: data.updated || '' };
-
-    // Рядок для бігучого рядка: тап відкриває збільшений перегляд
-    const parts = fuels.map(f => {
-      if (!f || f.name == null) return '';
-      const color = /^#[0-9a-f]{3,8}$/i.test(String(f.color || '')) ? f.color : '#00ff9c';
-      const raw = f.price != null ? String(f.price) : '—';
-      return `<span style="color:${color};font-weight:800;">${escapeHTML(String(f.name))}</span> ${escapeHTML(raw)}`;
-    }).filter(Boolean).join(' · ');
-    setTickerPart('fuel', `<span onclick="openFuelModal()" style="cursor:pointer;">⛽ Укрнафта: ${parts} <span style="opacity:0.75;">🔍</span></span>`);
+    host.innerHTML = `<div class="fuel-head"><span class="fuel-title">⛽ Укрнафта <span style="font-weight:600;color:rgba(255,255,255,0.5);">грн/л</span></span>${updated}</div><div class="fuel-grid">${items}</div><div class="fuel-tap-hint">🔍 Збільшити</div>`;
+    host.style.display = 'block';
+    host.style.cursor = 'pointer';
+    host.onclick = openFuelModal;
+    host.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFuelModal(); } };
+    host.setAttribute('role', 'button');
+    host.setAttribute('tabindex', '0');
+    host.setAttribute('aria-label', 'Збільшити ціни на пальне для кращої видимості');
+    if (divider) divider.style.display = 'block';
   } catch (e) { hideFuel(); }
 }
 
@@ -874,7 +854,10 @@ function svitloOkTitle(dateStr) {
 }
 
 async function loadSvitloData() {
-  const hide = () => { currentSvitloData = null; setTileBadge('svitlo-tile-badge', ''); setTickerPart('svitlo', ''); };
+  const host = document.getElementById('svitlo-widget');
+  if (!host) return;
+  const divider = document.getElementById('svitlo-divider');
+  const hide = () => { host.style.display = 'none'; if (divider) divider.style.display = 'none'; };
   if (typeof jsyaml === 'undefined') { if (svitloYamlTries++ < 40) setTimeout(loadSvitloData, 250); return; }
   try {
     const res = await fetch('./data/svitlo.yaml?v=' + Date.now());
@@ -887,16 +870,20 @@ async function loadSvitloData() {
     const noOutages = !providers.some(p => Array.isArray(p.queues) && p.queues.some(q => q && Array.isArray(q.slots) && q.slots.filter(Boolean).length > 0));
     currentSvitloData = { providers: providers, updated: data.updated || '', revised: data.revised || '', noOutages: noOutages };
 
-    // Бейдж на плитці «Світло» + рядок у бігучому рядку. Повний графік — у вікні по тапу на плитку.
-    const upd = currentSvitloData.updated ? escapeHTML(String(currentSvitloData.updated)) : '';
-    const rev = currentSvitloData.revised ? ` <span style="color:#ffd351;">(оновлено о ${escapeHTML(String(currentSvitloData.revised))})</span>` : '';
-    if (noOutages) {
-      setTileBadge('svitlo-tile-badge', 'без відкл.', 'grn');
-      setTickerPart('svitlo', `<span style="color:#9affc4;font-weight:800;">${svitloOkTitle(currentSvitloData.updated)}</span>${upd ? ` · на ${upd}` : ''}${rev}`);
-    } else {
-      setTileBadge('svitlo-tile-badge', 'графік', 'yel');
-      setTickerPart('svitlo', `💡 <span style="color:#ffd351;font-weight:800;">Відключення світла${upd ? ' на ' + upd : ''}</span> — деталі на плитці «Світло»${rev}`);
-    }
+    // Згорнута плашка: назва + дата (+ «Оновлено о…», якщо графік змінювали протягом дня). Повний графік — у вікні по тапу.
+    const dateLine = currentSvitloData.updated ? `<span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
+    const revLine = currentSvitloData.revised ? `<span class="svitlo-rev">🔄 Оновлено о ${escapeHTML(String(currentSvitloData.revised))}</span>` : '';
+    host.innerHTML = noOutages
+      ? `<div class="svitlo-box svitlo-box-ok"><span class="svitlo-name">${svitloOkTitle(currentSvitloData.updated)}</span>${dateLine}${revLine}</div>`
+      : `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}${revLine}</div>`;
+    host.style.display = 'block';
+    host.style.cursor = 'pointer';
+    host.onclick = openSvitloModal;
+    host.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openSvitloModal(); } };
+    host.setAttribute('role', 'button');
+    host.setAttribute('tabindex', '0');
+    host.setAttribute('aria-label', 'Графік відключень світла — натисніть, щоб побачити час');
+    if (divider) divider.style.display = 'block';
   } catch (e) { hide(); }
 }
 
@@ -957,7 +944,7 @@ let delaysYamlTries = 0;
 async function loadDelaysData() {
   const host = document.getElementById('trains-delays-banner');
   if (!host) return;
-  const hide = () => { host.style.display = 'none'; host.innerHTML = ''; setTileBadge('trains-tile-badge', ''); setTickerPart('delays', ''); };
+  const hide = () => { host.style.display = 'none'; host.innerHTML = ''; };
   if (typeof jsyaml === 'undefined') { // YAML-парсер ще не завантажився
     if (delaysYamlTries++ < 40) { setTimeout(loadDelaysData, 250); }
     return;
@@ -975,19 +962,11 @@ async function loadDelaysData() {
 
     if (delays.length === 0) {
       // Затримок немає — показуємо спокійний зелений статус замість порожнечі
-      setTileBadge('trains-tile-badge', '');
-      setTickerPart('delays', '');
       host.className = 'trains-status-ok';
       host.innerHTML = `<span class="ok-ico">🚆</span><span class="ok-txt"><span class="ok-title">Усі електрички — за розкладом</span><span class="ok-sub">Затримок зараз немає, гарної дороги!</span></span>`;
       host.style.display = 'flex'; // .trains-status-ok — flex; block тут ламав вирівнювання іконки
       return;
     }
-
-    // Бейдж на плитці «Електрички» + короткий рядок у бігучому рядку
-    setTileBadge('trains-tile-badge', 'затримка', 'red');
-    const first = delays[0];
-    const more = delays.length > 1 ? ` та ще ${delays.length - 1}` : '';
-    setTickerPart('delays', `⏱ <span style="color:#ffb0bc;font-weight:800;">Електричка №${escapeHTML(String(first.number))} запізнюється на ~${parseMin(first.delay)} хв</span>${more}`);
 
     host.className = 'trains-delays-banner';
     const updated = data.updated ? `<span class="trains-delays-upd">оновлено ${escapeHTML(String(data.updated))}</span>` : '';
@@ -1004,35 +983,26 @@ async function loadDelaysData() {
   } catch (e) { hide(); }
 }
 
-function applyRates(usdBuy, usdSell, eurBuy, eurSell) {
-  const f = v => Number(v).toFixed(2);
-  const pair = (b, s) => `<span style="color:var(--time-green);">${f(b)}</span><span style="color:rgba(255,255,255,0.5);">/</span><span style="color:var(--highlight-color);">${f(s)}</span>`;
-  setTickerPart('rates', `💱 USD ${pair(usdBuy, usdSell)} · EUR ${pair(eurBuy, eurSell)}`);
-  // Легасі-елементи (якщо десь лишились у розмітці)
-  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = f(v); };
-  set('usd-buy', usdBuy); set('usd-sell', usdSell); set('eur-buy', eurBuy); set('eur-sell', eurSell);
-}
-
 async function loadExchangeRates() {
   try {
     const pb = await fetchCachedJson('https://api.privatbank.ua/p24api/pubinfo?exchange&json&coursid=5', 'pb_rates', 30);
     if (Array.isArray(pb)) {
         const usd = pb.find(c => c.ccy === 'USD'); const eur = pb.find(c => c.ccy === 'EUR');
-        if (usd && eur) { applyRates(usd.buy, usd.sale, eur.buy, eur.sale); return; }
+        if (usd && eur) { document.getElementById('usd-buy').textContent = Number(usd.buy).toFixed(2); document.getElementById('usd-sell').textContent = Number(usd.sale).toFixed(2); document.getElementById('eur-buy').textContent = Number(eur.buy).toFixed(2); document.getElementById('eur-sell').textContent = Number(eur.sale).toFixed(2); return; }
     }
   } catch (e) {}
   try {
       const dataMono = await fetchCachedJson('https://api.monobank.ua/bank/currency', 'mono_rates', 60);
       if (Array.isArray(dataMono)) {
           const usd = dataMono.find(c => c.currencyCodeA === 840 && c.currencyCodeB === 980); const eur = dataMono.find(c => c.currencyCodeA === 978 && c.currencyCodeB === 980);
-          if (usd && eur) { applyRates(usd.rateBuy, usd.rateSell, eur.rateBuy, eur.rateSell); return; }
+          if (usd && eur) { document.getElementById('usd-buy').textContent = Number(usd.rateBuy).toFixed(2); document.getElementById('usd-sell').textContent = Number(usd.rateSell).toFixed(2); document.getElementById('eur-buy').textContent = Number(eur.rateBuy).toFixed(2); document.getElementById('eur-sell').textContent = Number(eur.rateSell).toFixed(2); return; }
       }
   } catch(e2) {}
   try {
       const dataNbu = await fetchCachedJson('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json', 'nbu_rates', 60);
       if (Array.isArray(dataNbu)) {
           const usd = dataNbu.find(c => c.cc === 'USD'); const eur = dataNbu.find(c => c.cc === 'EUR');
-          if (usd && eur) { applyRates(usd.rate, usd.rate, eur.rate, eur.rate); }
+          if (usd && eur) { document.getElementById('usd-buy').textContent = Number(usd.rate).toFixed(2); document.getElementById('usd-sell').textContent = Number(usd.rate).toFixed(2); document.getElementById('eur-buy').textContent = Number(eur.rate).toFixed(2); document.getElementById('eur-sell').textContent = Number(eur.rate).toFixed(2); }
       }
   } catch(e3) {}
 }
@@ -1927,11 +1897,18 @@ async function loadBlaBlaCarData() {
 async function loadTickerData() {
   try {
     const data = await fetchCachedJson('https://vilnohirsk-ticker-api-production.up.railway.app/api/ticker', 'ticker_api', 2);
-    tickerParts.api = (data && Array.isArray(data.messages)) ? data.messages.map(m => escapeHTML(m)) : [];
-  } catch (e) {
-    tickerParts.api = [];
+    const container = document.getElementById('ticker-container');
+    const content = document.getElementById('ticker-content');
+    
+    if (data && data.messages && data.messages.length > 0) {
+      content.innerHTML = data.messages.map(m => `<span class="ticker-item">${escapeHTML(m)}</span>`).join('<span class="ticker-divider">🟢</span>');
+      container.style.display = 'block';
+    } else {
+      container.style.display = 'none';
+    }
+  } catch(e) {
+    document.getElementById('ticker-container').style.display = 'none';
   }
-  renderTicker();
 }
 
 function renderPhoenixList(items) {
