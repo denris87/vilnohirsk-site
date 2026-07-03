@@ -5,7 +5,7 @@ struct SmartVilnohirskApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .preferredColorScheme(.dark)
+                .preferredColorScheme(.light) // дизайн у стилі «Дії» — світла тема
         }
     }
 }
