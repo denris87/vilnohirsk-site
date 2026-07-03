@@ -88,7 +88,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260629t">
+<link rel="stylesheet" href="./css/styles.css?v=20260703a">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -287,10 +287,66 @@ document.addEventListener('touchend', function(e){
   <div class="wrapper">
   <div class="container">
 
-    <!-- БЕГУЩАЯ СТРОКА -->
+    <!-- ГОЛОВНА 2.0: дата + погода → бігучий рядок → плитки розділів -->
+    <div class="home-top liquid-glass">
+      <div class="datetime home-dt">
+        <div id="date" class="dt-date"></div>
+        <div id="time" class="dt-time"><span id="time-hh">00</span><span class="dt-colon">:</span><span id="time-mm">00</span><span class="dt-secs"><span id="time-ss">00</span></span></div>
+        <div class="weekdays"><div class="day">Пн</div><div class="day">Вт</div><div class="day">Ср</div><div class="day">Чт</div><div class="day">Пт</div><div class="day">Сб</div><div class="day">Нд</div></div>
+      </div>
+      <div class="home-wx">
+        <div class="weather-box" id="weather-container" style="min-height: 96px;"></div>
+      </div>
+
+      <!-- Радіо тимчасово сховане (збережено, щоб можна було повернути) -->
+      <div class="radio-container" style="display: none; align-items: center; gap: 10px; width: 100%; padding: 0 4px;">
+        <button id="radio-btn" onclick="toggleRadio()" style="width: 34px; height: 34px; border-radius: 50%; border: none; background: #88dec6; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); flex-shrink: 0; padding: 0; outline: none; transition: transform 0.2s;">
+          <span id="radio-icon" style="display: flex; align-items: center; justify-content: center; transform: translateX(1px);"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg></span>
+        </button>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; line-height: 1.25; flex: 1; min-width: 0;">
+          <div id="radio-track-name" style="font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">muzdance.com.ua</div>
+          <div id="radio-status" style="font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px;">PAUSED</div>
+        </div>
+        <div class="equalizer" id="equalizer" style="margin-left: 0; margin-right: 0;">
+          <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
+        </div>
+        <audio id="radio-audio" preload="none"></audio>
+      </div>
+    </div>
+
+    <!-- Бігучий рядок: світло / затримки / курс / пальне + повідомлення адміна -->
     <div class="ticker-wrap" id="ticker-container" style="display: none;">
       <div class="ticker-move" id="ticker-content"></div>
     </div>
+
+    <!-- Плитки розділів -->
+    <div class="home-tiles">
+      <div class="htile" onclick="tileTab('trains', this, 'schedule')"><span class="hbdg red" id="trains-tile-badge" style="display:none;"></span><span class="hi">🚆</span><span class="hl">Електрички</span></div>
+      <div class="htile" onclick="tileTab('long-trains', this, 'schedule')"><span class="hi">🚄</span><span class="hl">Потяги</span></div>
+      <div class="htile" onclick="tileTab('buses', this, 'schedule')"><span class="hi">🚌</span><span class="hl">Автобуси</span></div>
+
+      <div class="htile" onclick="tileTab('blablacar', this, 'schedule')"><span class="hi">🚗</span><span class="hl">Попутники</span></div>
+      <div class="htile" onclick="openSvitloModal()"><span class="hbdg grn" id="svitlo-tile-badge" style="display:none;"></span><span class="hi">💡</span><span class="hl">Світло</span></div>
+      <div class="htile" onclick="tileTab('alert-feed', this, 'alert')"><span class="hi">📰</span><span class="hl">Новини міста</span></div>
+
+      <div class="htile" onclick="tileTab('map-tab', this, 'schedule')"><span class="hbdg yel">NEW</span><span class="hi">🗺️</span><span class="hl">Карта міста</span></div>
+      <div class="htile" onclick="tileTab('city-guide-tab', this, 'market')"><span class="hi">📒</span><span class="hl">Довідник</span></div>
+      <div class="htile" onclick="tileTab('flea-market-tab', this, 'market')"><span class="hi">🛒</span><span class="hl">Барахолка</span></div>
+
+      <div class="htile" onclick="tileTab('estate-tab', this, 'market')"><span class="hi">🏠</span><span class="hl">Нерухомість</span></div>
+      <div class="htile" onclick="tileTab('shopping-tab', this, 'market')"><span class="hi">🛍️</span><span class="hl">Шопінг</span></div>
+      <div class="htile" onclick="tileTab('jobs-tab', this, 'market')"><span class="hi">💼</span><span class="hl">Вакансії</span></div>
+
+      <div class="htile" onclick="tileTab('lost-found-tab', this, 'market')"><span class="hi">🔎</span><span class="hl">Знахідки</span></div>
+      <div class="htile" onclick="tileTab('alert-events', this, 'alert')"><span class="hi">🎉</span><span class="hl">Афіші</span></div>
+      <div class="htile" onclick="tileTab('alert-promos', this, 'alert')"><span class="hi">🔥</span><span class="hl">Акції</span></div>
+
+      <div class="htile" onclick="tileTab('alert-gallery', this, 'alert')"><span class="hi">📸</span><span class="hl">Фото міста</span></div>
+      <div class="htile" onclick="tileTab('alert-volunteers', this, 'alert')"><span class="hi">🇺🇦</span><span class="hl">Допомога ЗСУ</span></div>
+      <div class="htile phoenix" onclick="tileTab('alert-phoenix', this, 'alert')"><span class="hi">🕯️</span><span class="hl">ФЕНІКС · пошук</span></div>
+    </div>
+
+    <div id="sections-host">
 
     <div class="alert-group" style="display: flex; flex-direction: column; width: 100%; position: relative; z-index: 100;">
         <div class="alert-main-widget liquid-glass" style="padding: 15px;">
@@ -393,54 +449,6 @@ document.addEventListener('touchend', function(e){
       </div>
     </div>
 
-    <div class="top-row">
-      <div class="widget liquid-glass" style="justify-content: center;">
-        <div class="datetime">
-          <div id="date" class="dt-date"></div>
-          <div id="time" class="dt-time"><span id="time-hh">00</span><span class="dt-colon">:</span><span id="time-mm">00</span><span class="dt-secs"><span id="time-ss">00</span></span></div>
-          <div class="weekdays"><div class="day">Пн</div><div class="day">Вт</div><div class="day">Ср</div><div class="day">Чт</div><div class="day">Пт</div><div class="day">Сб</div><div class="day">Нд</div></div>
-          <div style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto;"></div>
-          <div id="exchange-rates" style="display:flex; flex-direction:column; width:100%; box-sizing:border-box; gap:6px; font-size:clamp(9px, 3vw, 12px); font-weight:700; color:rgba(255,255,255,0.8); background:rgba(0,0,0,0.2); padding:8px 6px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); text-shadow:0 1px 2px rgba(0,0,0,0.5);">
-            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-              <span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇺🇸</span> USD</span>
-              <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="usd-buy" style="color:var(--time-green);">--</span> <span style="color:rgba(255,255,255,0.5); margin:0 2px;">/</span> <span id="usd-sell" style="color:var(--highlight-color);">--</span></span>
-            </div>
-            <div style="width:100%; height:1px; background:rgba(255,255,255,0.1);"></div>
-            <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-              <span style="display:flex; align-items:center; gap:4px; white-space:nowrap;"><span>🇪🇺</span> EUR</span>
-              <span style="white-space:nowrap; letter-spacing:-0.3px;"><span id="eur-buy" style="color:var(--time-green);">--</span> <span style="color:rgba(255,255,255,0.5); margin:0 2px;">/</span> <span id="eur-sell" style="color:var(--highlight-color);">--</span></span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="widget liquid-glass" style="padding: 12px 12px; justify-content: space-between; display: flex; flex-direction: column;">
-        <div class="weather-box" id="weather-container" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 72px;"></div>
-
-        <div id="svitlo-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 6px auto; display:none;"></div>
-
-        <!-- Радіо тимчасово сховане (замінене блоком графіка відключень). Щоб повернути — display:none → flex і прибрати svitlo-блок. -->
-        <div class="radio-container" style="display: none; align-items: center; gap: 10px; width: 100%; padding: 0 4px;">
-          <button id="radio-btn" onclick="toggleRadio()" style="width: 34px; height: 34px; border-radius: 50%; border: none; background: #88dec6; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); flex-shrink: 0; padding: 0; outline: none; transition: transform 0.2s;">
-            <span id="radio-icon" style="display: flex; align-items: center; justify-content: center; transform: translateX(1px);"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg></span>
-          </button>
-          <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; line-height: 1.25; flex: 1; min-width: 0;">
-            <div id="radio-track-name" style="font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">muzdance.com.ua</div>
-            <div id="radio-status" style="font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px;">PAUSED</div>
-          </div>
-          <div class="equalizer" id="equalizer" style="margin-left: 0; margin-right: 0;">
-            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
-          </div>
-          <audio id="radio-audio" preload="none"></audio>
-        </div>
-
-        <!-- Графік відключень світла (дані з data/svitlo.yaml) -->
-        <div id="svitlo-widget" class="svitlo-widget" style="display:none;"></div>
-
-        <div id="fuel-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto; display:none;"></div>
-        <div id="fuel-widget" class="fuel-widget" style="display:none;"></div>
-      </div>
-    </div>
-
     <div class="market-group">
       <div class="tabs-wrapper">
         <div class="tabs-nav" id="market-tabs">
@@ -489,6 +497,8 @@ document.addEventListener('touchend', function(e){
         </div>
       </div>
     </div>
+
+    </div> <!-- /sections-host -->
 
     <!-- ОБ'ЄДНАНА КАРТКА ЗВ'ЯЗКУ: відгуки + сповіщення + соцмережі -->
     <div class="connect-card">
@@ -547,6 +557,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260629t" defer></script>
+<script src="./js/app.js?v=20260703a" defer></script>
 </body>
 </html>
