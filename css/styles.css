@@ -491,3 +491,32 @@ a,
 .trains-status-ok .ok-txt{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:left;}
 .trains-status-ok .ok-title{font-size:12.5px;font-weight:800;color:#fff;line-height:1.25;}
 .trains-status-ok .ok-sub{font-size:10px;font-weight:600;color:rgba(255,255,255,0.55);line-height:1.2;}
+
+/* === ГОЛОВНА 2.0: дата+погода → бігучий рядок → плитки розділів === */
+.home-top{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:14px 14px;border-radius:26px;position:relative;}
+.home-top .datetime{width:auto;flex:1;min-width:0;gap:8px;}
+.home-top .weekdays{gap:3px;}
+.home-top .day{padding:5px 0;flex:1;min-width:0;}
+.home-wx{flex:0 0 44%;max-width:190px;align-self:stretch;display:flex;align-items:center;justify-content:center;border-left:1px solid rgba(255,255,255,0.14);padding-left:10px;min-height:104px;position:relative;}
+.home-wx .weather-box{width:100%;height:100%;min-height:96px;}
+.home-tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;width:100%;}
+.htile{aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;cursor:pointer;border-radius:22px;background:linear-gradient(150deg,rgba(255,255,255,0.12),rgba(255,255,255,0.03));border:1px solid rgba(255,255,255,0.16);box-shadow:0 8px 22px rgba(0,10,20,0.16),inset 0 1px 1px rgba(255,255,255,0.12);-webkit-tap-highlight-color:transparent;transition:transform 0.15s ease,border-color 0.2s ease,background 0.2s ease;user-select:none;}
+.htile:active{transform:scale(0.96);}
+.htile.active{border-color:rgba(255,255,255,0.6);background:linear-gradient(150deg,rgba(255,255,255,0.22),rgba(255,255,255,0.07));box-shadow:0 8px 26px rgba(0,10,20,0.25),inset 0 1px 1px rgba(255,255,255,0.2);}
+.htile .hi{font-size:clamp(24px,7vw,32px);line-height:1;filter:drop-shadow(0 3px 7px rgba(0,0,0,0.25));}
+.htile .hl{font-size:clamp(9.5px,2.9vw,12px);font-weight:800;text-align:center;line-height:1.2;padding:0 4px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.3);}
+.hbdg{position:absolute;top:8px;right:8px;font-size:8px;font-weight:900;letter-spacing:0.3px;padding:3px 7px;border-radius:8px;white-space:nowrap;}
+.hbdg.red{color:#fff;background:#ff4d5e;box-shadow:0 2px 8px rgba(255,77,94,0.45);}
+.hbdg.grn{color:#053b25;background:#7dffc0;box-shadow:0 2px 8px rgba(125,255,192,0.35);}
+.hbdg.yel{color:#3a2c00;background:#ffd351;box-shadow:0 2px 8px rgba(255,211,81,0.35);}
+.htile.phoenix{background:linear-gradient(135deg,rgba(211,47,47,0.45),rgba(70,0,0,0.5));border-color:rgba(255,77,77,0.55);}
+@media (min-width:760px){
+  .home-tiles{grid-template-columns:repeat(6,1fr);gap:14px;}
+  .htile .hi{font-size:34px;}
+  .htile .hl{font-size:12.5px;}
+  .home-wx{flex:0 0 220px;max-width:220px;}
+}
+/* старі ряди вкладок сховані — навігація тепер плитками (розмітка лишається для сумісності) */
+.alert-group .alert-main-widget,.schedule-group .tabs-wrapper,.market-group .tabs-wrapper{display:none !important;}
+#sections-host{display:flex;flex-direction:column;width:100%;position:relative;}
+#sections-host .alert-group,#sections-host .schedule-group,#sections-host .market-group{margin:0;}
