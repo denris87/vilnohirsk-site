@@ -27,6 +27,19 @@ const memoryDataCache = {};
 // Запоминаем порядок перемешанных списков, чтобы они не прыгали при автообновлении
 const shuffleCache = {};
 
+// Підпис останніх відрендерених даних по блоках: автооновлення перемальовує DOM
+// лише коли дані реально змінилися — інакше кожні 2-5 хв закривались відкриті
+// картки/деталі та скидались каруселі на перший слайд.
+// isNewItem не входить у підпис: зняття позначки «Нове» — не привід перезбирати блок.
+const lastRenderSig = {};
+function dataChanged(key, data) {
+    let sig = '';
+    try { sig = JSON.stringify(data, (k, v) => k === 'isNewItem' ? undefined : v); } catch (e) { sig = 'x' + Date.now(); }
+    if (lastRenderSig[key] === sig) return false;
+    lastRenderSig[key] = sig;
+    return true;
+}
+
 // === БЕЗОПАСНОСТЬ И УТИЛИТЫ ===
 function escapeHTML(str) {
     if (!str) return '';
@@ -52,6 +65,15 @@ function nl2brWithBold(str) {
 // тому доекрануємо його вручну (інакше ' у даних розриває JS-рядок всередині атрибута)
 function packForAttr(obj) {
     return encodeURIComponent(JSON.stringify(obj)).replace(/'/g, '%27');
+}
+
+// Телефон → клікабельне tel:-посилання; якщо цифр немає (напр. «Не вказано») —
+// повертаємо просто текст, щоб не створювати порожній href="tel:"
+function phoneLinkHtml(phone) {
+    const raw = String(phone == null ? '' : phone).trim();
+    const clean = raw.replace(/[^0-9+]/g, '');
+    if (clean.replace(/\D/g, '').length < 5) return escapeHTML(raw || 'Не вказано');
+    return `<a href="tel:${clean}" class="shop-phone-link">${escapeHTML(raw)}</a>`;
 }
 
 // Гнучка перевірка VIP-прапорця з таблиці: True для будь-якого непорожнього значення, окрім явних "ні"
@@ -703,6 +725,7 @@ async function loadWeather(){
     } catch(e) {}
   }
   const container = document.getElementById("weather-container");
+  if (!dataChanged('render_weather', results)) return; // погода та сама — не перезапускаємо слайдер
   if(results.length === 0) { container.innerHTML = '<div class="empty-msg" style="font-size:11px;">Дані погоди тимчасово недоступні ☁️</div>'; return; }
   const slidesHtml = results.map((item, index) => {
     const t = Math.round(item.w.temperature);
@@ -796,7 +819,7 @@ function openFuelModal() {
       + `</div>`;
   }).join('');
 
-  const upd = currentFuelData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:16px;">Станом на ${escapeHTML(String(currentFuelData.updated))}</div>` : '';
+  const upd = currentFuelData.updated ? `<div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:16px;">на ${escapeHTML(String(currentFuelData.updated))}</div>` : '';
 
   const modal = document.createElement('div');
   modal.id = modalId;
@@ -841,7 +864,7 @@ function svitloDayWord(dateStr) {
   if (!m) return '';
   const d = new Date(+m[3], +m[2] - 1, +m[1]);
   if (isNaN(d.getTime())) return '';
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = getKyivNow(); today.setHours(0, 0, 0, 0); // доба — за Києвом, як і весь сайт
   const diff = Math.round((d.getTime() - today.getTime()) / 86400000);
   if (diff === 0) return 'Сьогодні';
   if (diff === 1) return 'Завтра';
@@ -1047,7 +1070,12 @@ function buildCarouselHtml(items, typeColor, typeId, isEvent = false) {
 
 function updateCarouselDots(containerId, dotsId, activeColor) {
   const container = document.getElementById(containerId); const dotsContainer = document.getElementById(dotsId); if (!container || !dotsContainer) return;
-  const dots = dotsContainer.children; const index = Math.round(container.scrollLeft / container.clientWidth);
+  const dots = dotsContainer.children;
+  // Крок прокрутки = ширина слайда + gap між слайдами; без gap точка з'їжджала від ~12 слайдів
+  const gap = parseFloat(getComputedStyle(container).columnGap) || 0;
+  let index = Math.round(container.scrollLeft / (container.clientWidth + gap));
+  if (index >= dots.length) index = dots.length - 1;
+  if (index < 0) index = 0;
   for (let i = 0; i < dots.length; i++) { if (i === index) { dots[i].classList.add('active'); if(activeColor) dots[i].style.background = activeColor; } else { dots[i].classList.remove('active'); dots[i].style.background = 'rgba(255,255,255,0.3)'; } }
 }
 
@@ -1061,16 +1089,9 @@ function getStableShuffled(array, cacheKey) {
     shuffleArray(indices);
     shuffleCache[cacheKey] = indices;
   }
-  // Применяем сохранённый порядок, но игнорируем те индексы, которых уже нет
+  // Применяем сохранённый порядок (кэш выше уже пересоздан, если размер поменялся)
   const result = [];
   shuffleCache[cacheKey].forEach(i => { if (array[i] !== undefined) result.push(array[i]); });
-  // Добавляем новые элементы (если массив вырос)
-  if (result.length < array.length) {
-    array.forEach((item, i) => { if (!shuffleCache[cacheKey].includes(i)) result.push(item); });
-    // Обновляем кэш
-    shuffleCache[cacheKey] = array.map((_, i) => i);
-    shuffleArray(shuffleCache[cacheKey]);
-  }
   return result;
 }
 
@@ -1094,7 +1115,9 @@ async function loadAlerts() {
     checkNotification('news', newsAlerts);
     updateCommunalTabBadge(feedAlerts.length);
 
-    document.getElementById("alert-feed-content").innerHTML = buildCarouselHtml(feedAlerts, '#ffcc00', 'feed');
+    if (dataChanged('render_feed', feedAlerts)) {
+      document.getElementById("alert-feed-content").innerHTML = buildCarouselHtml(feedAlerts, '#ffcc00', 'feed');
+    }
   } catch(e) { const fc = document.getElementById("alert-feed-content"); if (fc) fc.innerHTML = `<div class="empty-msg">Помилка завантаження</div>`; }
 }
 
@@ -1112,7 +1135,9 @@ async function loadEventsData() {
     updateEventsTabBadge(eventsWithPhotos.length);
 
     windowEventImages = eventsWithPhotos.map(ev => getDriveImageUrl(ev.photo || ev.image || ev.url));
-    document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(eventsWithPhotos, '#FF3366', 'events', true);
+    if (dataChanged('render_events', eventsWithPhotos)) {
+      document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(eventsWithPhotos, '#FF3366', 'events', true);
+    }
   } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
 }
 
@@ -1211,7 +1236,8 @@ async function loadShopsData() {
     const vipShops = activeShops.filter(shop => isVipFlag(shop.vip));
     const regularShops = activeShops.filter(shop => !isVipFlag(shop.vip));
     // Стабильное перемешивание — не прыгает при автообновлении
-    renderShops([...vipShops, ...getStableShuffled(regularShops, 'shops')]);
+    const finalShops = [...vipShops, ...getStableShuffled(regularShops, 'shops')];
+    if (dataChanged('render_shops', finalShops)) renderShops(finalShops);
   } catch(e) { document.getElementById('shopping-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження магазинів</div>`; }
 }
 
@@ -1226,13 +1252,14 @@ function renderPromosList(items) {
     let photosHtml = '';
     if (item.photos && item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
     
-    let rawDesc = nl2br(String(item.description || ''));
+    // Посилання виймаємо з сирого тексту ДО екранування: інакше & в URL
+    // перетворювався на &amp; і адреса з параметрами ламалась подвійним екрануванням
     let extractedLink = '';
-    
-    let finalDesc = rawDesc.replace(/(https?:\/\/[^\s<]+)/g, function(match) {
+    const rawText = String(item.description || '').replace(/(https?:\/\/[^\s<]+)/g, function(match) {
         if (!extractedLink) extractedLink = match; // у кнопку йде ПЕРШЕ посилання з опису
         return '';
-    }).replace(/^(<br>|\s)+/, '').replace(/(<br>|\s)+$/, '').trim();
+    });
+    let finalDesc = nl2br(rawText).replace(/^(<br>|\s)+/, '').replace(/(<br>|\s)+$/, '').trim();
 
     let buttonHtml = '';
     if (extractedLink) {
@@ -1288,7 +1315,7 @@ async function loadPromosData() {
     updatePromosTabBadge(activeItems.length);
 
     allPromoItems = [...activeItems.filter(item => item.vip).reverse(), ...activeItems.filter(item => !item.vip).reverse()];
-    renderPromosList(allPromoItems);
+    if (dataChanged('render_promos', allPromoItems)) renderPromosList(allPromoItems);
   } catch (e) { document.getElementById('promos-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d; line-height: 1.4;">Помилка зв'язку з сервером акцій</div>`; }
 }
 
@@ -1307,10 +1334,10 @@ function renderEstateList(items, hasMore = false) {
     let displayPrice = item.price ? String(item.price).trim() : 'Договірна';
     if (displayPrice !== 'Договірна' && !displayPrice.includes('$')) { displayPrice += ' $'; }
     
-    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Тип об\'єкта', value: `${escapeHTML(item.propertyType)} (${escapeHTML(item.dealType)})`}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location || 'Вільногірськ')}, {icon: '📝', label: 'Опис та адреса', value: nl2br(item.description)}, {icon: '📞', label: 'Телефон', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
+    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Тип об\'єкта', value: `${escapeHTML(item.propertyType)} (${escapeHTML(item.dealType)})`}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location || 'Вільногірськ')}, {icon: '📝', label: 'Опис та адреса', value: nl2br(item.description)}, {icon: '📞', label: 'Телефон', value: phoneLinkHtml(item.phone)} ]);
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-    html += `<div class="shop-tile ${item.isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${item.isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${escapeHTML(item.dealType)} • ${escapeHTML(item.propertyType)}</div><div class="card-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><span class="card-price" style="white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; flex: 1;">${escapeHTML(displayPrice)}</span><span class="card-info" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; text-align: right; margin-top: 2px;">Кімнат: ${escapeHTML(item.rooms)}</span></div><div class="shop-tile-name" style="margin-bottom: 5px;">Квартира у Вільногірську${dot}</div><div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
+    html += `<div class="shop-tile ${item.isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${item.isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat" style="color: ${dealColor};">${escapeHTML(item.dealType)} • ${escapeHTML(item.propertyType)}</div><div class="card-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px; margin-bottom: 6px;"><span class="card-price" style="white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; flex: 1;">${escapeHTML(displayPrice)}</span><span class="card-info" style="font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; text-align: right; margin-top: 2px;">Кімнат: ${escapeHTML(item.rooms)}</span></div><div class="shop-tile-name" style="margin-bottom: 5px;">${escapeHTML(item.propertyType)} у Вільногірську${dot}</div><div class="shop-tile-chevron">Деталі ▾</div>${dropdownHtml}</div>`;
   });
   html += '</div>';
   if (hasMore) { html += `<button class="load-more-btn" onclick="estateRenderLimit+=20; const tagE=document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(tagE?tagE.innerText:'Всі',tagE);">Показати ще ▾</button>`; }
@@ -1323,6 +1350,15 @@ function filterEstate(category, element) {
   if (currentEstateSort === 'cheap') filtered.sort((a,b) => (parseInt(String(a.price||"").replace(/\D/g,""))||0) - (parseInt(String(b.price||"").replace(/\D/g,""))||0));
   else if (currentEstateSort === 'expensive') filtered.sort((a,b) => (parseInt(String(b.price||"").replace(/\D/g,""))||0) - (parseInt(String(a.price||"").replace(/\D/g,""))||0));
   renderEstateList(filtered.slice(0, estateRenderLimit), filtered.length > estateRenderLimit);
+}
+
+// Обробник селекта сортування нерухомості (виклик з index.html).
+// Раніше inline-код писав window.currentEstateSort, але глобальні let-змінні
+// не є властивостями window — сортування взагалі не працювало.
+function setEstateSort(v) {
+  currentEstateSort = v; estateRenderLimit = 20;
+  const t = document.querySelector('#estate-categories .flea-category-tag.active');
+  filterEstate(t ? t.innerText.trim() : 'Всі', t);
 }
 
 async function loadEstateData() {
@@ -1354,7 +1390,9 @@ async function loadEstateData() {
         const saleCount = localItems.filter(i => i.dealType && i.dealType.toLowerCase().includes('продаж')).length;
         updateEstateTabBadge(rentCount, saleCount, localItems.length);
         allEstateItems = localItems;
-        const activeTag = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
+        if (dataChanged('render_estate', localItems)) {
+          const activeTag = document.querySelector('#estate-categories .flea-category-tag.active'); filterEstate(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
+        }
       }
     });
   } catch (e) { document.getElementById('estate-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
@@ -1376,7 +1414,7 @@ function renderFleaMarketList(items, hasMore = false) {
     let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const isVip = isVipFlag(item.vip);
     
-    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '✨', label: 'Стан', value: escapeHTML(item.condition)}, {icon: '📝', label: 'Опис', value: nl2br(item.description)}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
+    const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '✨', label: 'Стан', value: escapeHTML(item.condition)}, {icon: '📝', label: 'Опис', value: nl2br(item.description)}, {icon: '📞', label: 'Контакти', value: phoneLinkHtml(item.phone)} ]);
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
     html += `<div class="shop-tile ${isVip ? 'vip-tile' : ''}" onclick="toggleShop('${id}', this)">${isVip ? '<div class="vip-badge">VIP</div>' : ''}<div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row" style="margin-bottom: 6px;"><span class="card-price" style="white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; display: block;">${escapeHTML(priceText)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
@@ -1392,6 +1430,13 @@ function filterFleaMarket(category, element) {
   if (currentFleaSort === 'cheap') filtered.sort((a,b) => (parseInt(String(a.price||"").replace(/\D/g,""))||0) - (parseInt(String(b.price||"").replace(/\D/g,""))||0));
   else if (currentFleaSort === 'expensive') filtered.sort((a,b) => (parseInt(String(b.price||"").replace(/\D/g,""))||0) - (parseInt(String(a.price||"").replace(/\D/g,""))||0));
   renderFleaMarketList(filtered.slice(0, fleaRenderLimit), filtered.length > fleaRenderLimit);
+}
+
+// Обробник селекта сортування барахолки (виклик з index.html) — див. setEstateSort.
+function setFleaSort(v) {
+  currentFleaSort = v; fleaRenderLimit = 20;
+  const t = document.querySelector('#flea-categories .flea-category-tag.active');
+  filterFleaMarket(t ? t.innerText.trim() : 'Всі', t);
 }
 
 // Стоп-фрази для барахолки: оголошення про пошук працівників/вакансії автоматично ховаємо
@@ -1435,7 +1480,9 @@ async function loadFleaMarketData() {
         const usedCount = localItems.filter(i => i.condition && (i.condition.toLowerCase().includes('вжив') || i.condition.toLowerCase().includes('б/у'))).length;
         updateFleaTabBadge(newCount, usedCount, localItems.length);
         allFleaMarketItems = localItems;
-        const activeTag = document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
+        if (dataChanged('render_flea', localItems)) {
+          const activeTag = document.querySelector('#flea-categories .flea-category-tag.active'); filterFleaMarket(activeTag ? activeTag.innerText.trim() : 'Всі', activeTag);
+        }
       }
     });
   } catch (e) { document.getElementById('flea-market-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
@@ -1459,6 +1506,7 @@ async function loadLostFoundData() {
         const foundCount = localItems.filter(i => i.type && i.type.toLowerCase().includes('знайд')).length;
         const lostCount = localItems.length - foundCount;
         updateLostTabBadge(foundCount, lostCount);
+        if (!dataChanged('render_lost', localItems)) return; // без змін — не закриваємо відкриті картки
         const cont = document.getElementById('lost-found-list-content');
         if (!localItems.length) { cont.innerHTML = '<div class="empty-msg">Оголошень немає</div>'; return; }
         let html = '<div class="shops-tile-grid">';
@@ -1469,7 +1517,7 @@ async function loadLostFoundData() {
           const badgeColor = item.type.toLowerCase().includes('знайд') ? '#00ff9c' : '#ff4d4d';
           let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
           
-          const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '📝', label: 'Опис', value: nl2br(item.description)}, {icon: '📞', label: 'Контакти', value: `<a href="tel:${item.phone.replace(/[^0-9+]/g, '')}" class="shop-phone-link">${escapeHTML(item.phone)}</a>`} ]);
+          const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '📝', label: 'Опис', value: nl2br(item.description)}, {icon: '📞', label: 'Контакти', value: phoneLinkHtml(item.phone)} ]);
           
           const dot = item.isNewItem ? NEW_BADGE_HTML : '';
           html += `<div class="shop-tile" onclick="toggleShop('${id}', this)"><div class="shop-tile-photo">${thumb}</div><div class="shop-tile-cat">${escapeHTML(item.category)}</div><div class="card-row" style="margin-bottom: 6px;"><span class="card-price" style="color:${badgeColor}; white-space: normal !important; overflow: visible !important; text-overflow: clip !important; word-break: break-word; line-height: 1.2; display: block;">${escapeHTML(item.type)}</span></div><div class="shop-tile-name">${escapeHTML(item.title)}${dot}</div><div class="shop-tile-chevron">Опис ▾</div>${dropdownHtml}</div>`;
@@ -1524,13 +1572,6 @@ async function loadTrainsData(){
       const newNumbers = new Set();
       d.trains.forEach(x => { if (x && hasNewFlag(x.number)) newNumbers.add(cleanNum(x.number)); });
 
-      // Час відправлення зі станції Вільногірськ у заданому розкладі
-      const stationName = d.station || 'Вільногірськ';
-      const timeFromSchedule = (sched) => {
-        if (!Array.isArray(sched)) return '—';
-        const stop = sched.find(s => Array.isArray(s) && String(s[0]).includes(stationName));
-        return stop ? stop[1] : '—';
-      };
       // Клас статусу (future/soon/passed) і відображуваний час для рядка
       const statusFor = (timeStr) => {
         let sc = 'future', dt = timeStr || '—';
@@ -1566,7 +1607,11 @@ async function loadTrainsData(){
 
         h += `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${numClass}">${escapeHTML(number)}</div>${routeCell}<div class="time-val ${timeSc}">${escapeHTML(isNew ? (x.time || '—') : st.dt)}</div></div><div class="details" id="${id}">${details}</div>`;
       });
+      // Список перемальовується щоразу (час і статуси мають оновлюватись),
+      // але відкриті деталі рейсів відновлюємо — інакше вони закривались кожні 2 хв
+      const openDetails = Array.from(document.querySelectorAll('#list .details.open')).map(el => el.id);
       document.getElementById("list").innerHTML = h + `</div>`;
+      openDetails.forEach(oid => { const el = document.getElementById(oid); if (el) el.classList.add('open'); });
       
       // Обновляем баннер изменений без перезаписи всей разметки (фикс дубля)
       const banner = document.getElementById("trains-changes-banner");
@@ -1599,25 +1644,10 @@ async function loadLongTrainsData() {
     const d = await fetchCachedJson("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule", 'long_trains_api', 30);
     if(d&&d.trains) {
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div>`;
-      const UA_MONTHS = ['січня','лютого','березня','квітня','травня','червня','липня','серпня','вересня','жовтня','листопада','грудня'];
-      // Повертає дату запуску з «Періодичності» або null
-      const getStartDate = (x) => {
-        const m = (x.periodicityText || '').match(/(\d{1,2})[./](\d{1,2})[./](\d{4})/);
-        if (!m) return null;
-        const start = new Date(+m[3], +m[2] - 1, +m[1]);
-        return isNaN(start) ? null : start;
-      };
-      // Поїзд вважається новим, якщо бекенд проставив прапорець АБО дата запуску у межах останніх/найближчих ~45 днів
-      const isNewLongTrain = (x, start) => {
-        if (x.isNew === true || x.new === true) return true;
-        if (!start) return false;
-        const now = new Date(); now.setHours(0,0,0,0);
-        const days = Math.round((start - now) / 86400000);
-        return days >= -7 && days <= 45; // нещодавно введений або скоро запускається
-      };
       // Сортуємо поїзди за часом відправлення (00:01, 04:04, ...)
       const toMin = (t) => { const m = String(t || '').match(/(\d{1,2}):(\d{2})/); return m ? (+m[1]) * 60 + (+m[2]) : 99999; };
       const sortedTrains = Array.isArray(d.trains) ? d.trains.filter(Boolean).slice().sort((a, b) => toMin(a.time) - toMin(b.time)) : [];
+      if (!dataChanged('render_longtrains', sortedTrains)) return; // без змін — не закриваємо відкриті деталі
       sortedTrains.forEach((x,i) => {
         if(!x) return; const id = "lt-" + i; const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : []; const hasChanges = x.changes && Array.isArray(x.changes) && x.changes.length > 0;
         let infoHtml = "";
@@ -1885,7 +1915,8 @@ async function loadBlaBlaCarData() {
     const ps = d.filter(x => x && x.type === 'passenger' && (isVilnohirsk(x.from) || isVilnohirsk(x.to))).reverse();
     updateBlaBlaTabBadge(dr.length, ps.length);
     updateBlaBlaToggleCounts(dr.length, ps.length);
-    
+
+    if (!dataChanged('render_blabla', d)) return; // дані ті самі — списки не чіпаємо
     let htmlD = dr.length ? dr.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b>${x.isNewItem ? NEW_BADGE_HTML : ''}</div><div class="blabla-info-row"><span>💺 Місць: <b>${escapeHTML(x.seats)}</b></span><span>💵 <b>${x.price > 0 ? escapeHTML(x.price) + ' грн' : 'Договірна'}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone.replace(/[^0-9+]/g, '')}" class="blabla-phone">📞 ${escapeHTML(x.phone)}</a></div></div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
     let htmlP = ps.length ? ps.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b>${x.isNewItem ? NEW_BADGE_HTML : ''}</div><div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${escapeHTML(x.seats)}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone.replace(/[^0-9+]/g, '')}" class="blabla-phone">📞 ${escapeHTML(x.phone)}</a></div></div>`).join('') : '<div class="empty-msg">Запитів немає</div>';
     
@@ -1978,7 +2009,7 @@ async function loadPhoenixData() {
     const activeItems = itemsArray.filter(item => item && item.active !== false);
     markNewItems(activeItems, 'phoenix', false);
     checkNotification('phoenix', activeItems);
-    renderPhoenixList(activeItems);
+    if (dataChanged('render_phoenix', activeItems)) renderPhoenixList(activeItems);
   } catch(e) {
     document.getElementById('phoenix-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження даних Фенікс</div>`;
   }
@@ -2063,6 +2094,9 @@ async function loadVolunteersData(opts) {
     markNewItems(activeItems, 'volunteers', false);
     checkNotification('volunteers', activeItems);
     updateZsuTabIndicator(activeItems);
+
+    // Без змін і без примусового оновлення — не перезбираємо відкриту секцію
+    if (!dataChanged('render_zsu', activeItems) && !forceRefresh) return;
 
     const emptyZsuHtml = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(56, 189, 248, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.06);"><div style="font-size: 44px; margin-bottom: 8px;">💙💛</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px; line-height: 1.3;">Активних зборів зараз немає</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Можливо сервер ще прокидається. Спробуйте ще раз через декілька секунд:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Оновити збори</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Ви волонтер? Маєте офіційний збір?<br>Напишіть нам у Telegram: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800; font-size: 13px;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255,204,0,0.4);">Слава Україні! 🇺🇦</div></div>`;
     if (!activeItems || activeItems.length === 0) {
@@ -2297,14 +2331,14 @@ async function loadJobsData() {
         markNewItems(allJobs, 'jobs', false);
         checkNotification('jobs', allJobs);
         updateJobsTabBadge(allJobs.length);
-        renderJobs(allJobs);
+        if (dataChanged('render_jobs', allJobs)) renderJobs(allJobs);
       }
     });
   } catch (e) {
     markNewItems(allJobs, 'jobs', false);
     checkNotification('jobs', allJobs);
     updateJobsTabBadge(allJobs.length);
-    renderJobs(allJobs);
+    if (dataChanged('render_jobs', allJobs)) renderJobs(allJobs);
   }
 }
 
@@ -2417,7 +2451,8 @@ function setupScrollHints() {
 }
 
 // === УМНОЕ АВТООБНОВЛЕНИЕ: разнесли по группам, чтобы не грузить всё разом ===
-// Группа A (часто, важное): транспорт, алерты, акции, валюта, бегущая строка
+// Группа A (часто, важное): транспорт, алерты, акции, валюта, бегущая строка,
+// погода и цены на топливо (раньше они грузились один раз и висели устаревшими)
 function refreshGroupA() {
     if (!isPageVisible) return;
     loadTrainsData();
@@ -2427,6 +2462,8 @@ function refreshGroupA() {
     loadPromosData();
     loadExchangeRates();
     loadTickerData();
+    loadWeather();
+    loadFuelData();
 }
 
 // Группа B (реже, тяжёлое): барахолка, недвижка, шопинг, вакансии, бюро находок
