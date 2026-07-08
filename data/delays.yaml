@@ -34,14 +34,14 @@ updated: "08.07.2026"
 delays:
 - number: "6037"
   route: " Дніпро-Гол. → П'ятихатки-Пас." 
-  station: "ст. Горяїнове"
+  station: "Горяїнове"
   delay: 78
   show: true
   note: ""
   
 - number: "6038"
   route: " П'ятихатки-Пас. → Дніпро-Гол. " 
-  station: "ст. Верхівцеве"
+  station: "Верхівцеве"
   delay: 73
   show: true
   note: ""
