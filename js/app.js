@@ -876,12 +876,31 @@ function svitloOkTitle(dateStr) {
   return w ? `✅ ${w} відключень немає` : '✅ Відключень немає';
 }
 
+// Радіо ↔ графік відключень: поки відключень немає, на місці плашки графіка
+// тимчасово показується радіо. Щойно у svitlo.yaml з'являються відключення
+// (заповнені slots) — плашка графіка повертається автоматично, радіо ховається.
+function showRadioInsteadOfSvitlo(svitloHost, divider) {
+  if (svitloHost) svitloHost.style.display = 'none';
+  const radio = document.querySelector('.radio-container');
+  if (radio) radio.style.display = 'flex';
+  if (divider) divider.style.display = 'block'; // розділювач між погодою і радіо
+}
+function hideRadioForSvitlo() {
+  const radio = document.querySelector('.radio-container');
+  if (!radio) return;
+  // якщо радіо саме грало — коректно зупиняємо, щоб не звучало «з-під» графіка
+  const audio = document.getElementById('radio-audio');
+  if (audio && !audio.paused) { try { toggleRadio(); } catch (e) {} }
+  radio.style.display = 'none';
+}
+
 async function loadSvitloData() {
   const host = document.getElementById('svitlo-widget');
   if (!host) return;
   const divider = document.getElementById('svitlo-divider');
-  const hide = () => { host.style.display = 'none'; if (divider) divider.style.display = 'none'; };
-  if (typeof jsyaml === 'undefined') { if (svitloYamlTries++ < 40) setTimeout(loadSvitloData, 250); return; }
+  // Блок графіка не показується (вимкнено/помилка/немає відключень) — його місце займає радіо
+  const hide = () => { showRadioInsteadOfSvitlo(host, divider); };
+  if (typeof jsyaml === 'undefined') { if (svitloYamlTries++ < 40) setTimeout(loadSvitloData, 250); else hide(); return; }
   try {
     const res = await fetch('./data/svitlo.yaml?v=' + Date.now());
     if (!res.ok) { hide(); return; }
@@ -893,12 +912,15 @@ async function loadSvitloData() {
     const noOutages = !providers.some(p => Array.isArray(p.queues) && p.queues.some(q => q && Array.isArray(q.slots) && q.slots.filter(Boolean).length > 0));
     currentSvitloData = { providers: providers, updated: data.updated || '', revised: data.revised || '', noOutages: noOutages };
 
+    // Відключень немає — тимчасово повертаємо радіо замість зеленої плашки
+    if (noOutages) { hide(); return; }
+
+    // Є відключення — плашка графіка на місці, радіо ховаємо
+    hideRadioForSvitlo();
     // Згорнута плашка: назва + дата (+ «Оновлено о…», якщо графік змінювали протягом дня). Повний графік — у вікні по тапу.
     const dateLine = currentSvitloData.updated ? `<span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
     const revLine = currentSvitloData.revised ? `<span class="svitlo-rev">🔄 Оновлено о ${escapeHTML(String(currentSvitloData.revised))}</span>` : '';
-    host.innerHTML = noOutages
-      ? `<div class="svitlo-box svitlo-box-ok"><span class="svitlo-name">${svitloOkTitle(currentSvitloData.updated)}</span>${dateLine}${revLine}</div>`
-      : `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}${revLine}</div>`;
+    host.innerHTML = `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}${revLine}</div>`;
     host.style.display = 'block';
     host.style.cursor = 'pointer';
     host.onclick = openSvitloModal;
