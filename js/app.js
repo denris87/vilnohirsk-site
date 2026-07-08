@@ -961,13 +961,34 @@ function closeSvitloModal() {
   }
 }
 
+// Бейдж затримок на вкладці «Електрички» — аналогічний бейджу «зміни розкладу»,
+// але в кольорах затримок: видно з головного екрана, що електрички запізнюються.
+// Показує найбільшу затримку, напр. «+78 хв».
+function updateTrainsDelayBadge(delays) {
+  const tab = document.querySelector('.tab-btn[onclick*="\'trains\'"]');
+  if (!tab) return;
+  tab.style.position = 'relative';
+  const old = tab.querySelector('.delays-live-badge');
+  if (old) old.remove();
+  if (!delays || delays.length === 0) return;
+  const maxMin = Math.max.apply(null, delays.map(d => parseInt(String(d && d.delay != null ? d.delay : '').replace(/\D/g, ''), 10) || 0));
+  if (!maxMin) return;
+  const badge = document.createElement('span');
+  badge.className = 'delays-live-badge';
+  badge.innerHTML = '<span class="dl-dot"></span>+' + maxMin + ' хв';
+  badge.title = delays.length === 1
+    ? `Електричка затримується на ~${maxMin} хв`
+    : `Затримки електричок: ${delays.length} (до +${maxMin} хв)`;
+  tab.appendChild(badge);
+}
+
 // Затримки електричок — ручні дані з data/delays.yaml
 // (яскравий банер угорі вкладки «Електрички»). Незалежний від API розкладу.
 let delaysYamlTries = 0;
 async function loadDelaysData() {
   const host = document.getElementById('trains-delays-banner');
   if (!host) return;
-  const hide = () => { host.style.display = 'none'; host.innerHTML = ''; };
+  const hide = () => { host.style.display = 'none'; host.innerHTML = ''; updateTrainsDelayBadge([]); };
   if (typeof jsyaml === 'undefined') { // YAML-парсер ще не завантажився
     if (delaysYamlTries++ < 40) { setTimeout(loadDelaysData, 250); }
     return;
@@ -982,6 +1003,7 @@ async function loadDelaysData() {
     // Лишаємо тільки валідні затримки: увімкнена (show !== false), є номер і додатні хвилини.
     // show: false у рядку ховає саме цю затримку, не видаляючи її з файлу.
     const delays = list.filter(d => d && d.show !== false && d.number != null && String(d.number).trim() !== '' && parseMin(d.delay) > 0);
+    updateTrainsDelayBadge(delays); // бейдж на вкладці: є затримки — видно одразу, немає — знімаємо
 
     if (delays.length === 0) {
       // Затримок немає — показуємо спокійний зелений статус замість порожнечі
