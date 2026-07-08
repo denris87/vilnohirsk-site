@@ -480,9 +480,9 @@ a,
 .delay-station-lbl{color:rgba(255,255,255,0.55);font-weight:600;}
 .delay-station b{color:#fff;font-weight:800;word-break:break-word;}
 .delay-note{font-size:10px;color:#ffd24d;font-weight:600;line-height:1.3;word-break:break-word;}
-.delay-min{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#ff4d4d,#ff9f43);color:#2a0606;border-radius:10px;padding:6px 10px;min-width:54px;box-shadow:0 3px 10px rgba(255,77,77,0.35);}
+.delay-min{flex:0 0 auto;display:flex;flex-direction:row;align-items:baseline;justify-content:center;gap:3px;white-space:nowrap;background:linear-gradient(135deg,#ff4d4d,#ff9f43);color:#2a0606;border-radius:10px;padding:7px 10px;min-width:54px;box-shadow:0 3px 10px rgba(255,77,77,0.35);}
 .delay-min b{font-size:16px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;}
-.delay-min span{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;margin-top:1px;}
+.delay-min span{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;}
 @media (prefers-reduced-motion: reduce){.delay-live-dot{animation:none;}}
 
 /* === СПОКІЙНИЙ СТАТУС «все добре»: немає змін / немає затримок === */
