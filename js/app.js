@@ -2244,11 +2244,11 @@ function createJobCardHtml(job, index, prefix) {
   const rawJobUrl = String(job.url || '');
   const jobUrl = /^(https?:\/\/|tel:)/i.test(rawJobUrl) ? rawJobUrl : '#';
   const isTel = jobUrl.startsWith('tel:');
-  let displayPhone = job.phone;
+  let displayPhone = job.phone ? String(job.phone) : '';
   if (displayPhone) { let cleanPhone = displayPhone.replace(/\D/g, ''); if (cleanPhone.length >= 10) displayPhone = '0' + cleanPhone.slice(-9); else if (cleanPhone.length === 9) displayPhone = '0' + cleanPhone; }
   const btnText = isTel && displayPhone ? displayPhone : (isTel ? 'Зателефонувати' : 'Відгукнутися 🔗');
   const targetAttr = isTel ? '_self' : '_blank';
-  let displaySalary = job.salary; if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) { displaySalary = displaySalary.trim() + ' грн'; }
+  let displaySalary = job.salary != null ? String(job.salary) : ''; if (displaySalary && displaySalary !== '-' && /^\d+$/.test(displaySalary.trim())) { displaySalary = displaySalary.trim() + ' грн'; }
 
   const isVip = job.isVip || job.vip;
   const vipBadge = isVip ? '<div class="vip-badge" style="background: linear-gradient(135deg, #ffcc00, #ff8800); color: #000;">VIP</div>' : '';
@@ -2365,12 +2365,20 @@ async function loadJobsData() {
   try {
     const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 3);
     Papa.parse(csvText, {
-      header: true, skipEmptyLines: true,
+      // Аркуш вакансій вивантажується БЕЗ рядка заголовків: перший рядок — уже дані.
+      // З header:true PapaParse «з'їдав» першу вакансію як заголовки, а коли в
+      // таблиці лишалась одна — розділ «Від місцевих підприємців» ставав порожнім.
+      header: false, skipEmptyLines: true,
       complete: function(results) {
-        const userJobs = results.data.filter(row => { const keys = Object.keys(row); let status = row['Статус'] || row['Status'] || row['status'] || row[keys[1]]; return status && String(status).trim().toLowerCase() === 'одобрено'; }).map(row => {
-          const keys = Object.keys(row); const phone = row['Телефон'] || row[keys[6]] || ''; const gender = row['Стать'] || row['gender'] || row[keys[7]] || ''; const employment = row['Зайнятість'] || row['employment'] || row[keys[8]] || ''; const vipStatus = row['VIP'] || row[keys[9]] || ''; const isVip = isVipFlag(vipStatus);
-          return { title: row['Посада'] || row[keys[2]] || 'Без назви', salary: row['Зарплата'] || row[keys[3]] || '-', company: row['Компанія'] || row[keys[4]] || 'Не вказано', description: row['Опис'] || row[keys[5]] || '', date: row['Дата'] ? String(row['Дата']).split(' ')[0] : 'Нещодавно', phone: phone, gender: gender, employment: employment, url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#', isVip: isVip, source: 'User' };
-        });
+        // Позиційні колонки аркуша: [0] дата, [1] статус, [2] посада, [3] зарплата,
+        // [4] компанія, [5] опис, [6] телефон, [7] стать, [8] зайнятість, [9] VIP
+        const cell = (r, i) => String(r && r[i] != null ? r[i] : '').trim();
+        const userJobs = results.data
+          .filter(r => Array.isArray(r) && cell(r, 1).toLowerCase() === 'одобрено')
+          .map(r => {
+            const phone = cell(r, 6);
+            return { title: cell(r, 2) || 'Без назви', salary: cell(r, 3) || '-', company: cell(r, 4) || 'Не вказано', description: cell(r, 5), date: cell(r, 0) ? cell(r, 0).split(' ')[0] : 'Нещодавно', phone: phone, gender: cell(r, 7), employment: cell(r, 8), url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#', isVip: isVipFlag(cell(r, 9)), source: 'User' };
+          });
         allJobs = allJobs.concat(userJobs);
         markNewItems(allJobs, 'jobs', false);
         checkNotification('jobs', allJobs);
