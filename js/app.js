@@ -783,7 +783,10 @@ async function loadFuelData() {
     const updated = data.updated ? `<span class="fuel-updated">${escapeHTML(String(data.updated))}</span>` : '';
     // Зберігаємо дані для збільшеного перегляду (для людей зі слабким зором)
     currentFuelData = { fuels: fuels, updated: data.updated || '' };
-    host.innerHTML = `<div class="fuel-head"><span class="fuel-title">⛽ Укрнафта <span style="font-weight:600;color:rgba(255,255,255,0.5);">грн/л</span></span>${updated}</div><div class="fuel-grid">${items}</div><div class="fuel-tap-hint">🔍 Збільшити</div>`;
+    // innerHTML лише при реальній зміні: інакше кожні 2 хв даремно перезбирали DOM і рвали виділення тексту
+    if (dataChanged('render_fuel', currentFuelData)) {
+      host.innerHTML = `<div class="fuel-head"><span class="fuel-title">⛽ Укрнафта <span style="font-weight:600;color:rgba(255,255,255,0.5);">грн/л</span></span>${updated}</div><div class="fuel-grid">${items}</div><div class="fuel-tap-hint">🔍 Збільшити</div>`;
+    }
     host.style.display = 'block';
     host.style.cursor = 'pointer';
     host.onclick = openFuelModal;
@@ -920,7 +923,10 @@ async function loadSvitloData() {
     // Згорнута плашка: назва + дата (+ «Оновлено о…», якщо графік змінювали протягом дня). Повний графік — у вікні по тапу.
     const dateLine = currentSvitloData.updated ? `<span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
     const revLine = currentSvitloData.revised ? `<span class="svitlo-rev">🔄 Оновлено о ${escapeHTML(String(currentSvitloData.revised))}</span>` : '';
-    host.innerHTML = `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}${revLine}</div>`;
+    // innerHTML лише при реальній зміні графіка (без зайвих перемальовувань щодва хвилини)
+    if (dataChanged('render_svitlo', { providers: currentSvitloData.providers, updated: currentSvitloData.updated, revised: currentSvitloData.revised })) {
+      host.innerHTML = `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}${revLine}</div>`;
+    }
     host.style.display = 'block';
     host.style.cursor = 'pointer';
     host.onclick = openSvitloModal;
@@ -990,14 +996,19 @@ function updateTrainsDelayBadge(delays) {
   const tab = document.querySelector('.tab-btn[onclick*="\'trains\'"]');
   if (!tab) return;
   tab.style.position = 'relative';
+  const maxMin = (delays && delays.length)
+    ? Math.max.apply(null, delays.map(d => parseInt(String(d && d.delay != null ? d.delay : '').replace(/\D/g, ''), 10) || 0))
+    : 0;
+  const wanted = maxMin ? '+' + maxMin + ' хв' : '';
   const old = tab.querySelector('.delays-live-badge');
+  // Без змін — не чіпаємо бейдж, щоб не перезапускати анімацію пульсу щодва хвилини
+  if (old && old.dataset.v === wanted) return;
   if (old) old.remove();
-  if (!delays || delays.length === 0) return;
-  const maxMin = Math.max.apply(null, delays.map(d => parseInt(String(d && d.delay != null ? d.delay : '').replace(/\D/g, ''), 10) || 0));
-  if (!maxMin) return;
+  if (!wanted) return;
   const badge = document.createElement('span');
   badge.className = 'delays-live-badge';
-  badge.innerHTML = '<span class="dl-dot"></span>+' + maxMin + ' хв';
+  badge.dataset.v = wanted;
+  badge.innerHTML = '<span class="dl-dot"></span>' + wanted;
   badge.title = delays.length === 1
     ? `Електричка затримується на ~${maxMin} хв`
     : `Затримки електричок: ${delays.length} (до +${maxMin} хв)`;
@@ -1029,12 +1040,16 @@ async function loadDelaysData() {
 
     if (delays.length === 0) {
       // Затримок немає — показуємо спокійний зелений статус замість порожнечі
-      host.className = 'trains-status-ok';
-      host.innerHTML = `<span class="ok-ico">🚆</span><span class="ok-txt"><span class="ok-title">Усі електрички — за розкладом</span><span class="ok-sub">Затримок зараз немає, гарної дороги!</span></span>`;
+      if (dataChanged('render_delays', 'ok')) {
+        host.className = 'trains-status-ok';
+        host.innerHTML = `<span class="ok-ico">🚆</span><span class="ok-txt"><span class="ok-title">Усі електрички — за розкладом</span><span class="ok-sub">Затримок зараз немає, гарної дороги!</span></span>`;
+      }
       host.style.display = 'flex'; // .trains-status-ok — flex; block тут ламав вирівнювання іконки
       return;
     }
 
+    // Банер затримок — перезбираємо лише коли список змінився
+    if (!dataChanged('render_delays', { updated: data.updated || '', delays: delays })) { host.style.display = 'block'; return; }
     host.className = 'trains-delays-banner';
     const updated = data.updated ? `<span class="trains-delays-upd">оновлено ${escapeHTML(String(data.updated))}</span>` : '';
     const rows = delays.map(d => {
