@@ -13,7 +13,7 @@
 # ───────────────────────────────────────────────────────────────
 
 show: true
-updated: "21.07.2026"
+updated: "22.07.2026"
 
 fuels:
   - name: "95E"
@@ -23,7 +23,7 @@ fuels:
     price: "77.90"
     color: "#ff4d4d"
   - name: "92"
-    price: "73.90"
+    price: "74.90"
     color: "#ffcc00"
   - name: "ДП"
     price: "78.90"
