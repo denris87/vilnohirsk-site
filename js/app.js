@@ -190,6 +190,23 @@ function copyToClipboardBtn(text, btn) {
     }
 }
 
+// PapaParse (розбір CSV) підключається з CDN. Якщо він ще не встиг завантажитись —
+// трохи чекаємо й пробуємо ще раз (так само, як зроблено для js-yaml),
+// замість того щоб одразу показати «Помилка завантаження».
+const papaTries = {};
+function papaReady(key, retry) {
+  if (typeof Papa !== 'undefined' && Papa && typeof Papa.parse === 'function') { delete papaTries[key]; return true; }
+  const now = Date.now();
+  const st = papaTries[key];
+  // Новий «сеанс» очікування, якщо попередній був давно (напр. автооновлення через 5 хв):
+  // інакше вичерпаний лічильник назавжди заблокував би розділ, навіть коли CDN оживе.
+  if (!st || now - st.last > 30000) papaTries[key] = { n: 0, last: now };
+  const s = papaTries[key];
+  s.last = now;
+  if (s.n++ < 40) setTimeout(retry, 250); // ~10 секунд очікування на CDN
+  return false;
+}
+
 // Хелпер для таймаута fetch (если сервер не отвечает за N секунд — отменяем)
 function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
     const controller = new AbortController();
@@ -1421,6 +1438,7 @@ function setEstateSort(v) {
 }
 
 async function loadEstateData() {
+  if (!papaReady('estate', loadEstateData)) return; // CSV-парсер ще вантажиться з CDN
   try {
     // Кэшируем на 3 минуты вместо 0 — Google Sheets всё равно не отдаёт мгновенно новые данные
     const csvText = await fetchCachedText(ESTATE_CSV_URL, 'estate_csv', 3);
@@ -1518,6 +1536,7 @@ function isFleaJobListing(item){
 }
 
 async function loadFleaMarketData() {
+  if (!papaReady('flea', loadFleaMarketData)) return; // CSV-парсер ще вантажиться з CDN
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=111977759';
     // Кэшируем на 3 минуты — нагрузка на Google Sheets уменьшается
@@ -1548,6 +1567,7 @@ async function loadFleaMarketData() {
 }
 
 async function loadLostFoundData() {
+  if (!papaReady('lost', loadLostFoundData)) return; // CSV-парсер ще вантажиться з CDN
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=624471689';
     const csvText = await fetchCachedText(csvUrl, 'lost_csv', 3);
@@ -2130,9 +2150,14 @@ async function loadVolunteersData(opts) {
   const container = document.getElementById('volunteers-list-content'); if (!container) return;
   const forceRefresh = opts && opts.forceRefresh;
   const attempt = (opts && opts.attempt) || 0;
-  const MAX_AUTO = 5; // автоматичних спроб «розбудити» сервер
-  if (forceRefresh && attempt === 0) {
+  // Тиха фонова переперевірка: сервер відповів порожнім списком — раптом він щойно прокинувся.
+  // Йде без спінера й лише один раз, щоб не крутити ланцюжок повторів.
+  const isRecheck = !!(opts && opts.recheck);
+  const MAX_AUTO = 5; // автоматичних спроб «розбудити» сервер (лише коли сервер НЕ відповів)
+  if ((forceRefresh && attempt === 0) || isRecheck) {
     try { delete memoryDataCache['volunteers_api']; } catch(e) {}
+  }
+  if (forceRefresh && attempt === 0) {
     container.innerHTML = '<div class="empty-msg" style="padding: 30px;"><div style="font-size:32px; margin-bottom:8px;">⏳</div>Оновлюємо збори...</div>';
   }
   // Повідомлення під час автопробудження сервера
@@ -2159,9 +2184,11 @@ async function loadVolunteersData(opts) {
 
     const emptyZsuHtml = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(56, 189, 248, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.06);"><div style="font-size: 44px; margin-bottom: 8px;">💙💛</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px; line-height: 1.3;">Активних зборів зараз немає</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Можливо сервер ще прокидається. Спробуйте ще раз через декілька секунд:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Оновити збори</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Ви волонтер? Маєте офіційний збір?<br>Напишіть нам у Telegram: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800; font-size: 13px;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255,204,0,0.4);">Слава Україні! 🇺🇦</div></div>`;
     if (!activeItems || activeItems.length === 0) {
-      // Порожньо може бути через сон сервера — тихо пробуємо ще раз кілька разів
-      if (scheduleRetry(attempt === 0 && forceRefresh)) return;
+      // Сервер ВІДПОВІВ, просто зборів немає — показуємо це одразу.
+      // Раніше тут крутився ланцюжок «пробуджень» на ~27 секунд, хоча сервер був живий.
       container.innerHTML = emptyZsuHtml;
+      // Одна тиха фонова переперевірка (раптом сервер щойно прокинувся й віддав порожньо)
+      if (!isRecheck) setTimeout(() => loadVolunteersData({ recheck: true }), 4000);
       return;
     }
     const useGrid = activeItems.length >= 2;
@@ -2374,6 +2401,7 @@ function renderJobs(jobs) {
 }
 
 async function loadJobsData() {
+  if (!papaReady('jobs', loadJobsData)) return; // CSV-парсер ще вантажиться з CDN
   let allJobs = [];
   try { const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 1); if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); } } catch(e) {}
   const SHEET_GID = '1809375718'; const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
