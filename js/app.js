@@ -2172,102 +2172,37 @@ function buildZsuCardsHtml(items) {
     return html;
 }
 
-// === ЛОКАЛЬНИЙ РЕЗЕРВ ЗБОРІВ ===
-// Останні успішно завантажені збори тримаємо у пам'яті браузера: якщо сервер
-// впаде (як 25.07 — HTTP 500), люди все одно побачать збір і реквізити,
-// а не повідомлення про помилку.
-const ZSU_CACHE_KEY = 'zsu_last_ok';
-const ZSU_CACHE_MAX_DAYS = 7; // старіші за тиждень не показуємо — можуть бути завершені
-function saveZsuCache(items) {
-  try {
-    const slim = (items || []).slice(0, 5).map(x => ({
-      title: x.title, description: String(x.description || '').slice(0, 1500),
-      jar_url: x.jar_url, card_number: x.card_number, collected: x.collected, goal: x.goal
-    }));
-    localStorage.setItem(ZSU_CACHE_KEY, JSON.stringify({ t: Date.now(), items: slim }));
-  } catch (e) {}
-}
-function clearZsuCache() { try { localStorage.removeItem(ZSU_CACHE_KEY); } catch (e) {} }
-function loadZsuCache() {
-  try {
-    const d = JSON.parse(localStorage.getItem(ZSU_CACHE_KEY) || 'null');
-    if (!d || !Array.isArray(d.items) || !d.items.length) return null;
-    if (Date.now() - (d.t || 0) > ZSU_CACHE_MAX_DAYS * 86400000) return null;
-    return d;
-  } catch (e) { return null; }
-}
-function zsuCacheDateText(ts) {
-  try {
-    const d = new Date(ts); const p2 = n => String(n).padStart(2, '0');
-    return `${p2(d.getDate())}.${p2(d.getMonth() + 1)} о ${p2(d.getHours())}:${p2(d.getMinutes())}`;
-  } catch (e) { return ''; }
-}
-function zsuOfflineNoticeHtml(ts) {
-  return `<div style="padding: 12px 14px; margin-bottom: 12px; text-align: center; background: linear-gradient(135deg, rgba(255,204,0,0.14), rgba(255,159,67,0.10)); border: 1px dashed rgba(255,204,0,0.45); border-radius: 14px; font-size: 11.5px; color: rgba(255,255,255,0.9); line-height: 1.5;">⚠️ Сервер зборів тимчасово недоступний.<br>Показуємо збережені дані від <b>${zsuCacheDateText(ts)}</b> — реквізити діють, але сума «зібрано» могла змінитися.<button onclick="loadVolunteersData({forceRefresh:true})" style="display:block; width:100%; margin-top:10px; padding:9px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); border-radius:10px; color:#38bdf8; font-weight:800; font-size:12px; cursor:pointer;">🔄 Спробувати оновити</button></div>`;
-}
-
+// Збори на ЗСУ — дані з data/zsu.yaml (формат той самий, що був у сервері зборів).
+// Раніше дані йшли через окремий сервіс на Railway, який читав цей же yaml і був
+// зайвою ланкою: 25.07 він почав віддавати HTTP 500 і розділ лишився порожнім.
+// Тепер файл лежить поруч із сайтом — поки працює сайт, працює й розділ.
+let zsuYamlTries = 0;
 async function loadVolunteersData(opts) {
   const container = document.getElementById('volunteers-list-content'); if (!container) return;
   const forceRefresh = opts && opts.forceRefresh;
-  const attempt = (opts && opts.attempt) || 0;
-  // Тиха фонова переперевірка: сервер відповів порожнім списком — раптом він щойно прокинувся.
-  // Йде без спінера й лише один раз, щоб не крутити ланцюжок повторів.
-  const isRecheck = !!(opts && opts.recheck);
-  const MAX_AUTO = 5; // автоматичних спроб «розбудити» сервер (лише коли сервер НЕ відповів)
-  if ((forceRefresh && attempt === 0) || isRecheck) {
-    try { delete memoryDataCache['volunteers_api']; } catch(e) {}
+  if (typeof jsyaml === 'undefined') { // YAML-парсер ще вантажиться з CDN
+    if (zsuYamlTries++ < 40) setTimeout(() => loadVolunteersData(opts), 250);
+    return;
   }
-  if (forceRefresh && attempt === 0) {
-    container.innerHTML = '<div class="empty-msg" style="padding: 30px;"><div style="font-size:32px; margin-bottom:8px;">⏳</div>Оновлюємо збори...</div>';
-  }
-  // Повідомлення під час автопробудження сервера
-  const wakingHtml = `<div class="empty-msg" style="padding: 30px; line-height:1.5;"><div style="font-size:32px; margin-bottom:8px;">⏳</div>Пробуджуємо сервер зборів…<br><span style="font-size:11px; color:rgba(255,255,255,0.6);">Зачекайте кілька секунд, це автоматично</span></div>`;
-  // Авто-повтор: чекаємо й тихо пробуємо ще раз
-  const scheduleRetry = (showWaking) => {
-    if (attempt >= MAX_AUTO) return false;
-    if (showWaking) container.innerHTML = wakingHtml;
-    const delay = Math.min(2500 + attempt * 1500, 8000); // 2.5с, 4с, 5.5с, 7с, 8с
-    setTimeout(() => loadVolunteersData({ forceRefresh: true, attempt: attempt + 1 }), delay);
-    return true;
-  };
+  const emptyZsuHtml = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(56, 189, 248, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.06);"><div style="font-size: 44px; margin-bottom: 8px;">💙💛</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 14px; line-height: 1.3;">Активних зборів зараз немає</div><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Ви волонтер? Маєте офіційний збір?<br>Напишіть нам у Telegram: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800; font-size: 13px;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255,204,0,0.4);">Слава Україні! 🇺🇦</div></div>`;
   try {
-    const data = await fetchCachedJson('https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers', 'volunteers_api', 1);
-    let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.volunteers) ? data.volunteers : []);
-    const activeItems = itemsArray.filter(item => item && item.active !== false);
+    const res = await fetch('./data/zsu.yaml?v=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = jsyaml.load(await res.text()) || {};
+    const list = Array.isArray(data.volunteers) ? data.volunteers : [];
+    // active: false ховає окремий збір, не видаляючи його з файлу
+    const activeItems = list.filter(item => item && item.active !== false && String(item.title || '').trim() !== '');
 
     markNewItems(activeItems, 'volunteers', false);
     checkNotification('volunteers', activeItems);
     updateZsuTabIndicator(activeItems);
 
-    // Без змін і без примусового оновлення — не перезбираємо відкриту секцію
+    // Без змін — не перезбираємо відкриту секцію
     if (!dataChanged('render_zsu', activeItems) && !forceRefresh) return;
 
-    const emptyZsuHtml = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(56, 189, 248, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.06);"><div style="font-size: 44px; margin-bottom: 8px;">💙💛</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px; line-height: 1.3;">Активних зборів зараз немає</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Можливо сервер ще прокидається. Спробуйте ще раз через декілька секунд:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Оновити збори</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Ви волонтер? Маєте офіційний збір?<br>Напишіть нам у Telegram: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800; font-size: 13px;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255,204,0,0.4);">Слава Україні! 🇺🇦</div></div>`;
-    if (!activeItems || activeItems.length === 0) {
-      // Сервер ВІДПОВІВ, просто зборів немає — показуємо це одразу.
-      // Раніше тут крутився ланцюжок «пробуджень» на ~27 секунд, хоча сервер був живий.
-      clearZsuCache(); // збори завершились — застарілий резерв показувати не можна
-      container.innerHTML = emptyZsuHtml;
-      // Одна тиха фонова переперевірка (раптом сервер щойно прокинувся й віддав порожньо)
-      if (!isRecheck) setTimeout(() => loadVolunteersData({ recheck: true }), 4000);
-      return;
-    }
-    saveZsuCache(activeItems); // свіжі дані — оновлюємо локальний резерв
-    container.innerHTML = buildZsuCardsHtml(activeItems);
+    container.innerHTML = activeItems.length ? buildZsuCardsHtml(activeItems) : emptyZsuHtml;
   } catch (e) {
-    // Сервер недоступний. Якщо є збережені збори — показуємо їх ОДРАЗУ,
-    // щоб реквізити були під рукою, і паралельно тихо стукаємо на сервер.
-    const cached = loadZsuCache();
-    if (cached) {
-      updateZsuTabIndicator(cached.items);
-      container.innerHTML = zsuOfflineNoticeHtml(cached.t) + buildZsuCardsHtml(cached.items);
-      delete lastRenderSig['render_zsu']; // щоб живі дані потім точно перемалювались
-      scheduleRetry(false); // тихо, не підміняючи екран
-      return;
-    }
-    // Сервер спить / таймаут — тихо пробуємо розбудити ще раз
-    if (scheduleRetry(true)) return;
-    container.innerHTML = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(255, 77, 77, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(255, 77, 77, 0.35); border-radius: 18px;"><div style="font-size: 44px; margin-bottom: 8px;">⚠️</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px;">Не вдалося завантажити збори</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Можливо сервер ще прокидається. Спробуйте ще раз:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Спробувати ще раз</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Маєте офіційний збір? Напишіть: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00;">Слава Україні! 🇺🇦</div></div>`;
+    container.innerHTML = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(255, 77, 77, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(255, 77, 77, 0.35); border-radius: 18px;"><div style="font-size: 44px; margin-bottom: 8px;">⚠️</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px;">Не вдалося завантажити збори</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Перевірте інтернет і спробуйте ще раз:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Спробувати ще раз</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Маєте офіційний збір? Напишіть: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00;">Слава Україні! 🇺🇦</div></div>`;
   }
 }
 
@@ -2529,9 +2464,12 @@ async function showDailyVolunteerAlert() {
     // Доба рахується за Києвом, як і весь інший час на сайті
     const today = getKyivNow().toDateString(); const lastSeen = localStorage.getItem('last_zsu_alert_date'); if (lastSeen === today) return;
     try {
-        const API_URL = 'https://vilnohirsk-volunteers-api-production.up.railway.app/api/volunteers'; const data = await fetchCachedJson(API_URL, 'volunteers_api', 2); 
-        let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.volunteers) ? data.volunteers : []);
-        const activeItems = itemsArray.filter(item => item && item.active !== false);
+        if (typeof jsyaml === 'undefined') return; // парсер ще вантажиться — покажемо наступного разу
+        const res = await fetch('./data/zsu.yaml?v=' + Date.now());
+        if (!res.ok) return;
+        const data = jsyaml.load(await res.text()) || {};
+        const itemsArray = Array.isArray(data.volunteers) ? data.volunteers : [];
+        const activeItems = itemsArray.filter(item => item && item.active !== false && String(item.title || '').trim() !== '');
         if (activeItems && activeItems.length > 0) {
             const cardsHtml = activeItems.map((item, idx) => {
                 const title = item.title || 'ЗБІР НА ЗСУ';
