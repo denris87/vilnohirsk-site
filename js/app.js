@@ -2146,6 +2146,66 @@ function updateZsuTabIndicator(activeItems) {
   ).join('');
 }
 
+// Збірка карток зборів (використовується і для живих даних, і для збережених локально)
+function buildZsuCardsHtml(items) {
+    const useGrid = items.length >= 2;
+    let html = useGrid ? '<div class="zsu-grid">' : '';
+    items.forEach((item, i) => {
+        const title = item.title || 'ЗБІР НА ЗСУ'; const desc = item.description ? nl2br(item.description) : 'Підтримайте наших захисників!';
+        // Посилання на банку — лише http(s), щоб у href не потрапило щось небезпечне
+        const jarUrl = /^https?:\/\//i.test(String(item.jar_url || '').trim()) ? String(item.jar_url).trim() : '';
+        const cardNumber = item.card_number || ''; const id = Math.random().toString(36).substr(2, 5);
+        const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0; const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
+        let progressHtml = '';
+        if (goal > 0) {
+            const percent = Math.min(Math.round((collected / goal) * 100), 100);
+            progressHtml = `<div class="zsu-card-progress" style="width: 100%; margin-top: 15px; margin-bottom: 5px;"><div class="zsu-progress-labels" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 6px;"><span style="color: #00ff9c;">Зібрано: ${collected.toLocaleString('uk-UA')} ₴</span><span style="color: rgba(255,255,255,0.5);">Ціль: ${goal.toLocaleString('uk-UA')} ₴</span></div><div style="width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);"><div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, #38bdf8, #ffcc00); border-radius: 10px; transition: width 1s ease-in-out;"></div></div></div>`;
+        }
+        let reqsHtml = '';
+        if (jarUrl) reqsHtml += `<a class="zsu-req-jar" href="${escapeHTML(jarUrl)}" target="_blank" style="display: block; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 10px; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(0,0,0,0.25)'"><div class="zsu-req-jar-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">🏦</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Посилання на Банку</span></div><div class="zsu-req-jar-url" style="font-size: 13px; color: var(--time-green); font-weight: 800; word-break: break-all; line-height: 1.4;" id="jar-${id}">${escapeHTML(jarUrl)}</div></a>`;
+        if (cardNumber) reqsHtml += `<div class="zsu-req-card" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px;"><div class="zsu-req-card-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">💳</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Номер картки</span></div><div class="zsu-req-card-num" style="font-size: ${String(cardNumber).length > 19 ? '13px' : '18px'}; font-weight: 800; font-family: monospace; letter-spacing: 1px; color: #fff; margin-bottom: 12px; text-align: center; word-break: break-all; overflow-wrap: anywhere;" id="card-${id}">${escapeHTML(cardNumber)}</div><button class="zsu-req-card-btn" onclick="copyToClipboardBtn('${String(cardNumber).replace(/[^A-Za-z0-9]/g, '')}', this)" style="width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">📋 Копіювати номер</button></div>`;
+
+        const dot = item.isNewItem ? NEW_BADGE_HTML : '';
+        html += `<div class="zsu-card" style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;"><div class="zsu-card-header" style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding-right: 15px;"><div style="width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.6); margin-top: 4px; flex-shrink: 0; animation: pulseAlert 2s infinite;"></div><div class="zsu-card-title" style="font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; text-align: left;">${escapeHTML(title)}${dot}</div></div><div class="zsu-card-desc" style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.6; text-align: left; margin-bottom: 15px; word-break: break-word;">${desc}</div>${progressHtml}<div class="zsu-card-reqs" style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;"><div class="zsu-card-reqs-title" style="font-size: 10px; font-weight: 700; color: var(--highlight-color); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: left;">Реквізити для допомоги:</div>${reqsHtml}</div></div>`;
+    });
+    if (useGrid) html += '</div>';
+    return html;
+}
+
+// === ЛОКАЛЬНИЙ РЕЗЕРВ ЗБОРІВ ===
+// Останні успішно завантажені збори тримаємо у пам'яті браузера: якщо сервер
+// впаде (як 25.07 — HTTP 500), люди все одно побачать збір і реквізити,
+// а не повідомлення про помилку.
+const ZSU_CACHE_KEY = 'zsu_last_ok';
+const ZSU_CACHE_MAX_DAYS = 7; // старіші за тиждень не показуємо — можуть бути завершені
+function saveZsuCache(items) {
+  try {
+    const slim = (items || []).slice(0, 5).map(x => ({
+      title: x.title, description: String(x.description || '').slice(0, 1500),
+      jar_url: x.jar_url, card_number: x.card_number, collected: x.collected, goal: x.goal
+    }));
+    localStorage.setItem(ZSU_CACHE_KEY, JSON.stringify({ t: Date.now(), items: slim }));
+  } catch (e) {}
+}
+function clearZsuCache() { try { localStorage.removeItem(ZSU_CACHE_KEY); } catch (e) {} }
+function loadZsuCache() {
+  try {
+    const d = JSON.parse(localStorage.getItem(ZSU_CACHE_KEY) || 'null');
+    if (!d || !Array.isArray(d.items) || !d.items.length) return null;
+    if (Date.now() - (d.t || 0) > ZSU_CACHE_MAX_DAYS * 86400000) return null;
+    return d;
+  } catch (e) { return null; }
+}
+function zsuCacheDateText(ts) {
+  try {
+    const d = new Date(ts); const p2 = n => String(n).padStart(2, '0');
+    return `${p2(d.getDate())}.${p2(d.getMonth() + 1)} о ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  } catch (e) { return ''; }
+}
+function zsuOfflineNoticeHtml(ts) {
+  return `<div style="padding: 12px 14px; margin-bottom: 12px; text-align: center; background: linear-gradient(135deg, rgba(255,204,0,0.14), rgba(255,159,67,0.10)); border: 1px dashed rgba(255,204,0,0.45); border-radius: 14px; font-size: 11.5px; color: rgba(255,255,255,0.9); line-height: 1.5;">⚠️ Сервер зборів тимчасово недоступний.<br>Показуємо збережені дані від <b>${zsuCacheDateText(ts)}</b> — реквізити діють, але сума «зібрано» могла змінитися.<button onclick="loadVolunteersData({forceRefresh:true})" style="display:block; width:100%; margin-top:10px; padding:9px; background:rgba(56,189,248,0.15); border:1px solid rgba(56,189,248,0.4); border-radius:10px; color:#38bdf8; font-weight:800; font-size:12px; cursor:pointer;">🔄 Спробувати оновити</button></div>`;
+}
+
 async function loadVolunteersData(opts) {
   const container = document.getElementById('volunteers-list-content'); if (!container) return;
   const forceRefresh = opts && opts.forceRefresh;
@@ -2186,34 +2246,25 @@ async function loadVolunteersData(opts) {
     if (!activeItems || activeItems.length === 0) {
       // Сервер ВІДПОВІВ, просто зборів немає — показуємо це одразу.
       // Раніше тут крутився ланцюжок «пробуджень» на ~27 секунд, хоча сервер був живий.
+      clearZsuCache(); // збори завершились — застарілий резерв показувати не можна
       container.innerHTML = emptyZsuHtml;
       // Одна тиха фонова переперевірка (раптом сервер щойно прокинувся й віддав порожньо)
       if (!isRecheck) setTimeout(() => loadVolunteersData({ recheck: true }), 4000);
       return;
     }
-    const useGrid = activeItems.length >= 2;
-    let html = useGrid ? '<div class="zsu-grid">' : '';
-    activeItems.forEach((item, i) => {
-        const title = item.title || 'ЗБІР НА ЗСУ'; const desc = item.description ? nl2br(item.description) : 'Підтримайте наших захисників!';
-        // Посилання на банку — лише http(s), щоб у href не потрапило щось небезпечне
-        const jarUrl = /^https?:\/\//i.test(String(item.jar_url || '').trim()) ? String(item.jar_url).trim() : '';
-        const cardNumber = item.card_number || ''; const id = Math.random().toString(36).substr(2, 5);
-        const collected = item.collected ? parseInt(item.collected.toString().replace(/\D/g, ''), 10) : 0; const goal = item.goal ? parseInt(item.goal.toString().replace(/\D/g, ''), 10) : 0;
-        let progressHtml = '';
-        if (goal > 0) {
-            const percent = Math.min(Math.round((collected / goal) * 100), 100);
-            progressHtml = `<div class="zsu-card-progress" style="width: 100%; margin-top: 15px; margin-bottom: 5px;"><div class="zsu-progress-labels" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 6px;"><span style="color: #00ff9c;">Зібрано: ${collected.toLocaleString('uk-UA')} ₴</span><span style="color: rgba(255,255,255,0.5);">Ціль: ${goal.toLocaleString('uk-UA')} ₴</span></div><div style="width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);"><div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, #38bdf8, #ffcc00); border-radius: 10px; transition: width 1s ease-in-out;"></div></div></div>`;
-        }
-        let reqsHtml = '';
-        if (jarUrl) reqsHtml += `<a class="zsu-req-jar" href="${escapeHTML(jarUrl)}" target="_blank" style="display: block; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 10px; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(0,0,0,0.25)'"><div class="zsu-req-jar-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">🏦</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Посилання на Банку</span></div><div class="zsu-req-jar-url" style="font-size: 13px; color: var(--time-green); font-weight: 800; word-break: break-all; line-height: 1.4;" id="jar-${id}">${escapeHTML(jarUrl)}</div></a>`;
-        if (cardNumber) reqsHtml += `<div class="zsu-req-card" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px;"><div class="zsu-req-card-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">💳</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Номер картки</span></div><div class="zsu-req-card-num" style="font-size: ${String(cardNumber).length > 19 ? '13px' : '18px'}; font-weight: 800; font-family: monospace; letter-spacing: 1px; color: #fff; margin-bottom: 12px; text-align: center; word-break: break-all; overflow-wrap: anywhere;" id="card-${id}">${escapeHTML(cardNumber)}</div><button class="zsu-req-card-btn" onclick="copyToClipboardBtn('${String(cardNumber).replace(/[^A-Za-z0-9]/g, '')}', this)" style="width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">📋 Копіювати номер</button></div>`;
-
-        const dot = item.isNewItem ? NEW_BADGE_HTML : '';
-        html += `<div class="zsu-card" style="margin-bottom: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative;"><div class="zsu-card-header" style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding-right: 15px;"><div style="width: 10px; height: 10px; border-radius: 50%; background: #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.6); margin-top: 4px; flex-shrink: 0; animation: pulseAlert 2s infinite;"></div><div class="zsu-card-title" style="font-size: 15px; font-weight: 800; color: #fff; line-height: 1.3; text-align: left;">${escapeHTML(title)}${dot}</div></div><div class="zsu-card-desc" style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.6; text-align: left; margin-bottom: 15px; word-break: break-word;">${desc}</div>${progressHtml}<div class="zsu-card-reqs" style="margin-top: 20px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 15px;"><div class="zsu-card-reqs-title" style="font-size: 10px; font-weight: 700; color: var(--highlight-color); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; text-align: left;">Реквізити для допомоги:</div>${reqsHtml}</div></div>`;
-    });
-    if (useGrid) html += '</div>';
-    container.innerHTML = html;
+    saveZsuCache(activeItems); // свіжі дані — оновлюємо локальний резерв
+    container.innerHTML = buildZsuCardsHtml(activeItems);
   } catch (e) {
+    // Сервер недоступний. Якщо є збережені збори — показуємо їх ОДРАЗУ,
+    // щоб реквізити були під рукою, і паралельно тихо стукаємо на сервер.
+    const cached = loadZsuCache();
+    if (cached) {
+      updateZsuTabIndicator(cached.items);
+      container.innerHTML = zsuOfflineNoticeHtml(cached.t) + buildZsuCardsHtml(cached.items);
+      delete lastRenderSig['render_zsu']; // щоб живі дані потім точно перемалювались
+      scheduleRetry(false); // тихо, не підміняючи екран
+      return;
+    }
     // Сервер спить / таймаут — тихо пробуємо розбудити ще раз
     if (scheduleRetry(true)) return;
     container.innerHTML = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(255, 77, 77, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(255, 77, 77, 0.35); border-radius: 18px;"><div style="font-size: 44px; margin-bottom: 8px;">⚠️</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px;">Не вдалося завантажити збори</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Можливо сервер ще прокидається. Спробуйте ще раз:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Спробувати ще раз</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Маєте офіційний збір? Напишіть: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00;">Слава Україні! 🇺🇦</div></div>`;
