@@ -32,17 +32,17 @@ show: true
 updated: "28.07.2026"
 
 delays:
-- number: "6005"
-  route: " Дніпро-Гол. → П'ятихатки-Пас." 
-  station: "Сухачівка"
-  delay: 40
-  show: false
-  note: ""
-  
 - number: "6008"
   route: " П'ятихатки-Стик. → Дніпро-Гол." 
   station: "Вільногірськ"
   delay: 50
+  show: false
+  note: ""
+  
+- number: "6005"
+  route: " Дніпро-Гол. → П'ятихатки-Пас." 
+  station: "Сухачівка"
+  delay: 40
   show: false
   note: ""
 
@@ -50,7 +50,7 @@ delays:
   route: "Дніпро-Гол. → П'ятихатки-Стик." 
   station: "Горяїнове"
   delay: 29
-  show: true
+  show: false
   note: ""
 
   # ─── ШАБЛОН: прибери «# » зліва й виправ під свій рейс ───
