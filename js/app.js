@@ -1016,7 +1016,10 @@ function updateTrainsDelayBadge(delays) {
   const maxMin = (delays && delays.length)
     ? Math.max.apply(null, delays.map(d => parseInt(String(d && d.delay != null ? d.delay : '').replace(/\D/g, ''), 10) || 0))
     : 0;
-  const wanted = maxMin ? '+' + maxMin + ' хв' : '';
+  // На бейджі — КІЛЬКІСТЬ затриманих електричок (як на бейджі змін у розкладі).
+  // Хвилини у кожного рейсу свої, тому вони лишаються в самому банері, а не на вкладці.
+  const count = (delays && delays.length) ? delays.length : 0;
+  const wanted = count ? count + '|' + maxMin : ''; // maxMin — щоб оновився і підпис при наведенні
   const old = tab.querySelector('.delays-live-badge');
   // Без змін — не чіпаємо бейдж, щоб не перезапускати анімацію пульсу щодва хвилини
   if (old && old.dataset.v === wanted) return;
@@ -1025,10 +1028,10 @@ function updateTrainsDelayBadge(delays) {
   const badge = document.createElement('span');
   badge.className = 'delays-live-badge';
   badge.dataset.v = wanted;
-  badge.innerHTML = '<span class="dl-dot"></span>' + wanted;
-  badge.title = delays.length === 1
-    ? `Електричка затримується на ~${maxMin} хв`
-    : `Затримки електричок: ${delays.length} (до +${maxMin} хв)`;
+  badge.innerHTML = '<span class="dl-dot"></span>' + tabSeg('clock', count);
+  badge.title = count === 1
+    ? `Затримується 1 електричка (~${maxMin} хв)`
+    : `Затримується електричок: ${count} (до +${maxMin} хв)`;
   tab.appendChild(badge);
 }
 
@@ -1071,10 +1074,13 @@ async function loadDelaysData() {
     const updated = data.updated ? `<span class="trains-delays-upd">оновлено ${escapeHTML(String(data.updated))}</span>` : '';
     const rows = delays.map(d => {
       const min = parseMin(d.delay);
-      const route = d.route ? `<div class="delay-route">${escapeHTML(String(d.route))}</div>` : '';
+      // Два рядки: «№ + маршрут» і «станція + затримка».
+      // Так маршрут отримує майже всю ширину картки й не переноситься на новий рядок.
+      const routeTxt = d.route ? escapeHTML(String(d.route).trim()) : '';
+      const route = routeTxt ? `<div class="delay-route" title="${routeTxt}">${routeTxt}</div>` : '';
       const station = d.station ? `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує зі ст.</span> <b>${escapeHTML(String(d.station))}</b></div>` : '';
       const note = (d.note && String(d.note).trim()) ? `<div class="delay-note">⚠️ ${escapeHTML(String(d.note))}</div>` : '';
-      return `<div class="delay-row"><div class="delay-num">№${escapeHTML(String(d.number))}</div><div class="delay-body">${route}${station}${note}</div><div class="delay-min"><b>+${min}</b><span>хв</span></div></div>`;
+      return `<div class="delay-row"><div class="delay-top"><div class="delay-num">№${escapeHTML(String(d.number))}</div>${route}</div><div class="delay-bottom">${station}<div class="delay-min"><b>+${min}</b><span>хв</span></div></div>${note}</div>`;
     }).join('');
 
     host.innerHTML = `<div class="trains-delays-head"><span class="trains-delays-title"><span class="delay-live-dot"></span>⏱️ Затримки електричок</span>${updated}</div>${rows}`;
@@ -1813,6 +1819,7 @@ const TAB_ICONS = {
   volunteer: '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>',
   train: '<path d="M12 2c-4.42 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>',
   briefcase: '<path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/>',
+  clock: '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>',
   bolt: '<path d="M11 21h-1l1-7H7.5c-.58 0-.57-.32-.38-.66.19-.34.05-.08.07-.12C8.48 10.94 10.42 7.54 13 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.96 17.55 11 21 11 21z"/>',
   tag: '<path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>'
 };
