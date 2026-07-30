@@ -1093,7 +1093,12 @@ async function loadDelaysData() {
       // Так маршрут отримує майже всю ширину картки й не переноситься на новий рядок.
       const routeTxt = d.route ? escapeHTML(String(d.route).trim()) : '';
       const route = routeTxt ? `<div class="delay-route" title="${routeTxt}">${routeTxt}</div>` : '';
-      const station = d.station ? `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує зі ст.</span> <b>${escapeHTML(String(d.station))}</b></div>` : '';
+      // Станція не вказана — не ховаємо плашку, а пишемо, що рейс іде з початкової.
+      // Порожній рядок і самі пробіли вважаємо «не вказано».
+      const stationTxt = String(d.station == null ? '' : d.station).trim();
+      const station = stationTxt
+        ? `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує зі ст.</span> <b>${escapeHTML(stationTxt)}</b></div>`
+        : `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує з</span> <b>початкової станції</b></div>`;
       const note = (d.note && String(d.note).trim()) ? `<div class="delay-note">⚠️ ${escapeHTML(String(d.note))}</div>` : '';
       return `<div class="delay-row"><div class="delay-top"><div class="delay-num">№${escapeHTML(String(d.number))}</div>${route}</div><div class="delay-bottom">${station}<div class="delay-min"><b>+${min}</b><span>хв</span></div></div>${note}</div>`;
     }).join('');
