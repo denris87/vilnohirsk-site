@@ -46,6 +46,7 @@ document.addEventListener('touchend', function(e){
 <meta property="og:title" content="Smart Вільногірськ | Усе місто в одному додатку">
 <meta property="og:description" content="Розклад, барахолка, робота, афіші, довідник та важливі новини міста. Завжди під рукою без зайвого!">
 <meta property="og:image" content="https://vilnohirsk.online/IMG_5193.JPG">
+<link rel="canonical" href="https://vilnohirsk.online/">
 <meta property="og:url" content="https://vilnohirsk.online">
 <meta property="og:type" content="website">
 
@@ -72,6 +73,9 @@ document.addEventListener('touchend', function(e){
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://docs.google.com">
 <link rel="preconnect" href="https://api.open-meteo.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://vilnohirsk-trains-production.up.railway.app" crossorigin>
 
 <meta name="apple-mobile-web-app-title" content="Вільногірськ">
@@ -89,7 +93,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260728a">
+<link rel="stylesheet" href="./css/styles.css?v=20260730a">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -548,6 +552,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260728a" defer></script>
+<script src="./js/app.js?v=20260730a" defer></script>
 </body>
 </html>

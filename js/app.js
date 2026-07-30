@@ -40,9 +40,23 @@ function dataChanged(key, data) {
     return true;
 }
 
+// Підпис ставиться ще до збірки HTML. Якщо збірка впаде з помилкою, блок
+// вважатиметься «вже відрендереним» і автооновлення більше ніколи його не
+// перемалює — розділ зависне зламаним до наступної зміни даних.
+// Тому кожен catch завантажувача скидає свій підпис через цю функцію.
+function invalidateRender(key) { delete lastRenderSig[key]; }
+
+// Раніше половина catch-блоків мовчала: зламаний розділ виглядав просто
+// порожнім, а в консолі не було ані рядка — причину не було де шукати.
+function logSectionError(section, e) {
+    try { console.error('[Смарт Вільногірськ] розділ «' + section + '»:', e); } catch (_) {}
+}
+
 // === БЕЗОПАСНОСТЬ И УТИЛИТЫ ===
 function escapeHTML(str) {
-    if (!str) return '';
+    // Саме порівняння з null/undefined, а не «if (!str)»: інакше число 0 і false
+    // перетворювались на порожній рядок (напр. «💺 Місць: » замість «💺 Місць: 0»).
+    if (str === null || str === undefined || str === '') return '';
     return String(str).replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
 }
 
@@ -69,11 +83,12 @@ function packForAttr(obj) {
 
 // Телефон → клікабельне tel:-посилання; якщо цифр немає (напр. «Не вказано») —
 // повертаємо просто текст, щоб не створювати порожній href="tel:"
-function phoneLinkHtml(phone) {
+function phoneLinkHtml(phone, cls, prefix) {
     const raw = String(phone == null ? '' : phone).trim();
     const clean = raw.replace(/[^0-9+]/g, '');
-    if (clean.replace(/\D/g, '').length < 5) return escapeHTML(raw || 'Не вказано');
-    return `<a href="tel:${clean}" class="shop-phone-link">${escapeHTML(raw)}</a>`;
+    const pre = prefix || '';
+    if (clean.replace(/\D/g, '').length < 5) return pre + escapeHTML(raw || 'Не вказано');
+    return `<a href="tel:${clean}" class="${cls || 'shop-phone-link'}">${pre}${escapeHTML(raw)}</a>`;
 }
 
 // Гнучка перевірка VIP-прапорця з таблиці: True для будь-якого непорожнього значення, окрім явних "ні"
@@ -372,7 +387,7 @@ function renderGallery(photos) {
     photos.forEach((item, i) => {
         const url = typeof item === 'string' ? item : item.url; const author = typeof item === 'object' && item.author ? item.author : '';
         const dotHtml = item.isNewItem ? '<div style="position:absolute; top:8px; right:8px; width:10px; height:10px; border-radius:50%; background:#ff3366; box-shadow:0 0 10px #ff3366; animation:pulseAlert 2s infinite; z-index:10;" title="Нове"></div>' : '';
-        html += `<div style="aspect-ratio:1/1; border-radius:14px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.2); cursor:pointer; border:1px solid rgba(255,255,255,0.1); position:relative; background:rgba(255,255,255,0.05);" onclick="openImageModal(currentVilnohirskPhotos, ${i}, event)"><img src="${escapeHTML(url)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 0.3s ease;">${dotHtml}${author ? `<div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 8px 8px 8px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.9); text-align:left; text-shadow:0 1px 2px rgba(0,0,0,0.8); pointer-events:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📸 ${escapeHTML(author)}</div>` : ''}</div>`;
+        html += `<div style="aspect-ratio:1/1; border-radius:14px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.2); cursor:pointer; border:1px solid rgba(255,255,255,0.1); position:relative; background:rgba(255,255,255,0.05);" onclick="openImageModal(currentVilnohirskPhotos, ${i}, event)"><img alt="Фото міста" src="${escapeHTML(url)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 0.3s ease;">${dotHtml}${author ? `<div style="position:absolute; bottom:0; left:0; right:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); padding:20px 8px 8px 8px; font-size:10px; font-weight:700; color:rgba(255,255,255,0.9); text-align:left; text-shadow:0 1px 2px rgba(0,0,0,0.8); pointer-events:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">📸 ${escapeHTML(author)}</div>` : ''}</div>`;
     });
     container.innerHTML = html + '</div>';
 }
@@ -632,7 +647,7 @@ async function loadMapPlaces() {
     });
 
     buildMapFilters(visibleCats);
-  } catch (e) {}
+  } catch (e) { logSectionError('карта міста', e); }
 }
 
 function buildMapFilters(cats) {
@@ -668,8 +683,8 @@ function switchAppTab(tabId, btn, group) {
   const drawer = document.getElementById(drawers[group]);
   if (drawer) { drawer.classList.remove('drawer-events', 'drawer-communal'); if(tabId === 'alert-events') drawer.classList.add('drawer-events'); if(tabId === 'alert-feed') drawer.classList.add('drawer-communal'); drawer.classList.add('open'); }
   btn.classList.add('active'); const targetSection = document.getElementById(tabId); if (targetSection) targetSection.classList.add('active');
-  if (tabId === 'alert-volunteers') { try { loadVolunteersData({forceRefresh: true}); } catch(e) {} }
-  if (tabId === 'map-tab') { try { initCityMap(); } catch(e) {} }
+  if (tabId === 'alert-volunteers') { try { loadVolunteersData({forceRefresh: true}); } catch(e) { logSectionError('збори ЗСУ', e); } }
+  if (tabId === 'map-tab') { try { initCityMap(); } catch(e) { logSectionError('карта міста', e); } }
   window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
 }
 
@@ -739,7 +754,7 @@ async function loadWeather(){
       const d = await fetchCachedJson(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weather_code,wind_speed_10m&timezone=Europe%2FKyiv`, 'weather_'+c.name, 30);
       if (d && d.current) { results.push({ name: c.name, w: { temperature: d.current.temperature_2m, weathercode: d.current.weather_code, windspeed: d.current.wind_speed_10m } }); }
       else if (d && d.current_weather) { results.push({name: c.name, w: d.current_weather}); }
-    } catch(e) {}
+    } catch(e) { logSectionError('погода', e); invalidateRender('render_weather'); }
   }
   const container = document.getElementById("weather-container");
   if (!dataChanged('render_weather', results)) return; // погода та сама — не перезапускаємо слайдер
@@ -812,7 +827,7 @@ async function loadFuelData() {
     host.setAttribute('tabindex', '0');
     host.setAttribute('aria-label', 'Збільшити ціни на пальне для кращої видимості');
     if (divider) divider.style.display = 'block';
-  } catch (e) { hideFuel(); }
+  } catch (e) { logSectionError('ціни на пальне', e); invalidateRender('render_fuel'); hideFuel(); }
 }
 
 // === ЗБІЛЬШЕНИЙ ПЕРЕГЛЯД ЦІН НА ПАЛЬНЕ (для людей зі слабким зором) ===
@@ -952,7 +967,7 @@ async function loadSvitloData() {
     host.setAttribute('tabindex', '0');
     host.setAttribute('aria-label', 'Графік відключень світла — натисніть, щоб побачити час');
     if (divider) divider.style.display = 'block';
-  } catch (e) { hide(); }
+  } catch (e) { logSectionError('відключення світла', e); invalidateRender('render_svitlo'); hide(); }
 }
 
 function openSvitloModal() {
@@ -1085,7 +1100,7 @@ async function loadDelaysData() {
 
     host.innerHTML = `<div class="trains-delays-head"><span class="trains-delays-title"><span class="delay-live-dot"></span>⏱️ Затримки електричок</span>${updated}</div>${rows}`;
     host.style.display = 'block';
-  } catch (e) { hide(); }
+  } catch (e) { logSectionError('затримки електричок', e); invalidateRender('render_delays'); hide(); }
 }
 
 async function loadExchangeRates() {
@@ -1109,7 +1124,7 @@ async function loadExchangeRates() {
           const usd = dataNbu.find(c => c.cc === 'USD'); const eur = dataNbu.find(c => c.cc === 'EUR');
           if (usd && eur) { document.getElementById('usd-buy').textContent = Number(usd.rate).toFixed(2); document.getElementById('usd-sell').textContent = Number(usd.rate).toFixed(2); document.getElementById('eur-buy').textContent = Number(eur.rate).toFixed(2); document.getElementById('eur-sell').textContent = Number(eur.rate).toFixed(2); }
       }
-  } catch(e3) {}
+  } catch(e3) { logSectionError('курс валют', e3); }
 }
 
 const UA_MONTHS = ['СІЧНЯ','ЛЮТОГО','БЕРЕЗНЯ','КВІТНЯ','ТРАВНЯ','ЧЕРВНЯ','ЛИПНЯ','СЕРПНЯ','ВЕРЕСНЯ','ЖОВТНЯ','ЛИСТОПАДА','ГРУДНЯ'];
@@ -1200,7 +1215,7 @@ async function loadAlerts() {
     if (dataChanged('render_feed', feedAlerts)) {
       document.getElementById("alert-feed-content").innerHTML = buildCarouselHtml(feedAlerts, '#ffcc00', 'feed');
     }
-  } catch(e) { const fc = document.getElementById("alert-feed-content"); if (fc) fc.innerHTML = `<div class="empty-msg">Помилка завантаження</div>`; }
+  } catch(e) { logSectionError('новини', e); invalidateRender('render_feed'); const fc = document.getElementById("alert-feed-content"); if (fc) fc.innerHTML = `<div class="empty-msg">Помилка завантаження</div>`; }
 }
 
 async function loadEventsData() {
@@ -1220,7 +1235,7 @@ async function loadEventsData() {
     if (dataChanged('render_events', eventsWithPhotos)) {
       document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(eventsWithPhotos, '#FF3366', 'events', true);
     }
-  } catch(e) { document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
+  } catch(e) { logSectionError('афіші', e); invalidateRender('render_events'); document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
 }
 
 async function loadPhonebookData() {
@@ -1297,7 +1312,7 @@ function renderShops(shopsData) {
     
     const isContactless = shop.contactless === true || shop.contactless === 'true' || shop.contactless === '✅';
     let photosHtml = ''; let photosArray = Array.isArray(shop.photos) ? shop.photos : (photoUrl ? [photoUrl] : []);
-    if (photosArray.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(photosArray.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(photosArray[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
+    if (photosArray.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(photosArray.map(getDriveImageUrl))}')), 0, event)"><img alt="Фото магазину" src="${escapeHTML(getDriveImageUrl(photosArray[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
     
     const dot = shop.isNewItem ? NEW_BADGE_HTML : '';
     const dropdownHtml = buildDropdown(detailsId, photosHtml, [ {icon: '📍', label: 'Адреса', value: escapeHTML(shop.address) || "Не вказано"}, {icon: '🕒', label: 'Графік роботи', value: shop.schedule ? nl2br(String(shop.schedule)) : 'Не вказано'}, {icon: '💳', label: 'Термінал', value: isContactless ? '✅' : '❌'}, {icon: '📞', label: 'Телефон(и)', value: phoneHtml} ]);
@@ -1320,7 +1335,7 @@ async function loadShopsData() {
     // Стабильное перемешивание — не прыгает при автообновлении
     const finalShops = [...vipShops, ...getStableShuffled(regularShops, 'shops')];
     if (dataChanged('render_shops', finalShops)) renderShops(finalShops);
-  } catch(e) { document.getElementById('shopping-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження магазинів</div>`; }
+  } catch(e) { logSectionError('магазини', e); invalidateRender('render_shops'); document.getElementById('shopping-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження магазинів</div>`; }
 }
 
 function renderPromosList(items) {
@@ -1330,9 +1345,9 @@ function renderPromosList(items) {
   items.forEach((item, i) => {
     const id = 'promo-detail-' + i; 
     let thumbUrl = item.photos && item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
-    const thumb = thumbUrl ? `<img src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="object-fit: contain; width: 100%; height: 100%; opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🔥</span>`;
+    const thumb = thumbUrl ? `<img alt="Фото акції" src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="object-fit: contain; width: 100%; height: 100%; opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🔥</span>`;
     let photosHtml = '';
-    if (item.photos && item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
+    if (item.photos && item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img alt="Фото акції" src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Збільшити фото</div></div>`; }
     
     // Посилання виймаємо з сирого тексту ДО екранування: інакше & в URL
     // перетворювався на &amp; і адреса з параметрами ламалась подвійним екрануванням
@@ -1398,7 +1413,7 @@ async function loadPromosData() {
 
     allPromoItems = [...activeItems.filter(item => item.vip).reverse(), ...activeItems.filter(item => !item.vip).reverse()];
     if (dataChanged('render_promos', allPromoItems)) renderPromosList(allPromoItems);
-  } catch (e) { document.getElementById('promos-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d; line-height: 1.4;">Помилка зв'язку з сервером акцій</div>`; }
+  } catch (e) { logSectionError('акції', e); invalidateRender('render_promos'); document.getElementById('promos-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d; line-height: 1.4;">Помилка зв'язку з сервером акцій</div>`; }
 }
 
 function renderEstateList(items, hasMore = false) {
@@ -1409,9 +1424,9 @@ function renderEstateList(items, hasMore = false) {
   sortedItems.forEach((item, i) => {
     const id = 'estate-detail-' + i; 
     let thumbUrl = item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
-    const thumb = thumbUrl ? `<img src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🏠</span>`;
+    const thumb = thumbUrl ? `<img alt="Фото об’єкта нерухомості" src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🏠</span>`;
     let photosHtml = '';
-    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+    if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img alt="Фото об’єкта нерухомості" src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const dealColor = item.dealType.toLowerCase() === 'оренда' ? '#00b8ff' : '#ff3366';
     let displayPrice = item.price ? String(item.price).trim() : 'Договірна';
     if (displayPrice !== 'Договірна' && !displayPrice.includes('$')) { displayPrice += ' $'; }
@@ -1478,7 +1493,7 @@ async function loadEstateData() {
         }
       }
     });
-  } catch (e) { document.getElementById('estate-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
+  } catch (e) { logSectionError('нерухомість', e); invalidateRender('render_estate'); document.getElementById('estate-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
 }
 
 function renderFleaMarketList(items, hasMore = false) {
@@ -1492,9 +1507,9 @@ function renderFleaMarketList(items, hasMore = false) {
   sortedItems.forEach((item, i) => {
     const id = 'flea-detail-' + i; 
     let thumbUrl = item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
-    const thumb = thumbUrl ? `<img src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">📦</span>`;
+    const thumb = thumbUrl ? `<img alt="Фото товару" src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">📦</span>`;
     let priceText = item.price ? String(item.price).trim() : 'Ціна договірна'; if (priceText !== "Ціна договірна" && !priceText.toLowerCase().includes("грн")) priceText += " грн";
-    let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+    let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img alt="Фото товару" src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const isVip = isVipFlag(item.vip);
     
     const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '✨', label: 'Стан', value: escapeHTML(item.condition)}, {icon: '📝', label: 'Опис', value: nl2br(item.description)}, {icon: '📞', label: 'Контакти', value: phoneLinkHtml(item.phone)} ]);
@@ -1569,7 +1584,7 @@ async function loadFleaMarketData() {
         }
       }
     });
-  } catch (e) { document.getElementById('flea-market-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
+  } catch (e) { logSectionError('барахолка', e); invalidateRender('render_flea'); document.getElementById('flea-market-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
 }
 
 async function loadLostFoundData() {
@@ -1598,9 +1613,9 @@ async function loadLostFoundData() {
         localItems.forEach((item, i) => {
           const id = 'lost-detail-' + i; 
           let thumbUrl = item.photos.length > 0 ? getDriveImageUrl(item.photos[0]) : '';
-          const thumb = thumbUrl ? `<img src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🔍</span>`; 
+          const thumb = thumbUrl ? `<img alt="Фото загубленої речі" src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🔍</span>`; 
           const badgeColor = item.type.toLowerCase().includes('знайд') ? '#00ff9c' : '#ff4d4d';
-          let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
+          let photosHtml = ''; if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img alt="Фото загубленої речі" src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
           
           const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Категорія', value: escapeHTML(item.category)}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location)}, {icon: '📝', label: 'Опис', value: nl2br(item.description)}, {icon: '📞', label: 'Контакти', value: phoneLinkHtml(item.phone)} ]);
           
@@ -1610,7 +1625,7 @@ async function loadLostFoundData() {
         cont.innerHTML = html + '</div>';
       }
     });
-  } catch (e) { document.getElementById('lost-found-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
+  } catch (e) { logSectionError('загублені речі', e); invalidateRender('render_lost'); document.getElementById('lost-found-list-content').innerHTML = `<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження</div>`; }
 }
 
 function isPast(timeStr) {
@@ -1746,7 +1761,7 @@ async function loadLongTrainsData() {
       });
       document.getElementById("long-trains-list").innerHTML = h;
     }
-  }catch(e){ document.getElementById("long-trains-list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; }
+  }catch(e){ logSectionError('потяги', e); invalidateRender('render_longtrains'); document.getElementById("long-trains-list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; }
 }
 
 async function loadBusesData(){ 
@@ -2003,12 +2018,12 @@ async function loadBlaBlaCarData() {
     updateBlaBlaToggleCounts(dr.length, ps.length);
 
     if (!dataChanged('render_blabla', d)) return; // дані ті самі — списки не чіпаємо
-    let htmlD = dr.length ? dr.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b>${x.isNewItem ? NEW_BADGE_HTML : ''}</div><div class="blabla-info-row"><span>💺 Місць: <b>${escapeHTML(x.seats)}</b></span><span>💵 <b>${x.price > 0 ? escapeHTML(x.price) + ' грн' : 'Договірна'}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone.replace(/[^0-9+]/g, '')}" class="blabla-phone">📞 ${escapeHTML(x.phone)}</a></div></div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
-    let htmlP = ps.length ? ps.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b>${x.isNewItem ? NEW_BADGE_HTML : ''}</div><div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${escapeHTML(x.seats)}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;"><a href="tel:${x.phone.replace(/[^0-9+]/g, '')}" class="blabla-phone">📞 ${escapeHTML(x.phone)}</a></div></div>`).join('') : '<div class="empty-msg">Запитів немає</div>';
+    let htmlD = dr.length ? dr.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b>${x.isNewItem ? NEW_BADGE_HTML : ''}</div><div class="blabla-info-row"><span>💺 Місць: <b>${escapeHTML(x.seats)}</b></span><span>💵 <b>${x.price > 0 ? escapeHTML(x.price) + ' грн' : 'Договірна'}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;">${phoneLinkHtml(x.phone, 'blabla-phone', '📞 ')}</div></div>`).join('') : '<div class="empty-msg">Пропозицій немає</div>';
+    let htmlP = ps.length ? ps.map(x => `<div class="blabla-card"><div class="blabla-route">📍 ${escapeHTML(x.from)} - ${escapeHTML(x.to)}</div><div class="blabla-date">🗓 ${escapeHTML(x.date)} | 🕒 ${escapeHTML(x.time)}</div><div style="font-size:12px; margin-bottom:5px;">👤 <b>${escapeHTML(x.name)}</b>${x.isNewItem ? NEW_BADGE_HTML : ''}</div><div class="blabla-info-row"><span>🧍 Потрібно місць: <b>${escapeHTML(x.seats)}</b></span></div>${x.comment ? `<div class="card-desc">💬 ${escapeHTML(x.comment)}</div>` : ''}<div style="text-align:right; margin-top:5px;">${phoneLinkHtml(x.phone, 'blabla-phone', '📞 ')}</div></div>`).join('') : '<div class="empty-msg">Запитів немає</div>';
     
     document.getElementById('blabla-drivers-list').innerHTML = htmlD;
     document.getElementById('blabla-passengers-list').innerHTML = htmlP;
-  } catch(e) {}
+  } catch(e) { logSectionError('попутники', e); invalidateRender('render_blabla'); }
 }
 
 async function loadTickerData() {
@@ -2043,7 +2058,7 @@ function renderPhoenixList(items) {
     }
 
     const thumb = thumbUrl 
-      ? `<img src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="object-fit: contain !important; width: 100%; height: 100%; border-radius: 8px; cursor: pointer; opacity:0; transition:opacity 0.3s ease;" ${photoClickAttr}>` 
+      ? `<img alt="Фото" src="${escapeHTML(thumbUrl)}" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="object-fit: contain !important; width: 100%; height: 100%; border-radius: 8px; cursor: pointer; opacity:0; transition:opacity 0.3s ease;" ${photoClickAttr}>` 
       : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:12px;font-weight:bold;color:rgba(255,255,255,0.3);background:#111;border-radius:8px;">ФОТО ВІДСУТНЄ</div>`;
     
     const dot = item.isNewItem ? NEW_BADGE_HTML : '';
@@ -2097,6 +2112,7 @@ async function loadPhoenixData() {
     checkNotification('phoenix', activeItems);
     if (dataChanged('render_phoenix', activeItems)) renderPhoenixList(activeItems);
   } catch(e) {
+    logSectionError('ФЕНІКС', e); invalidateRender('render_phoenix');
     document.getElementById('phoenix-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження даних Фенікс</div>`;
   }
 }
@@ -2209,6 +2225,7 @@ async function loadVolunteersData(opts) {
 
     container.innerHTML = activeItems.length ? buildZsuCardsHtml(activeItems) : emptyZsuHtml;
   } catch (e) {
+    logSectionError('збори ЗСУ', e); invalidateRender('render_zsu');
     container.innerHTML = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(255, 77, 77, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(255, 77, 77, 0.35); border-radius: 18px;"><div style="font-size: 44px; margin-bottom: 8px;">⚠️</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px;">Не вдалося завантажити збори</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Перевірте інтернет і спробуйте ще раз:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Спробувати ще раз</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Маєте офіційний збір? Напишіть: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00;">Слава Україні! 🇺🇦</div></div>`;
   }
 }
@@ -2396,7 +2413,7 @@ function renderJobs(jobs) {
 async function loadJobsData() {
   if (!papaReady('jobs', loadJobsData)) return; // CSV-парсер ще вантажиться з CDN
   let allJobs = [];
-  try { const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 1); if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); } } catch(e) {}
+  try { const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 1); if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); } } catch(e) { logSectionError('вакансії (сервер)', e); }
   const SHEET_GID = '1809375718'; const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
   try {
     const csvText = await fetchCachedText(csvUrl, 'jobs_csv', 3);
@@ -2423,6 +2440,7 @@ async function loadJobsData() {
       }
     });
   } catch (e) {
+    logSectionError('вакансії (таблиця)', e);
     markNewItems(allJobs, 'jobs', false);
     checkNotification('jobs', allJobs);
     updateJobsTabBadge(allJobs.length);
@@ -3208,3 +3226,47 @@ if (document.readyState === 'loading') { document.addEventListener('DOMContentLo
 // === Service Worker: единый /sw.js (PWA-заглушка + Firebase push). ===
 // Регистрируется для всех при старте; firebase-messaging-sw.js оставлен
 // тонкой обёрткой (importScripts('/sw.js')) для старых регистраций.
+
+
+// =========================================================================
+// === ДОСТУПНІСТЬ ===
+// Більшість клікабельних елементів сайту — це <div> і <span> з onclick.
+// Мишею й пальцем вони працюють, але скрінрідер не знає, що це кнопка,
+// а з клавіатури до них узагалі не дістатись. Проставляємо роль і фокус
+// автоматично: і для розмітки з index.html, і для карток, які будує JS.
+// Вигляд не змінюється — обведення фокуса браузер малює лише тим,
+// хто ходить сайтом з клавіатури.
+// =========================================================================
+const A11Y_NATIVE = { BUTTON: 1, A: 1, INPUT: 1, SELECT: 1, TEXTAREA: 1, LABEL: 1 };
+function markClickableElements(root) {
+  let nodes;
+  try { nodes = (root || document).querySelectorAll('[onclick]:not([data-a11y])'); } catch (e) { return; }
+  for (let i = 0; i < nodes.length; i++) {
+    const el = nodes[i];
+    el.setAttribute('data-a11y', '1'); // щоб не проходити той самий елемент двічі
+    if (A11Y_NATIVE[el.tagName]) continue; // у кнопок і посилань усе це вже є
+    if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+  }
+}
+
+// Enter і Пробіл на такому елементі = звичайний клік
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' && e.key !== ' ' && e.key !== 'Spacebar') return;
+  const el = document.activeElement;
+  if (!el || el.getAttribute('role') !== 'button' || A11Y_NATIVE[el.tagName]) return;
+  e.preventDefault();
+  el.click();
+});
+
+// Картки розділів з'являються вже після завантаження, тому стежимо за DOM.
+// Обхід відкладаємо на 400 мс, щоб не бігати по дереву на кожну дрібну зміну.
+let a11yTimer = null;
+function scheduleA11ySweep() {
+  if (a11yTimer) return;
+  a11yTimer = setTimeout(function () { a11yTimer = null; markClickableElements(); }, 400);
+}
+if (typeof MutationObserver !== 'undefined') {
+  new MutationObserver(scheduleA11ySweep).observe(document.documentElement, { childList: true, subtree: true });
+}
+markClickableElements();

@@ -9,6 +9,9 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .main-list-widget, .shopping-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow:hidden;opacity:0;visibility:hidden;pointer-events:none;transition:max-height 0.6s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
 .alert-drawer{position:absolute;top:100%;left:0;width:100%;max-height:0;overflow-y:auto;overflow-x:hidden;opacity:0;visibility:visible;pointer-events:none;transition:max-height 0.5s ease,opacity 0.3s ease,padding 0.3s ease,margin-top 0.3s ease;background:linear-gradient(135deg,#0b1d3a,#061124);border:1px solid rgba(255,255,255,0.15);box-shadow:0 25px 50px rgba(0,0,0,0.7);border-radius:24px;z-index:200;margin-top:0;box-sizing:border-box}
 .alert-drawer.open{max-height:65vh;opacity:1;padding:15px;margin-top:10px;pointer-events:auto}
+/* Згорнута шухляда не має ловити фокус з клавіатури: max-height:0 лише обрізає
+   вміст, але посилання й кнопки всередині лишаються в порядку табуляції. */
+.alert-drawer:not(.open) *, .shopping-drawer:not(.open) *{visibility:hidden;}
 .alert-drawer::-webkit-scrollbar { width: 6px; } .alert-drawer::-webkit-scrollbar-track { background: transparent; } .alert-drawer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 6px; }
 .main-list-widget.open{max-height:6000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 10px;margin-top:10px}
 .shopping-drawer.open{max-height:10000px;opacity:1;visibility:visible;pointer-events:auto;padding:20px 15px;margin-top:10px}
@@ -48,7 +51,6 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .tab-alert.promos{color:#ff9f43;border-bottom:3px solid #ff9f43;background:linear-gradient(145deg,rgba(255,159,67,0.15),rgba(10,15,30,0.95))} .tab-alert.promos.active{background:rgba(255,159,67,0.3);box-shadow:0 0 15px rgba(255,159,67,0.6);color:#fff}
 @keyframes neonPulse{0%{box-shadow:0 0 5px rgba(255,51,102,0.1)}100%{box-shadow:0 0 12px rgba(255,51,102,0.5)}}
 @keyframes pulseAlert { 0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.9); } 70% { box-shadow: 0 0 0 8px rgba(255, 0, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); } }
-.train-alert-dot { position: absolute; top: -2px; right: -2px; background: #ff0000; border-radius: 50%; border: 1.5px solid rgba(255, 255, 255, 0.2); animation: pulseAlert 1.5s infinite; z-index: 10; width: 8px; height: 8px; }
 .carousel-wrapper{width:100%;position:relative}.carousel-container{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:15px;scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:smooth;padding-bottom:5px;align-items:center}.carousel-container::-webkit-scrollbar{display:none}
 .alert-item{position:relative;background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:15px;flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;max-height:55vh;overflow-y:auto;}
 .alert-kind-badge{position:absolute;top:8px;right:8px;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;line-height:1;border-radius:8px;z-index:5;pointer-events:none;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
@@ -60,9 +62,6 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .carousel-dots{display:flex;justify-content:center;align-items:center;gap:6px;margin-top:10px} .carousel-dot{width:8px;height:8px;border-radius:50%;transition:background 0.3s,transform 0.3s} .carousel-dot.active{transform:scale(1.3)}
 .top-row{display:flex;flex-direction:row;justify-content:space-between;gap:12px;width:100%}
 /* Об'єднана верхня картка: дата/час+погода, курси, графік відключень, пальне */
-.cc-top{display:flex;gap:14px;width:100%;align-items:stretch;}
-.cc-col{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.cc-div{width:96%;height:1px;background:rgba(255,255,255,0.14);margin:13px auto;}
 .fuel-widget{width:100%;box-sizing:border-box;}
 .fuel-head{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px;padding:0 2px;}
 .fuel-title{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:800;color:#fff;letter-spacing:0.2px;white-space:nowrap;}
@@ -85,7 +84,6 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .svitlo-date{font-size:10px;font-weight:700;color:rgba(255,255,255,0.55);white-space:nowrap;}
 .svitlo-rev{margin-top:2px;font-size:9.5px;font-weight:800;color:#ffcc00;line-height:1.3;}
 /* «чистий» день — без відключень (зелена плашка + банер у вікні) */
-.svitlo-box-ok{background:rgba(0,255,156,0.08);border-color:rgba(0,255,156,0.3);}
 .svitlo-box-ok .svitlo-name{color:#9affc4;}
 .svitlo-okbanner{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;background:rgba(0,255,156,0.1);border:1px solid rgba(0,255,156,0.35);border-radius:14px;padding:14px 12px;margin-bottom:16px;}
 .svitlo-okbanner-title{font-size:15px;font-weight:800;color:#00ff9c;}
@@ -164,8 +162,6 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .map-pin-inner>*{transform:rotate(45deg);}
 .map-popup-title{font-size:14px;font-weight:800;color:#0b1d3a;margin-bottom:4px;}
 .map-popup-addr{font-size:12px;color:#33475b;margin-bottom:3px;}
-.social-block{margin:4px 0 22px;padding:16px;border-radius:24px;text-align:center;background:linear-gradient(145deg,rgba(255,255,255,0.06),rgba(0,0,0,0.2));border:1px solid rgba(255,255,255,0.08);box-shadow:inset 0 1px 2px rgba(255,255,255,0.06),0 4px 15px rgba(0,0,0,0.2);}
-.social-block-title{font-size:12px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:0.4px;margin-bottom:12px;text-transform:uppercase;}
 .social-links{display:flex;justify-content:center;gap:14px;}
 .social-link{display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;color:#fff;text-decoration:none;transition:transform 0.2s ease,box-shadow 0.2s ease;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
 .social-link svg{width:24px!important;height:24px!important;flex:0 0 auto;}
@@ -248,8 +244,6 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .train.train-new{border:1px solid rgba(0,255,156,0.5);background:linear-gradient(145deg,rgba(0,255,156,0.12),rgba(0,0,0,0.2));box-shadow:0 4px 14px rgba(0,255,156,0.18),inset 0 1px 1px rgba(255,255,255,0.1);animation:trainNewGlow 2.4s ease-in-out infinite;}
 .train.train-new .train-num-box{background:rgba(0,255,156,0.22);border:1px solid rgba(0,255,156,0.55);color:#00ff9c;}
 .route-cell{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;width:100%;min-width:0;overflow:hidden;}
-.train-new-tag{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px 4px;line-height:1.15;font-size:9px;font-weight:900;letter-spacing:0.3px;color:#0b1d3a;background:linear-gradient(135deg,#00ff9c,#00b8ff);padding:3px 8px;border-radius:8px;box-shadow:0 2px 6px rgba(0,255,156,0.35);max-width:100%;text-align:center;text-transform:uppercase;}
-.train-new-date{font-size:8.5px;font-weight:800;letter-spacing:0.2px;color:#06231a;opacity:0.9;text-transform:none;white-space:nowrap;}
 .train.train-ending{border:1px solid rgba(255,77,77,0.5);background:linear-gradient(145deg,rgba(255,77,77,0.12),rgba(0,0,0,0.2));box-shadow:0 4px 14px rgba(255,77,77,0.18),inset 0 1px 1px rgba(255,255,255,0.1);animation:trainEndGlow 2.4s ease-in-out infinite;}
 .train.train-ending .train-num-box{background:rgba(255,77,77,0.22);border:1px solid rgba(255,77,77,0.55);color:#ff7a7a;}
 .train-end-tag{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:3px 4px;line-height:1.15;font-size:9px;font-weight:900;letter-spacing:0.3px;color:#2a0606;background:linear-gradient(135deg,#ff6b6b,#ff9f43);padding:3px 8px;border-radius:8px;box-shadow:0 2px 6px rgba(255,77,77,0.35);max-width:100%;text-align:center;text-transform:uppercase;}
@@ -257,7 +251,6 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 @keyframes trainEndGlow{0%,100%{box-shadow:0 4px 14px rgba(255,77,77,0.16),inset 0 1px 1px rgba(255,255,255,0.1);}50%{box-shadow:0 4px 20px rgba(255,77,77,0.34),inset 0 1px 1px rgba(255,255,255,0.1);}}
 @media (prefers-reduced-motion: reduce){.train.train-ending{animation:none;}}
 @keyframes trainNewGlow{0%,100%{box-shadow:0 4px 14px rgba(0,255,156,0.16),inset 0 1px 1px rgba(255,255,255,0.1);}50%{box-shadow:0 4px 20px rgba(0,255,156,0.34),inset 0 1px 1px rgba(255,255,255,0.1);}}
-@media (prefers-reduced-motion: reduce){.train.train-new{animation:none;}}
 @keyframes trainChangePulse{0%,100%{box-shadow:0 0 4px rgba(210,45,65,0.3);}50%{box-shadow:0 0 12px rgba(210,45,65,0.7),0 0 20px rgba(210,45,65,0.3);}}
 .route-text{font-weight:600;color:#fff;text-align:center;font-size:clamp(9px,2.7vw,14px);width:100%;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .time-val{font-weight:700;font-size:clamp(12px,3.2vw,15px);font-variant-numeric:tabular-nums} .time-val.soon{color:var(--highlight-color)} .time-val.future{color:var(--time-green)} .time-val.passed{color:var(--time-passed)}
