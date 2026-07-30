@@ -1,4 +1,7 @@
 {
+  "id": "/",
+  "lang": "uk",
+  "dir": "ltr",
   "name": "Smart Вільногірськ",
   "short_name": "Вільногірськ",
   "description": "Усе місто в одному додатку: розклад, барахолка, робота, афіші, довідник та важливі новини.",
@@ -26,5 +29,10 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "categories": [
+    "news",
+    "travel",
+    "utilities"
   ]
 }
