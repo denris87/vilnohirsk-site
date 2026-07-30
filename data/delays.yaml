@@ -33,16 +33,44 @@ updated: "30.07.2026"
 
 delays:
 - number: "6008"
-  route: " П'ятихатки-Стик. → Дніпро-Гол." 
-  station: "Вільногірськ"
+  route: " П'ятихатки-Пас. → Дніпро-Гол." 
+  station: ""
+  delay: 50
+  show: false
+  note: ""
+
+- number: "6010"
+  route: " П'ятихатки-Пас. → Дніпро-Гол." 
+  station: ""
   delay: 50
   show: false
   note: ""
   
 - number: "6005"
-  route: " Дніпро-Гол. → П'ятихатки-Пас." 
-  station: "Сухачівка"
+  route: " Дніпро-Гол. → П'ятихатки-Стик." 
+  station: ""
   delay: 40
+  show: false
+  note: ""
+
+- number: "6018"
+  route: " П'ятихатки-Стик. → Дніпро-Гол." 
+  station: ""
+  delay: 50
+  show: false
+  note: ""
+
+- number: "6015"
+  route: " Дніпро-Гол. → П'ятихатки-Пас." 
+  station: ""
+  delay: 40
+  show: false
+  note: ""
+
+- number: "6038"
+  route: " П'ятихатки-Пас. → Дніпро-Гол." 
+  station: ""
+  delay: 50
   show: false
   note: ""
 
@@ -60,6 +88,20 @@ delays:
   show: true
   note: ""
 
+- number: "6044"
+  route: " П'ятихатки-Стик. → Дніпро-Гол." 
+  station: ""
+  delay: 50
+  show: false
+  note: ""
+
+- number: "6043"
+  route: "Дніпро-Гол. → П'ятихатки-Пас." 
+  station: ""
+  delay: 68
+  show: false
+  note: ""
+  
   # ─── ШАБЛОН: прибери «# » зліва й виправ під свій рейс ───
   # 
   #   
