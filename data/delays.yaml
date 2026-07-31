@@ -92,7 +92,7 @@ delays:
   route: " П'ятихатки-Стик. → Дніпро-Гол." 
   station: ""
   delay: 60
-  show: true
+  show: false
   note: ""
 
 - number: "6043"
