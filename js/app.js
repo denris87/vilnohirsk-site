@@ -138,37 +138,64 @@ function getDriveImageUrl(rawUrl) {
 // === ЛОГИКА НОВЫХ ЭЛЕМЕНТОВ И КРАСНЫХ ТОЧЕК ===
 const NEW_BADGE_HTML = '<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ff3366; box-shadow:0 0 8px #ff3366; animation:pulseAlert 2s infinite; margin-left:6px; vertical-align:middle;" title="Нове"></span>';
 
-function markNewItems(array, key, newestFirst = true) {
-    if (!array || !array.length) return array;
-    const seenStr = localStorage.getItem('seen_' + key);
-    if (seenStr) {
-        const seenCount = parseInt(seenStr, 10);
-        if (array.length > seenCount) {
-            const diff = array.length - seenCount;
-            if (newestFirst) {
-                for (let i = 0; i < diff && i < array.length; i++) array[i].isNewItem = true;
-            } else {
-                for (let i = array.length - 1; i >= Math.max(0, array.length - diff); i--) array[i].isNewItem = true;
-            }
+// Ключ картки для позначки «Нове». Беремо стабільні поля, а не весь об'єкт:
+// інакше зміна суми збору чи статусу знову підсвічувала б стару картку.
+function itemKey(item) {
+    if (item == null) return '';
+    if (typeof item !== 'object') return String(item).slice(0, 80);
+    const pick = (names) => {
+        for (const n of names) {
+            if (item[n] != null && String(item[n]).trim() !== '') return String(item[n]).trim();
         }
-    }
+        return '';
+    };
+    const main = pick(['title', 'name', 'number', 'url', 'photo', 'image', 'description']);
+    const extra = pick(['date', 'date_missing', 'validUntil', 'phone', 'company', 'from']);
+    const k = (main + '|' + extra).slice(0, 80);
+    return k === '|' ? '' : k;
+}
+
+// Раніше «побачене» зберігалось як КІЛЬКІСТЬ карток. Через це прибрані й додані
+// оголошення (довжина списку та сама) не позначались новими взагалі, а після
+// скорочення списку лічильник назавжди лишався завищеним. Тепер зберігаємо самі
+// ключі карток. Старий числовий формат мовчки мігрує при першому заході.
+function readSeenSet(key) {
+    let raw = null;
+    try { raw = localStorage.getItem('seen_' + key); } catch (e) { return null; }
+    if (raw === null || /^\d+$/.test(raw)) return null; // немає або старий формат
+    try {
+        const arr = JSON.parse(raw);
+        return Array.isArray(arr) ? new Set(arr) : null;
+    } catch (e) { return null; }
+}
+function saveSeenSet(key, keys) {
+    try { localStorage.setItem('seen_' + key, JSON.stringify((keys || []).slice(0, 200))); } catch (e) {}
+}
+
+function markNewItems(array, key) {
+    if (!array || !array.length) return array;
+    const seen = readSeenSet(key);
+    if (!seen) return array; // перший візит або міграція — нічого не підсвічуємо
+    array.forEach(it => {
+        if (!it || typeof it !== 'object') return;
+        const k = itemKey(it);
+        if (k && !seen.has(k)) it.isNewItem = true;
+    });
     return array;
 }
 
 // Ведёт счётчик seen_<key> для пометок «Нове» на карточках.
 // Красная точка на вкладках полностью убрана — здесь только бухгалтерия.
 function checkNotification(key, dataArray) {
-  const currentLength = (dataArray && dataArray.length) ? dataArray.length : 0;
-  currentDataSignature[key] = String(currentLength);
-  if (!localStorage.getItem('seen_' + key)) {
-    localStorage.setItem('seen_' + key, String(currentLength));
-  }
+  const keys = (dataArray || []).map(itemKey).filter(Boolean);
+  currentDataSignature[key] = keys;
+  // Перший захід або старий числовий формат — просто запам'ятовуємо поточний стан
+  if (readSeenSet(key) === null) saveSeenSet(key, keys);
 }
 
+// Людина відкрила розділ — усе, що там зараз, вважається побаченим
 function clearNotification(key) {
-  if (currentDataSignature[key] !== undefined) {
-    localStorage.setItem('seen_' + key, currentDataSignature[key]);
-  }
+  if (Array.isArray(currentDataSignature[key])) saveSeenSet(key, currentDataSignature[key]);
 }
 
 // Исправленный fallback для копирования (работает на iOS)
@@ -395,7 +422,7 @@ function renderGallery(photos) {
 async function loadGalleryData() {
   try { 
       const photos = await fetchCachedJson(`https://vilnohirsk-photos-production.up.railway.app/api/photos`, 'gallery_api', 5);
-      markNewItems(photos, 'gallery', false);
+      markNewItems(photos, 'gallery');
       checkNotification('gallery', photos);
       renderGallery(photos); 
   } catch(e) { document.getElementById('gallery-list-content').innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження фотографій</div>'; }
@@ -1035,19 +1062,11 @@ function updateTrainsDelayBadge(delays) {
   // Хвилини у кожного рейсу свої, тому вони лишаються в самому банері, а не на вкладці.
   const count = (delays && delays.length) ? delays.length : 0;
   const wanted = count ? count + '|' + maxMin : ''; // maxMin — щоб оновився і підпис при наведенні
-  const old = tab.querySelector('.delays-live-badge');
-  // Без змін — не чіпаємо бейдж, щоб не перезапускати анімацію пульсу щодва хвилини
-  if (old && old.dataset.v === wanted) return;
-  if (old) old.remove();
-  if (!wanted) return;
-  const badge = document.createElement('span');
-  badge.className = 'delays-live-badge';
-  badge.dataset.v = wanted;
-  badge.innerHTML = '<span class="dl-dot"></span>' + tabSeg('clock', count);
-  badge.title = count === 1
-    ? `Затримується 1 електричка (~${maxMin} хв)`
-    : `Затримується електричок: ${count} (до +${maxMin} хв)`;
-  tab.appendChild(badge);
+  setTabBadge(tab, 'delays-live-badge',
+    wanted ? '<span class="dl-dot"></span>' + tabSeg('clock', count) : '',
+    count === 1
+      ? `Затримується 1 електричка (~${maxMin} хв)`
+      : `Затримується електричок: ${count} (до +${maxMin} хв)`);
 }
 
 // Затримки електричок — ручні дані з data/delays.yaml
@@ -1056,7 +1075,10 @@ let delaysYamlTries = 0;
 async function loadDelaysData() {
   const host = document.getElementById('trains-delays-banner');
   if (!host) return;
-  const hide = () => { host.style.display = 'none'; host.innerHTML = ''; updateTrainsDelayBadge([]); };
+  // Разом із очищенням HTML скидаємо підпис: інакше наступне завантаження з
+  // тими самими даними виходило раніше відмальовки й на місці банера
+  // лишалась порожня рамка (перевірено: довжина HTML 0 при display:block).
+  const hide = () => { host.style.display = 'none'; host.innerHTML = ''; invalidateRender('render_delays'); updateTrainsDelayBadge([]); };
   if (typeof jsyaml === 'undefined') { // YAML-парсер ще не завантажився
     if (delaysYamlTries++ < 40) { setTimeout(loadDelaysData, 250); }
     return;
@@ -1205,8 +1227,8 @@ async function loadAlerts() {
     const communalAlerts = (d && Array.isArray(d.communal)) ? d.communal.filter(i => i && i.show) : [];
     const newsAlerts = (d && Array.isArray(d.news)) ? d.news.filter(i => i && i.show) : [];
 
-    markNewItems(communalAlerts, 'communal', true);
-    markNewItems(newsAlerts, 'news', true);
+    markNewItems(communalAlerts, 'communal');
+    markNewItems(newsAlerts, 'news');
 
     // Об'єднана стрічка: спочатку комунальні, потім новини; кожному проставляємо тип для іконки-мітки
     communalAlerts.forEach(i => i._kind = 'communal');
@@ -1232,7 +1254,7 @@ async function loadEventsData() {
     // інакше індекси модалки та точки каруселі з'їжджають відносно слайдів
     const eventsWithPhotos = activeEvents.filter(ev => ev && (ev.photo || ev.image || ev.url));
 
-    markNewItems(eventsWithPhotos, 'events', true);
+    markNewItems(eventsWithPhotos, 'events');
     checkNotification('events', eventsWithPhotos);
     updateEventsTabBadge(eventsWithPhotos.length);
 
@@ -1331,7 +1353,7 @@ async function loadShopsData() {
     const d = await fetchCachedJson('https://vilnohirsk-shops-production.up.railway.app/api/shops', 'shops_api', 5);
     let itemsArray = d.shops || d.items || (Array.isArray(d) ? d : []);
     const activeShops = itemsArray.filter(shop => shop && shop.name && String(shop.name).trim() !== ""); 
-    markNewItems(activeShops, 'shopping', false);
+    markNewItems(activeShops, 'shopping');
     checkNotification('shopping', activeShops);
     
     if (!activeShops || activeShops.length === 0) { document.getElementById('shopping-list-content').innerHTML = '<div class="empty-msg">Оголошень поки немає</div>'; return; }
@@ -1412,7 +1434,7 @@ async function loadPromosData() {
     if (Array.isArray(data)) itemsArray = data; else if (data && Array.isArray(data.promos)) itemsArray = data.promos;
     const activeItems = itemsArray.filter(item => item && item.active !== false);
     
-    markNewItems(activeItems, 'promos', false);
+    markNewItems(activeItems, 'promos');
     checkNotification('promos', activeItems);
     updatePromosTabBadge(activeItems.length);
 
@@ -1487,7 +1509,7 @@ async function loadEstateData() {
           return { dealType: row["Тип угоди"] || row[keys[2]] || 'Оренда', propertyType: row["Об'єкт"] || row["Тип об'єкта"] || row[keys[3]] || 'Квартира', rooms: row["Кімнат"] || row[keys[4]] || '-', price: cleanPrice || 'Договірна', description: row["Опис"] || row[keys[6]] || 'Без опису', phone: row["Телефон"] || row[keys[7]] || 'Не вказано', photos: photoUrls, isVip: isVipFlag(v) };
         });
         const localItems = approvedItems.reverse();
-        markNewItems(localItems, 'estate', true);
+        markNewItems(localItems, 'estate');
         checkNotification('estate', localItems);
         const rentCount = localItems.filter(i => i.dealType && i.dealType.toLowerCase().includes('оренд')).length;
         const saleCount = localItems.filter(i => i.dealType && i.dealType.toLowerCase().includes('продаж')).length;
@@ -1578,7 +1600,7 @@ async function loadFleaMarketData() {
           .filter(item => isVilnohirsk(item.location))
           .filter(item => !isFleaJobListing(item))
           .reverse();
-        markNewItems(localItems, 'flea', true);
+        markNewItems(localItems, 'flea');
         checkNotification('flea', localItems);
         const newCount = localItems.filter(i => i.condition && i.condition.toLowerCase().includes('нов')).length;
         const usedCount = localItems.filter(i => i.condition && (i.condition.toLowerCase().includes('вжив') || i.condition.toLowerCase().includes('б/у'))).length;
@@ -1606,7 +1628,7 @@ async function loadLostFoundData() {
           return { title: getValue(row, ['назва', 'title', 'речі']) || 'Без назви', type: getValue(row, ['що сталося', 'type', 'тип']) || 'Знайдено', description: getValue(row, ['опис', 'обставини', 'desc']) || 'Без опису', phone: getValue(row, ['телефон', 'phone', 'контакт']) || 'Не вказано', photos: photoUrls, category: getValue(row, ['категорія', 'category']) || 'Інше', location: getValue(row, ['локація', 'місто', 'location', 'адреса']) || 'Вільногірськ' };
         });
         const localItems = approvedItems.reverse();
-        markNewItems(localItems, 'lost', true);
+        markNewItems(localItems, 'lost');
         checkNotification('lost', localItems);
         const foundCount = localItems.filter(i => i.type && i.type.toLowerCase().includes('знайд')).length;
         const lostCount = localItems.length - foundCount;
@@ -1741,7 +1763,7 @@ async function loadTrainsData(){
       checkNotification('trains', changed);
       updateTrainsTabBadge(changed.length);
     }
-  } catch(e){ document.getElementById("list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
+  } catch(e){ logSectionError('електрички', e); document.getElementById("list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
 }
  
 async function loadLongTrainsData() {
@@ -1799,7 +1821,7 @@ async function loadBusesData(){
       });
       document.getElementById("buses-list").innerHTML = h;
     }
-  }catch(e){ document.getElementById("buses-list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
+  }catch(e){ logSectionError('автобуси', e); document.getElementById("buses-list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
 }
 
 function switchBlaBlaList(type) {
@@ -1858,147 +1880,91 @@ function buildTwoTypeBadge(a, b) {
   return '';
 }
 
-function updateBlaBlaTabBadge(driversCount, passengersCount) {
-  const tab = document.querySelector('.tab-btn[onclick*="\'blablacar\'"]');
+// Бейдж на вкладці. Якщо вміст той самий — не чіпаємо DOM: інакше кожне
+// автооновлення видаляло й створювало елемент заново, і анімація пульсу
+// щоразу починалась спочатку (у бейджа затримок це вже було полагоджено).
+function setTabBadge(tab, cls, html, title) {
   if (!tab) return;
   tab.style.position = 'relative';
-  const old = tab.querySelector('.blabla-live-badge');
+  const old = tab.querySelector('.' + cls);
+  const wanted = html || '';
+  if (old && old.dataset.v === wanted) { if (title) old.title = title; return; }
   if (old) old.remove();
-  const total = driversCount + passengersCount;
-  if (total === 0) return;
+  if (!wanted) return;
   const badge = document.createElement('span');
-  badge.className = 'blabla-live-badge';
-  badge.innerHTML = '<span class="bb-dot"></span>' + buildTwoTypeBadge({icon:'car', count:driversCount}, {icon:'person', count:passengersCount});
-  badge.title = `Активних поїздок: ${total} (водії: ${driversCount}, пасажири: ${passengersCount})`;
+  badge.className = cls;
+  badge.dataset.v = wanted;
+  badge.innerHTML = wanted;
+  if (title) badge.title = title;
   tab.appendChild(badge);
+}
+
+function updateBlaBlaTabBadge(driversCount, passengersCount) {
+  const tab = document.querySelector('.tab-btn[onclick*="\'blablacar\'"]');
+  const total = driversCount + passengersCount;
+  const html = total === 0 ? '' : '<span class="bb-dot"></span>' + buildTwoTypeBadge({icon:'car', count:driversCount}, {icon:'person', count:passengersCount});
+  setTabBadge(tab, 'blabla-live-badge', html, `Активних поїздок: ${total} (водії: ${driversCount}, пасажири: ${passengersCount})`);
 }
 
 function updateCommunalTabBadge(total) {
-  const tab = document.querySelector('.tab-alert.communal');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.communal-live-badge');
-  if (old) old.remove();
-  if (!total || total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'communal-live-badge';
-  badge.innerHTML = tabSeg('bolt', total);
-  badge.title = `Активних комунальних повідомлень: ${total}`;
-  tab.appendChild(badge);
+  setTabBadge(document.querySelector('.tab-alert.communal'), 'communal-live-badge',
+    total ? tabSeg('bolt', total) : '', `Активних комунальних повідомлень: ${total}`);
 }
 
 function updatePromosTabBadge(total) {
-  const tab = document.querySelector('.tab-alert.promos');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.promos-live-badge');
-  if (old) old.remove();
-  if (!total || total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'promos-live-badge';
-  badge.innerHTML = tabSeg('tag', total);
-  badge.title = `Активних акцій: ${total}`;
-  tab.appendChild(badge);
+  setTabBadge(document.querySelector('.tab-alert.promos'), 'promos-live-badge',
+    total ? tabSeg('tag', total) : '', `Активних акцій: ${total}`);
 }
 
 function updateEventsTabBadge(total) {
-  const tab = document.querySelector('.tab-alert.events');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.events-live-badge');
-  if (old) old.remove();
   if (typeof total === 'number') {
     try { localStorage.setItem('events_active_count', String(total)); } catch(e) {}
   }
-  if (!total || total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'events-live-badge';
-  badge.innerHTML = tabSeg('event', total);
-  badge.title = `Активних афіш: ${total}`;
-  tab.appendChild(badge);
+  setTabBadge(document.querySelector('.tab-alert.events'), 'events-live-badge',
+    total ? tabSeg('event', total) : '', `Активних афіш: ${total}`);
 }
 
 function updateTrainsTabBadge(total) {
-  const tab = document.querySelector('.tab-btn[onclick*="\'trains\'"]');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.trains-live-badge');
-  if (old) old.remove();
-  if (!total || total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'trains-live-badge';
-  badge.innerHTML = '<span class="tr-dot"></span>' + tabSeg('train', total);
-  badge.title = `Електричок зі змінами в розкладі: ${total}`;
-  tab.appendChild(badge);
+  setTabBadge(document.querySelector('.tab-btn[onclick*="\'trains\'"]'), 'trains-live-badge',
+    total ? '<span class="tr-dot"></span>' + tabSeg('train', total) : '',
+    `Електричок зі змінами в розкладі: ${total}`);
 }
 
 function updateJobsTabBadge(total) {
-  const tab = document.querySelector('.tab-btn[onclick*="\'jobs-tab\'"]');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.jobs-live-badge');
-  if (old) old.remove();
-  if (!total || total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'jobs-live-badge';
-  badge.innerHTML = '<span class="jb-dot"></span>' + tabSeg('briefcase', total);
-  badge.title = `Активних вакансій: ${total}`;
-  tab.appendChild(badge);
+  setTabBadge(document.querySelector('.tab-btn[onclick*="\'jobs-tab\'"]'), 'jobs-live-badge',
+    total ? '<span class="jb-dot"></span>' + tabSeg('briefcase', total) : '',
+    `Активних вакансій: ${total}`);
 }
 
 function updateEstateTabBadge(rentCount, saleCount, total) {
-  const tab = document.querySelector('.tab-btn[onclick*="\'estate-tab\'"]');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.estate-live-badge');
-  if (old) old.remove();
-  if (!total || total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'estate-live-badge';
-  let inner = '<span class="ef-dot"></span>';
-  if ((rentCount > 0 || saleCount > 0) && rentCount + saleCount === total) {
-    inner += buildTwoTypeBadge({icon:'key', count:rentCount}, {icon:'sell', count:saleCount});
-  } else {
-    inner += tabSeg('home', total);
+  let inner = '';
+  if (total) {
+    inner = '<span class="ef-dot"></span>';
+    inner += ((rentCount > 0 || saleCount > 0) && rentCount + saleCount === total)
+      ? buildTwoTypeBadge({icon:'key', count:rentCount}, {icon:'sell', count:saleCount})
+      : tabSeg('home', total);
   }
-  badge.innerHTML = inner;
-  badge.title = `Активних оголошень: ${total} (оренда: ${rentCount}, продаж: ${saleCount})`;
-  tab.appendChild(badge);
+  setTabBadge(document.querySelector('.tab-btn[onclick*="\'estate-tab\'"]'), 'estate-live-badge', inner,
+    `Активних оголошень: ${total} (оренда: ${rentCount}, продаж: ${saleCount})`);
 }
 
 function updateFleaTabBadge(newCount, usedCount, total) {
-  const tab = document.querySelector('.tab-btn[onclick*="\'flea-market-tab\'"]');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.flea-live-badge');
-  if (old) old.remove();
-  if (!total || total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'flea-live-badge';
-  let inner = '<span class="ef-dot"></span>';
-  if ((newCount > 0 || usedCount > 0) && newCount + usedCount === total) {
-    inner += buildTwoTypeBadge({icon:'star', count:newCount}, {icon:'wrench', count:usedCount});
-  } else {
-    inner += tabSeg('box', total);
+  let inner = '';
+  if (total) {
+    inner = '<span class="ef-dot"></span>';
+    inner += ((newCount > 0 || usedCount > 0) && newCount + usedCount === total)
+      ? buildTwoTypeBadge({icon:'star', count:newCount}, {icon:'wrench', count:usedCount})
+      : tabSeg('box', total);
   }
-  badge.innerHTML = inner;
-  badge.title = `Активних оголошень: ${total} (нові: ${newCount}, вживані: ${usedCount})`;
-  tab.appendChild(badge);
+  setTabBadge(document.querySelector('.tab-btn[onclick*="\'flea-market-tab\'"]'), 'flea-live-badge', inner,
+    `Активних оголошень: ${total} (нові: ${newCount}, вживані: ${usedCount})`);
 }
 
 function updateLostTabBadge(foundCount, lostCount) {
-  const tab = document.querySelector('.tab-btn[onclick*="\'lost-found-tab\'"]');
-  if (!tab) return;
-  tab.style.position = 'relative';
-  const old = tab.querySelector('.lost-live-badge');
-  if (old) old.remove();
   const total = foundCount + lostCount;
-  if (total === 0) return;
-  const badge = document.createElement('span');
-  badge.className = 'lost-live-badge';
-  badge.innerHTML = '<span class="lf-dot"></span>' + buildTwoTypeBadge({icon:'search', count:foundCount}, {icon:'warn', count:lostCount});
-  badge.title = `Активних оголошень: ${total} (знайдено: ${foundCount}, втрачено: ${lostCount})`;
-  tab.appendChild(badge);
+  const html = total === 0 ? '' : '<span class="lf-dot"></span>' + buildTwoTypeBadge({icon:'search', count:foundCount}, {icon:'warn', count:lostCount});
+  setTabBadge(document.querySelector('.tab-btn[onclick*="\'lost-found-tab\'"]'), 'lost-live-badge', html,
+    `Активних оголошень: ${total} (знайдено: ${foundCount}, втрачено: ${lostCount})`);
 }
 
 function updateBlaBlaToggleCounts(driversCount, passengersCount) {
@@ -2014,7 +1980,7 @@ async function loadBlaBlaCarData() {
   try {
     const raw = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 2);
     const d = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.rides) ? raw.rides : []);
-    markNewItems(d, 'blablacar', false);
+    markNewItems(d, 'blablacar');
     checkNotification('blablacar', d);
 
     const dr = d.filter(x => x && x.type === 'driver' && (isVilnohirsk(x.from) || isVilnohirsk(x.to))).reverse();
@@ -2113,7 +2079,7 @@ async function loadPhoenixData() {
     const data = await fetchCachedJson(PHOENIX_API_URL, 'phoenix_api', 5);
     let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.phoenix) ? data.phoenix : []);
     const activeItems = itemsArray.filter(item => item && item.active !== false);
-    markNewItems(activeItems, 'phoenix', false);
+    markNewItems(activeItems, 'phoenix');
     checkNotification('phoenix', activeItems);
     if (dataChanged('render_phoenix', activeItems)) renderPhoenixList(activeItems);
   } catch(e) {
@@ -2221,7 +2187,7 @@ async function loadVolunteersData(opts) {
     // active: false ховає окремий збір, не видаляючи його з файлу
     const activeItems = list.filter(item => item && item.active !== false && String(item.title || '').trim() !== '');
 
-    markNewItems(activeItems, 'volunteers', false);
+    markNewItems(activeItems, 'volunteers');
     checkNotification('volunteers', activeItems);
     updateZsuTabIndicator(activeItems);
 
@@ -2361,10 +2327,13 @@ function renderJobs(jobs) {
     const s = ((j.source || '') + ' ' + (j.date || '')).toLowerCase().replace(/[\s._-]/g, '');
     return s.includes('workua');
   };
+  // Джерело ДЦЗ теж визначаємо терпимо: зайвий пробіл або інший регістр
+  // раніше мовчки перекидав державні вакансії у «Від місцевих підприємців»
+  const isDcz = (j) => String(j.source || '').toLowerCase().replace(/[\s._-]/g, '').includes('дцз');
   const vipJobs = safeJobs.filter(j => j.isVip || j.vip).reverse();
-  const dczJobs = safeJobs.filter(j => !j.isVip && !j.vip && j.source === 'ДЦЗ');
-  const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && isWorkUa(j));
-  const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && !isWorkUa(j) && j.source !== 'ДЦЗ');
+  const dczJobs = safeJobs.filter(j => !j.isVip && !j.vip && isDcz(j));
+  const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && !isDcz(j) && isWorkUa(j));
+  const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && !isWorkUa(j) && !isDcz(j));
   
   let html = '';
   if (vipJobs.length > 0) {
@@ -2438,7 +2407,7 @@ async function loadJobsData() {
             return { title: cell(r, 2) || 'Без назви', salary: cell(r, 3) || '-', company: cell(r, 4) || 'Не вказано', description: cell(r, 5), date: cell(r, 0) ? cell(r, 0).split(' ')[0] : 'Нещодавно', phone: phone, gender: cell(r, 7), employment: cell(r, 8), url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#', isVip: isVipFlag(cell(r, 9)), source: 'User' };
           });
         allJobs = allJobs.concat(userJobs);
-        markNewItems(allJobs, 'jobs', false);
+        markNewItems(allJobs, 'jobs');
         checkNotification('jobs', allJobs);
         updateJobsTabBadge(allJobs.length);
         if (dataChanged('render_jobs', allJobs)) renderJobs(allJobs);
@@ -2446,7 +2415,7 @@ async function loadJobsData() {
     });
   } catch (e) {
     logSectionError('вакансії (таблиця)', e);
-    markNewItems(allJobs, 'jobs', false);
+    markNewItems(allJobs, 'jobs');
     checkNotification('jobs', allJobs);
     updateJobsTabBadge(allJobs.length);
     if (dataChanged('render_jobs', allJobs)) renderJobs(allJobs);
@@ -2849,27 +2818,36 @@ async function savePushPreferences(newCategories) {
 }
 
 // Отписка от пушей
-async function unsubscribeFromPush() {
+// Просимо сервер прибрати токен зі списку розсилки (щоб у таблиці не копились мертві)
+async function notifyServerUnsubscribe(token) {
   try {
-    if (firebaseMessaging) {
-      const token = localStorage.getItem('push_token');
-      if (token) {
-        await firebaseMessaging.deleteToken();
-      }
-    }
-    localStorage.removeItem('push_subscribed');
-    localStorage.removeItem('push_token');
-    localStorage.removeItem('push_categories');
-    showToast('🔕 Ви відписалися від сповіщень', 'info');
-    updatePushButtonState();
-  } catch (err) {
-    console.error('Помилка відписки:', err);
-    // Всё равно убираем локально
-    localStorage.removeItem('push_subscribed');
-    localStorage.removeItem('push_token');
-    localStorage.removeItem('push_categories');
-    updatePushButtonState();
+    await fetch(APP_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ formType: 'push_unsubscribe', token: token })
+    });
+  } catch (e) { logSectionError('сповіщення', e); }
+}
+
+async function unsubscribeFromPush() {
+  const token = localStorage.getItem('push_token');
+  // Firebase піднімається ліниво, лише під час підписки. Після перезавантаження
+  // сторінки messaging знову null — і стара відписка нічого не робила: токен
+  // лишався живим, людина бачила «відписано», а сповіщення далі приходили.
+  if (token) {
+    try {
+      await initFirebase();
+      if (firebaseMessaging) await firebaseMessaging.deleteToken();
+    } catch (err) { logSectionError('сповіщення', err); }
+    await notifyServerUnsubscribe(token);
   }
+  try {
+    localStorage.removeItem('push_subscribed');
+    localStorage.removeItem('push_token');
+    localStorage.removeItem('push_categories');
+  } catch (e) {}
+  showToast('🔕 Ви відписалися від сповіщень', 'info');
+  updatePushButtonState();
 }
 
 // Обновляем текст кнопки в зависимости от статуса
@@ -3272,6 +3250,15 @@ function scheduleA11ySweep() {
   a11yTimer = setTimeout(function () { a11yTimer = null; markClickableElements(); }, 400);
 }
 if (typeof MutationObserver !== 'undefined') {
-  new MutationObserver(scheduleA11ySweep).observe(document.documentElement, { childList: true, subtree: true });
+  // Годинник щосекунди замінює текстовий вузол — це теж зміна списку дітей.
+  // Реагуємо лише коли додано справжній елемент, інакше обхід крутився щосекунди даремно.
+  new MutationObserver(function (muts) {
+    for (let i = 0; i < muts.length; i++) {
+      const added = muts[i].addedNodes;
+      for (let j = 0; j < added.length; j++) {
+        if (added[j].nodeType === 1) { scheduleA11ySweep(); return; }
+      }
+    }
+  }).observe(document.documentElement, { childList: true, subtree: true });
 }
 markClickableElements();
