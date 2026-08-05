@@ -254,6 +254,10 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 @keyframes trainChangePulse{0%,100%{box-shadow:0 0 4px rgba(210,45,65,0.3);}50%{box-shadow:0 0 12px rgba(210,45,65,0.7),0 0 20px rgba(210,45,65,0.3);}}
 .route-text{font-weight:600;color:#fff;text-align:center;font-size:clamp(9px,2.7vw,14px);width:100%;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .time-val{font-weight:700;font-size:clamp(12px,3.2vw,15px);font-variant-numeric:tabular-nums} .time-val.soon{color:var(--highlight-color)} .time-val.future{color:var(--time-green)} .time-val.passed{color:var(--time-passed)}
+/* Потяги далекого сполучення: час набирається так само, як назва маршруту —
+   та сама насиченість, розмір і колір (у електричках час лишається акцентним,
+   бо там він показує статус рейсу: зелений, жовтий «≈ N хв» або сірий). */
+#long-trains-list .time-val{font-weight:600;font-size:clamp(9px,2.7vw,14px);color:#fff}
 .details{max-height:0;overflow:hidden;transition:max-height 0.4s ease,opacity 0.3s ease,padding 0.3s ease;background:rgba(0,0,0,0.25);border-radius:16px; opacity:0;} .details.open{max-height:5000px;opacity:1;padding:15px;margin-top:2px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.05)}
 .schedule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px} .bus-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px} @media (max-width:600px){.schedule-grid,.bus-grid{grid-template-columns:1fr}} @media (max-width:550px){.top-row{flex-wrap:wrap}.widget{min-width:45%}}
 .schedule-column{background:rgba(41,128,185,0.3);border:1px solid rgba(116,185,255,0.2);border-radius:12px;padding:10px 8px}
