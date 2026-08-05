@@ -1766,6 +1766,19 @@ async function loadTrainsData(){
   } catch(e){ logSectionError('електрички', e); document.getElementById("list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
 }
  
+// Рейси, які підсвічуються зеленим у розділі «Потяги» — так само, як робили
+// для нового розкладу електричок. Порівнюємо лише цифри номера, тож літери
+// чи пробіли в даних не заважають.
+//
+// Ключ — номер поїзда, значення — дата, до якої він курсує.
+// Якщо дату вписати, під маршрутом з'явиться зелена плашка «КУРСУЄ до …»;
+// порожнє значення означає просто підсвітку без плашки.
+// ЩОБ ЗМІНИТИ: правте рядок нижче — додайте, приберіть номер або впишіть дату.
+const HIGHLIGHTED_TRAINS = {
+  '119': 'до 15 серпня',   // Дніпро → Хелм
+  '87': 'до 15 серпня'     // Дніпро → Ковель
+};
+
 async function loadLongTrainsData() {
   try {
     const d = await fetchCachedJson("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule", 'long_trains_api', 30);
@@ -1783,8 +1796,15 @@ async function loadLongTrainsData() {
         // Поїзд №79 прямує через Київ — додаємо позначку до маршруту
         const trainNum79 = parseInt(String(x.number || '').replace(/\D/g, ''), 10);
         const routeText = trainNum79 === 79 ? `${escapeHTML(x.route)} <span style="font-size:0.85em; color:rgba(255,255,255,0.6); font-weight:600;">(через Київ)</span>` : escapeHTML(x.route);
-        const routeCell = `<div class="route-cell"><div class="route-text">${routeText}</div></div>`;
-        h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
+        // Зелена підсвітка рейсу (клас train-new забарвлює і рамку, і номер)
+        const numDigits = String(x.number || '').replace(/\D/g, '');
+        const until = HIGHLIGHTED_TRAINS[numDigits];
+        const rowClass = until !== undefined ? ' train-new' : '';
+        // Плашка з'являється лише тоді, коли для рейсу вказана дата
+        const untilTxt = until ? String(until).trim() : '';
+        const untilTag = untilTxt ? `<div class="train-new-tag">🚆 КУРСУЄ <span class="train-new-date">${escapeHTML(untilTxt)}</span></div>` : '';
+        const routeCell = `<div class="route-cell"><div class="route-text">${routeText}</div>${untilTag}</div>`;
+        h += `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
       });
       document.getElementById("long-trains-list").innerHTML = h;
     }
