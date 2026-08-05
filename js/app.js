@@ -2073,18 +2073,33 @@ function renderPhoenixList(items) {
   cont.innerHTML = html;
 }
 
+// Розшук ФЕНІКС — дані з data/phoenix.yaml.
+// Раніше список приходив з окремого сервісу на Railway, який лише пересилав
+// той самий перелік у JSON. 04.08 він почав падати: 8 запитів поспіль — 8
+// відповідей HTTP 500 за 0.2 секунди, і розділ показував помилку завантаження.
+// Тепер файл лежить поруч із сайтом: поки працює сайт, працює й розділ.
+// Фотографії як лежали в GitHub, так і лишились — у файлі ті самі посилання.
+let phoenixYamlTries = 0;
 async function loadPhoenixData() {
+  const cont = document.getElementById('phoenix-list-content');
+  if (!cont) return;
+  if (typeof jsyaml === 'undefined') { // YAML-парсер ще вантажиться з CDN
+    if (phoenixYamlTries++ < 40) setTimeout(loadPhoenixData, 250);
+    return;
+  }
   try {
-    const PHOENIX_API_URL = 'https://vilnohirsk-phoenix-api-production.up.railway.app/api/phoenix';
-    const data = await fetchCachedJson(PHOENIX_API_URL, 'phoenix_api', 5);
-    let itemsArray = Array.isArray(data) ? data : (data && Array.isArray(data.phoenix) ? data.phoenix : []);
-    const activeItems = itemsArray.filter(item => item && item.active !== false);
+    const res = await fetch('./data/phoenix.yaml?v=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = jsyaml.load(await res.text()) || {};
+    const list = Array.isArray(data.phoenix) ? data.phoenix : [];
+    // active: false ховає окрему картку, не видаляючи її з файлу
+    const activeItems = list.filter(item => item && item.active !== false && String(item.name || '').trim() !== '');
     markNewItems(activeItems, 'phoenix');
     checkNotification('phoenix', activeItems);
     if (dataChanged('render_phoenix', activeItems)) renderPhoenixList(activeItems);
   } catch(e) {
     logSectionError('ФЕНІКС', e); invalidateRender('render_phoenix');
-    document.getElementById('phoenix-list-content').innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження даних Фенікс</div>`;
+    cont.innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження даних Фенікс</div>`;
   }
 }
 
