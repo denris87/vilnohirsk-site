@@ -90,7 +90,7 @@ delays:
   route: "Дніпро-Гол. → П'ятихатки-Пас." 
   station: "Сухачівка"
   delay: 67
-  show: true
+  show: false
   note: ""
 
 - number: "6044"
