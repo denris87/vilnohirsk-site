@@ -29,7 +29,7 @@
 # ───────────────────────────────────────────────────────────────
 
 show: true
-updated: "31.07.2026"
+updated: "08.08.2026"
 
 delays:
 - number: "6008"
@@ -69,9 +69,9 @@ delays:
 
 - number: "6038"
   route: " П'ятихатки-Пас. → Дніпро-Гол." 
-  station: ""
-  delay: 50
-  show: false
+  station: "Запоріжжя-Камʼянське"
+  delay: 34
+  show: true
   note: ""
 
 - number: "6035"
@@ -83,9 +83,9 @@ delays:
 
 - number: "6037"
   route: "Дніпро-Гол. → П'ятихатки-Пас." 
-  station: ""
-  delay: 68
-  show: false
+  station: "Сухачівка"
+  delay: 67
+  show: true
   note: ""
 
 - number: "6044"
