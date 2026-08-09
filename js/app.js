@@ -1048,25 +1048,70 @@ function closeSvitloModal() {
   }
 }
 
+// Затримку в data/delays.yaml можна писати і хвилинами, і годинами з хвилинами —
+// щоб не переводити «година двадцять» у 80 в умі. Приймаємо:
+//   delay: 45             — хвилини (як було раніше)
+//   delay: "1:15"         — години й хвилини, так само як показано на сайті
+//   hours: 1 + delay: 15  — окремими полями
+//   delay: "1 год 15 хв"  — словами
+// ЦІЛЕ число без лапок завжди читаємо як хвилини. Число з крапкою (1.15) —
+// як години.хвилини: хвилин із дробом не буває, а от «1.15» людина напише за
+// зразком того, що бачить на сайті. Для рівних годин потрібні лапки: "2:00",
+// бо YAML перетворив би 2.00 на звичайну двійку й вийшло б дві хвилини.
+function parseDelayMinutes(d) {
+  const src = (d && typeof d === 'object') ? d : { delay: d };
+  const num = (v) => {
+    const n = parseFloat(String(v == null ? '' : v).replace(',', '.').trim());
+    return isFinite(n) && n > 0 ? n : 0;
+  };
+  const fromHM = (h, m) => Number(h) * 60 + Number(m);
+  let total = Math.round(num(src.hours) * 60) + Math.round(num(src.minutes));
+  const raw = src.delay;
+  if (raw != null && String(raw).trim() !== '') {
+    if (typeof raw === 'number') {
+      const n = num(raw);
+      total += Number.isInteger(n) ? n : fromHM(Math.floor(n), n.toFixed(2).split('.')[1]);
+    } else {
+      const s = String(raw).trim().toLowerCase();
+      const hm = s.match(/^(\d{1,2})\s*[:.,]\s*(\d{1,2})$/); // «1:15», «1.15», «1,15»
+      const hw = s.match(/(\d+)\s*(?:год|г)/);              // «1 год», «1г»
+      const mw = s.match(/(\d+)\s*(?:хв|мин)/);             // «15 хв»
+      if (hm) total += fromHM(hm[1], hm[2]);
+      else if (hw || mw) total += (hw ? Number(hw[1]) * 60 : 0) + (mw ? Number(mw[1]) : 0);
+      else total += Math.round(num(s));
+    }
+  }
+  return total > 0 ? total : 0;
+}
+
+// Затримка для показу: до години — просто хвилини, від години — «1.15» (годин.хвилин),
+// бо «+83 хв» доводиться переводити в голові вже читачеві.
+function formatDelay(min) {
+  const m = Math.max(0, Math.round(min || 0));
+  if (m < 60) return { value: String(m), unit: 'хв' };
+  const rest = m % 60;
+  return { value: Math.floor(m / 60) + '.' + (rest < 10 ? '0' + rest : String(rest)), unit: 'год' };
+}
+
 // Бейдж затримок на вкладці «Електрички» — аналогічний бейджу «зміни розкладу»,
 // але в кольорах затримок: видно з головного екрана, що електрички запізнюються.
-// Показує найбільшу затримку, напр. «+78 хв».
 function updateTrainsDelayBadge(delays) {
   const tab = document.querySelector('.tab-btn[onclick*="\'trains\'"]');
   if (!tab) return;
   tab.style.position = 'relative';
   const maxMin = (delays && delays.length)
-    ? Math.max.apply(null, delays.map(d => parseInt(String(d && d.delay != null ? d.delay : '').replace(/\D/g, ''), 10) || 0))
+    ? Math.max.apply(null, delays.map(parseDelayMinutes))
     : 0;
   // На бейджі — КІЛЬКІСТЬ затриманих електричок (як на бейджі змін у розкладі).
   // Хвилини у кожного рейсу свої, тому вони лишаються в самому банері, а не на вкладці.
   const count = (delays && delays.length) ? delays.length : 0;
   const wanted = count ? count + '|' + maxMin : ''; // maxMin — щоб оновився і підпис при наведенні
+  const max = formatDelay(maxMin);
   setTabBadge(tab, 'delays-live-badge',
     wanted ? '<span class="dl-dot"></span>' + tabSeg('clock', count) : '',
     count === 1
-      ? `Затримується 1 електричка (~${maxMin} хв)`
-      : `Затримується електричок: ${count} (до +${maxMin} хв)`);
+      ? `Затримується 1 електричка (~${max.value} ${max.unit})`
+      : `Затримується електричок: ${count} (до +${max.value} ${max.unit})`);
 }
 
 // Затримки електричок — ручні дані з data/delays.yaml
@@ -1089,10 +1134,9 @@ async function loadDelaysData() {
     const data = jsyaml.load(await res.text()) || {};
     if (data.show === false) { hide(); return; } // весь блок затримок вимкнено вручну
     const list = Array.isArray(data.delays) ? data.delays : [];
-    const parseMin = (v) => parseInt(String(v == null ? '' : v).replace(/\D/g, ''), 10) || 0;
-    // Лишаємо тільки валідні затримки: увімкнена (show !== false), є номер і додатні хвилини.
+    // Лишаємо тільки валідні затримки: увімкнена (show !== false), є номер і додатній час.
     // show: false у рядку ховає саме цю затримку, не видаляючи її з файлу.
-    const delays = list.filter(d => d && d.show !== false && d.number != null && String(d.number).trim() !== '' && parseMin(d.delay) > 0);
+    const delays = list.filter(d => d && d.show !== false && d.number != null && String(d.number).trim() !== '' && parseDelayMinutes(d) > 0);
     updateTrainsDelayBadge(delays); // бейдж на вкладці: є затримки — видно одразу, немає — знімаємо
 
     if (delays.length === 0) {
@@ -1110,7 +1154,7 @@ async function loadDelaysData() {
     host.className = 'trains-delays-banner';
     const updated = data.updated ? `<span class="trains-delays-upd">оновлено ${escapeHTML(String(data.updated))}</span>` : '';
     const rows = delays.map(d => {
-      const min = parseMin(d.delay);
+      const dl = formatDelay(parseDelayMinutes(d));
       // Два рядки: «№ + маршрут» і «станція + затримка».
       // Так маршрут отримує майже всю ширину картки й не переноситься на новий рядок.
       const routeTxt = d.route ? escapeHTML(String(d.route).trim()) : '';
@@ -1122,7 +1166,7 @@ async function loadDelaysData() {
         ? `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує зі ст.</span> <b>${escapeHTML(stationTxt)}</b></div>`
         : `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує з</span> <b>початкової станції</b></div>`;
       const note = (d.note && String(d.note).trim()) ? `<div class="delay-note">⚠️ ${escapeHTML(String(d.note))}</div>` : '';
-      return `<div class="delay-row"><div class="delay-top"><div class="delay-num">№${escapeHTML(String(d.number))}</div>${route}</div><div class="delay-bottom">${station}<div class="delay-min"><b>+${min}</b><span>хв</span></div></div>${note}</div>`;
+      return `<div class="delay-row"><div class="delay-top"><div class="delay-num">№${escapeHTML(String(d.number))}</div>${route}</div><div class="delay-bottom">${station}<div class="delay-min"><b>+${dl.value}</b><span>${dl.unit}</span></div></div>${note}</div>`;
     }).join('');
 
     host.innerHTML = `<div class="trains-delays-head"><span class="trains-delays-title"><span class="delay-live-dot"></span>⏱️ Затримки електричок</span>${updated}</div>${rows}`;
