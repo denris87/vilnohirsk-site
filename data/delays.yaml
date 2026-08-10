@@ -81,9 +81,9 @@ delays:
 
 - number: "6035"
   route: "Дніпро-Гол. → П'ятихатки-Стик." 
-  station: "Горяїнове"
-  delay: 29
-  show: false
+  station: "Дніпро-Гол."
+  delay: 36
+  show: true
   note: ""
 
 - number: "6037"
