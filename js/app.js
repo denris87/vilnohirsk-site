@@ -2137,6 +2137,23 @@ function renderPhoenixList(items) {
   cont.innerHTML = html;
 }
 
+// Список розшуку впорядковуємо за прізвищем. Просте порівняння рядків тут не
+// годиться: в Юнікоді І, Ї, Є та Ґ стоять ПЕРЕД А, тому «Іванов» опинявся б
+// вище за «Абазу». Тому беремо українське мовне впорядкування, а якщо його
+// раптом немає (дуже старий браузер), лишаємо порядок такий, як у файлі.
+const phoenixCollator = (function () {
+  try { return new Intl.Collator('uk'); } catch (e) { return null; }
+})();
+function comparePhoenixByName(a, b) {
+  // Ім'я записане як «Прізвище Ім'я По батькові», тож порівняння всього рядка
+  // сортує спершу за прізвищем, а однофамільців — за іменем. Подвійні пробіли
+  // всередині трапляються, тому зводимо їх до одного.
+  const norm = (x) => String((x && x.name) || '').replace(/\s+/g, ' ').trim();
+  const an = norm(a), bn = norm(b);
+  if (phoenixCollator) return phoenixCollator.compare(an, bn);
+  return an < bn ? -1 : (an > bn ? 1 : 0);
+}
+
 // Скільки людей у розшуку — одразу в назві вкладки, щоб число було видно
 // ще до того, як людина відкриє розділ. Порожнє значення нічого не дописує,
 // тож при збої завантаження напис лишається таким, як був.
@@ -2169,7 +2186,9 @@ async function loadPhoenixData() {
     const data = jsyaml.load(await res.text()) || {};
     const list = Array.isArray(data.phoenix) ? data.phoenix : [];
     // active: false ховає окрему картку, не видаляючи її з файлу
-    const activeItems = list.filter(item => item && item.active !== false && String(item.name || '').trim() !== '');
+    const activeItems = list
+      .filter(item => item && item.active !== false && String(item.name || '').trim() !== '')
+      .sort(comparePhoenixByName); // за абеткою, щоб людину було легко знайти в списку
     updatePhoenixTabCount(activeItems.length);
     markNewItems(activeItems, 'phoenix');
     checkNotification('phoenix', activeItems);
