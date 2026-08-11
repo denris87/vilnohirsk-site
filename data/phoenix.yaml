@@ -45,6 +45,14 @@ phoenix:
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-05-10_14-38-49.jpg?raw=true"
     active: true
 
+  - name: "Сухоручка Олексій Олександрович"
+    dob: "02.02.1975"
+    date_missing: "27.07.2026"
+    callsign: "Лелик"
+    photos:
+      - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-08-11_17-59-11.jpg?raw=true"
+    active: true
+
   - name: "Бортніков Володимир Володимирович"
     dob: "18.05.1983"
     date_missing: "31.03.2023"
@@ -336,4 +344,3 @@ phoenix:
     photos:
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo-output%203.PNG?raw=true"
     active: true
-
