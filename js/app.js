@@ -2137,6 +2137,18 @@ function renderPhoenixList(items) {
   cont.innerHTML = html;
 }
 
+// Скільки людей у розшуку — одразу в назві вкладки, щоб число було видно
+// ще до того, як людина відкриє розділ. Порожнє значення нічого не дописує,
+// тож при збої завантаження напис лишається таким, як був.
+function updatePhoenixTabCount(n) {
+  const el = document.getElementById('phoenix-tab-count');
+  if (!el) return;
+  // Нерозривні пробіли: звичайний на початку рядка вставки браузер стискає,
+  // і виходило «РОЗШУК· 37». Заодно число не відірветься від слова при переносі.
+  const txt = n > 0 ? ' · ' + n : '';
+  if (el.textContent !== txt) el.textContent = txt;
+}
+
 // Розшук ФЕНІКС — дані з data/phoenix.yaml.
 // Раніше список приходив з окремого сервісу на Railway, який лише пересилав
 // той самий перелік у JSON. 04.08 він почав падати: 8 запитів поспіль — 8
@@ -2158,6 +2170,7 @@ async function loadPhoenixData() {
     const list = Array.isArray(data.phoenix) ? data.phoenix : [];
     // active: false ховає окрему картку, не видаляючи її з файлу
     const activeItems = list.filter(item => item && item.active !== false && String(item.name || '').trim() !== '');
+    updatePhoenixTabCount(activeItems.length);
     markNewItems(activeItems, 'phoenix');
     checkNotification('phoenix', activeItems);
     if (dataChanged('render_phoenix', activeItems)) renderPhoenixList(activeItems);

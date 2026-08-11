@@ -93,7 +93,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260809a">
+<link rel="stylesheet" href="./css/styles.css?v=20260811a">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -312,7 +312,7 @@ document.addEventListener('touchend', function(e){
                     <div class="tab-alert promos" onclick="switchAppTab('alert-promos', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px);"><svg class="tt-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg>Акції</div>
                 </div>
                 <div style="display: flex; gap: 8px; width: 100%;">
-                    <div class="tab-alert phoenix" onclick="switchAppTab('alert-phoenix', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px); background: linear-gradient(135deg, #d32f2f, #8b0000); color: #fff; font-weight: 800; border: 1px solid #ff4d4d; box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4); text-transform: uppercase; letter-spacing: 0.5px; border-radius: 12px;"><svg class="tt-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-2.5 3.5-4 6-4 9 0 1.6.6 3 1.8 4-.4-1.8.9-3.2.9-3.2.5 1.5 1.6 2.1 2.6 3.6.8 1.2.5 2.9-.5 3.8 2.8-.6 4.7-3 4.7-5.9C17.5 9 13.5 6 12 2zm0 17.5c-1 0-1.8-.8-1.8-1.8 0-.9.5-1.6 1-2.3.3 1 1 1.4 1 1.4.4-.6.9-1.1.9-1.8.6.7 1 1.5 1 2.4 0 1-.9 1.9-2.1 1.9z"/></svg>ФЕНІКС (Розшук)</div>
+                    <div class="tab-alert phoenix" onclick="switchAppTab('alert-phoenix', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px); background: linear-gradient(135deg, #d32f2f, #8b0000); color: #fff; font-weight: 800; border: 1px solid #ff4d4d; box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4); text-transform: uppercase; letter-spacing: 0.5px; border-radius: 12px;"><svg class="tt-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-2.5 3.5-4 6-4 9 0 1.6.6 3 1.8 4-.4-1.8.9-3.2.9-3.2.5 1.5 1.6 2.1 2.6 3.6.8 1.2.5 2.9-.5 3.8 2.8-.6 4.7-3 4.7-5.9C17.5 9 13.5 6 12 2zm0 17.5c-1 0-1.8-.8-1.8-1.8 0-.9.5-1.6 1-2.3.3 1 1 1.4 1 1.4.4-.6.9-1.1.9-1.8.6.7 1 1.5 1 2.4 0 1-.9 1.9-2.1 1.9z"/></svg>ФЕНІКС (Розшук<span id="phoenix-tab-count"></span>)</div>
                 </div>
             </div>
         </div>
@@ -552,6 +552,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260809a" defer></script>
+<script src="./js/app.js?v=20260811a" defer></script>
 </body>
 </html>
