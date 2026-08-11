@@ -93,7 +93,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260811b">
+<link rel="stylesheet" href="./css/styles.css?v=20260811c">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -292,6 +292,10 @@ document.addEventListener('touchend', function(e){
   <div class="wrapper">
   <div class="container">
 
+    <!-- ПОВІТРЯНА ТРИВОГА: плашка стану (дані — data/alarm.yaml + відкрите API).
+         Стоїть найпершою: це найважливіше, що має бути видно без жодного кліку. -->
+    <div id="alarm-bar" class="alarm-bar" style="display: none;"></div>
+
     <!-- БЕГУЩАЯ СТРОКА -->
     <div class="ticker-wrap" id="ticker-container" style="display: none;">
       <div class="ticker-move" id="ticker-content"></div>
@@ -338,6 +342,29 @@ document.addEventListener('touchend', function(e){
               <div id="phoenix-list-content" class="empty-msg">Завантаження інформації...</div>
             </div>
         </div>
+    </div>
+
+    <!-- ПОВІТРЯНА ТРИВОГА: окремий розділ з картою області.
+         Своя група вкладок, щоб не мішатися з транспортом і новинами.
+         Шухляда має клас main-list-widget — той самий вигляд і та сама
+         логіка закриття, що в решти розділів (див. switchAppTab). -->
+    <div class="alarm-group" style="display: none;">
+      <div class="tabs-wrapper">
+        <div class="tabs-nav" id="alarm-tabs">
+          <button class="tab-btn tab-alarm" onclick="switchAppTab('alarm-tab', this, 'alarm')"><svg class="tt-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9v5l-2 2v1h18v-1l-2-2V9c0-3.87-3.13-7-7-7zm0 20c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zM7 9c0-2.76 2.24-5 5-5s5 2.24 5 5v5H7V9z"/></svg>Повітряна тривога<span id="alarm-tab-state"></span></button>
+        </div>
+      </div>
+      <div id="alarm-drawer" class="main-list-widget">
+        <div id="alarm-tab" class="content-section">
+          <div id="alarm-section" class="alarm-section"></div>
+          <div id="alarm-map" class="alarm-map"></div>
+          <div class="alarm-note">
+            Дані з відкритих джерел моніторингу й можуть запізнюватися.
+            Це <b>не</b> заміна офіційним сповіщенням — завжди орієнтуйтеся на
+            сирену та офіційні канали ОВА і ДСНС.
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="schedule-group">
@@ -552,6 +579,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260811b" defer></script>
+<script src="./js/app.js?v=20260811c" defer></script>
 </body>
 </html>

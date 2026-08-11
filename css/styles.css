@@ -495,3 +495,76 @@ a,
 .trains-status-ok .ok-txt{display:flex;flex-direction:column;gap:2px;min-width:0;text-align:left;}
 .trains-status-ok .ok-title{font-size:12.5px;font-weight:800;color:#fff;line-height:1.25;}
 .trains-status-ok .ok-sub{font-size:10px;font-weight:600;color:rgba(255,255,255,0.55);line-height:1.2;}
+
+/* ─── ПОВІТРЯНА ТРИВОГА (Дніпропетровська область) ─────────────── */
+.alarm-group{display:flex;flex-direction:column;gap:8px;position:relative;z-index:95;width:100%}
+.tab-btn.tab-alarm{flex:1 1 auto;justify-content:center;display:flex;align-items:center;gap:6px;font-weight:800;letter-spacing:0.3px;text-transform:uppercase;}
+.tab-btn.tab-alarm.is-on{background:linear-gradient(145deg,rgba(255,77,77,0.45),rgba(120,10,10,0.9));border-color:rgba(255,77,77,0.85);box-shadow:0 0 16px rgba(255,77,77,0.5);animation:alarmTabPulse 1.6s ease-in-out infinite;}
+.tab-btn.tab-alarm.is-off{background:linear-gradient(145deg,rgba(0,255,156,0.16),rgba(0,0,0,0.3));border-color:rgba(0,255,156,0.35);}
+#alarm-tab-state{font-size:11px;font-weight:800;opacity:0.95;}
+@keyframes alarmTabPulse{0%,100%{box-shadow:0 0 12px rgba(255,77,77,0.35)}50%{box-shadow:0 0 24px rgba(255,77,77,0.85)}}
+
+/* Плашка стану вгорі сайту */
+.alarm-bar{width:100%;box-sizing:border-box;display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:18px;cursor:pointer;text-align:left;transition:transform 0.15s ease;}
+.alarm-bar:active{transform:scale(0.99);}
+.alarm-bar.calm{background:linear-gradient(135deg,rgba(0,255,156,0.12),rgba(0,0,0,0.35));border:1px solid rgba(0,255,156,0.32);}
+.alarm-bar.loud{background:linear-gradient(135deg,rgba(255,77,77,0.32),rgba(90,0,0,0.55));border:1px solid rgba(255,77,77,0.75);box-shadow:0 0 22px rgba(255,77,77,0.35);animation:alarmBarPulse 1.5s ease-in-out infinite;}
+@keyframes alarmBarPulse{0%,100%{box-shadow:0 0 14px rgba(255,77,77,0.28)}50%{box-shadow:0 0 30px rgba(255,77,77,0.6)}}
+.alarm-bar-ico{flex:0 0 auto;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.alarm-bar.calm .alarm-bar-ico{background:rgba(0,255,156,0.14);border:1px solid rgba(0,255,156,0.4);}
+.alarm-bar.loud .alarm-bar-ico{background:rgba(255,77,77,0.2);border:1px solid rgba(255,77,77,0.6);}
+.alarm-bar-txt{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;}
+.alarm-bar-title{font-size:13px;font-weight:900;color:#fff;line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,0.6);}
+.alarm-bar.calm .alarm-bar-title{color:#9affc4;}
+.alarm-bar-sub{font-size:10.5px;font-weight:600;color:rgba(255,255,255,0.65);line-height:1.25;}
+.alarm-bar-time{flex:0 0 auto;font-size:15px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-0.3px;text-shadow:0 1px 4px rgba(0,0,0,0.7);}
+
+/* Вміст розділу */
+.alarm-section{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
+.alarm-head{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:16px;}
+.alarm-head.calm{background:rgba(0,255,156,0.10);border:1px solid rgba(0,255,156,0.35);}
+.alarm-head.loud{background:rgba(255,77,77,0.16);border:1px solid rgba(255,77,77,0.55);}
+.alarm-head-title{font-size:15px;font-weight:900;color:#fff;line-height:1.25;}
+.alarm-head.calm .alarm-head-title{color:#00ff9c;}
+.alarm-head.loud .alarm-head-title{color:#ff6b6b;}
+.alarm-head-sub{font-size:11px;font-weight:600;color:rgba(255,255,255,0.6);margin-top:2px;}
+.alarm-home{display:flex;align-items:center;gap:9px;padding:11px 13px;border-radius:14px;background:rgba(0,0,0,0.28);border:1px dashed rgba(255,255,255,0.18);}
+.alarm-home-lbl{font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);}
+.alarm-home-val{font-size:13px;font-weight:900;margin-left:auto;}
+
+.alarm-raions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+.alarm-raion{display:flex;align-items:center;gap:7px;padding:9px 10px;border-radius:12px;background:rgba(0,0,0,0.26);border:1px solid rgba(255,255,255,0.08);min-width:0;}
+.alarm-raion.on{background:rgba(255,77,77,0.15);border-color:rgba(255,77,77,0.5);}
+.alarm-raion.home{border-style:solid;border-color:var(--highlight-color);box-shadow:0 0 10px rgba(255,204,0,0.2);}
+.alarm-raion-dot{flex:0 0 auto;width:9px;height:9px;border-radius:50%;background:#00ff9c;box-shadow:0 0 7px rgba(0,255,156,0.7);}
+.alarm-raion.on .alarm-raion-dot{background:#ff4d4d;box-shadow:0 0 8px rgba(255,77,77,0.9);animation:alarmDot 1.2s ease-in-out infinite;}
+@keyframes alarmDot{0%,100%{opacity:1}50%{opacity:0.35}}
+.alarm-raion-name{font-size:11px;font-weight:700;color:#fff;line-height:1.2;min-width:0;word-break:break-word;}
+.alarm-raion-time{margin-left:auto;font-size:10px;font-weight:800;color:#ffb3b3;font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+/* Область витягнута по горизонталі (≈1.5:1), тож фіксована висота лишала
+   півекрана порожнім. Пропорція підганяє висоту під реальну форму області. */
+.alarm-map{width:100%;aspect-ratio:1.5/1;min-height:230px;max-height:58vh;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,0.12);box-shadow:0 8px 24px rgba(0,0,0,0.35);background:#0b1220;}
+.alarm-map .leaflet-popup-content{font-weight:700;font-size:13px;}
+.alarm-legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:10px 0 0;font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.7);}
+.alarm-legend span{display:inline-flex;align-items:center;gap:5px;}
+.alarm-legend i{width:11px;height:11px;border-radius:3px;display:inline-block;}
+
+.alarm-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:10px;}
+.alarm-btn{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;padding:8px 13px;border-radius:20px;cursor:pointer;border:1.5px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.3);color:rgba(255,255,255,0.75);transition:all 0.2s ease;}
+.alarm-btn.on{border-color:var(--highlight-color);background:rgba(255,204,0,0.16);color:#fff;}
+.alarm-btn:active{transform:scale(0.96);}
+
+.alarm-hist{margin-top:12px;background:rgba(0,0,0,0.24);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:11px 13px;}
+.alarm-hist-head{font-size:11px;font-weight:800;color:rgba(255,255,255,0.65);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;}
+.alarm-hist-row{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;color:rgba(255,255,255,0.85);padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+.alarm-hist-row:last-child{border-bottom:none;}
+.alarm-hist-dur{margin-left:auto;font-weight:800;color:#ffb3b3;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.alarm-hist-empty{font-size:11px;color:rgba(255,255,255,0.45);font-weight:600;text-align:center;padding:4px 0;}
+
+.alarm-note{margin-top:12px;padding:10px 13px;border-radius:14px;background:rgba(255,204,0,0.08);border:1px dashed rgba(255,204,0,0.35);font-size:10.5px;line-height:1.5;color:rgba(255,255,255,0.75);text-align:center;}
+.alarm-note a{color:var(--highlight-color);font-weight:800;text-decoration:none;}
+.alarm-stale{margin-top:8px;text-align:center;font-size:10px;font-weight:700;color:#ffcc00;}
+
+@media (max-width:380px){.alarm-raions{grid-template-columns:1fr;}}
+@media (prefers-reduced-motion:reduce){.alarm-bar.loud,.tab-btn.tab-alarm.is-on,.alarm-raion.on .alarm-raion-dot{animation:none;}}

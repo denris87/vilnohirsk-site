@@ -702,7 +702,7 @@ function switchAppTab(tabId, btn, group) {
   closeAllJobsDrawers();
   const notifs = {'alert-feed':'communal', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
-  const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
+  const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer', alarm: 'alarm-drawer' };
   if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
   document.querySelectorAll('.main-list-widget, .shopping-drawer, .alert-drawer').forEach(d => d.classList.remove('open'));
   document.querySelectorAll('.tab-btn, .tab-alert').forEach(b => b.classList.remove('active'));
@@ -712,6 +712,7 @@ function switchAppTab(tabId, btn, group) {
   btn.classList.add('active'); const targetSection = document.getElementById(tabId); if (targetSection) targetSection.classList.add('active');
   if (tabId === 'alert-volunteers') { try { loadVolunteersData({forceRefresh: true}); } catch(e) { logSectionError('збори ЗСУ', e); } }
   if (tabId === 'map-tab') { try { initCityMap(); } catch(e) { logSectionError('карта міста', e); } }
+  if (tabId === 'alarm-tab') { try { initAlarmMap(); } catch(e) { logSectionError('карта тривог', e); } }
   window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
 }
 
@@ -1046,6 +1047,591 @@ function closeSvitloModal() {
   if (!document.querySelector('.custom-modal-overlay.active') && !document.querySelector('.image-modal.active')) {
     document.body.style.overflow = '';
   }
+}
+
+// =========================================================================
+// === ПОВІТРЯНА ТРИВОГА — ТІЛЬКИ ДНІПРОПЕТРОВСЬКА ОБЛАСТЬ ===
+//
+// Налаштування — data/alarm.yaml, межі — data/dnipro-raions.geojson
+// (7 районів за устроєм 2020 р., джерела: geoBoundaries + ukrainian_geodata).
+//
+// Інші області вимкнені навмисно й одразу на трьох рівнях:
+//   1) ДАНІ   — alarmPickOurs() лишає тільки нашу область і її 7 районів,
+//               решта України в пам'ять застосунку взагалі не потрапляє;
+//   2) КАРТА  — maxBounds + minZoom не дають вийти за межі області, а маска
+//               (весь світ з «діркою» по контуру) затемнює все навколо;
+//   3) КОНФІГ — у alarm.yaml будь-який район можна прибрати через show: false.
+//
+// Формат відповіді API не фіксований: alarmCollect() обходить JSON і сам
+// знаходить пари «назва регіону + ознака тривоги». Тому джерело в alarm.yaml
+// можна замінити на інше, не чіпаючи код.
+// =========================================================================
+
+const ALARM_OBLAST_NAME = 'Дніпропетровська область';
+// Межі області (з dnipro-raions.geojson): [[південь,захід],[північ,схід]]
+const ALARM_BOUNDS = [[47.4568, 32.9595], [49.1934, 36.9365]];
+const ALARM_VILNOHIRSK = [48.4790, 34.0180];
+const ALARM_HIST_KEY = 'alarm_history_v1';
+const ALARM_SOUND_KEY = 'alarm_sound_on';
+const ALARM_PREV_KEY = 'alarm_prev_active';
+
+let alarmCfg = null;        // розібраний data/alarm.yaml
+let alarmGeo = null;        // розібраний data/dnipro-raions.geojson
+let alarmState = null;      // {active, since, raions:[...], viaOblast, source, stale}
+let alarmMap = null;
+let alarmShapes = {};       // назва району -> L.Polygon
+let alarmTickId = null;
+let alarmYamlTries = 0;
+let alarmLeafletTries = 0;
+
+// Назва регіону -> ключ для порівняння. Прибираємо слова «район»/«область»,
+// апострофи (їх пишуть п'ятьма різними символами) і всю пунктуацію.
+function alarmNorm(s) {
+  return String(s == null ? '' : s)
+    .toLowerCase()
+    .replace(/[’ʼ‘'`´]/g, '')
+    .replace(/район|р-н|області|область|обл\./g, '')
+    .replace(/[^0-9a-zЀ-ӿ]/g, '');
+}
+
+// Час початку тривоги може приїхати як завгодно: ISO, unix, «2026-08-11 14:03».
+// Рядок без таймзони читаємо як місцевий час — користувачі сайту в Україні.
+function alarmParseTime(v) {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') return v > 1e12 ? v : v * 1000;
+  const s = String(v).trim();
+  if (!s) return null;
+  if (/^\d+$/.test(s)) { const n = Number(s); return n > 1e12 ? n : n * 1000; }
+  const t = Date.parse(s.indexOf(' ') > 0 && s.indexOf('T') < 0 ? s.replace(' ', 'T') : s);
+  return isNaN(t) ? null : t;
+}
+
+// Ознака «тривога зараз» у вузлі відповіді. Різні API називають її по-різному,
+// тому перебираємо всі відомі варіанти.
+function alarmActiveOf(node) {
+  if (!node || typeof node !== 'object') return null;
+  if (node.alertnow && typeof node.alertnow === 'object') {
+    const inner = alarmActiveOf(node.alertnow);
+    if (inner !== null) return inner;
+  }
+  const keys = ['isAlert', 'is_alert', 'alert', 'alertNow', 'enabled', 'active'];
+  for (let i = 0; i < keys.length; i++) {
+    if (typeof node[keys[i]] === 'boolean') return node[keys[i]];
+  }
+  if (Array.isArray(node.activeAlerts)) return node.activeAlerts.length > 0;
+  // Запис у списку активних тривог (стиль alerts.in.ua): сам факт наявності = тривога
+  if (node.location_title && (node.started_at || node.alert_type)) return true;
+  return null;
+}
+
+function alarmSinceOf(node) {
+  const keys = ['started_at', 'startedAt', 'enabled_at', 'changed', 'since', 'alert_start', 'updated_at'];
+  for (let i = 0; i < keys.length; i++) {
+    const t = alarmParseTime(node[keys[i]]);
+    if (t) return t;
+  }
+  if (node.alertnow && typeof node.alertnow === 'object') return alarmSinceOf(node.alertnow);
+  return null;
+}
+
+// Обхід відповіді API: збираємо всі пари «регіон -> стан», у якому б вигляді
+// вони не лежали (об'єкт-мапа, масив записів, список активних тривог).
+function alarmCollect(json) {
+  const found = {};
+  const visit = (node, keyName, depth) => {
+    if (!node || typeof node !== 'object' || depth > 7) return;
+    if (Array.isArray(node)) { node.forEach(n => visit(n, keyName, depth + 1)); return; }
+    const title = node.location_title || node.regionName || node.name || node.state || node.title || keyName;
+    const act = alarmActiveOf(node);
+    if (title && act !== null) {
+      const k = alarmNorm(title);
+      // Активний запис завжди важливіший за «тихий» дубль того самого регіону
+      if (k && (!found[k] || (act && !found[k].active))) {
+        found[k] = { active: act, since: alarmSinceOf(node) };
+      }
+    }
+    Object.keys(node).forEach(k2 => visit(node[k2], k2, depth + 1));
+  };
+  visit(json, null, 0);
+  return found;
+}
+
+// Лишаємо ТІЛЬКИ нашу область та її райони. Решта України відкидається тут —
+// далі по коду інших областей просто не існує.
+function alarmPickOurs(found) {
+  const cfgRaions = (alarmCfg && Array.isArray(alarmCfg.raions)) ? alarmCfg.raions : [];
+  const cfgOf = name => cfgRaions.find(r => r && alarmNorm(r.name) === alarmNorm(name)) || {};
+
+  const raions = [];
+  let anyKnown = false;
+  ((alarmGeo && alarmGeo.features) || []).forEach(f => {
+    const p = f.properties || {};
+    const cfg = cfgOf(p.name);
+    if (cfg.show === false) return;                       // вимкнено в alarm.yaml
+    let hit = null;
+    [p.name].concat(p.aliases || []).forEach(n => {
+      const v = found[alarmNorm(n)];
+      if (v && (!hit || v.active)) hit = v;
+    });
+    if (hit) anyKnown = true;
+    raions.push({
+      name: p.name,
+      home: cfg.home === true,
+      active: hit ? hit.active : false,
+      since: hit ? hit.since : null,
+      known: !!hit
+    });
+  });
+
+  const ob = found[alarmNorm(ALARM_OBLAST_NAME)] || null;
+  let active = ob ? ob.active : raions.some(r => r.active);
+  let since = ob ? ob.since : null;
+
+  // Джерело дало тільки рівень області (так робить більшість безкоштовних API).
+  // В Україні тривога оголошується на всю область, тому вважаємо, що вона
+  // стосується всіх районів, і чесно кажемо про це в інтерфейсі.
+  const viaOblast = !anyKnown && active;
+  if (viaOblast) raions.forEach(r => { r.active = true; r.since = since; });
+  if (!since) {
+    const t = raions.filter(r => r.active && r.since).map(r => r.since);
+    if (t.length) since = Math.min.apply(null, t);
+  }
+  return { active: !!active, since: since, raions: raions, viaOblast: viaOblast };
+}
+
+// Порожній список районів з урахуванням alarm.yaml (home / show) — спільна
+// основа для ручного та тестового режимів, щоб вони виглядали як справжні дані.
+function alarmRaionSkeleton(active, since) {
+  const cfgRaions = (alarmCfg && Array.isArray(alarmCfg.raions)) ? alarmCfg.raions : [];
+  const out = [];
+  ((alarmGeo && alarmGeo.features) || []).forEach(f => {
+    const cfg = cfgRaions.find(r => r && alarmNorm(r.name) === alarmNorm(f.properties.name)) || {};
+    if (cfg.show === false) return;
+    out.push({ name: f.properties.name, home: cfg.home === true, active: !!active, since: since || null, known: true });
+  });
+  return out;
+}
+
+function alarmDur(ms) {
+  if (!(ms > 0)) return '';
+  const s = Math.floor(ms / 1000);
+  const p = n => String(n).padStart(2, '0');
+  const h = Math.floor(s / 3600);
+  return (h > 0 ? h + ':' : '') + p(Math.floor((s % 3600) / 60)) + ':' + p(s % 60);
+}
+
+function alarmClock(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+
+// --- Історія тривог (localStorage, без жодного сервера) ---
+function alarmHistLoad() {
+  try { const a = JSON.parse(localStorage.getItem(ALARM_HIST_KEY) || '[]'); return Array.isArray(a) ? a : []; }
+  catch (e) { return []; }
+}
+function alarmHistSave(a) {
+  try { localStorage.setItem(ALARM_HIST_KEY, JSON.stringify(a.slice(-20))); } catch (e) {}
+}
+function alarmHistNote(active, since) {
+  const hist = alarmHistLoad();
+  const last = hist[hist.length - 1];
+  if (active) {
+    if (!last || last.end) hist.push({ start: since || Date.now(), end: null });
+  } else if (last && !last.end) {
+    last.end = Date.now();
+  } else {
+    return;
+  }
+  alarmHistSave(hist);
+}
+
+// --- Сирена без жодного аудіофайлу: три хвилі синтезом WebAudio ---
+function alarmSirenOn() { return localStorage.getItem(ALARM_SOUND_KEY) === '1'; }
+function alarmToggleSound() {
+  const on = !alarmSirenOn();
+  try { localStorage.setItem(ALARM_SOUND_KEY, on ? '1' : '0'); } catch (e) {}
+  if (on) alarmPlaySiren(true);
+  showToast(on ? '🔊 Звук тривоги увімкнено' : '🔇 Звук тривоги вимкнено', on ? 'success' : 'info');
+  alarmRender();
+}
+function alarmPlaySiren(force) {
+  if (!force && !alarmSirenOn()) return;
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.connect(gain); gain.connect(ctx.destination);
+    const t0 = ctx.currentTime;
+    let t = t0;
+    for (let i = 0; i < 3; i++) {
+      osc.frequency.setValueAtTime(430, t);
+      osc.frequency.linearRampToValueAtTime(880, t + 1.1);
+      osc.frequency.linearRampToValueAtTime(430, t + 2.2);
+      t += 2.2;
+    }
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.22, t0 + 0.2);
+    gain.gain.setValueAtTime(0.22, t - 0.4);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t);
+    osc.start(t0); osc.stop(t + 0.05);
+    osc.onended = () => { try { ctx.close(); } catch (e) {} };
+  } catch (e) {}
+}
+
+// =========================================================================
+// Завантаження даних
+// =========================================================================
+async function loadAlarmData() {
+  const bar = document.getElementById('alarm-bar');
+  const group = document.querySelector('.alarm-group');
+  const hide = () => {
+    if (bar) bar.style.display = 'none';
+    if (group) group.style.display = 'none';
+  };
+  if (typeof jsyaml === 'undefined') {
+    if (alarmYamlTries++ < 40) setTimeout(loadAlarmData, 250); else hide();
+    return;
+  }
+  try {
+    const cfgRes = await fetch('./data/alarm.yaml?v=' + Date.now(), { cache: 'no-store' });
+    if (!cfgRes.ok) { hide(); return; }
+    alarmCfg = jsyaml.load(await cfgRes.text()) || {};
+    if (alarmCfg.show === false) { hide(); return; }
+
+    if (!alarmGeo) {
+      const geoRes = await fetch('./data/dnipro-raions.geojson');
+      if (!geoRes.ok) { hide(); return; }
+      alarmGeo = await geoRes.json();
+    }
+    if (group) group.style.display = 'flex';
+
+    // Ручний режим із alarm.yaml має пріоритет над будь-яким API
+    const man = alarmCfg.manual || {};
+    if (man.active === true || man.active === false) {
+      const since = alarmParseTime(alarmYamlTime(man.since));
+      const raions = alarmRaionSkeleton(man.active === true, since);
+      alarmApply({ active: man.active === true, since: since, raions: raions, viaOblast: man.active === true, source: 'вручну', manual: true, note: man.note || '' });
+      return;
+    }
+
+    // Тестовий режим: ?alarm=test — подивитись, як виглядає тривога
+    if (/[?&]alarm=test\b/.test(location.search)) {
+      const raions = alarmRaionSkeleton(false, null).map((r, i) => {
+        // «Наш» район у тесті завжди під тривогою — саме його треба перевіряти
+        const on = r.home || i % 2 === 0;
+        return Object.assign(r, { active: on, since: on ? Date.now() - (i + 1) * 7 * 60000 : null });
+      });
+      alarmApply({ active: true, since: Date.now() - 7 * 60000, raions: raions, viaOblast: false, source: 'ТЕСТ', test: true, note: 'Тестовий режим (?alarm=test) — дані вигадані' });
+      return;
+    }
+
+    const sources = (Array.isArray(alarmCfg.sources) ? alarmCfg.sources : []).filter(s => s && s.url && s.show !== false);
+    let picked = null, usedName = '';
+    for (let i = 0; i < sources.length; i++) {
+      try {
+        const r = await fetchWithTimeout(sources[i].url, { cache: 'no-store' }, 7000);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const json = await r.json();
+        const ours = alarmPickOurs(alarmCollect(json));
+        // Джерело, яке не знає навіть нашої області, вважаємо непридатним
+        if (!ours.raions.length) throw new Error('порожня відповідь');
+        picked = ours; usedName = sources[i].name || sources[i].url;
+        break;
+      } catch (e) {
+        console.warn('[тривога] джерело «' + (sources[i].name || sources[i].url) + '» не відповіло:', e.message);
+      }
+    }
+
+    if (!picked) {
+      // Жодне джерело не відповіло — показуємо останній відомий стан із поміткою
+      if (alarmState) { alarmState.stale = true; alarmRender(); }
+      else hide();
+      return;
+    }
+    picked.source = usedName;
+    alarmApply(picked);
+  } catch (e) {
+    logSectionError('повітряна тривога', e);
+    invalidateRender('render_alarm');  // інакше зламаний рендер лишиться назавжди
+    if (!alarmState) hide();
+  }
+}
+
+// "14:30 11.08.2026" з YAML -> рядок, який розуміє Date.parse
+function alarmYamlTime(s) {
+  const m = String(s || '').match(/^\s*(\d{1,2}):(\d{2})\s+(\d{1,2})\.(\d{1,2})\.(\d{4})\s*$/);
+  if (!m) return s || null;
+  return m[5] + '-' + m[4].padStart(2, '0') + '-' + m[3].padStart(2, '0') + 'T' + m[1].padStart(2, '0') + ':' + m[2] + ':00';
+}
+
+function alarmApply(next) {
+  const prevActive = alarmState ? alarmState.active : (localStorage.getItem(ALARM_PREV_KEY) === '1');
+  const first = !alarmState;
+  next.stale = false;
+  alarmState = next;
+  try { localStorage.setItem(ALARM_PREV_KEY, next.active ? '1' : '0'); } catch (e) {}
+
+  if (!next.test) alarmHistNote(next.active, next.since);
+
+  // Перехід «тихо -> тривога»: сирена + системне сповіщення (якщо дозволено)
+  if (!first && next.active && !prevActive) {
+    alarmPlaySiren(false);
+    alarmNotify('🚨 Повітряна тривога', 'Дніпропетровська область. Пройдіть в укриття!');
+  } else if (!first && !next.active && prevActive) {
+    alarmNotify('✅ Відбій тривоги', 'Дніпропетровська область — тривогу скасовано.');
+  }
+
+  alarmRender();
+  alarmPaintMap();
+  alarmStartTick();
+}
+
+function alarmNotify(title, body) {
+  try {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+    new Notification(title, { body: body, icon: '/icon-192.png', tag: 'air-alarm', renotify: true });
+  } catch (e) {}
+}
+
+// Лічильник тривалості цокає щосекунди — але тільки коли є що рахувати
+function alarmStartTick() {
+  if (alarmTickId) { clearInterval(alarmTickId); alarmTickId = null; }
+  if (!alarmState || !alarmState.active || !alarmState.since) return;
+  alarmTickId = setInterval(() => {
+    if (!isPageVisible || !alarmState || !alarmState.active) return;
+    const el = document.getElementById('alarm-bar-time');
+    if (el) el.textContent = alarmDur(Date.now() - alarmState.since);
+    const el2 = document.getElementById('alarm-head-time');
+    if (el2) el2.textContent = alarmDur(Date.now() - alarmState.since);
+  }, 1000);
+}
+
+// =========================================================================
+// Відмальовка
+// =========================================================================
+function alarmRender() {
+  const st = alarmState;
+  if (!st) return;
+  const hist = alarmHistLoad().slice().reverse().filter(h => h.start);
+  // Опитуємо API щопівхвилини, але перемальовуємо лише коли щось справді
+  // змінилось: інакше блок кліпав би анімацією й губив прокрутку.
+  // Лічильник тривалості живе окремо — його оновлює alarmStartTick().
+  if (!dataChanged('render_alarm', {
+    a: st.active, v: st.viaOblast, s: st.stale, m: st.manual, n: st.note, since: st.since,
+    r: st.raions.map(r => [r.name, r.active, r.since, r.home]),
+    snd: alarmSirenOn(), h: hist.length, he: hist.length ? hist[0].end : 0
+  })) return;
+  const bar = document.getElementById('alarm-bar');
+  const loud = st.active;
+  const dur = st.since ? alarmDur(Date.now() - st.since) : '';
+  const home = st.raions.find(r => r.home) || null;
+
+  if (bar) {
+    const sub = loud
+      ? (st.viaOblast ? 'Оголошено на всю область' : (st.raions.filter(r => r.active).length + ' з ' + st.raions.length + ' районів'))
+      : 'Дніпропетровська область';
+    bar.className = 'alarm-bar ' + (loud ? 'loud' : 'calm');
+    bar.innerHTML =
+      '<div class="alarm-bar-ico">' + (loud ? '🚨' : '🟢') + '</div>' +
+      '<div class="alarm-bar-txt">' +
+        '<span class="alarm-bar-title">' + (loud ? 'ПОВІТРЯНА ТРИВОГА' : 'Тривоги немає') + '</span>' +
+        '<span class="alarm-bar-sub">' + escapeHTML(sub) + '</span>' +
+      '</div>' +
+      (dur ? '<span class="alarm-bar-time" id="alarm-bar-time">' + dur + '</span>' : '');
+    bar.style.display = 'flex';
+    bar.onclick = alarmOpenSection;
+    bar.setAttribute('role', 'button');
+    bar.setAttribute('tabindex', '0');
+    bar.setAttribute('aria-label', loud ? 'Повітряна тривога — відкрити карту' : 'Тривоги немає — відкрити карту');
+  }
+
+  const tabState = document.getElementById('alarm-tab-state');
+  if (tabState) tabState.textContent = loud && !st.viaOblast
+    ? ' · ' + st.raions.filter(r => r.active).length + '/' + st.raions.length
+    : '';
+  const tabBtn = document.querySelector('.tab-btn.tab-alarm');
+  if (tabBtn) { tabBtn.classList.toggle('is-on', loud); tabBtn.classList.toggle('is-off', !loud); }
+
+  const host = document.getElementById('alarm-section');
+  if (!host) return;
+
+  const headSub = st.manual ? 'Дані внесено вручну адміністратором'
+    : (st.viaOblast ? 'Джерело дає стан на рівні області — по районах деталізації немає' : 'Дані оновлюються автоматично');
+  const raionRows = st.raions.map(r =>
+    '<div class="alarm-raion' + (r.active ? ' on' : '') + (r.home ? ' home' : '') + '">' +
+      '<span class="alarm-raion-dot"></span>' +
+      '<span class="alarm-raion-name">' + escapeHTML(r.name.replace(' район', '')) + (r.home ? ' 📍' : '') + '</span>' +
+      (r.active && r.since ? '<span class="alarm-raion-time">з ' + alarmClock(r.since) + '</span>' : '') +
+    '</div>').join('');
+
+  const histRows = hist.length
+    ? hist.slice(0, 5).map(h => {
+        const d = h.end ? alarmDur(h.end - h.start) : 'триває';
+        const day = new Date(h.start);
+        return '<div class="alarm-hist-row"><span>' + String(day.getDate()).padStart(2, '0') + '.' +
+          String(day.getMonth() + 1).padStart(2, '0') + '</span><span>' + alarmClock(h.start) +
+          (h.end ? '–' + alarmClock(h.end) : '') + '</span><span class="alarm-hist-dur">' + d + '</span></div>';
+      }).join('')
+    : '<div class="alarm-hist-empty">Поки що порожньо — історія збирається на вашому пристрої</div>';
+
+  const soundAllowed = !alarmCfg || !alarmCfg.sound || alarmCfg.sound.allow !== false;
+
+  host.innerHTML =
+    '<div class="alarm-head ' + (loud ? 'loud' : 'calm') + '">' +
+      '<div class="alarm-bar-ico">' + (loud ? '🚨' : '✅') + '</div>' +
+      '<div style="min-width:0;flex:1;">' +
+        '<div class="alarm-head-title">' + (loud ? 'Повітряна тривога' : 'Тривоги немає') + '</div>' +
+        '<div class="alarm-head-sub">' + escapeHTML(st.note || headSub) + '</div>' +
+      '</div>' +
+      (dur ? '<span class="alarm-bar-time" id="alarm-head-time">' + dur + '</span>' : '') +
+    '</div>' +
+    (home
+      ? '<div class="alarm-home"><span class="alarm-home-lbl">📍 Вільногірськ · ' + escapeHTML(home.name) + '</span>' +
+        '<span class="alarm-home-val" style="color:' + (home.active ? '#ff6b6b' : '#00ff9c') + '">' +
+        (home.active ? 'ТРИВОГА' : 'спокійно') + '</span></div>'
+      : '') +
+    '<div class="alarm-raions">' + raionRows + '</div>' +
+    (st.stale ? '<div class="alarm-stale">⚠️ Джерело не відповідає — показано останній відомий стан</div>' : '') +
+    '<div class="alarm-row">' +
+      (soundAllowed
+        ? '<button type="button" class="alarm-btn' + (alarmSirenOn() ? ' on' : '') + '" onclick="alarmToggleSound()">' +
+          (alarmSirenOn() ? '🔊 Звук увімкнено' : '🔇 Звук вимкнено') + '</button>'
+        : '') +
+      '<button type="button" class="alarm-btn" onclick="alarmRequestNotify()">🔔 Сповіщення</button>' +
+    '</div>' +
+    '<div class="alarm-hist"><div class="alarm-hist-head">Останні тривоги</div>' + histRows + '</div>';
+}
+
+function alarmRequestNotify() {
+  if (!('Notification' in window)) { showToast('Ваш браузер не підтримує сповіщення', 'error'); return; }
+  if (Notification.permission === 'granted') { showToast('✅ Сповіщення вже увімкнені', 'success'); return; }
+  Notification.requestPermission().then(p => {
+    showToast(p === 'granted' ? '✅ Сповіщатимемо про тривогу' : 'Сповіщення не дозволені', p === 'granted' ? 'success' : 'info');
+  }).catch(() => {});
+}
+
+function alarmOpenSection() {
+  const btn = document.querySelector('.tab-btn.tab-alarm');
+  if (!btn) return;
+  if (!btn.classList.contains('active')) switchAppTab('alarm-tab', btn, 'alarm');
+  setTimeout(() => {
+    const g = document.querySelector('.alarm-group');
+    if (g && g.scrollIntoView) g.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 120);
+}
+
+// =========================================================================
+// Карта області (Leaflet уже підключений заради карти міста)
+// =========================================================================
+function alarmMaskGeometry(geom) {
+  // Полігон «весь світ» з дірками по контуру області: все, що поза межами
+  // Дніпропетровщини, лишається затемненим і візуально вимкненим.
+  const world = [[-180, -85], [180, -85], [180, 85], [-180, 85], [-180, -85]];
+  const holes = [];
+  if (geom.type === 'Polygon') holes.push(geom.coordinates[0]);
+  else if (geom.type === 'MultiPolygon') geom.coordinates.forEach(p => holes.push(p[0]));
+  return { type: 'Polygon', coordinates: [world].concat(holes) };
+}
+
+function initAlarmMap() {
+  const el = document.getElementById('alarm-map');
+  if (!el || !alarmGeo) return;
+  if (typeof L === 'undefined') {
+    if (alarmLeafletTries++ < 40) setTimeout(initAlarmMap, 250);
+    return;
+  }
+  if (alarmMap) { setTimeout(() => alarmMap.invalidateSize(), 50); return; }
+
+  const bounds = L.latLngBounds(ALARM_BOUNDS);
+  alarmMap = L.map(el, {
+    center: bounds.getCenter(),
+    zoom: 7,
+    minZoom: 4,                    // тимчасово; після підгонки замкнеться на межах області
+    maxZoom: 11,
+    // Ціле значення зуму на вузькому екрані лишало область удвічі меншою за
+    // кадр (крок зуму — рівно 2×). Дробовий крок дає їй заповнити кадр.
+    zoomSnap: 0,
+    maxBounds: bounds.pad(0.35),   // за межі області не вийти
+    maxBoundsViscosity: 1.0,
+    scrollWheelZoom: true,
+    attributionControl: true
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 11, subdomains: 'abcd',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  }).addTo(alarmMap);
+
+  // Затемнення всього, що поза областю
+  L.geoJSON(alarmMaskGeometry(alarmGeo.oblast.geometry), {
+    style: { color: 'transparent', weight: 0, fillColor: '#050912', fillOpacity: 0.86 },
+    interactive: false
+  }).addTo(alarmMap);
+
+  // Райони — клікабельні, з підписом стану
+  const cfgRaions = (alarmCfg && Array.isArray(alarmCfg.raions)) ? alarmCfg.raions : [];
+  alarmShapes = {};
+  (alarmGeo.features || []).forEach(f => {
+    const name = f.properties.name;
+    const cfg = cfgRaions.find(r => r && alarmNorm(r.name) === alarmNorm(name));
+    if (cfg && cfg.show === false) return;
+    const layer = L.geoJSON(f.geometry, { style: { weight: 1.5, color: 'rgba(255,255,255,0.45)', fillOpacity: 0.35 } }).addTo(alarmMap);
+    layer.bindPopup('<div class="map-popup"><div class="map-popup-title">' + escapeHTML(name) + '</div></div>');
+    alarmShapes[name] = layer;
+  });
+
+  // Контур області поверх усього
+  L.geoJSON(alarmGeo.oblast.geometry, {
+    style: { color: '#ffcc00', weight: 2, fill: false, dashArray: '4 3' },
+    interactive: false
+  }).addTo(alarmMap);
+
+  L.marker(ALARM_VILNOHIRSK, {
+    icon: L.divIcon({
+      className: 'map-pin',
+      html: '<div class="map-pin-inner" style="background:#ffcc00;"><span>🏠</span></div>',
+      iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -28]
+    })
+  }).bindPopup('<div class="map-popup"><div class="map-popup-title">Вільногірськ</div></div>').addTo(alarmMap);
+
+  // Шухляда розділу відкривається з анімацією, тому на момент створення карти
+  // контейнер ще вужчий, ніж стане. Підганяємо кадр кілька разів по дорозі.
+  const fit = () => {
+    if (!alarmMap) return;
+    alarmMap.setMinZoom(4);                      // відпускаємо, щоб перерахувати з нуля
+    alarmMap.invalidateSize();
+    // Знизу лишаємо трохи більше — там плашка атрибуції перекриває карту
+    alarmMap.fitBounds(bounds, { paddingTopLeft: [6, 6], paddingBottomRight: [6, 18] });
+    // Далі відзумити не можна: «вся область у кадрі» — це і є нижня межа,
+    // тож сусідні області в кадр не потраплять навіть теоретично.
+    alarmMap.setMinZoom(alarmMap.getZoom());
+  };
+  fit();
+  [60, 400, 750].forEach(ms => setTimeout(fit, ms));
+  let alarmResizeT = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(alarmResizeT);
+    alarmResizeT = setTimeout(fit, 250);
+  });
+  alarmPaintMap();
+}
+
+function alarmPaintMap() {
+  if (!alarmMap || !alarmState) return;
+  alarmState.raions.forEach(r => {
+    const layer = alarmShapes[r.name];
+    if (!layer) return;
+    layer.setStyle(r.active
+      ? { color: '#ff4d4d', weight: 2, fillColor: '#ff4d4d', fillOpacity: 0.45 }
+      : { color: 'rgba(0,255,156,0.55)', weight: 1.5, fillColor: '#00ff9c', fillOpacity: 0.12 });
+    layer.setPopupContent('<div class="map-popup"><div class="map-popup-title">' + escapeHTML(r.name) + '</div>' +
+      '<div class="map-popup-addr">' + (r.active ? '🚨 Тривога' + (r.since ? ' з ' + alarmClock(r.since) : '') : '✅ Спокійно') + '</div></div>');
+  });
 }
 
 // Затримку в data/delays.yaml можна писати і хвилинами, і годинами з хвилинами —
@@ -2652,7 +3238,8 @@ function refreshGroupA() {
     loadTrainsData();
     loadDelaysData();
     loadSvitloData();
-    loadAlerts();
+    loadAlarmData();   // тривога має свій швидкий інтервал, тут — щоб оновитись
+    loadAlerts();      // одразу після повернення на вкладку
     loadPromosData();
     loadExchangeRates();
     loadTickerData();
@@ -2694,6 +3281,7 @@ let firebaseInitialized = false;
 // id повинен співпадати з тим що пишеш в G колонку Push_Tokens
 const PUSH_CATEGORIES = [
   // ВАЖЛИВЕ
+  { id: 'air_alarm',   icon: '🚨', name: 'Повітряна тривога',  desc: 'Дніпропетровщина',  group: 'Важливе', defaultOn: true },
   { id: 'communal',    icon: '⚡', name: 'Комунальні новини', desc: 'Світло, вода, газ', group: 'Важливе', defaultOn: true },
   { id: 'news',        icon: '📰', name: 'Новини міста',      desc: 'Міські новини',     group: 'Важливе', defaultOn: true },
   { id: 'volunteers',  icon: '🇺🇦', name: 'Допомога ЗСУ',     desc: 'Нові збори',         group: 'Важливе', defaultOn: true },
@@ -3279,7 +3867,7 @@ function showIOSInstructions() {
 
 const initApp = () => {
   updateDateTime(); setInterval(updateDateTime, 1000); 
-  loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData(); loadDelaysData(); loadSvitloData();
+  loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData(); loadDelaysData(); loadSvitloData(); loadAlarmData();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { 
       loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); /* loadPhonebookData(); — тимчасово відключено (техобслуговування) */ loadGalleryData(); loadVolunteersData(); loadPhoenixData();
@@ -3287,6 +3875,9 @@ const initApp = () => {
   }, 600);
   
   // Разнесённые интервалы автообновления вместо одного большого
+  // Повітряна тривога — окремий швидкий інтервал: 2 хвилини для неї задовго
+  setInterval(() => { if (isPageVisible) loadAlarmData(); }, 30 * 1000);
+
   setInterval(refreshGroupA, 2 * 60 * 1000);  // каждые 2 минуты — важное
   setInterval(refreshGroupB, 5 * 60 * 1000);  // каждые 5 минут — основное
   setInterval(refreshGroupC, 8 * 60 * 1000);  // каждые 8 минут — редкое
