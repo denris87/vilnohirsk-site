@@ -347,3 +347,11 @@ phoenix:
     photos:
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo-output%203.PNG?raw=true"
     active: true
+
+  - name: "Кравченко Володимир Ігорович"
+    dob: "18.01.1984"
+    date_missing: "17.07.1984"
+    callsign: "Білаз"
+    photos:
+      - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-08-11_19-38-53.jpg?raw=true"
+    active: true
