@@ -93,7 +93,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20260811c">
+<link rel="stylesheet" href="./css/styles.css?v=20260811d">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -314,9 +314,6 @@ document.addEventListener('touchend', function(e){
                 <div style="display: flex; gap: 8px; width: 100%;">
                     <div class="tab-alert phoenix" onclick="switchAppTab('alert-phoenix', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px); background: linear-gradient(135deg, #d32f2f, #8b0000); color: #fff; font-weight: 800; border: 1px solid #ff4d4d; box-shadow: 0 4px 15px rgba(211, 47, 47, 0.4); text-transform: uppercase; letter-spacing: 0.5px; border-radius: 12px;"><svg class="tt-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-2.5 3.5-4 6-4 9 0 1.6.6 3 1.8 4-.4-1.8.9-3.2.9-3.2.5 1.5 1.6 2.1 2.6 3.6.8 1.2.5 2.9-.5 3.8 2.8-.6 4.7-3 4.7-5.9C17.5 9 13.5 6 12 2zm0 17.5c-1 0-1.8-.8-1.8-1.8 0-.9.5-1.6 1-2.3.3 1 1 1.4 1 1.4.4-.6.9-1.1.9-1.8.6.7 1 1.5 1 2.4 0 1-.9 1.9-2.1 1.9z"/></svg>ФЕНІКС (Розшук<span id="phoenix-tab-count"></span>)</div>
                 </div>
-                <div style="display: flex; gap: 8px; width: 100%;">
-                    <div class="tab-alert captivity" onclick="switchAppTab('alert-captivity', this, 'alert')" style="flex: 1; padding: 12px 4px; font-size: clamp(10px, 2.8vw, 13px); background: linear-gradient(135deg, #2563eb, #133a80); color: #fff; font-weight: 800; border: 1px solid #60a5fa; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4); text-transform: uppercase; letter-spacing: 0.5px; border-radius: 12px;"><svg class="tt-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>У полоні<span id="captivity-tab-count"></span></div>
-                </div>
             </div>
         </div>
         <div class="alert-drawer" id="alert-drawer">
@@ -339,12 +336,6 @@ document.addEventListener('touchend', function(e){
                 Інформація про зниклих безвісти героїв нашого міста (зі згоди рідних).<br>Для розміщення анкети пишіть: <a href="https://t.me/Anastasia_Krasulia" target="_blank" rel="noopener" style="color: #ff4d4d; text-decoration: none; font-weight: 800; font-size: 13px;">@Anastasia_Krasulia</a>
               </div>
               <div id="phoenix-list-content" class="empty-msg">Завантаження інформації...</div>
-            </div>
-            <div id="alert-captivity" class="content-section">
-              <div style="padding: 12px; text-align: center; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.9); background: linear-gradient(135deg, rgba(96, 165, 250, 0.15), rgba(0, 0, 0, 0.4)); border: 1px dashed rgba(96, 165, 250, 0.4); border-radius: 14px; margin-bottom: 12px; line-height: 1.4;">
-                Ці захисники не зникли безвісти. Їх знайшли, вони у полоні, і місто чекає на їхнє повернення додому.<br>Для розміщення анкети пишіть: <a href="https://t.me/Anastasia_Krasulia" target="_blank" rel="noopener" style="color: #60a5fa; text-decoration: none; font-weight: 800; font-size: 13px;">@Anastasia_Krasulia</a>
-              </div>
-              <div id="captivity-list-content" class="empty-msg">Завантаження інформації...</div>
             </div>
         </div>
     </div>
@@ -561,6 +552,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20260811c" defer></script>
+<script src="./js/app.js?v=20260811d" defer></script>
 </body>
 </html>

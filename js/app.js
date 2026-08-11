@@ -700,7 +700,7 @@ function toggleMapCategory(catId, btn) {
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
   closeAllJobsDrawers();
-  const notifs = {'alert-feed':'communal', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'alert-captivity':'captivity', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
+  const notifs = {'alert-feed':'communal', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
   if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
@@ -2082,7 +2082,8 @@ async function loadTickerData() {
 // як був, полон робимо синім: людина не зникла, місцеперебування відоме.
 const PHOENIX_VIEWS = {
   missing: {
-    container: 'phoenix-list-content',
+    groupTitle: 'Зниклі безвісти',
+    groupSub: '',
     ribbon: 'Зник безвісти',
     ribbonBg: 'linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9))',
     tileTint: 'rgba(255, 77, 77, 0.05)',
@@ -2090,11 +2091,11 @@ const PHOENIX_VIEWS = {
     infoBg: 'rgba(255, 77, 77, 0.1)',
     infoBorder: 'rgba(255,77,77,0.2)',
     accent: '#ff4d4d',
-    dateLabel: 'Зник:',
-    empty: 'Актуальної інформації немає'
+    dateLabel: 'Зник:'
   },
   captive: {
-    container: 'captivity-list-content',
+    groupTitle: 'У полоні',
+    groupSub: 'їх знайшли, чекаємо на повернення додому',
     ribbon: 'У полоні',
     ribbonBg: 'linear-gradient(90deg, rgba(37, 99, 235, 0.9), rgba(23, 55, 128, 0.9))',
     tileTint: 'rgba(96, 165, 250, 0.06)',
@@ -2102,17 +2103,35 @@ const PHOENIX_VIEWS = {
     infoBg: 'rgba(96, 165, 250, 0.1)',
     infoBorder: 'rgba(96,165,250,0.25)',
     accent: '#60a5fa',
-    dateLabel: 'У полоні з:',
-    empty: 'Наразі таких відомостей немає'
+    dateLabel: 'У полоні з:'
   }
 };
 
-function renderPhoenixList(items, view) {
-  view = view || PHOENIX_VIEWS.missing;
-  const cont = document.getElementById(view.container);
+// Усе живе в одній вкладці ФЕНІКС. Полонені йдуть окремою групою попереду:
+// їх небагато, а новина про те, що людину знайшли, не має губитись серед
+// карток розшуку. Заголовки груп показуємо лише коли є обидві — інакше
+// розділ виглядає рівно так, як виглядав до появи полону.
+function renderPhoenixList(items) {
+  const cont = document.getElementById('phoenix-list-content');
   if (!cont) return;
-  if (!items || !items.length) { cont.innerHTML = `<div class="empty-msg">${view.empty}</div>`; return; }
-  let html = '<div class="shops-tile-grid">';
+  if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Актуальної інформації немає</div>'; return; }
+  const captives = items.filter(isPhoenixCaptive);
+  const missing = items.filter(item => !isPhoenixCaptive(item));
+  const withHeads = captives.length > 0 && missing.length > 0;
+  cont.innerHTML = phoenixGroupHtml(captives, PHOENIX_VIEWS.captive, captives.length > 0)
+                 + phoenixGroupHtml(missing, PHOENIX_VIEWS.missing, withHeads);
+}
+
+function phoenixGroupHtml(items, view, withHead) {
+  if (!items || !items.length) return '';
+  let html = '';
+  if (withHead) {
+    const sub = view.groupSub
+      ? `<div style="font-size: 9px; font-weight: 700; text-transform: none; letter-spacing: 0; color: rgba(255,255,255,0.85); margin-top: 3px;">${escapeHTML(view.groupSub)}</div>`
+      : '';
+    html += `<div style="text-align: center; margin: 4px 0 10px; padding: 7px 12px; border-radius: 12px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #fff; background: ${view.ribbonBg}; box-shadow: 0 4px 12px rgba(0,0,0,0.35); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${escapeHTML(view.groupTitle)} · ${items.length}${sub}</div>`;
+  }
+  html += '<div class="shops-tile-grid">';
   items.forEach((item, i) => {
     if(!item) return;
     
@@ -2173,7 +2192,7 @@ function renderPhoenixList(items, view) {
     </div>`;
   });
   html += '</div>';
-  cont.innerHTML = html;
+  return html;
 }
 
 // Список розшуку впорядковуємо за прізвищем. Просте порівняння рядків тут не
@@ -2236,29 +2255,15 @@ async function loadPhoenixData() {
     const activeItems = list
       .filter(item => item && item.active !== false && String(item.name || '').trim() !== '')
       .sort(comparePhoenixByName); // за абеткою, щоб людину було легко знайти в списку
-    // Дві вкладки з одного файла: розшук і полон. Одна людина потрапляє рівно
-    // в один список, тож картки «зник безвісти» більше не висять на тих,
-    // кого вже знайшли.
-    const captives = activeItems.filter(isPhoenixCaptive);
-    const missing = activeItems.filter(item => !isPhoenixCaptive(item));
-
-    updateTabCount('phoenix-tab-count', missing.length);
-    updateTabCount('captivity-tab-count', captives.length);
-
-    markNewItems(missing, 'phoenix');
-    checkNotification('phoenix', missing);
-    markNewItems(captives, 'captivity');
-    checkNotification('captivity', captives);
-
-    if (dataChanged('render_phoenix', missing)) renderPhoenixList(missing, PHOENIX_VIEWS.missing);
-    if (dataChanged('render_captivity', captives)) renderPhoenixList(captives, PHOENIX_VIEWS.captive);
+    // На вкладці пишемо саме кількість тих, кого шукають: полонених знайшли,
+    // тож у число розшуку вони не входять, хоч і показуються в тому ж розділі.
+    updateTabCount('phoenix-tab-count', activeItems.filter(item => !isPhoenixCaptive(item)).length);
+    markNewItems(activeItems, 'phoenix');
+    checkNotification('phoenix', activeItems);
+    if (dataChanged('render_phoenix', activeItems)) renderPhoenixList(activeItems);
   } catch(e) {
-    logSectionError('ФЕНІКС', e);
-    invalidateRender('render_phoenix'); invalidateRender('render_captivity');
-    const err = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження даних Фенікс</div>`;
-    cont.innerHTML = err;
-    const capt = document.getElementById('captivity-list-content');
-    if (capt) capt.innerHTML = err;
+    logSectionError('ФЕНІКС', e); invalidateRender('render_phoenix');
+    cont.innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження даних Фенікс</div>`;
   }
 }
 
