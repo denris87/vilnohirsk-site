@@ -45,7 +45,7 @@ phoenix:
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-05-10_14-38-49.jpg?raw=true"
     active: true
 
-  - name: "Сухоручка Олексій Олександрович"
+  - name: "Сухоручко Олексій Олександрович"
     dob: "02.02.1975"
     date_missing: "27.07.2026"
     callsign: "Лелик"
