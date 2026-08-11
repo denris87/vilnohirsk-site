@@ -713,6 +713,7 @@ function switchAppTab(tabId, btn, group) {
   if (tabId === 'alert-volunteers') { try { loadVolunteersData({forceRefresh: true}); } catch(e) { logSectionError('збори ЗСУ', e); } }
   if (tabId === 'map-tab') { try { initCityMap(); } catch(e) { logSectionError('карта міста', e); } }
   if (tabId === 'alarm-tab') { try { initAlarmMap(); } catch(e) { logSectionError('карта тривог', e); } }
+  if (tabId === 'kontur-tab') { try { initKonturFrame(); } catch(e) { logSectionError('карта Kontur', e); } }
   window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
 }
 
@@ -1632,6 +1633,94 @@ function alarmPaintMap() {
     layer.setPopupContent('<div class="map-popup"><div class="map-popup-title">' + escapeHTML(r.name) + '</div>' +
       '<div class="map-popup-addr">' + (r.active ? '🚨 Тривога' + (r.since ? ' з ' + alarmClock(r.since) : '') : '✅ Спокійно') + '</div></div>');
   });
+}
+
+// =========================================================================
+// === КАРТА «КОНТУР» У ВБУДОВАНОМУ ВІКНІ ===
+//
+// Показуємо чужий сайт як є: карту всієї України з цілями. Фільтр по одній
+// області тут неможливий у принципі — її малює їхній код на їхньому боці.
+//
+// Два запобіжники, бо ми не керуємо чужим сайтом:
+//   * iframe вантажиться лише коли вкладку відкрили — не тягнемо важкий
+//     чужий застосунок на кожному завантаженні головної;
+//   * якщо за 8 секунд нічого не завантажилось (найімовірніша причина —
+//     заборона вбудовування через X-Frame-Options), показуємо зрозуміле
+//     пояснення й кнопку відкрити в новій вкладці.
+// =========================================================================
+
+const KONTUR_URL = 'https://kontur.systems/';
+let konturLoaded = false;
+
+// Показати зрозуміле пояснення замість кадру
+function konturFail(title, text) {
+  konturLoaded = false;   // наступне відкриття вкладки спробує ще раз
+  const ph = document.getElementById('kontur-placeholder');
+  if (!ph) return;
+  ph.classList.add('failed');
+  ph.innerHTML = '<div style="font-size:26px;margin-bottom:8px;">🚫</div>' +
+    '<div style="font-weight:800;color:#fff;margin-bottom:6px;">' + escapeHTML(title) + '</div>' +
+    '<div style="line-height:1.5;margin-bottom:12px;">' + escapeHTML(text) + '</div>' +
+    '<a class="alarm-btn on" href="' + KONTUR_URL + '" target="_blank" rel="noopener">↗ Відкрити kontur.systems</a>';
+}
+
+async function initKonturFrame() {
+  const wrap = document.getElementById('kontur-wrap');
+  if (!wrap || konturLoaded) return;
+  konturLoaded = true;
+
+  // Повертаємо стан «завантаження»: інакше при повторному відкритті вкладки
+  // висіла б стара помилка, поки триває нова перевірка.
+  const ph0 = document.getElementById('kontur-placeholder');
+  if (ph0) { ph0.classList.remove('failed'); ph0.textContent = 'Завантаження карти…'; }
+
+  // Спершу перевіряємо, чи сайт узагалі відповідає. Прочитати відповідь не
+  // дасть CORS, але сам факт успіху відрізняє «сайт живий» від «не достукались».
+  // Без цієї перевірки браузер малює всередині нашого темного сайту власну
+  // білу сторінку помилки — виглядає так, ніби зламався наш сайт.
+  let reachable = false;
+  for (const method of ['HEAD', 'GET']) {   // деякі сервери не люблять HEAD
+    try {
+      await fetchWithTimeout(KONTUR_URL, { method: method, mode: 'no-cors', cache: 'no-store' }, 5000);
+      reachable = true;
+      break;
+    } catch (e) { /* пробуємо наступний спосіб */ }
+  }
+  if (!reachable) {
+    konturFail('Сайт «КОНТУР» не відповідає', 'Схоже, він зараз недоступний або немає зв\'язку. Спробуйте пізніше або відкрийте його напряму.');
+    return;
+  }
+
+  const frame = document.createElement('iframe');
+  frame.id = 'kontur-frame';
+  frame.className = 'kontur-frame';
+  frame.src = KONTUR_URL;
+  frame.title = 'Карта повітряних цілей КОНТУР';
+  frame.loading = 'lazy';
+  frame.referrerPolicy = 'no-referrer-when-downgrade';
+  frame.setAttribute('allowfullscreen', '');
+
+  let done = false;
+  const ok = () => { done = true; const ph = document.getElementById('kontur-placeholder'); if (ph) ph.remove(); };
+  frame.addEventListener('load', ok);
+
+  // Останній запобіжник — якщо кадр так і не завантажився.
+  // Заборону вбудовування (X-Frame-Options) звідси не видно: браузер вважає
+  // свою сторінку «доступ заборонено» успішно завантаженою і теж кличе load.
+  // Саме на цей випадок під кадром завжди висить підказка з кнопкою.
+  setTimeout(() => {
+    if (!done) konturFail('Карта не завантажилась', 'Можливо, сайт не дозволяє показувати себе всередині інших сайтів.');
+  }, 10000);
+
+  wrap.appendChild(frame);
+}
+
+function konturFullscreen() {
+  const wrap = document.getElementById('kontur-wrap');
+  if (!wrap) return;
+  const req = wrap.requestFullscreen || wrap.webkitRequestFullscreen || wrap.webkitEnterFullscreen;
+  if (!req) { window.open(KONTUR_URL, '_blank', 'noopener'); return; }
+  try { req.call(wrap); } catch (e) { window.open(KONTUR_URL, '_blank', 'noopener'); }
 }
 
 // Затримку в data/delays.yaml можна писати і хвилинами, і годинами з хвилинами —
@@ -3220,7 +3309,7 @@ async function submitBetaFeedback(event) {
 // Ховаємо мигаючу стрілку-підказку «❯», коли вкладки догорнуті до кінця
 // або горизонтальна прокрутка взагалі не потрібна (десктоп)
 function setupScrollHints() {
-  [['schedule-tabs', 'hint-schedule'], ['market-tabs', 'hint-market']].forEach(([navId, hintId]) => {
+  [['schedule-tabs', 'hint-schedule'], ['market-tabs', 'hint-market'], ['alarm-tabs', 'hint-alarm']].forEach(([navId, hintId]) => {
     const nav = document.getElementById(navId); const hint = document.getElementById(hintId);
     if (!nav || !hint) return;
     const update = () => hint.classList.toggle('hidden', nav.scrollLeft + nav.clientWidth >= nav.scrollWidth - 5);
