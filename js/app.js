@@ -700,7 +700,7 @@ function toggleMapCategory(catId, btn) {
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
   closeAllJobsDrawers();
-  const notifs = {'alert-feed':'communal', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
+  const notifs = {'alert-feed':'communal', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'alert-captivity':'captivity', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
   if (notifs[tabId]) clearNotification(notifs[tabId]);
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
   if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
@@ -2078,9 +2078,40 @@ async function loadTickerData() {
   }
 }
 
-function renderPhoenixList(items) {
-  const cont = document.getElementById('phoenix-list-content');
-  if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Актуальної інформації немає</div>'; return; }
+// Дві подачі одного й того ж шаблону картки. Розшук лишається червоним,
+// як був, полон робимо синім: людина не зникла, місцеперебування відоме.
+const PHOENIX_VIEWS = {
+  missing: {
+    container: 'phoenix-list-content',
+    ribbon: 'Зник безвісти',
+    ribbonBg: 'linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9))',
+    tileTint: 'rgba(255, 77, 77, 0.05)',
+    tileBorder: 'rgba(255, 77, 77, 0.3)',
+    infoBg: 'rgba(255, 77, 77, 0.1)',
+    infoBorder: 'rgba(255,77,77,0.2)',
+    accent: '#ff4d4d',
+    dateLabel: 'Зник:',
+    empty: 'Актуальної інформації немає'
+  },
+  captive: {
+    container: 'captivity-list-content',
+    ribbon: 'У полоні',
+    ribbonBg: 'linear-gradient(90deg, rgba(37, 99, 235, 0.9), rgba(23, 55, 128, 0.9))',
+    tileTint: 'rgba(96, 165, 250, 0.06)',
+    tileBorder: 'rgba(96, 165, 250, 0.35)',
+    infoBg: 'rgba(96, 165, 250, 0.1)',
+    infoBorder: 'rgba(96,165,250,0.25)',
+    accent: '#60a5fa',
+    dateLabel: 'У полоні з:',
+    empty: 'Наразі таких відомостей немає'
+  }
+};
+
+function renderPhoenixList(items, view) {
+  view = view || PHOENIX_VIEWS.missing;
+  const cont = document.getElementById(view.container);
+  if (!cont) return;
+  if (!items || !items.length) { cont.innerHTML = `<div class="empty-msg">${view.empty}</div>`; return; }
   let html = '<div class="shops-tile-grid">';
   items.forEach((item, i) => {
     if(!item) return;
@@ -2102,13 +2133,21 @@ function renderPhoenixList(items) {
       ? `<div style="font-size: 11px; color: #ffcc00; font-weight: 800; text-align: center; margin-bottom: 6px; text-transform: uppercase;">Позивний: «${escapeHTML(item.callsign)}»</div>` 
       : '';
     
+    // У полоні дата зникнення сама по собі ні про що не каже, а в файлі там
+    // зазвичай стоїть текст «у полоні». Якщо цифр немає — пишемо статус,
+    // якщо дата відома — «У полоні з».
+    let dateValue = String(item.date_missing == null ? '' : item.date_missing).trim();
+    let dateLabel = view.dateLabel;
+    if (view === PHOENIX_VIEWS.captive && !/\d/.test(dateValue)) { dateLabel = 'Статус:'; dateValue = 'У полоні'; }
+    if (!dateValue) dateValue = '-';
+
     const photoBadge = (item.photos && item.photos.length > 1) 
       ? `<div style="position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.7); color:#fff; font-size:9px; padding:3px 8px; border-radius:6px; font-weight:bold; pointer-events:none; border: 1px solid rgba(255,255,255,0.2);">📸 ${item.photos.length}</div>` 
       : '';
 
     html += `
-    <div class="shop-tile" style="background: linear-gradient(180deg, rgba(255, 77, 77, 0.05) 0%, rgba(0,0,0,0.6) 100%); border: 1px solid rgba(255, 77, 77, 0.3); box-shadow: 0 8px 20px rgba(0,0,0,0.5); justify-content: flex-start; cursor: default; padding: 10px;">
-      <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.9), rgba(153, 27, 27, 0.9)); color: #fff; text-align: center; font-weight: 800; font-size: 10px; text-transform: uppercase; padding: 4px; border-radius: 6px 6px 0 0; margin: -10px -10px 10px -10px; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Зник безвісти</div>
+    <div class="shop-tile" style="background: linear-gradient(180deg, ${view.tileTint} 0%, rgba(0,0,0,0.6) 100%); border: 1px solid ${view.tileBorder}; box-shadow: 0 8px 20px rgba(0,0,0,0.5); justify-content: flex-start; cursor: default; padding: 10px;">
+      <div style="background: ${view.ribbonBg}; color: #fff; text-align: center; font-weight: 800; font-size: 10px; text-transform: uppercase; padding: 4px; border-radius: 6px 6px 0 0; margin: -10px -10px 10px -10px; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${view.ribbon}</div>
       
       <div class="shop-tile-photo" style="height: 180px; padding: 0; background: #000; border: none; border-radius: 8px; margin-bottom: 10px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.5); position: relative;">
         ${thumb}
@@ -2121,14 +2160,14 @@ function renderPhoenixList(items) {
       
       ${callsignHtml}
       
-      <div style="background: rgba(255, 77, 77, 0.1); border-radius: 8px; padding: 8px 0; margin-top: auto; border: 1px solid rgba(255,77,77,0.2); display: flex; flex-direction: column; gap: 6px;">
+      <div style="background: ${view.infoBg}; border-radius: 8px; padding: 8px 0; margin-top: auto; border: 1px solid ${view.infoBorder}; display: flex; flex-direction: column; gap: 6px;">
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; padding-left: 8px; padding-right: 8px;">
           <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 2px;">Народився:</span>
           <span style="font-size: 10px; color: #fff; font-weight: 700;">${escapeHTML(item.dob || '-')}</span>
         </div>
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding-left: 8px; padding-right: 8px;">
-          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 2px;">Зник:</span>
-          <span style="font-size: 11px; color: #ff4d4d; font-weight: 800;">${escapeHTML(item.date_missing || '-')}</span>
+          <span style="font-size: 8px; color: rgba(255,255,255,0.6); text-transform: uppercase; margin-bottom: 2px;">${escapeHTML(dateLabel)}</span>
+          <span style="font-size: 11px; color: ${view.accent}; font-weight: 800;">${escapeHTML(dateValue)}</span>
         </div>
       </div>
     </div>`;
@@ -2154,11 +2193,19 @@ function comparePhoenixByName(a, b) {
   return an < bn ? -1 : (an > bn ? 1 : 0);
 }
 
-// Скільки людей у розшуку — одразу в назві вкладки, щоб число було видно
+// Людина у полоні — це не «зник безвісти»: місцеперебування відоме. У файлі це
+// вже позначається текстом «у полоні» замість дати в date_missing, тож окремих
+// правок даних не треба. Про запас розуміємо і явне поле status.
+function isPhoenixCaptive(item) {
+  const s = (String((item && item.status) || '') + ' ' + String((item && item.date_missing) || '')).toLowerCase();
+  return s.indexOf('полон') !== -1 || s.indexOf('плен') !== -1;
+}
+
+// Скільки людей у списку — одразу в назві вкладки, щоб число було видно
 // ще до того, як людина відкриє розділ. Порожнє значення нічого не дописує,
 // тож при збої завантаження напис лишається таким, як був.
-function updatePhoenixTabCount(n) {
-  const el = document.getElementById('phoenix-tab-count');
+function updateTabCount(elId, n) {
+  const el = document.getElementById(elId);
   if (!el) return;
   // Нерозривні пробіли: звичайний на початку рядка вставки браузер стискає,
   // і виходило «РОЗШУК· 37». Заодно число не відірветься від слова при переносі.
@@ -2189,13 +2236,29 @@ async function loadPhoenixData() {
     const activeItems = list
       .filter(item => item && item.active !== false && String(item.name || '').trim() !== '')
       .sort(comparePhoenixByName); // за абеткою, щоб людину було легко знайти в списку
-    updatePhoenixTabCount(activeItems.length);
-    markNewItems(activeItems, 'phoenix');
-    checkNotification('phoenix', activeItems);
-    if (dataChanged('render_phoenix', activeItems)) renderPhoenixList(activeItems);
+    // Дві вкладки з одного файла: розшук і полон. Одна людина потрапляє рівно
+    // в один список, тож картки «зник безвісти» більше не висять на тих,
+    // кого вже знайшли.
+    const captives = activeItems.filter(isPhoenixCaptive);
+    const missing = activeItems.filter(item => !isPhoenixCaptive(item));
+
+    updateTabCount('phoenix-tab-count', missing.length);
+    updateTabCount('captivity-tab-count', captives.length);
+
+    markNewItems(missing, 'phoenix');
+    checkNotification('phoenix', missing);
+    markNewItems(captives, 'captivity');
+    checkNotification('captivity', captives);
+
+    if (dataChanged('render_phoenix', missing)) renderPhoenixList(missing, PHOENIX_VIEWS.missing);
+    if (dataChanged('render_captivity', captives)) renderPhoenixList(captives, PHOENIX_VIEWS.captive);
   } catch(e) {
-    logSectionError('ФЕНІКС', e); invalidateRender('render_phoenix');
-    cont.innerHTML = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження даних Фенікс</div>`;
+    logSectionError('ФЕНІКС', e);
+    invalidateRender('render_phoenix'); invalidateRender('render_captivity');
+    const err = `<div class="empty-msg" style="color: #ff6b6b;">Помилка завантаження даних Фенікс</div>`;
+    cont.innerHTML = err;
+    const capt = document.getElementById('captivity-list-content');
+    if (capt) capt.innerHTML = err;
   }
 }
 
