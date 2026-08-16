@@ -1819,8 +1819,8 @@ async function loadTrainsData(){
 // порожнє значення означає просто підсвітку без плашки.
 // ЩОБ ЗМІНИТИ: правте рядок нижче — додайте, приберіть номер або впишіть дату.
 const HIGHLIGHTED_TRAINS = {
-  '119': 'до 15 серпня',   // Дніпро → Хелм
-  '87': 'до 15 серпня'     // Дніпро → Ковель
+  '119': { label: 'до 15 серпня', until: '2026-08-15' },   // Дніпро → Хелм
+  '87': { label: 'до 15 серпня', until: '2026-08-15' }     // Дніпро → Ковель
 };
 
 async function loadLongTrainsData() {
@@ -1842,10 +1842,11 @@ async function loadLongTrainsData() {
         const routeText = trainNum79 === 79 ? `${escapeHTML(x.route)} <span style="font-size:0.85em; color:rgba(255,255,255,0.6); font-weight:600;">(через Київ)</span>` : escapeHTML(x.route);
         // Зелена підсвітка рейсу (клас train-new забарвлює і рамку, і номер)
         const numDigits = String(x.number || '').replace(/\D/g, '');
-        const until = HIGHLIGHTED_TRAINS[numDigits];
-        const rowClass = until !== undefined ? ' train-new' : '';
-        // Плашка з'являється лише тоді, коли для рейсу вказана дата
-        const untilTxt = until ? String(until).trim() : '';
+        const highlight = HIGHLIGHTED_TRAINS[numDigits];
+        const isHighlightActive = highlight && (!highlight.until || getKyivDateISO() <= highlight.until);
+        const rowClass = isHighlightActive ? ' train-new' : '';
+        // Після дати until підсвітка та плашка автоматично зникають
+        const untilTxt = isHighlightActive ? String(highlight.label || '').trim() : '';
         const untilTag = untilTxt ? `<div class="train-new-tag">🚆 КУРСУЄ <span class="train-new-date">${escapeHTML(untilTxt)}</span></div>` : '';
         const routeCell = `<div class="route-cell"><div class="route-text">${routeText}</div>${untilTag}</div>`;
         h += `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
