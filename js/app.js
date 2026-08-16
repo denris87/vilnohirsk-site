@@ -168,8 +168,13 @@ function readSeenSet(key) {
         return Array.isArray(arr) ? new Set(arr) : null;
     } catch (e) { return null; }
 }
+// Обмеження лише щоб не роздути localStorage на зіпсованих даних. Список
+// перезаписується цілком (не накопичується), тому межа має бути свідомо вищою
+// за будь-який реальний розділ: при 200 усе, що далі двохсотої картки,
+// назавжди лишалося б позначеним «Нове».
+const SEEN_KEYS_LIMIT = 2000;
 function saveSeenSet(key, keys) {
-    try { localStorage.setItem('seen_' + key, JSON.stringify((keys || []).slice(0, 200))); } catch (e) {}
+    try { localStorage.setItem('seen_' + key, JSON.stringify((keys || []).slice(0, SEEN_KEYS_LIMIT))); } catch (e) {}
 }
 
 function markNewItems(array, key) {
@@ -232,21 +237,54 @@ function copyToClipboardBtn(text, btn) {
     }
 }
 
-// PapaParse (розбір CSV) підключається з CDN. Якщо він ще не встиг завантажитись —
-// трохи чекаємо й пробуємо ще раз (так само, як зроблено для js-yaml),
-// замість того щоб одразу показати «Помилка завантаження».
-const papaTries = {};
-function papaReady(key, retry) {
-  if (typeof Papa !== 'undefined' && Papa && typeof Papa.parse === 'function') { delete papaTries[key]; return true; }
+// Розділ не завантажився — показуємо чесне повідомлення з кнопкою повтору.
+// Раніше при недоступному CDN розділ просто лишався порожнім назавжди:
+// ні тексту, ні пояснення, людина дивилась на біле місце.
+function showSectionFailure(containerId, loaderName, key) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '<div class="sec-fail">'
+    + '<div class="sec-fail-ico">📡</div>'
+    + '<div class="sec-fail-title">Не вдалося завантажити розділ</div>'
+    + '<div class="sec-fail-sub">Схоже, зник інтернет або сервіс не відповідає.</div>'
+    + '<button type="button" class="sec-fail-btn" onclick="retrySection(\'' + loaderName + '\', \'' + key + '\')">🔄 Спробувати ще раз</button>'
+    + '</div>';
+}
+
+// Кнопка «Спробувати ще раз»: скидаємо лічильники очікування бібліотек,
+// інакше вичерпаний лічильник одразу віддав би ту саму помилку.
+function retrySection(loaderName, key) {
+  if (key) { delete papaTries[key]; delete yamlTries[key]; }
+  const fn = window[loaderName];
+  if (typeof fn === 'function') { try { fn(); } catch (e) { logSectionError('повтор завантаження', e); } }
+}
+
+// Спільне очікування бібліотеки з CDN: поки вантажиться — тихо чекаємо,
+// коли вичерпали спроби — віддаємо керування onGiveUp (показ помилки/ховання блока).
+function libReady(store, key, isLoaded, retry, onGiveUp) {
+  if (isLoaded()) { delete store[key]; return true; }
   const now = Date.now();
-  const st = papaTries[key];
+  const st = store[key];
   // Новий «сеанс» очікування, якщо попередній був давно (напр. автооновлення через 5 хв):
   // інакше вичерпаний лічильник назавжди заблокував би розділ, навіть коли CDN оживе.
-  if (!st || now - st.last > 30000) papaTries[key] = { n: 0, last: now };
-  const s = papaTries[key];
+  if (!st || now - st.last > 30000) store[key] = { n: 0, last: now };
+  const s = store[key];
   s.last = now;
   if (s.n++ < 40) setTimeout(retry, 250); // ~10 секунд очікування на CDN
+  else if (typeof onGiveUp === 'function') { try { onGiveUp(); } catch (e) { logSectionError('очікування бібліотеки', e); } }
   return false;
+}
+
+// PapaParse (розбір CSV) підключається з CDN.
+const papaTries = {};
+function papaReady(key, retry, onGiveUp) {
+  return libReady(papaTries, key, () => typeof Papa !== 'undefined' && Papa && typeof Papa.parse === 'function', retry, onGiveUp);
+}
+
+// js-yaml (розбір data/*.yaml) — теж з CDN, поводимось так само.
+const yamlTries = {};
+function yamlReady(key, retry, onGiveUp) {
+  return libReady(yamlTries, key, () => typeof jsyaml !== 'undefined' && jsyaml && typeof jsyaml.load === 'function', retry, onGiveUp);
 }
 
 // Хелпер для таймаута fetch (если сервер не отвечает за N секунд — отменяем)
@@ -410,7 +448,7 @@ function renderGallery(photos) {
     const container = document.getElementById('gallery-list-content'); if (!container) return;
     if (!photos || photos.length === 0) { container.innerHTML = '<div class="empty-msg">Фотографій поки немає</div>'; return; }
     currentVilnohirskPhotos = photos; 
-    let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Маєте круті фото нашого міста? Надсилайте: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding: 5px;">';
+    let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color: rgba(255,255,255,0.7); font-weight: 600;">Маєте круті фото нашого міста? Надсилайте: <a href="https://t.me/vilnohirsk" target="_blank" rel="noopener" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; padding: 5px;">';
     photos.forEach((item, i) => {
         const url = typeof item === 'string' ? item : item.url; const author = typeof item === 'object' && item.author ? item.author : '';
         const dotHtml = item.isNewItem ? '<div style="position:absolute; top:8px; right:8px; width:10px; height:10px; border-radius:50%; background:#ff3366; box-shadow:0 0 10px #ff3366; animation:pulseAlert 2s infinite; z-index:10;" title="Нове"></div>' : '';
@@ -424,8 +462,12 @@ async function loadGalleryData() {
       const photos = await fetchCachedJson(`https://vilnohirsk-photos-production.up.railway.app/api/photos`, 'gallery_api', 5);
       markNewItems(photos, 'gallery');
       checkNotification('gallery', photos);
-      renderGallery(photos); 
-  } catch(e) { document.getElementById('gallery-list-content').innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження фотографій</div>'; }
+      if (dataChanged('render_gallery', photos)) renderGallery(photos);
+  } catch(e) {
+      logSectionError('фото міста', e); invalidateRender('render_gallery');
+      const gc = document.getElementById('gallery-list-content');
+      if (gc) gc.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження фотографій</div>';
+  }
 }
 
 // Усиленная капча: случайные операции
@@ -626,13 +668,9 @@ function initCityMap() {
 // Шари міток за категоріями + панель фільтрів. Дані — data/places.yaml
 // Структура: categories: [ { id, name, icon, color, show, places: [ { name, lat, lng, address, phone, show } ] } ]
 let cityMapLayers = {};
-let mapYamlTries = 0;
 async function loadMapPlaces() {
   // YAML-парсер підключений з defer і може ще не завантажитись — трохи зачекаємо
-  if (typeof jsyaml === 'undefined') {
-    if (mapYamlTries++ < 40) { setTimeout(loadMapPlaces, 250); }
-    return;
-  }
+  if (!yamlReady('places', loadMapPlaces, () => logSectionError('карта міста', new Error('js-yaml не завантажився')))) return;
   try {
     const res = await fetch('./data/places.yaml?v=' + Date.now());
     if (!res.ok) return;
@@ -680,9 +718,14 @@ async function loadMapPlaces() {
 function buildMapFilters(cats) {
   const host = document.getElementById('map-filters');
   if (!host || !cats.length) return;
-  host.innerHTML = cats.map(c =>
-    `<button class="map-filter-btn active" data-cat="${c.id}" style="--fc:${c.color};" onclick="toggleMapCategory('${c.id}', this)">${c.icon || ''} ${escapeHTML(c.name)}</button>`
-  ).join('');
+  // id підставляється в onclick, колір — у CSS-змінну: апостроф чи стороннє
+  // значення у файлі раніше зламали б кнопку. Пропускаємо тільки безпечне.
+  host.innerHTML = cats.map(c => {
+    const id = String(c.id || '').replace(/[^A-Za-z0-9_-]/g, '');
+    if (!id) return '';
+    const color = /^#[0-9a-f]{3,8}$/i.test(String(c.color || '')) ? c.color : '#38bdf8';
+    return `<button class="map-filter-btn active" data-cat="${id}" style="--fc:${color};" onclick="toggleMapCategory('${id}', this)">${escapeHTML(c.icon || '')} ${escapeHTML(c.name)}</button>`;
+  }).join('');
 }
 
 function toggleMapCategory(catId, btn) {
@@ -700,8 +743,12 @@ function toggleMapCategory(catId, btn) {
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
   closeAllJobsDrawers();
-  const notifs = {'alert-feed':'communal', 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
-  if (notifs[tabId]) clearNotification(notifs[tabId]);
+  // Значення може бути списком: у вкладці «Новини та комунальний інформер»
+  // лежать два потоки — комунальні й новини. Раніше знімався лише перший,
+  // і червона позначка «Нове» на новинах не гасла ніколи.
+  const notifs = {'alert-feed':['communal','news'], 'alert-events':'events', 'alert-gallery':'gallery', 'alert-volunteers':'volunteers', 'alert-promos':'promos', 'alert-phoenix':'phoenix', 'blablacar':'blablacar', 'trains':'trains', 'estate-tab':'estate', 'shopping-tab':'shopping', 'flea-market-tab':'flea', 'lost-found-tab':'lost', 'jobs-tab':'jobs', 'city-guide-tab':'guide'};
+  const notifKeys = notifs[tabId];
+  if (notifKeys) (Array.isArray(notifKeys) ? notifKeys : [notifKeys]).forEach(clearNotification);
   const drawers = { alert: 'alert-drawer', schedule: 'main-list-widget', market: 'market-drawer' };
   if (btn.classList.contains('active')) { btn.classList.remove('active'); const groupDrawer = document.getElementById(drawers[group]); if(groupDrawer) groupDrawer.classList.remove('open'); return; }
   document.querySelectorAll('.main-list-widget, .shopping-drawer, .alert-drawer').forEach(d => d.classList.remove('open'));
@@ -784,7 +831,11 @@ async function loadWeather(){
     } catch(e) { logSectionError('погода', e); invalidateRender('render_weather'); }
   }
   const container = document.getElementById("weather-container");
+  if (!container) return;
   if (!dataChanged('render_weather', results)) return; // погода та сама — не перезапускаємо слайдер
+  // Гасимо старий слайдер до будь-якого виходу: інакше при збої погоди
+  // таймер лишався крутитись по вже видалених слайдах
+  if (window.weatherInterval) { clearInterval(window.weatherInterval); window.weatherInterval = null; }
   if(results.length === 0) { container.innerHTML = '<div class="empty-msg" style="font-size:11px;">Дані погоди тимчасово недоступні ☁️</div>'; return; }
   const slidesHtml = results.map((item, index) => {
     const t = Math.round(item.w.temperature);
@@ -794,7 +845,7 @@ async function loadWeather(){
     ? `<div class="weather-dots">${results.map((_, i) => `<div class="weather-dot ${i === 0 ? 'active' : ''}"></div>`).join('')}</div>`
     : '';
   container.innerHTML = slidesHtml + dotsHtml;
-  if (window.weatherInterval) clearInterval(window.weatherInterval); let currentIndex = 0;
+  let currentIndex = 0;
   window.weatherInterval = setInterval(() => {
       if (!isPageVisible) return;
       const slides = container.querySelectorAll('.weather-content'); if(slides.length < 2) return;
@@ -807,16 +858,12 @@ async function loadWeather(){
 
 // Ціни на пальне АЗС «Укрнафта» — ручні дані з data/fuel.yaml
 let currentFuelData = null; // збережені дані для збільшеного перегляду
-let fuelYamlTries = 0;
 async function loadFuelData() {
   const host = document.getElementById('fuel-widget');
   if (!host) return;
   const divider = document.getElementById('fuel-divider');
   const hideFuel = () => { host.style.display = 'none'; if (divider) divider.style.display = 'none'; };
-  if (typeof jsyaml === 'undefined') { // YAML-парсер ще не завантажився
-    if (fuelYamlTries++ < 40) { setTimeout(loadFuelData, 250); }
-    return;
-  }
+  if (!yamlReady('fuel', loadFuelData, hideFuel)) return; // немає парсера — ховаємо блок цін
   try {
     const res = await fetch('./data/fuel.yaml?v=' + Date.now());
     if (!res.ok) { hideFuel(); return; }
@@ -908,7 +955,6 @@ function closeFuelModal() {
 }
 
 // === ГРАФІК ВІДКЛЮЧЕНЬ СВІТЛА — дані з data/svitlo.yaml (показується замість радіо) ===
-let svitloYamlTries = 0;
 let currentSvitloData = null;
 function svitloColor(p) { return /^#[0-9a-f]{3,8}$/i.test(String((p && p.color) || '')) ? p.color : '#ffcc00'; }
 // Посилання на офіційний документ постачальника (для кнопки «Знайти свою чергу»).
@@ -962,7 +1008,7 @@ async function loadSvitloData() {
   const divider = document.getElementById('svitlo-divider');
   // Блок графіка не показується (вимкнено/помилка/немає відключень) — його місце займає радіо
   const hide = () => { showRadioInsteadOfSvitlo(host, divider); };
-  if (typeof jsyaml === 'undefined') { if (svitloYamlTries++ < 40) setTimeout(loadSvitloData, 250); else hide(); return; }
+  if (!yamlReady('svitlo', loadSvitloData, hide)) return; // немає парсера — на місці графіка лишається радіо
   try {
     const res = await fetch('./data/svitlo.yaml?v=' + Date.now());
     if (!res.ok) { hide(); return; }
@@ -1116,7 +1162,6 @@ function updateTrainsDelayBadge(delays) {
 
 // Затримки електричок — ручні дані з data/delays.yaml
 // (яскравий банер угорі вкладки «Електрички»). Незалежний від API розкладу.
-let delaysYamlTries = 0;
 async function loadDelaysData() {
   const host = document.getElementById('trains-delays-banner');
   if (!host) return;
@@ -1124,10 +1169,7 @@ async function loadDelaysData() {
   // тими самими даними виходило раніше відмальовки й на місці банера
   // лишалась порожня рамка (перевірено: довжина HTML 0 при display:block).
   const hide = () => { host.style.display = 'none'; host.innerHTML = ''; invalidateRender('render_delays'); updateTrainsDelayBadge([]); };
-  if (typeof jsyaml === 'undefined') { // YAML-парсер ще не завантажився
-    if (delaysYamlTries++ < 40) { setTimeout(loadDelaysData, 250); }
-    return;
-  }
+  if (!yamlReady('delays', loadDelaysData, hide)) return; // немає парсера — банер затримок ховаємо
   try {
     const res = await fetch('./data/delays.yaml?v=' + Date.now());
     if (!res.ok) { hide(); return; }
@@ -1318,7 +1360,7 @@ async function loadPhonebookData() {
     phonebookRawData = categoriesData; 
     checkNotification('guide', phonebookRawData);
     renderPhonebook(phonebookRawData);
-  } catch (e) { container.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження довідника</div>'; }
+  } catch (e) { logSectionError('довідник', e); container.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження довідника</div>'; }
 }
 
 function renderPhonebook(categories, searchQuery = '') {
@@ -1366,7 +1408,7 @@ function toggleShop(detailsId, tileElement) {
 
 function renderShops(shopsData) {
   const container = document.getElementById('shopping-list-content');
-  let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color:rgba(255,255,255,0.7); font-weight: 600;">Якщо бажаєте додати свій магазин, пишіть у Telegram <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div class="shops-tile-grid">';
+  let html = '<div style="text-align: center; margin-bottom: 12px; font-size: 11px; color:rgba(255,255,255,0.7); font-weight: 600;">Якщо бажаєте додати свій магазин, пишіть у Telegram <a href="https://t.me/vilnohirsk" target="_blank" rel="noopener" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div class="shops-tile-grid">';
   if (!shopsData || !Array.isArray(shopsData) || shopsData.length === 0) { container.innerHTML = html + '<div class="empty-msg">Оголошень поки немає</div>'; return; }
   shopsData.forEach((shop, index) => {
     if(!shop) return;
@@ -1377,7 +1419,7 @@ function renderShops(shopsData) {
     let photoUrl = getDriveImageUrl(rawPhoto);
     const photoHtml = photoUrl ? `<img src="${escapeHTML(photoUrl)}" alt="Фото" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🛍️</span>`;
     
-    const titleHtml = (shop.instagram && String(shop.instagram).trim() !== "") ? `<a href="${escapeHTML(String(shop.instagram).trim())}" target="_blank" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${escapeHTML(displayName)} 🔗</a>` : escapeHTML(displayName);
+    const titleHtml = (shop.instagram && String(shop.instagram).trim() !== "") ? `<a href="${escapeHTML(String(shop.instagram).trim())}" target="_blank" rel="noopener" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${escapeHTML(displayName)} 🔗</a>` : escapeHTML(displayName);
     let phoneHtml = 'Не вказано';
     if (shop.phone && String(shop.phone).trim() !== "") { phoneHtml = String(shop.phone).split(',').map(p => `<a href="tel:${p.replace(/[^0-9+]/g, '')}" class="shop-phone-link" onclick="event.stopPropagation();">${escapeHTML(p.trim())}</a>`).join('<br>'); }
     
@@ -1431,7 +1473,7 @@ function renderPromosList(items) {
 
     let buttonHtml = '';
     if (extractedLink) {
-        buttonHtml = `<a href="${escapeHTML(extractedLink)}" target="_blank" onclick="event.stopPropagation();" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; margin-top: 8px; margin-bottom: 12px; padding: 12px 10px; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; font-size: 14px; text-decoration: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); text-transform: uppercase; letter-spacing: 0.5px;"><span style="font-size: 18px;">🚀</span><span>Перейти на сайт</span></a>`;
+        buttonHtml = `<a href="${escapeHTML(extractedLink)}" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; box-sizing: border-box; margin-top: 8px; margin-bottom: 12px; padding: 12px 10px; background: linear-gradient(135deg, #00ff9c, #00b8ff); color: #0b1d3a; font-weight: 800; font-size: 14px; text-decoration: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); text-transform: uppercase; letter-spacing: 0.5px;"><span style="font-size: 18px;">🚀</span><span>Перейти на сайт</span></a>`;
     }
 
     let descBlockHtml = finalDesc ? `<div class="shop-inner-item" style="margin-bottom: 10px;"><span class="detail-icon">📋</span><div style="width: 100%; font-size: 12px; color: rgba(255,255,255,0.95); line-height: 1.5; text-align: left;">${finalDesc}</div></div>` : '';
@@ -1530,7 +1572,7 @@ function setEstateSort(v) {
 }
 
 async function loadEstateData() {
-  if (!papaReady('estate', loadEstateData)) return; // CSV-парсер ще вантажиться з CDN
+  if (!papaReady('estate', loadEstateData, () => showSectionFailure('estate-list-content', 'loadEstateData', 'estate'))) return;
   try {
     // Кэшируем на 3 минуты вместо 0 — Google Sheets всё равно не отдаёт мгновенно новые данные
     const csvText = await fetchCachedText(ESTATE_CSV_URL, 'estate_csv', 3);
@@ -1628,7 +1670,7 @@ function isFleaJobListing(item){
 }
 
 async function loadFleaMarketData() {
-  if (!papaReady('flea', loadFleaMarketData)) return; // CSV-парсер ще вантажиться з CDN
+  if (!papaReady('flea', loadFleaMarketData, () => showSectionFailure('flea-market-list-content', 'loadFleaMarketData', 'flea'))) return;
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=111977759';
     // Кэшируем на 3 минуты — нагрузка на Google Sheets уменьшается
@@ -1659,7 +1701,7 @@ async function loadFleaMarketData() {
 }
 
 async function loadLostFoundData() {
-  if (!papaReady('lost', loadLostFoundData)) return; // CSV-парсер ще вантажиться з CDN
+  if (!papaReady('lost', loadLostFoundData, () => showSectionFailure('lost-found-list-content', 'loadLostFoundData', 'lost'))) return;
   try {
     const csvUrl = 'https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=624471689';
     const csvText = await fetchCachedText(csvUrl, 'lost_csv', 3);
@@ -1814,10 +1856,17 @@ async function loadTrainsData(){
 // для нового розкладу електричок. Порівнюємо лише цифри номера, тож літери
 // чи пробіли в даних не заважають.
 //
-// Ключ — номер поїзда, значення — дата, до якої він курсує.
-// Якщо дату вписати, під маршрутом з'явиться зелена плашка «КУРСУЄ до …»;
-// порожнє значення означає просто підсвітку без плашки.
-// ЩОБ ЗМІНИТИ: правте рядок нижче — додайте, приберіть номер або впишіть дату.
+// Ключ — номер поїзда. Значення:
+//   { label: 'до 15 серпня', until: '2026-08-15' }
+//     label — що написати на зеленій плашці «КУРСУЄ …»
+//     until — останній день підсвітки у форматі РРРР-ММ-ДД (включно).
+//             Наступного дня підсвітка й плашка зникнуть САМІ.
+//     Якщо until не вказати — підсвітка висітиме, доки її не приберуть руками.
+//     Якщо label порожній — буде просто зелений рядок без плашки.
+//
+// ЩОБ ЗМІНИТИ: правте рядки нижче — додайте номер, приберіть або оновіть дати.
+// Старий запис одним рядком ('119': 'до 15 серпня') теж працює: буде підсвітка
+// з плашкою, але без автоматичного зникнення — дату треба знімати вручну.
 const HIGHLIGHTED_TRAINS = {
   '119': { label: 'до 15 серпня', until: '2026-08-15' },   // Дніпро → Хелм
   '87': { label: 'до 15 серпня', until: '2026-08-15' }     // Дніпро → Ковель
@@ -1842,8 +1891,10 @@ async function loadLongTrainsData() {
         const routeText = trainNum79 === 79 ? `${escapeHTML(x.route)} <span style="font-size:0.85em; color:rgba(255,255,255,0.6); font-weight:600;">(через Київ)</span>` : escapeHTML(x.route);
         // Зелена підсвітка рейсу (клас train-new забарвлює і рамку, і номер)
         const numDigits = String(x.number || '').replace(/\D/g, '');
-        const highlight = HIGHLIGHTED_TRAINS[numDigits];
-        const isHighlightActive = highlight && (!highlight.until || getKyivDateISO() <= highlight.until);
+        const rawHighlight = HIGHLIGHTED_TRAINS[numDigits];
+        // Приймаємо і новий запис обʼєктом, і старий одним рядком
+        const highlight = (typeof rawHighlight === 'string') ? { label: rawHighlight } : rawHighlight;
+        const isHighlightActive = !!highlight && (!highlight.until || getKyivDateISO() <= highlight.until);
         const rowClass = isHighlightActive ? ' train-new' : '';
         // Після дати until підсвітка та плашка автоматично зникають
         const untilTxt = isHighlightActive ? String(highlight.label || '').trim() : '';
@@ -1884,9 +1935,11 @@ async function loadBusesData(){
         if (b.info) extraInfo += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);">${escapeHTML(b.info)}</div>`;
         h += `<div class="train" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box" style="background:transparent; font-size:20px;">🚌</div><div class="route-text">${escapeHTML(b.route)}</div><div class="time-val future" style="font-size:11px;">Розклад ▾</div></div><div class="details" id="${id}"><div class="bus-grid">${ch}</div>${extraInfo}</div>`;
       });
-      document.getElementById("buses-list").innerHTML = h;
+      // Перемальовуємо лише коли розклад справді змінився, інакше автооновлення
+      // щоразу згортало б відкриті деталі маршруту
+      if (dataChanged('render_buses', d.buses)) document.getElementById("buses-list").innerHTML = h;
     }
-  }catch(e){ logSectionError('автобуси', e); document.getElementById("buses-list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
+  }catch(e){ logSectionError('автобуси', e); invalidateRender('render_buses'); document.getElementById("buses-list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
 }
 
 function switchBlaBlaList(type) {
@@ -2059,7 +2112,14 @@ async function loadBlaBlaCarData() {
     
     document.getElementById('blabla-drivers-list').innerHTML = htmlD;
     document.getElementById('blabla-passengers-list').innerHTML = htmlP;
-  } catch(e) { logSectionError('попутники', e); invalidateRender('render_blabla'); }
+  } catch(e) {
+    logSectionError('попутники', e); invalidateRender('render_blabla');
+    // Раніше тут не було жодного повідомлення — розділ просто лишався порожнім
+    const errHtml = '<div class="empty-msg" style="color:#ff6b6b;">Помилка завантаження попутників</div>';
+    const dl = document.getElementById('blabla-drivers-list'); if (dl) dl.innerHTML = errHtml;
+    const pl = document.getElementById('blabla-passengers-list'); if (pl) pl.innerHTML = errHtml;
+    updateBlaBlaTabBadge(0, 0); updateBlaBlaToggleCounts(0, 0);
+  }
 }
 
 async function loadTickerData() {
@@ -2075,7 +2135,9 @@ async function loadTickerData() {
       container.style.display = 'none';
     }
   } catch(e) {
-    document.getElementById('ticker-container').style.display = 'none';
+    logSectionError('рядок новин', e);
+    const tc = document.getElementById('ticker-container');
+    if (tc) tc.style.display = 'none';
   }
 }
 
@@ -2239,14 +2301,10 @@ function updateTabCount(elId, n) {
 // відповідей HTTP 500 за 0.2 секунди, і розділ показував помилку завантаження.
 // Тепер файл лежить поруч із сайтом: поки працює сайт, працює й розділ.
 // Фотографії як лежали в GitHub, так і лишились — у файлі ті самі посилання.
-let phoenixYamlTries = 0;
 async function loadPhoenixData() {
   const cont = document.getElementById('phoenix-list-content');
   if (!cont) return;
-  if (typeof jsyaml === 'undefined') { // YAML-парсер ще вантажиться з CDN
-    if (phoenixYamlTries++ < 40) setTimeout(loadPhoenixData, 250);
-    return;
-  }
+  if (!yamlReady('phoenix', loadPhoenixData, () => showSectionFailure('phoenix-list-content', 'loadPhoenixData', 'phoenix'))) return;
   try {
     const res = await fetch('./data/phoenix.yaml?v=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -2336,7 +2394,7 @@ function buildZsuCardsHtml(items) {
             progressHtml = `<div class="zsu-card-progress" style="width: 100%; margin-top: 15px; margin-bottom: 5px;"><div class="zsu-progress-labels" style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 6px;"><span style="color: #00ff9c;">Зібрано: ${collected.toLocaleString('uk-UA')} ₴</span><span style="color: rgba(255,255,255,0.5);">Ціль: ${goal.toLocaleString('uk-UA')} ₴</span></div><div style="width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);"><div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, #38bdf8, #ffcc00); border-radius: 10px; transition: width 1s ease-in-out;"></div></div></div>`;
         }
         let reqsHtml = '';
-        if (jarUrl) reqsHtml += `<a class="zsu-req-jar" href="${escapeHTML(jarUrl)}" target="_blank" style="display: block; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 10px; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(0,0,0,0.25)'"><div class="zsu-req-jar-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">🏦</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Посилання на Банку</span></div><div class="zsu-req-jar-url" style="font-size: 13px; color: var(--time-green); font-weight: 800; word-break: break-all; line-height: 1.4;" id="jar-${id}">${escapeHTML(jarUrl)}</div></a>`;
+        if (jarUrl) reqsHtml += `<a class="zsu-req-jar" href="${escapeHTML(jarUrl)}" target="_blank" rel="noopener" style="display: block; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; margin-bottom: 10px; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.background='rgba(0,0,0,0.25)'"><div class="zsu-req-jar-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">🏦</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Посилання на Банку</span></div><div class="zsu-req-jar-url" style="font-size: 13px; color: var(--time-green); font-weight: 800; word-break: break-all; line-height: 1.4;" id="jar-${id}">${escapeHTML(jarUrl)}</div></a>`;
         if (cardNumber) reqsHtml += `<div class="zsu-req-card" style="background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px;"><div class="zsu-req-card-label" style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><span style="font-size: 16px;">💳</span><span style="font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Номер картки</span></div><div class="zsu-req-card-num" style="font-size: ${String(cardNumber).length > 19 ? '13px' : '18px'}; font-weight: 800; font-family: monospace; letter-spacing: 1px; color: #fff; margin-bottom: 12px; text-align: center; word-break: break-all; overflow-wrap: anywhere;" id="card-${id}">${escapeHTML(cardNumber)}</div><button class="zsu-req-card-btn" onclick="copyToClipboardBtn('${String(cardNumber).replace(/[^A-Za-z0-9]/g, '')}', this)" style="width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;">📋 Копіювати номер</button></div>`;
 
         const dot = item.isNewItem ? NEW_BADGE_HTML : '';
@@ -2350,15 +2408,11 @@ function buildZsuCardsHtml(items) {
 // Раніше дані йшли через окремий сервіс на Railway, який читав цей же yaml і був
 // зайвою ланкою: 25.07 він почав віддавати HTTP 500 і розділ лишився порожнім.
 // Тепер файл лежить поруч із сайтом — поки працює сайт, працює й розділ.
-let zsuYamlTries = 0;
 async function loadVolunteersData(opts) {
   const container = document.getElementById('volunteers-list-content'); if (!container) return;
   const forceRefresh = opts && opts.forceRefresh;
-  if (typeof jsyaml === 'undefined') { // YAML-парсер ще вантажиться з CDN
-    if (zsuYamlTries++ < 40) setTimeout(() => loadVolunteersData(opts), 250);
-    return;
-  }
-  const emptyZsuHtml = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(56, 189, 248, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.06);"><div style="font-size: 44px; margin-bottom: 8px;">💙💛</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 14px; line-height: 1.3;">Активних зборів зараз немає</div><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Ви волонтер? Маєте офіційний збір?<br>Напишіть нам у Telegram: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800; font-size: 13px;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255,204,0,0.4);">Слава Україні! 🇺🇦</div></div>`;
+  if (!yamlReady('zsu', () => loadVolunteersData(opts), () => showSectionFailure('volunteers-list-content', 'loadVolunteersData', 'zsu'))) return;
+  const emptyZsuHtml = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(56, 189, 248, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.06);"><div style="font-size: 44px; margin-bottom: 8px;">💙💛</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 14px; line-height: 1.3;">Активних зборів зараз немає</div><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Ви волонтер? Маєте офіційний збір?<br>Напишіть нам у Telegram: <a href="https://t.me/vilnohirsk" target="_blank" rel="noopener" style="color: var(--time-green); text-decoration: none; font-weight: 800; font-size: 13px;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00; letter-spacing: 0.5px; text-shadow: 0 0 10px rgba(255,204,0,0.4);">Слава Україні! 🇺🇦</div></div>`;
   try {
     const res = await fetch('./data/zsu.yaml?v=' + Date.now());
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -2377,7 +2431,7 @@ async function loadVolunteersData(opts) {
     container.innerHTML = activeItems.length ? buildZsuCardsHtml(activeItems) : emptyZsuHtml;
   } catch (e) {
     logSectionError('збори ЗСУ', e); invalidateRender('render_zsu');
-    container.innerHTML = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(255, 77, 77, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(255, 77, 77, 0.35); border-radius: 18px;"><div style="font-size: 44px; margin-bottom: 8px;">⚠️</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px;">Не вдалося завантажити збори</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Перевірте інтернет і спробуйте ще раз:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Спробувати ще раз</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Маєте офіційний збір? Напишіть: <a href="https://t.me/vilnohirsk" target="_blank" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00;">Слава Україні! 🇺🇦</div></div>`;
+    container.innerHTML = `<div style="padding: 24px 18px; text-align: center; background: linear-gradient(145deg, rgba(255, 77, 77, 0.12), rgba(255, 204, 0, 0.08)); border: 1px solid rgba(255, 77, 77, 0.35); border-radius: 18px;"><div style="font-size: 44px; margin-bottom: 8px;">⚠️</div><div style="font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px;">Не вдалося завантажити збори</div><div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; margin-bottom: 14px;">Перевірте інтернет і спробуйте ще раз:</div><button onclick="loadVolunteersData({forceRefresh:true})" style="width:100%; padding: 12px; margin-bottom: 14px; background: linear-gradient(135deg, #38bdf8, #2a5298); color: #fff; border: none; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; box-shadow: 0 4px 12px rgba(56,189,248,0.3);">🔄 Спробувати ще раз</button><div style="padding: 12px; background: rgba(0,0,0,0.25); border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.75); line-height: 1.5;">🤝 Маєте офіційний збір? Напишіть: <a href="https://t.me/vilnohirsk" target="_blank" rel="noopener" style="color: var(--time-green); text-decoration: none; font-weight: 800;">@vilnohirsk</a></div><div style="margin-top: 14px; font-size: 13px; font-weight: 800; color: #ffcc00;">Слава Україні! 🇺🇦</div></div>`;
   }
 }
 
@@ -2495,12 +2549,25 @@ function createJobCardHtml(job, index, prefix) {
   </div>`;
 }
 
+// Вакансії військового призначення на сайті не показуємо.
+// Фільтр винесено з renderJobs, щоб бейдж на вкладці рахував рівно те,
+// що людина побачить: раніше він рахував список ДО фільтра й завищував число.
+const JOB_STOP_WORDS = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
+function filterSafeJobs(jobs) {
+  if (!Array.isArray(jobs)) return [];
+  return jobs.filter(job => {
+    if (!job) return false;
+    const text = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase();
+    return !JOB_STOP_WORDS.some(word => text.includes(word));
+  });
+}
+
 function renderJobs(jobs) {
   const container = document.getElementById('jobs-list-content'); if (!container) return;
   if (!jobs || jobs.length === 0) { container.innerHTML = '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
-  
-  const stopWords = ['зсу', 'батальйон', 'бригада', 'військов', 'взвод', 'міномет', 'штурмов', 'розвідувальн', 'десантн', 'тцк', 'сил оборони', 'військкомат', 'навідник', 'кулеметник', 'гранатометник', 'зенітн', 'артилері', 'морськ', 'піхот', 'снайпер', 'сапер', 'командир відділення', 'бойов', 'дшв'];
-  const safeJobs = jobs.filter(job => { const textToSearch = ((job.title || '') + ' ' + (job.company || '') + ' ' + (job.description || '')).toLowerCase(); return !stopWords.some(word => textToSearch.includes(word)); });
+
+  const safeJobs = filterSafeJobs(jobs); // ідемпотентно: список уже відфільтрований
+  if (!safeJobs.length) { container.innerHTML = '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
   
   // Стійке визначення джерела Work.ua: будь-який регістр/написання ("work.ua", "WorkUA", "work ua")
   const isWorkUa = (j) => {
@@ -2564,8 +2631,17 @@ function renderJobs(jobs) {
   container.innerHTML = html;
 }
 
+// Бейдж, позначки «Нове» і сам список — усе від одного відфільтрованого набору
+function publishJobs(allJobs) {
+  const visible = filterSafeJobs(allJobs);
+  markNewItems(visible, 'jobs');
+  checkNotification('jobs', visible);
+  updateJobsTabBadge(visible.length);
+  if (dataChanged('render_jobs', visible)) renderJobs(visible);
+}
+
 async function loadJobsData() {
-  if (!papaReady('jobs', loadJobsData)) return; // CSV-парсер ще вантажиться з CDN
+  if (!papaReady('jobs', loadJobsData, () => showSectionFailure('jobs-list-content', 'loadJobsData', 'jobs'))) return;
   let allJobs = [];
   try { const parsedJobs = await fetchCachedJson('https://vilnohirsk-jobs-api-production.up.railway.app/api/jobs', 'jobs_api', 1); if (Array.isArray(parsedJobs)) { allJobs = allJobs.concat(parsedJobs); } } catch(e) { logSectionError('вакансії (сервер)', e); }
   const SHEET_GID = '1809375718'; const csvUrl = `https://docs.google.com/spreadsheets/d/10MgSaPFFh0mDE094UkrG1BQwHabmGvSg124F5B4T1lg/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`;
@@ -2587,18 +2663,15 @@ async function loadJobsData() {
             return { title: cell(r, 2) || 'Без назви', salary: cell(r, 3) || '-', company: cell(r, 4) || 'Не вказано', description: cell(r, 5), date: cell(r, 0) ? cell(r, 0).split(' ')[0] : 'Нещодавно', phone: phone, gender: cell(r, 7), employment: cell(r, 8), url: phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#', isVip: isVipFlag(cell(r, 9)), source: 'User' };
           });
         allJobs = allJobs.concat(userJobs);
-        markNewItems(allJobs, 'jobs');
-        checkNotification('jobs', allJobs);
-        updateJobsTabBadge(allJobs.length);
-        if (dataChanged('render_jobs', allJobs)) renderJobs(allJobs);
+        publishJobs(allJobs);
       }
     });
   } catch (e) {
     logSectionError('вакансії (таблиця)', e);
-    markNewItems(allJobs, 'jobs');
-    checkNotification('jobs', allJobs);
-    updateJobsTabBadge(allJobs.length);
-    if (dataChanged('render_jobs', allJobs)) renderJobs(allJobs);
+    // Якщо мовчать обидва джерела — це збій зв'язку, а не «вакансій немає».
+    // Писати «Актуальних вакансій немає» у такому разі означало б збрехати.
+    if (!allJobs.length) { invalidateRender('render_jobs'); showSectionFailure('jobs-list-content', 'loadJobsData', 'jobs'); return; }
+    publishJobs(allJobs);
   }
 }
 
@@ -2662,7 +2735,7 @@ async function showDailyVolunteerAlert() {
                     progressHtml = `<div style="width: 100%; margin-top: 10px; margin-bottom: 10px;"><div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; margin-bottom: 5px;"><span style="color: #00ff9c;">Зібрано: ${collected.toLocaleString('uk-UA')} ₴</span><span style="color: rgba(255,255,255,0.5);">Ціль: ${goal.toLocaleString('uk-UA')} ₴</span></div><div style="width: 100%; height: 7px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5);"><div style="width: ${percent}%; height: 100%; background: linear-gradient(90deg, #38bdf8, #ffcc00); border-radius: 10px; transition: width 1s ease-in-out;"></div></div></div>`;
                 }
                 let btnHtml = '';
-                if (jarUrl) { btnHtml = `<a href="${escapeHTML(jarUrl)}" target="_blank" style="display: block; width: 100%; box-sizing: border-box; background: #fff; color: #000; text-align: center; padding: 12px; border-radius: 12px; font-weight: 900; text-decoration: none; font-size: 15px; margin-top: 8px; box-shadow: 0 4px 15px rgba(255,255,255,0.2);">💸 Підтримати банку</a>`; }
+                if (jarUrl) { btnHtml = `<a href="${escapeHTML(jarUrl)}" target="_blank" rel="noopener" style="display: block; width: 100%; box-sizing: border-box; background: #fff; color: #000; text-align: center; padding: 12px; border-radius: 12px; font-weight: 900; text-decoration: none; font-size: 15px; margin-top: 8px; box-shadow: 0 4px 15px rgba(255,255,255,0.2);">💸 Підтримати банку</a>`; }
                 const descHtml = desc ? `<div style="font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: left; margin-top: 8px; max-height: 120px; overflow-y: auto; padding: 8px 10px; background: rgba(0,0,0,0.2); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);">${desc}</div>` : '';
                 return `<div style="margin-bottom: 14px; padding: 14px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;"><div style="display:flex; align-items:flex-start; gap:8px;"><span style="flex:0 0 auto; min-width:22px; height:22px; display:inline-flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#38bdf8,#2a5298); color:#fff; font-size:11px; font-weight:900; border-radius:8px; margin-top:2px;">${idx + 1}</span><h3 style="margin: 0; font-size: 15px; font-weight: 800; text-align: left; color: #fff; line-height: 1.3; flex:1;">${escapeHTML(title)}</h3></div>${descHtml}${progressHtml}${btnHtml}</div>`;
             }).join('');
@@ -2747,6 +2820,10 @@ function refreshGroupC() {
     loadEventsData();
     loadLongTrainsData();
     loadBlaBlaCarData();
+    // Раніше ці два розділи вантажились лише при старті й лишались
+    // застарілими до перезавантаження сторінки
+    loadBusesData();
+    loadGalleryData();
 }
 
 // =========================================================================
@@ -2836,10 +2913,13 @@ async function initFirebase() {
   if (!window.firebase) {
     throw new Error('Firebase SDK не завантажено');
   }
-  
-  firebase.initializeApp(FIREBASE_CONFIG);
-  firebaseMessaging = firebase.messaging();
+
+  // Прапорець ставимо ДО messaging(): у браузері без Push API той кидає виняток,
+  // і при старому порядку застосунок Firebase уже був створений, а прапорець ні —
+  // наступний виклик падав з «Firebase App named '[DEFAULT]' already exists».
+  if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
   firebaseInitialized = true;
+  try { firebaseMessaging = firebase.messaging(); } catch (e) { firebaseMessaging = null; logSectionError('сповіщення', e); }
   return firebaseMessaging;
 }
 
@@ -2935,6 +3015,10 @@ async function subscribeToPush(selectedCategories) {
     
     // 5. Инициализируем Firebase
     await initFirebase();
+    if (!firebaseMessaging) {
+      showToast('❌ Ваш браузер не підтримує сповіщення', 'error');
+      return false;
+    }
     
     // 6. Получаем токен
     const token = await firebaseMessaging.getToken({

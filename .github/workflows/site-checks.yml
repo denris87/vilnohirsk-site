@@ -1,8 +1,12 @@
 name: site-checks
 
+# Єдина перевірка сайту перед публікацією: синтаксис коду, даних і розмітки.
+# Раніше поруч жив окремий validate-data.yml, який робив те саме з YAML —
+# кожна правка даних давала два однакові прогони й два листи. Його прибрано,
+# а сюди додано push у будь-яку гілку, щоб покриття не зменшилось.
+
 on:
   push:
-    branches: [ main ]
     paths:
       - 'index.html'
       - 'js/**'
@@ -10,6 +14,7 @@ on:
       - 'data/**'
       - 'manifest.json'
       - 'sw.js'
+      - 'firebase-messaging-sw.js'
       - '.github/workflows/**'
   pull_request:
     branches: [ main ]
@@ -20,6 +25,7 @@ on:
       - 'data/**'
       - 'manifest.json'
       - 'sw.js'
+      - 'firebase-messaging-sw.js'
       - '.github/workflows/**'
 
 jobs:
@@ -59,45 +65,100 @@ jobs:
                   print("ERROR", path, "->", str(exc).replace("\n", " | "))
 
           if bad:
+              print("\nЗламані файли даних: сайт сховає ці блоки, поки помилку не виправлено!")
               sys.exit(1)
           PY
 
-      - name: Basic HTML integrity
+      - name: HTML integrity
         run: |
           python3 - <<'PY'
           from html.parser import HTMLParser
           from pathlib import Path
-          import re
           import sys
 
           text = Path("index.html").read_text(encoding="utf-8")
 
-          class Parser(HTMLParser):
+          VOID = {
+              "area", "base", "br", "col", "embed", "hr", "img", "input",
+              "link", "meta", "param", "source", "track", "wbr",
+          }
+          # Теги, які браузер закриває сам — не вимагаємо явного закриття
+          OPTIONAL = {"p", "li", "option", "thead", "tbody", "tr", "td", "th"}
+
+          class Checker(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.stack = []
+                  self.problems = []
+
+              def handle_starttag(self, tag, attrs):
+                  if tag in VOID:
+                      return
+                  self.stack.append((tag, self.getpos()[0]))
+
+              def handle_startendtag(self, tag, attrs):
+                  pass
+
+              def handle_endtag(self, tag):
+                  if tag in VOID:
+                      return
+                  while self.stack:
+                      open_tag, line = self.stack.pop()
+                      if open_tag == tag:
+                          return
+                      if open_tag not in OPTIONAL:
+                          self.problems.append(
+                              "рядок %d: <%s> не закритий (натрапили на </%s>)" % (line, open_tag, tag)
+                          )
+                          return
+                  self.problems.append("зайвий закривальний </%s>" % tag)
+
+              def error(self, message):
+                  self.problems.append("розбір: %s" % message)
+
+          checker = Checker()
+          checker.feed(text)
+          checker.close()
+          for tag, line in checker.stack:
+              checker.problems.append("рядок %d: <%s> так і не закритий" % (line, tag))
+
+          # Дублікати id шукаємо ТІЛЬКИ у справжніх атрибутах розмітки: попередня
+          # регулярка читала й вміст <script> і ловила там шматок сніпета
+          # Google Tag Manager (id='+i+dl), що загрожувало фальшивою помилкою.
+          ids = []
+
+          class IdCollector(HTMLParser):
+              def handle_starttag(self, tag, attrs):
+                  for name, value in attrs:
+                      if name == "id" and value:
+                          ids.append(value)
+
               def error(self, message):
                   pass
 
-          try:
-              Parser().feed(text)
-          except Exception as exc:
-              print("HTML parse error:", exc)
-              sys.exit(1)
-
-          ids = re.findall(r'\bid=["\']([^"\']+)["\']', text)
+          collector = IdCollector()
+          collector.feed(text)
+          collector.close()
           dupes = sorted({x for x in ids if ids.count(x) > 1})
           if dupes:
-              print("Duplicate HTML ids:", ", ".join(dupes))
-              sys.exit(1)
+              checker.problems.append("дублікати id: " + ", ".join(dupes))
 
-          required = [
-              "js/app.js",
-              "css/styles.css",
-              "manifest.json",
-              "sw.js",
-          ]
+          required = ["js/app.js", "css/styles.css", "manifest.json", "sw.js"]
           missing = [p for p in required if not Path(p).exists()]
           if missing:
-              print("Missing required files:", ", ".join(missing))
+              checker.problems.append("немає обовʼязкових файлів: " + ", ".join(missing))
+
+          # Версія кеша в посиланнях на app.js і styles.css має бути проставлена,
+          # інакше постійні відвідувачі не отримають оновлення
+          for asset in ("js/app.js", "css/styles.css"):
+              if asset in text and (asset + "?v=") not in text:
+                  checker.problems.append(asset + " підключено без ?v= (версії кеша)")
+
+          if checker.problems:
+              print("Проблеми у розмітці:")
+              for problem in checker.problems:
+                  print(" -", problem)
               sys.exit(1)
 
-          print("HTML/basic file integrity OK")
+          print("HTML OK: перевірено %d id, теги збалансовані" % len(ids))
           PY
