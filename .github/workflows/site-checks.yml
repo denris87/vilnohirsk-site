@@ -1,0 +1,103 @@
+name: site-checks
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'index.html'
+      - 'js/**'
+      - 'css/**'
+      - 'data/**'
+      - 'manifest.json'
+      - 'sw.js'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'index.html'
+      - 'js/**'
+      - 'css/**'
+      - 'data/**'
+      - 'manifest.json'
+      - 'sw.js'
+      - '.github/workflows/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: JavaScript syntax
+        run: |
+          node --check js/app.js
+          node --check sw.js
+          node --check firebase-messaging-sw.js
+
+      - name: JSON syntax
+        run: |
+          python3 -m json.tool manifest.json >/dev/null
+
+      - name: YAML syntax
+        run: |
+          python3 -m pip install --quiet pyyaml
+          python3 - <<'PY'
+          import glob
+          import sys
+          import yaml
+
+          bad = 0
+          for path in sorted(glob.glob("data/*.yaml")):
+              try:
+                  with open(path, encoding="utf-8") as fh:
+                      yaml.safe_load(fh)
+                  print("OK", path)
+              except Exception as exc:
+                  bad += 1
+                  print("ERROR", path, "->", str(exc).replace("\n", " | "))
+
+          if bad:
+              sys.exit(1)
+          PY
+
+      - name: Basic HTML integrity
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import re
+          import sys
+
+          text = Path("index.html").read_text(encoding="utf-8")
+
+          class Parser(HTMLParser):
+              def error(self, message):
+                  pass
+
+          try:
+              Parser().feed(text)
+          except Exception as exc:
+              print("HTML parse error:", exc)
+              sys.exit(1)
+
+          ids = re.findall(r'\bid=["\']([^"\']+)["\']', text)
+          dupes = sorted({x for x in ids if ids.count(x) > 1})
+          if dupes:
+              print("Duplicate HTML ids:", ", ".join(dupes))
+              sys.exit(1)
+
+          required = [
+              "js/app.js",
+              "css/styles.css",
+              "manifest.json",
+              "sw.js",
+          ]
+          missing = [p for p in required if not Path(p).exists()]
+          if missing:
+              print("Missing required files:", ", ".join(missing))
+              sys.exit(1)
+
+          print("HTML/basic file integrity OK")
+          PY
