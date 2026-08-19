@@ -83,7 +83,7 @@ delays:
   route: "Дніпро-Гол. → П'ятихатки-Стик." 
   station: "Запоріжжя-Кам’янське"
   delay: 23
-  show: true
+  show: false
   note: ""
 
 - number: "6037"
