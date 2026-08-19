@@ -34,7 +34,7 @@
 # ───────────────────────────────────────────────────────────────
 
 show: true
-updated: "13.08.2026"
+updated: "19.08.2026"
 
 delays:
 - number: "6008"
@@ -81,9 +81,9 @@ delays:
 
 - number: "6035"
   route: "Дніпро-Гол. → П'ятихатки-Стик." 
-  station: "Дніпро-Гол."
-  delay: 36
-  show: false
+  station: "Запоріжжя-Кам’янське"
+  delay: 23
+  show: true
   note: ""
 
 - number: "6037"
