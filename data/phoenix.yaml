@@ -86,6 +86,14 @@ phoenix:
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-05-15_19-46-59.jpg?raw=true"
     active: true
 
+  - name: "Максимов Костянтин Вячеславович"
+    dob: "16.03.1983"
+    date_missing: "у полоні"
+    callsign: ""
+    photos:
+      - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/475037F6-E524-4287-8095-E2C112EE654D.png?raw=true"
+    active: true
+
   - name: "Акмурзін Сергій Олександрович"
     dob: "14.11.1990"
     date_missing: "29.12.2022"
