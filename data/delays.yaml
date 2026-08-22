@@ -74,8 +74,8 @@ delays:
 
 - number: "6038"
   route: " П'ятихатки-Пас. → Дніпро-Гол." 
-  station: "з.п. 114 км"
-  delay: 53
+  station: "Верхівцеве"
+  delay: 109
   show: true
   note: ""
 
@@ -88,9 +88,9 @@ delays:
 
 - number: "6037"
   route: "Дніпро-Гол. → П'ятихатки-Пас." 
-  station: "Сухачівка"
-  delay: 67
-  show: false
+  station: "Дніпро-Гол."
+  delay: 125
+  show: true
   note: ""
 
 - number: "6044"
