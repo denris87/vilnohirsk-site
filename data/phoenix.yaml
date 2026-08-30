@@ -307,7 +307,7 @@ phoenix:
   - name: "Рапина Владислав Володимирович"
     dob: "21.02.1975"
     date_missing: "01.09.2025"
-    callsign: ""
+    callsign: "Лис"
     photos:
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-05-15_18-15-09.jpg?raw=true"
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-05-15_18-15-11.jpg?raw=true"
