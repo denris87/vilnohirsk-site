@@ -2174,14 +2174,102 @@ const PHOENIX_VIEWS = {
 // їх небагато, а новина про те, що людину знайшли, не має губитись серед
 // карток розшуку. Заголовки груп показуємо лише коли є обидві — інакше
 // розділ виглядає рівно так, як виглядав до появи полону.
+// Пошук по розділу ФЕНІКС. Людей уже кілька десятків, гортати весь список,
+// щоб знайти одне прізвище, довго.
+let allPhoenixItems = [];   // повний список, щоб фільтрувати без перезавантаження
+let phoenixQuery = '';
+let phoenixSearchTimer = null;
+
+// Пошук має прощати дрібниці: різні апострофи, і/ї/й/и, е/є, г/ґ, латинську i.
+// Прізвище часто набирають на слух і легко влучають не в ту літеру.
+function foldForSearch(value) {
+  return String(value == null ? '' : value)
+    .toLowerCase()
+    .replace(/[\u02bc'\u2019`\u00b4]/g, '')
+    .replace(/[іїийы]/g, 'и')
+    .replace(/i/g, 'и')
+    .replace(/[еєэё]/g, 'е')
+    .replace(/ґ/g, 'г')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Основний пошук — саме за прізвищем: воно стоїть першим у полі name, тож
+// звіряємо ПОЧАТОК рядка. Інакше запит «Іванов» витягував би ще й усіх
+// Івановичів по батькові. Позивний перевіряємо так само з початку.
+// Заразом працює уточнення на кшталт «абаза є» — прізвище плюс початок імені.
+function phoenixStartsWith(item, folded) {
+  if (!item) return false;
+  const name = foldForSearch(item.name);
+  if (name.indexOf(folded) === 0) return true;
+  const callsign = foldForSearch(item.callsign);
+  return !!callsign && callsign.indexOf(folded) === 0;
+}
+
+// Запасний, ширший пошук: збіг будь-де в імені чи позивному. Вмикається лише
+// коли за прізвищем не знайшлось нічого — щоб людина не впиралась у порожній
+// екран, якщо пам'ятає лише ім'я або по батькові.
+function phoenixMatches(item, folded) {
+  if (!folded) return true;
+  if (!item) return false;
+  const hay = foldForSearch(item.name) + ' ' + foldForSearch(item.callsign);
+  return hay.indexOf(folded) !== -1;
+}
+
+function filterPhoenix() {
+  const input = document.getElementById('phoenix-search');
+  if (!input) return;
+  clearTimeout(phoenixSearchTimer);
+  phoenixSearchTimer = setTimeout(() => {
+    phoenixQuery = input.value;
+    const clearBtn = document.getElementById('phoenix-search-clear');
+    if (clearBtn) clearBtn.style.display = input.value ? 'flex' : 'none';
+    renderPhoenixList(allPhoenixItems);
+  }, 150);
+}
+
+function clearPhoenixSearch() {
+  const input = document.getElementById('phoenix-search');
+  if (input) { input.value = ''; input.focus(); }
+  phoenixQuery = '';
+  const clearBtn = document.getElementById('phoenix-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  renderPhoenixList(allPhoenixItems);
+}
+
 function renderPhoenixList(items) {
   const cont = document.getElementById('phoenix-list-content');
   if (!cont) return;
+  const box = document.getElementById('phoenix-search-box');
+  // Поле пошуку показуємо лише коли є що шукати
+  if (box) box.style.display = (items && items.length) ? 'flex' : 'none';
   if (!items || !items.length) { cont.innerHTML = '<div class="empty-msg">Актуальної інформації немає</div>'; return; }
-  const captives = items.filter(isPhoenixCaptive);
-  const missing = items.filter(item => !isPhoenixCaptive(item));
+
+  const folded = foldForSearch(phoenixQuery);
+  let found = items, wide = false;
+  if (folded) {
+    found = items.filter(it => phoenixStartsWith(it, folded));
+    if (!found.length) { found = items.filter(it => phoenixMatches(it, folded)); wide = found.length > 0; }
+  }
+  if (!found.length) {
+    cont.innerHTML = `<div class="phoenix-nores">`
+      + `<div class="phoenix-nores-ico">🔎</div>`
+      + `<div class="phoenix-nores-title">Нікого не знайдено</div>`
+      + `<div class="phoenix-nores-sub">За запитом «${escapeHTML(String(phoenixQuery).trim())}» збігів немає. Спробуйте ввести лише початок прізвища.</div>`
+      + `<button type="button" class="phoenix-nores-btn" onclick="clearPhoenixSearch()">Показати всіх</button>`
+      + `</div>`;
+    return;
+  }
+
+  const captives = found.filter(isPhoenixCaptive);
+  const missing = found.filter(item => !isPhoenixCaptive(item));
   const withHeads = captives.length > 0 && missing.length > 0;
-  cont.innerHTML = phoenixGroupHtml(captives, PHOENIX_VIEWS.captive, captives.length > 0)
+  // Під час пошуку показуємо, скільки знайшли, щоб не рахувати картки очима
+  const counter = folded
+    ? `<div class="phoenix-found">Знайдено: <b>${found.length}</b> з ${items.length}${wide ? ' <span class="phoenix-found-note">(за прізвищем збігів немає — шукали в імені)</span>' : ''}</div>`
+    : '';
+  cont.innerHTML = counter
+                 + phoenixGroupHtml(captives, PHOENIX_VIEWS.captive, captives.length > 0)
                  + phoenixGroupHtml(missing, PHOENIX_VIEWS.missing, withHeads);
 }
 
@@ -2316,6 +2404,7 @@ async function loadPhoenixData() {
       .sort(comparePhoenixByName); // за абеткою, щоб людину було легко знайти в списку
     // На вкладці пишемо саме кількість тих, кого шукають: полонених знайшли,
     // тож у число розшуку вони не входять, хоч і показуються в тому ж розділі.
+    allPhoenixItems = activeItems; // щоб пошук фільтрував без повторного завантаження
     updateTabCount('phoenix-tab-count', activeItems.filter(item => !isPhoenixCaptive(item)).length);
     markNewItems(activeItems, 'phoenix');
     checkNotification('phoenix', activeItems);
