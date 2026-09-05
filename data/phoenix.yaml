@@ -224,7 +224,7 @@ phoenix:
     active: true
 
   - name: "Кобилько Юрій Миколайович"
-    dob: ""
+    dob: "15.07.1970"
     date_missing: "19.07.2025"
     callsign: ""
     photos:
@@ -241,7 +241,7 @@ phoenix:
 
   - name: "Чмульов Андрій  Михайлович"
     dob: "14.11.1980"
-    date_missing: ""
+    date_missing: "19.07.2025"
     callsign: ""
     photos:
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-05-15_17-59-28.jpg?raw=true"
