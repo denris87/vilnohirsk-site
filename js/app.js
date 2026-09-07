@@ -2533,7 +2533,7 @@ function toggleJobsDrawer(drawerId, btn) {
 }
 
 // === Стан сортування для ДЦЗ-секції ===
-let dczSortMode = 'date'; // 'date' | 'salary_asc' | 'salary_desc'
+let dczSortMode = 'date'; // 'date' (спочатку нові) | 'date_asc' (спочатку старі) | 'salary_asc' | 'salary_desc'
 let allDczJobs = [];
 
 function parseSalaryNum(s) {
@@ -2565,7 +2565,17 @@ function renderDczDrawerContent() {
   let filtered = allDczJobs.slice();
   if (dczSortMode === 'salary_asc')  filtered.sort((a, b) => parseSalaryNum(a.salary) - parseSalaryNum(b.salary));
   if (dczSortMode === 'salary_desc') filtered.sort((a, b) => parseSalaryNum(b.salary) - parseSalaryNum(a.salary));
+  // Вакансії без розпізнаної дати parseDczDate віддає як 0. При сортуванні
+  // від нових вони й так опиняються в кінці, а от від старих 0 виштовхнув би
+  // їх на самий верх, ніби вони найдавніші. Тому тримаємо їх у кінці завжди.
   if (dczSortMode === 'date')        filtered.sort((a, b) => parseDczDate(b.date) - parseDczDate(a.date));
+  if (dczSortMode === 'date_asc')    filtered.sort((a, b) => {
+    const da = parseDczDate(a.date), db = parseDczDate(b.date);
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return da - db;
+  });
 
   let cards = '';
   filtered.forEach((job, i) => { cards += createJobCardHtml(job, i, 'd'); });
@@ -2574,6 +2584,7 @@ function renderDczDrawerContent() {
 
   const sortBar = `<div class="flea-categories-wrapper" style="padding: 2px 4px 8px;">
     <div class="flea-category-tag${dczSortMode === 'date' ? ' active' : ''}" onclick="setDczSort('date', event)">📅 Спочатку нові</div>
+    <div class="flea-category-tag${dczSortMode === 'date_asc' ? ' active' : ''}" onclick="setDczSort('date_asc', event)">📅 Спочатку старі</div>
     <div class="flea-category-tag${dczSortMode === 'salary_asc' ? ' active' : ''}" onclick="setDczSort('salary_asc', event)">💵 Зарплата ↑</div>
     <div class="flea-category-tag${dczSortMode === 'salary_desc' ? ' active' : ''}" onclick="setDczSort('salary_desc', event)">💵 Зарплата ↓</div>
   </div>`;
