@@ -1363,31 +1363,120 @@ async function loadPhonebookData() {
   } catch (e) { logSectionError('довідник', e); container.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження довідника</div>'; }
 }
 
+// === МІСЬКИЙ ДОВІДНИК ==================================================
+// Розділ показує 202 контакти у 24 категоріях. Плоским списком це була
+// величезна прокрутка, тож навігація двоступенева: спершу плитки категорій,
+// потім екран однієї категорії з кнопкою «назад». Пошук працює поверх обох
+// станів — поки в полі є текст, показуємо збіги з усіх категорій одразу.
+let phonebookView = 'cats';      // 'cats' — плитки, 'one' — одна категорія
+let phonebookActiveCat = -1;     // індекс відкритої категорії
+
+// Телефони в базі трапляються трьома способами: масивом, рядком через кому
+// і одиничним полем phone. Зводимо до одного вигляду.
+function pbPhones(item) {
+  if (!item) return [];
+  if (Array.isArray(item.phones)) return item.phones.filter(Boolean);
+  if (typeof item.phones === 'string') return item.phones.split(',').map(x => x.trim()).filter(Boolean);
+  if (item.phone) return [item.phone];
+  return [];
+}
+function pbTitle(item) { return String((item && (item.title || item.name)) || '').trim(); }
+function pbCatName(cat) { return String((cat && (cat.name || cat.category)) || 'Різне'); }
+function pbCatIcon(cat) { return String((cat && cat.icon) || '📌'); }
+function pbValidCats(categories) {
+  return (Array.isArray(categories) ? categories : []).filter(c => c && Array.isArray(c.items) && c.items.length);
+}
+
+function pbPhonesHtml(phones, big) {
+  const cls = big ? 'pb-phone-btn pb-phone-big' : 'pb-phone-btn';
+  return phones.map(p => {
+    const clean = String(p).replace(/[^0-9+]/g, '');
+    return `<a href="tel:${clean}" class="${cls}" onclick="event.stopPropagation();">${escapeHTML(p)}</a>`;
+  }).join('');
+}
+function pbItemHtml(item, big) {
+  return `<div class="pb-tile"><div class="pb-tile-title">${escapeHTML(pbTitle(item))}</div>`
+       + `<div class="pb-tile-phones">${pbPhonesHtml(pbPhones(item), big)}</div></div>`;
+}
+
+// Прокручуємо шухляду розділу вгору: інакше після переходу в категорію
+// людина лишається там, де гортала сітку плиток.
+function pbScrollTop() {
+  const drawer = document.getElementById('market-drawer');
+  if (drawer) drawer.scrollTop = 0;
+}
+
+// event.stopPropagation() у розмітці кнопок обов'язковий. Перемальовування
+// відбувається прямо в обробнику, і натиснута кнопка миттєво вилітає з
+// документа. Далі клік продовжує спливати до глобального обробника, той
+// питає e.target.closest('.market-group') у вже від'єднаного вузла, отримує
+// null і вирішує, що клікнули повз розділ — після чого згортає всю шухляду.
+function pbOpenCategory(index) {
+  phonebookView = 'one';
+  phonebookActiveCat = index;
+  renderPhonebook(phonebookRawData, '');
+  pbScrollTop();
+}
+function pbBackToCategories() {
+  phonebookView = 'cats';
+  phonebookActiveCat = -1;
+  renderPhonebook(phonebookRawData, '');
+  pbScrollTop();
+}
+
 function renderPhonebook(categories, searchQuery = '') {
-  const container = document.getElementById('city-guide-list-content'); if (!container) return;
-  let html = ''; let hasResults = false; const query = searchQuery.toLowerCase().trim();
-  if (!Array.isArray(categories)) return;
-  categories.forEach((cat) => {
-     if (!cat || !cat.items || !Array.isArray(cat.items)) return;
-     let itemsHtml = ''; let categoryHasMatch = false;
-     cat.items.forEach(item => {
-        if (!item) return; const safeTitle = (item.title || item.name || '').toString(); const titleMatch = safeTitle.toLowerCase().includes(query);
-        let phonesArray = []; if (Array.isArray(item.phones)) { phonesArray = item.phones; } else if (typeof item.phones === 'string') { phonesArray = item.phones.split(',').map(p => p.trim()).filter(Boolean); } else if (item.phone) { phonesArray = [item.phone]; }
-        const phoneMatch = phonesArray.some(p => p.toString().includes(query));
-        if (query === '' || titleMatch || phoneMatch) {
-            categoryHasMatch = true; hasResults = true;
-            let phonesHtml = phonesArray.map(p => { let clean = p.toString().replace(/[^0-9+]/g, ''); return `<a href="tel:${clean}" class="pb-phone-btn" onclick="event.stopPropagation();">${escapeHTML(p)}</a>`; }).join('');
-            itemsHtml += `<div class="pb-tile"><div class="pb-tile-title">${escapeHTML(safeTitle)}</div><div class="pb-tile-phones">${phonesHtml}</div></div>`;
-        }
-     });
-     if (categoryHasMatch) { const safeCatName = cat.name || cat.category || 'Різне'; const safeCatIcon = cat.icon || '📌'; html += `<div class="pb-category-section"><div class="pb-category-header"><span>${escapeHTML(safeCatIcon)}</span> ${escapeHTML(safeCatName)}</div><div class="pb-grid">${itemsHtml}</div></div>`; }
-  });
-  if (!hasResults) { container.innerHTML = '<div class="empty-msg" style="font-size: 14px;">За вашим запитом нічого не знайдено 😔</div>'; } else { container.innerHTML = html; }
+  const container = document.getElementById('city-guide-list-content');
+  if (!container) return;
+  const cats = pbValidCats(categories);
+  if (!cats.length) { container.innerHTML = '<div class="empty-msg">Довідник порожній</div>'; return; }
+
+  const query = String(searchQuery || '').toLowerCase().trim();
+
+  // 1. Є запит — показуємо збіги з усіх категорій, плитки й «назад» не потрібні
+  if (query) {
+    let html = '', found = 0;
+    cats.forEach(cat => {
+      const hits = cat.items.filter(item => {
+        if (!item) return false;
+        if (pbTitle(item).toLowerCase().includes(query)) return true;
+        return pbPhones(item).some(ph => String(ph).toLowerCase().includes(query));
+      });
+      if (!hits.length) return;
+      found += hits.length;
+      html += `<div class="pb-category-section"><div class="pb-category-header"><span>${escapeHTML(pbCatIcon(cat))}</span> ${escapeHTML(pbCatName(cat))}</div>`
+            + `<div class="pb-grid">${hits.map(i => pbItemHtml(i)).join('')}</div></div>`;
+    });
+    container.innerHTML = found
+      ? `<div class="pb-found">Знайдено: <b>${found}</b></div>${html}`
+      : '<div class="empty-msg" style="font-size: 14px;">За вашим запитом нічого не знайдено 😔</div>';
+    return;
+  }
+
+  // 2. Відкрита одна категорія
+  if (phonebookView === 'one' && cats[phonebookActiveCat]) {
+    const cat = cats[phonebookActiveCat];
+    container.innerHTML =
+      `<button type="button" class="pb-back" onclick="event.stopPropagation(); pbBackToCategories()">← Усі категорії</button>`
+      + `<div class="pb-cat-head"><span class="pb-cat-head-ico">${escapeHTML(pbCatIcon(cat))}</span>`
+      + `<span class="pb-cat-head-name">${escapeHTML(pbCatName(cat))}</span>`
+      + `<span class="pb-cat-head-count">${cat.items.length}</span></div>`
+      + `<div class="pb-grid">${cat.items.map(i => pbItemHtml(i, true)).join('')}</div>`;
+    return;
+  }
+
+  // 3. Початковий екран — плитки категорій
+  phonebookView = 'cats';
+  container.innerHTML = '<div class="pb-cats">' + cats.map((cat, i) =>
+      `<button type="button" class="pb-cat" onclick="event.stopPropagation(); pbOpenCategory(${i})">`
+    + `<span class="pb-cat-ico">${escapeHTML(pbCatIcon(cat))}</span>`
+    + `<span class="pb-cat-name">${escapeHTML(pbCatName(cat))}</span>`
+    + `<span class="pb-cat-count">${cat.items.length}</span></button>`
+  ).join('') + '</div>';
 }
 
 // Debounce поиска по справочнику
-function filterPhonebook() { 
-    const input = document.getElementById('pb-search'); 
+function filterPhonebook() {
+    const input = document.getElementById('pb-search');
     if (!phonebookRawData || !input) return;
     clearTimeout(phonebookSearchTimer);
     phonebookSearchTimer = setTimeout(() => {
