@@ -538,3 +538,27 @@ a,
 .pb-beta-dot{width:7px;height:7px;border-radius:50%;background:#38bdf8;box-shadow:0 0 8px rgba(56,189,248,0.9);animation:pulseAlert 2s infinite;}
 .pb-beta-text{font-size:11px;font-weight:600;color:rgba(255,255,255,0.78);line-height:1.5;}
 @media (prefers-reduced-motion: reduce){.pb-beta-dot{animation:none;}}
+
+/* === МІСЬКИЙ ДОВІДНИК: плитки категорій і екран однієї категорії === */
+.pb-cats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+@media (min-width:650px){.pb-cats{grid-template-columns:repeat(3,minmax(0,1fr));}}
+.pb-cat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:98px;padding:14px 10px;background:rgba(10,20,40,0.45);border:1px solid rgba(255,255,255,0.10);border-radius:16px;color:#f8fafc;font-family:inherit;cursor:pointer;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.22);transition:transform .18s ease,border-color .18s ease;}
+.pb-cat:hover{border-color:rgba(0,255,156,0.40);}
+.pb-cat:active{transform:scale(0.97);}
+.pb-cat-ico{font-size:24px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.5));}
+.pb-cat-name{font-size:12px;font-weight:600;line-height:1.3;word-break:break-word;}
+.pb-cat-count{font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.45);font-variant-numeric:tabular-nums;}
+
+.pb-back{display:inline-flex;align-items:center;gap:7px;background:rgba(56,189,248,0.10);border:1px solid rgba(56,189,248,0.35);border-radius:11px;color:#38bdf8;font-family:inherit;font-size:12.5px;font-weight:800;padding:9px 15px;margin-bottom:12px;cursor:pointer;}
+.pb-back:hover{background:rgba(56,189,248,0.18);}
+.pb-cat-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:0 3px;}
+.pb-cat-head-ico{font-size:22px;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,0.5));}
+.pb-cat-head-name{flex:1;min-width:0;font-size:15px;font-weight:800;color:#fff;line-height:1.25;}
+.pb-cat-head-count{font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);background:rgba(255,255,255,0.07);border-radius:999px;padding:3px 10px;font-variant-numeric:tabular-nums;flex-shrink:0;}
+
+/* На екрані категорії кнопка дзвінка більша: тут уже нема чого шукати очима */
+.pb-phone-btn.pb-phone-big{padding:10px 16px;font-size:13px;font-weight:700;background:rgba(0,255,156,0.10);}
+
+.pb-found{text-align:center;font-size:11px;font-weight:600;color:rgba(255,255,255,0.6);margin-bottom:10px;}
+.pb-found b{color:#fff;font-weight:800;font-variant-numeric:tabular-nums;}
+@media (prefers-reduced-motion:reduce){.pb-cat{transition:none;}.pb-cat:active{transform:none;}}
