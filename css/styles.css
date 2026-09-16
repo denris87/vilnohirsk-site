@@ -526,3 +526,8 @@ a,
 .phoenix-nores-sub{font-size:11.5px;color:rgba(255,255,255,0.7);line-height:1.5;margin-bottom:14px;}
 .phoenix-nores-btn{padding:11px 22px;background:rgba(255,77,77,0.16);border:1px solid rgba(255,77,77,0.45);border-radius:12px;color:#fff;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit;}
 .phoenix-nores-btn:hover{background:rgba(255,77,77,0.28);}
+
+/* Прохання повідомляти про номери, що вже не працюють (міський довідник) */
+.pb-report-note{margin:0 5px 12px;padding:10px 13px;background:rgba(255,204,0,0.06);border:1px dashed rgba(255,204,0,0.35);border-radius:12px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);line-height:1.5;text-align:center;}
+.pb-report-note b{color:#ffcc00;font-weight:800;}
+.pb-report-note a{color:var(--time-green);text-decoration:none;font-weight:800;}
