@@ -531,3 +531,10 @@ a,
 .pb-report-note{margin:0 5px 12px;padding:10px 13px;background:rgba(255,204,0,0.06);border:1px dashed rgba(255,204,0,0.35);border-radius:12px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);line-height:1.5;text-align:center;}
 .pb-report-note b{color:#ffcc00;font-weight:800;}
 .pb-report-note a{color:var(--time-green);text-decoration:none;font-weight:800;}
+
+/* Повідомлення про те, що міський довідник ще налаштовується */
+.pb-beta-note{margin:0 5px 10px;padding:11px 14px;background:linear-gradient(145deg,rgba(56,189,248,0.12),rgba(0,0,0,0.25));border:1px solid rgba(56,189,248,0.35);border-radius:14px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,0.20);}
+.pb-beta-title{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:800;color:#38bdf8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:5px;}
+.pb-beta-dot{width:7px;height:7px;border-radius:50%;background:#38bdf8;box-shadow:0 0 8px rgba(56,189,248,0.9);animation:pulseAlert 2s infinite;}
+.pb-beta-text{font-size:11px;font-weight:600;color:rgba(255,255,255,0.78);line-height:1.5;}
+@media (prefers-reduced-motion: reduce){.pb-beta-dot{animation:none;}}
