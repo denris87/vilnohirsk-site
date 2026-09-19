@@ -1363,26 +1363,46 @@ async function loadPhonebookData() {
   } catch (e) { logSectionError('довідник', e); container.innerHTML = '<div class="empty-msg" style="color:#ff4d4d;">Помилка завантаження довідника</div>'; }
 }
 
+// Українські закінчення при числі: 1 номер, 2 номери, 5 номерів.
+// Окремо винесено 11-14 — вони завжди "багато" (11 номерів, а не 11 номер).
+function pluralUk(n, one, few, many) {
+  const abs = Math.abs(Math.round(n) || 0), d = abs % 10, h = abs % 100;
+  if (d === 1 && h !== 11) return one;
+  if (d >= 2 && d <= 4 && (h < 12 || h > 14)) return few;
+  return many;
+}
+
 function renderPhonebook(categories, searchQuery = '') {
   const container = document.getElementById('city-guide-list-content'); if (!container) return;
   let html = ''; let hasResults = false; const query = searchQuery.toLowerCase().trim();
   if (!Array.isArray(categories)) return;
+  // Лічильники рахуємо тут-таки, з тих самих даних, які малюємо. Тому додали
+  // чи прибрали номер у базі — цифра поїде за ним сама, руками правити нічого.
+  let allPhones = 0, allItems = 0, allCats = 0, foundPhones = 0, foundItems = 0;
   categories.forEach((cat) => {
      if (!cat || !cat.items || !Array.isArray(cat.items)) return;
-     let itemsHtml = ''; let categoryHasMatch = false;
+     let itemsHtml = ''; let categoryHasMatch = false; let catItems = 0;
      cat.items.forEach(item => {
         if (!item) return; const safeTitle = (item.title || item.name || '').toString(); const titleMatch = safeTitle.toLowerCase().includes(query);
         let phonesArray = []; if (Array.isArray(item.phones)) { phonesArray = item.phones; } else if (typeof item.phones === 'string') { phonesArray = item.phones.split(',').map(p => p.trim()).filter(Boolean); } else if (item.phone) { phonesArray = [item.phone]; }
+        catItems++; allItems++; allPhones += phonesArray.length;
         const phoneMatch = phonesArray.some(p => p.toString().includes(query));
         if (query === '' || titleMatch || phoneMatch) {
-            categoryHasMatch = true; hasResults = true;
+            categoryHasMatch = true; hasResults = true; foundItems++; foundPhones += phonesArray.length;
             let phonesHtml = phonesArray.map(p => { let clean = p.toString().replace(/[^0-9+]/g, ''); return `<a href="tel:${clean}" class="pb-phone-btn" onclick="event.stopPropagation();">${escapeHTML(p)}</a>`; }).join('');
             itemsHtml += `<div class="pb-tile"><div class="pb-tile-title">${escapeHTML(safeTitle)}</div><div class="pb-tile-phones">${phonesHtml}</div></div>`;
         }
      });
+     if (catItems) allCats++;
      if (categoryHasMatch) { const safeCatName = cat.name || cat.category || 'Різне'; const safeCatIcon = cat.icon || '📌'; html += `<div class="pb-category-section"><div class="pb-category-header"><span>${escapeHTML(safeCatIcon)}</span> ${escapeHTML(safeCatName)}</div><div class="pb-grid">${itemsHtml}</div></div>`; }
   });
-  if (!hasResults) { container.innerHTML = '<div class="empty-msg" style="font-size: 14px;">За вашим запитом нічого не знайдено 😔</div>'; } else { container.innerHTML = html; }
+  // Рядок підсумку над списком: без пошуку — скільки всього в базі,
+  // під час пошуку — скільки збіглось. Обидва числа з одного проходу вище.
+  const big = (v) => `<b class="pb-stats-num">${v}</b>`;
+  const statsHtml = query === ''
+    ? `<div class="pb-stats"><span class="pb-stats-main"><span class="pb-stats-ico" aria-hidden="true">\u{1F4C7}</span>${big(allPhones)} ${pluralUk(allPhones, 'номер', 'номери', 'номерів')}</span><span class="pb-stats-sub">${allItems} ${pluralUk(allItems, 'запис', 'записи', 'записів')}</span><span class="pb-stats-sub">${allCats} ${pluralUk(allCats, 'категорія', 'категорії', 'категорій')}</span></div>`
+    : `<div class="pb-stats"><span class="pb-stats-main"><span class="pb-stats-ico" aria-hidden="true">\u{1F50D}</span>Знайдено ${big(foundItems)} ${pluralUk(foundItems, 'запис', 'записи', 'записів')}</span><span class="pb-stats-sub">${foundPhones} ${pluralUk(foundPhones, 'номер', 'номери', 'номерів')}</span></div>`;
+  if (!hasResults) { container.innerHTML = '<div class="empty-msg" style="font-size: 14px;">За вашим запитом нічого не знайдено 😔</div>'; } else { container.innerHTML = statsHtml + html; }
 }
 
 // Debounce поиска по справочнику
