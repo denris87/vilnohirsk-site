@@ -13,17 +13,17 @@
 # ───────────────────────────────────────────────────────────────
 
 show: true
-updated: "18.09.2026"
+updated: "19.09.2026"
 
 fuels:
   - name: "95E"
-    price: "86.90"
+    price: "87.90"
     color: "#c8ccd2"
   - name: "95"
-    price: "86.90"
+    price: "87.90"
     color: "#ff4d4d"
   - name: "92"
-    price: "84.90"
+    price: "85.90"
     color: "#ffcc00"
   - name: "ДП"
     price: "97.90"
