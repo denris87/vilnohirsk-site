@@ -1372,6 +1372,46 @@ function pluralUk(n, one, few, many) {
   return many;
 }
 
+// ── Стан номера ──────────────────────────────────────────────────────────────
+// База довідника тримає в кожного запису поле verified: true — передзвонили
+// й підтвердили, false — номер є, але ніхто не перевіряв. Третього стану нема.
+// Пізніше апі почне віддавати ще й готовий об'єкт status із підписами; тоді
+// беремо підпис звідти, а поки малюємо своїми. Якщо полів нема взагалі
+// (стара відповідь апі) — позначки й фільтр просто не показуємо.
+let phonebookFilter = 'all';   // all | verified | unverified
+
+function pbHasMark(item) {
+  if (!item) return false;
+  if (item.status && typeof item.status.verified === 'boolean') return true;
+  return item.verified === true || item.verified === false;
+}
+function pbIsVerified(item) {
+  if (!item) return false;
+  if (item.status && typeof item.status.verified === 'boolean') return item.status.verified;
+  return item.verified === true;
+}
+function pbMarkHtml(item) {
+  if (!pbHasMark(item)) return '';
+  const ok = pbIsVerified(item);
+  const st = item.status || {};
+  const label = st.label || (ok ? 'Перевірено' : 'Не перевірено');
+  const hint = st.hint || (ok ? 'Ми передзвонили: людина справді цим займається'
+                              : 'Номер ще ніхто не підтверджував');
+  const icon = ok ? '\u2713' : '\u25cb';
+  return `<span class="pb-mark ${ok ? 'pb-mark-ok' : 'pb-mark-no'}" title="${escapeHTML(hint)}">`
+       + `<i aria-hidden="true">${icon}</i>${escapeHTML(label)}</span>`;
+}
+
+// Перемикач фільтра. event.stopPropagation() у кнопці НЕ прикраса: перемальовка
+// списку виносить натиснуту кнопку з документа, і глобальний обробник кліку,
+// перевіряючи closest('.market-group') уже у від'єднаного вузла, отримав би
+// null і згорнув усю шухляду розділу.
+function pbSetFilter(value) {
+  phonebookFilter = value;
+  const input = document.getElementById('pb-search');
+  renderPhonebook(phonebookRawData, input ? input.value : '');
+}
+
 function renderPhonebook(categories, searchQuery = '') {
   const container = document.getElementById('city-guide-list-content'); if (!container) return;
   let html = ''; let hasResults = false; const query = searchQuery.toLowerCase().trim();
@@ -1379,6 +1419,7 @@ function renderPhonebook(categories, searchQuery = '') {
   // Лічильники рахуємо тут-таки, з тих самих даних, які малюємо. Тому додали
   // чи прибрали номер у базі — цифра поїде за ним сама, руками правити нічого.
   let allPhones = 0, allItems = 0, allCats = 0, foundPhones = 0, foundItems = 0;
+  let marked = 0, allOk = 0;
   categories.forEach((cat) => {
      if (!cat || !cat.items || !Array.isArray(cat.items)) return;
      let itemsHtml = ''; let categoryHasMatch = false; let catItems = 0;
@@ -1386,11 +1427,15 @@ function renderPhonebook(categories, searchQuery = '') {
         if (!item) return; const safeTitle = (item.title || item.name || '').toString(); const titleMatch = safeTitle.toLowerCase().includes(query);
         let phonesArray = []; if (Array.isArray(item.phones)) { phonesArray = item.phones; } else if (typeof item.phones === 'string') { phonesArray = item.phones.split(',').map(p => p.trim()).filter(Boolean); } else if (item.phone) { phonesArray = [item.phone]; }
         catItems++; allItems++; allPhones += phonesArray.length;
+        const hasMark = pbHasMark(item), isOk = pbIsVerified(item);
+        if (hasMark) { marked++; if (isOk) allOk++; }
         const phoneMatch = phonesArray.some(p => p.toString().includes(query));
-        if (query === '' || titleMatch || phoneMatch) {
+        const passFilter = phonebookFilter === 'all' || (phonebookFilter === 'verified') === isOk;
+        if (passFilter && (query === '' || titleMatch || phoneMatch)) {
             categoryHasMatch = true; hasResults = true; foundItems++; foundPhones += phonesArray.length;
             let phonesHtml = phonesArray.map(p => { let clean = p.toString().replace(/[^0-9+]/g, ''); return `<a href="tel:${clean}" class="pb-phone-btn" onclick="event.stopPropagation();">${escapeHTML(p)}</a>`; }).join('');
-            itemsHtml += `<div class="pb-tile"><div class="pb-tile-title">${escapeHTML(safeTitle)}</div><div class="pb-tile-phones">${phonesHtml}</div></div>`;
+            const markHtml = pbMarkHtml(item);
+            itemsHtml += `<div class="pb-tile${isOk ? ' pb-tile-ok' : ''}"><div class="pb-tile-main"><div class="pb-tile-title">${escapeHTML(safeTitle)}</div>${markHtml}</div><div class="pb-tile-phones">${phonesHtml}</div></div>`;
         }
      });
      if (catItems) allCats++;
@@ -1399,10 +1444,26 @@ function renderPhonebook(categories, searchQuery = '') {
   // Рядок підсумку над списком: без пошуку — скільки всього в базі,
   // під час пошуку — скільки збіглось. Обидва числа з одного проходу вище.
   const big = (v) => `<b class="pb-stats-num">${v}</b>`;
-  const statsHtml = query === ''
+  const plain = query === '' && phonebookFilter === 'all';
+  const statsHtml = plain
     ? `<div class="pb-stats"><span class="pb-stats-main"><span class="pb-stats-ico" aria-hidden="true">\u{1F4C7}</span>${big(allPhones)} ${pluralUk(allPhones, 'номер', 'номери', 'номерів')}</span><span class="pb-stats-sub">${allItems} ${pluralUk(allItems, 'запис', 'записи', 'записів')}</span><span class="pb-stats-sub">${allCats} ${pluralUk(allCats, 'категорія', 'категорії', 'категорій')}</span></div>`
     : `<div class="pb-stats"><span class="pb-stats-main"><span class="pb-stats-ico" aria-hidden="true">\u{1F50D}</span>Знайдено ${big(foundItems)} ${pluralUk(foundItems, 'запис', 'записи', 'записів')}</span><span class="pb-stats-sub">${foundPhones} ${pluralUk(foundPhones, 'номер', 'номери', 'номерів')}</span></div>`;
-  if (!hasResults) { container.innerHTML = '<div class="empty-msg" style="font-size: 14px;">За вашим запитом нічого не знайдено 😔</div>'; } else { container.innerHTML = statsHtml + html; }
+
+  // Фільтр за станом показуємо, лише коли база взагалі несе позначки: на старій
+  // відповіді апі (без verified) розділ має лишитись точно таким, як був.
+  // Запис без поля вважаємо неперевіреним — це те саме, що «ніхто не підтверджував».
+  const chip = (value, text) => `<button type="button" class="pb-chip${phonebookFilter === value ? ' pb-chip-on' : ''}" aria-pressed="${phonebookFilter === value}" onclick="event.stopPropagation(); pbSetFilter('${value}')">${text}</button>`;
+  const chipsHtml = marked
+    ? `<div class="pb-chips">${chip('all', 'Усі \u00b7 ' + allItems)}${chip('verified', '\u2713 Перевірені \u00b7 ' + allOk)}${chip('unverified', 'Не перевірені \u00b7 ' + (allItems - allOk))}</div>`
+      + `<div class="pb-mark-note"><b>\u2713 Перевірено</b> означає, що ми передзвонили і людина справді цим займається.</div>`
+    : '';
+
+  const emptyHtml = query !== ''
+    ? '<div class="empty-msg" style="font-size: 14px;">За вашим запитом нічого не знайдено \u{1F614}</div>'
+    : '<div class="empty-msg" style="font-size: 14px;">У цьому фільтрі поки порожньо</div>';
+  // Чіпи малюємо навіть на порожньому результаті: інакше з фільтра, який нічого
+  // не знайшов, не буде як вийти — кнопки «Усі» просто не лишиться на екрані.
+  container.innerHTML = (hasResults ? statsHtml : '') + chipsHtml + (hasResults ? html : emptyHtml);
 }
 
 // Debounce поиска по справочнику
