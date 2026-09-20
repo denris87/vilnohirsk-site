@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>3D-карта Вільногірська — тест</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5/dist/maplibre-gl.css">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+
+<style>
+  :root{
+    --bg:#0b1220; --panel:rgba(11,29,58,0.86); --line:rgba(255,255,255,0.14);
+    --txt:#e8eefc; --muted:rgba(232,238,252,0.6); --accent:#00d4ff;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none;}
+  #map{position:absolute;inset:0;}
+
+  /* ── Верхня панель: заголовок + діагностика даних ── */
+  .top{position:absolute;top:0;left:0;right:0;z-index:5;padding:8px 10px;
+    background:linear-gradient(180deg,rgba(6,12,24,0.92),rgba(6,12,24,0));pointer-events:none;}
+  .title{font-size:13px;font-weight:800;letter-spacing:.3px;margin-bottom:6px;
+    text-shadow:0 2px 8px rgba(0,0,0,.6);}
+  .title span{color:var(--accent);}
+  .diag{display:inline-flex;flex-wrap:wrap;gap:6px;pointer-events:auto;}
+  .chip{background:var(--panel);border:1px solid var(--line);border-radius:9px;
+    padding:4px 8px;font-size:10.5px;font-weight:700;line-height:1.25;
+    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);white-space:nowrap;}
+  .chip b{color:var(--accent);font-size:11.5px;}
+  .chip.warn b{color:#ffcc00;}
+  .chip.bad b{color:#ff6b6b;}
+
+  /* ── Нижня панель: перемикачі + фільтри категорій ── */
+  .bottom{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:8px 10px 12px;
+    background:linear-gradient(0deg,rgba(6,12,24,0.94),rgba(6,12,24,0));}
+  .row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;}
+  .row+.row{margin-top:7px;}
+  .btn{background:rgba(0,0,0,0.35);border:1.5px solid var(--line);color:var(--muted);
+    border-radius:20px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;
+    transition:all .18s ease;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+  .btn:active{transform:scale(.95);}
+  .btn.on{color:#fff;border-color:var(--accent);
+    background:linear-gradient(135deg,rgba(0,212,255,.28),rgba(42,82,152,.28));
+    box-shadow:0 0 10px rgba(0,212,255,.35);}
+  .fbtn.on{color:#fff;border-color:var(--fc);
+    background:color-mix(in srgb, var(--fc) 20%, rgba(0,0,0,.3));
+    box-shadow:0 0 10px color-mix(in srgb, var(--fc) 38%, transparent);}
+
+  /* ── Мітки (той самий вигляд, що й на основній карті) ── */
+  .pin{width:30px;height:30px;cursor:pointer;}
+  .pin-inner{width:30px;height:30px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);
+    display:flex;align-items:center;justify-content:center;font-size:14px;
+    border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.5);}
+  .pin-inner>*{transform:rotate(45deg);}
+  .maplibregl-popup-content{background:#f8fafc;border-radius:12px;padding:10px 12px;}
+  .pop-title{font-size:14px;font-weight:800;color:#0b1d3a;margin-bottom:4px;}
+  .pop-addr{font-size:12px;color:#33475b;}
+
+  .err{position:absolute;inset:0;z-index:9;display:none;align-items:center;justify-content:center;
+    text-align:center;padding:24px;font-size:13px;font-weight:600;color:var(--muted);background:var(--bg);}
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="top">
+  <div class="title">🏙 3D-карта <span>Вільногірська</span> — тестова версія</div>
+  <div class="diag" id="diag">
+    <div class="chip">Завантаження…</div>
+  </div>
+</div>
+
+<div class="bottom">
+  <div class="row" id="modes">
+    <button class="btn on" id="b3d">🏙 3D</button>
+    <button class="btn on" id="bnum">🔢 Номери будинків</button>
+    <button class="btn" id="bstyle">☀️ Світла тема</button>
+  </div>
+  <div class="row" id="filters"></div>
+</div>
+
+<div class="err" id="err"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+//  Тестова 3D-карта на MapLibre GL JS.
+//  Мета: побачити, як реально виглядає Вільногірськ у 3D на даних
+//  OpenStreetMap, і ЗАМІРЯТИ покриття даними (висоти + номери будинків).
+//  Основну карту (index.html, Leaflet) цей файл не чіпає.
+// ════════════════════════════════════════════════════════════════
+
+const VILNOHIRSK = [34.0180, 48.4790];   // [lng, lat] — у MapLibre саме такий порядок!
+const STYLE_DARK  = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+const STYLE_LIGHT = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+
+let map, vectorSrc = null, glyphFont = ['Open Sans Regular'];
+let show3D = true, showNums = true, isDark = true;
+const markersByCat = {};        // id категорії -> [HTMLElement]
+const hiddenCats = new Set();
+
+if (typeof maplibregl === 'undefined') {
+  const e = document.getElementById('err');
+  e.style.display = 'flex';
+  e.textContent = 'Не вдалося завантажити MapLibre 😕 Перевірте інтернет та оновіть сторінку.';
+} else {
+  initMap(STYLE_DARK);
+}
+
+function initMap(styleUrl) {
+  map = new maplibregl.Map({
+    container: 'map',
+    style: styleUrl,
+    center: VILNOHIRSK,
+    zoom: 16,
+    pitch: 60,          // нахил камери — те, чого Leaflet не вміє взагалі
+    bearing: -18,
+    antialias: true,
+    attributionControl: { compact: true }
+  });
+
+  map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
+  map.addControl(new maplibregl.GeolocateControl({
+    positionOptions: { enableHighAccuracy: true },
+    trackUserLocation: true,
+    showUserHeading: true
+  }), 'top-right');
+
+  map.on('load', onStyleReady);
+  map.on('styledata', () => { if (map.isStyleLoaded() && !map.getLayer('bld-3d')) onStyleReady(); });
+  map.on('moveend', updateDiag);
+
+  // Якщо базовий стиль не завантажився — показуємо причину, а не порожній екран
+  map.on('error', e => {
+    const msg = (e && e.error && e.error.message) || 'невідома помилка';
+    console.warn('[map3d]', msg);
+    if (!map.isStyleLoaded()) {
+      showErr('Не вдалося завантажити базовий стиль карти 😕<br><br>'
+            + '<span style="opacity:.7;font-size:11px">' + esc(msg) + '</span>');
+    }
+  });
+}
+
+function showErr(html) {
+  const e = document.getElementById('err');
+  e.style.display = 'flex';
+  e.innerHTML = html;
+}
+
+// Додаємо 3D-будівлі + номери будинків поверх базового стилю
+function onStyleReady() {
+  const style = map.getStyle();
+  if (!style || !style.sources) return;
+
+  // 1. Знаходимо векторне джерело стилю (не хардкодимо назву — так надійніше)
+  vectorSrc = Object.keys(style.sources).find(id => style.sources[id].type === 'vector');
+  if (!vectorSrc) return;
+
+  // 2. Беремо шрифт із наявного текстового шару — щоб гарантовано існували гліфи
+  const symb = (style.layers || []).find(l => l.type === 'symbol' && l.layout && l.layout['text-font']);
+  if (symb) glyphFont = symb.layout['text-font'];
+
+  // 3. Вставляємо 3D під підписи, щоб назви вулиць лишались читабельними
+  const firstLabel = (style.layers || []).find(l => l.type === 'symbol' && l.layout && l.layout['text-field']);
+
+  // ── 3D-будівлі (fill-extrusion) ────────────────────────────────
+  // render_height / render_min_height — поля схеми OpenMapTiles.
+  // Якщо висоти в OSM немає, вона підставляється за замовчуванням —
+  // діагностика нижче саме це й перевіряє.
+  if (!map.getLayer('bld-3d')) {
+    try {
+      map.addLayer({
+        id: 'bld-3d',
+        type: 'fill-extrusion',
+        source: vectorSrc,
+        'source-layer': 'building',
+        minzoom: 14,
+        paint: {
+          // Вищі будинки — світліші, як у навігаторах
+          'fill-extrusion-color': [
+            'interpolate', ['linear'], ['coalesce', ['get', 'render_height'], 6],
+            0, '#2b3a55', 12, '#3c5175', 25, '#55709e', 50, '#7b93c4'
+          ],
+          'fill-extrusion-height': ['coalesce', ['get', 'render_height'], 6],
+          'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+          'fill-extrusion-opacity': 0.92
+        }
+      }, firstLabel ? firstLabel.id : undefined);
+    } catch (e) { /* немає source-layer 'building' — просто не буде 3D */ }
+  }
+
+  // ── Номери будинків ────────────────────────────────────────────
+  if (!map.getLayer('housenums')) {
+    try {
+      map.addLayer({
+        id: 'housenums',
+        type: 'symbol',
+        source: vectorSrc,
+        'source-layer': 'housenumber',
+        minzoom: 17,
+        layout: {
+          'text-field': ['coalesce', ['get', 'housenumber'], ['get', 'name']],
+          'text-font': glyphFont,
+          'text-size': 11,
+          'text-allow-overlap': false
+        },
+        paint: {
+          'text-color': '#dbe6f7',
+          'text-halo-color': '#0b1220',
+          'text-halo-width': 1.3
+        }
+      });
+    } catch (e) { /* немає source-layer 'housenumber' */ }
+  }
+
+  applyToggles();
+  loadPlaces();
+  setTimeout(updateDiag, 900);
+}
+
+// ════════════ ДІАГНОСТИКА ДАНИХ ════════════
+// Рахує, що реально приїхало в тайлах для нашого міста.
+function updateDiag() {
+  const box = document.getElementById('diag');
+  if (!map || !map.isStyleLoaded()) return;
+  const chips = [];
+
+  // — будівлі та їх висоти —
+  if (!map.getLayer('bld-3d')) {
+    chips.push('<div class="chip bad">Шар будівель: <b>відсутній</b></div>');
+  } else if (!show3D) {
+    chips.push('<div class="chip">Будівлі: <b>3D вимкнено</b></div>');
+  } else {
+    let feats = [];
+    try { feats = map.queryRenderedFeatures({ layers: ['bld-3d'] }); } catch (e) {}
+    const heights = feats.map(f => Number(f.properties.render_height)).filter(h => h > 0);
+    const uniq = new Set(heights.map(h => Math.round(h * 10) / 10));
+    chips.push(`<div class="chip ${feats.length ? '' : 'bad'}">Будівель у кадрі: <b>${feats.length}</b></div>`);
+    // Якщо унікальних висот 1-2 — значить реальних даних немає, все за замовчуванням
+    const real = uniq.size >= 3;
+    chips.push(`<div class="chip ${real ? '' : 'warn'}">Різних висот: <b>${uniq.size}</b> ${real ? '→ дані є' : '→ висот у OSM нема'}</div>`);
+  }
+
+  // — номери будинків —
+  if (map.getLayer('housenums')) {
+    let hn = [];
+    try { hn = map.queryRenderedFeatures({ layers: ['housenums'] }); } catch (e) {}
+    chips.push(`<div class="chip ${hn.length ? '' : 'warn'}">Номерів будинків: <b>${hn.length}</b></div>`);
+  }
+
+  chips.push(`<div class="chip">Зум: <b>${map.getZoom().toFixed(1)}</b></div>`);
+  box.innerHTML = chips.join('');
+}
+
+// ════════════ НАШІ МІТКИ З places.yaml ════════════
+// Формат файлу не змінюється — той самий, що й на основній карті.
+async function loadPlaces() {
+  if (Object.keys(markersByCat).length) return;   // вже завантажено
+  if (typeof jsyaml === 'undefined') return;
+  try {
+    const res = await fetch('./data/places.yaml?v=' + Date.now());
+    if (!res.ok) return;
+    const data = jsyaml.load(await res.text()) || {};
+    const cats = Array.isArray(data.categories) ? data.categories : [];
+    const host = document.getElementById('filters');
+    const buttons = [];
+
+    cats.forEach(c => {
+      if (!c || !c.id || c.show === false) return;
+      const places = (Array.isArray(c.places) ? c.places : []).filter(p =>
+        p && p.show !== false && typeof p.lat === 'number' && typeof p.lng === 'number');
+      if (!places.length) return;
+
+      markersByCat[c.id] = [];
+      places.forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'pin';
+        el.innerHTML = `<div class="pin-inner" style="background:${c.color || '#38bdf8'}">
+                          <span>${c.icon || '📍'}</span>
+                        </div>`;
+        const html = `<div class="pop-title">${esc(p.name || '')}</div>`
+          + (p.address ? `<div class="pop-addr">📍 ${esc(p.address)}</div>` : '');
+        new maplibregl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat([p.lng, p.lat])                       // lng, lat!
+          .setPopup(new maplibregl.Popup({ offset: 28 }).setHTML(html))
+          .addTo(map);
+        markersByCat[c.id].push(el);
+      });
+
+      buttons.push(`<button class="btn fbtn on" style="--fc:${c.color}" data-cat="${c.id}">`
+        + `${c.icon || ''} ${esc(c.name)}</button>`);
+    });
+
+    host.innerHTML = buttons.join('');
+    host.querySelectorAll('.fbtn').forEach(b => {
+      b.addEventListener('click', () => toggleCat(b.dataset.cat, b));
+    });
+  } catch (e) {}
+}
+
+function toggleCat(id, btn) {
+  const on = hiddenCats.has(id);
+  on ? hiddenCats.delete(id) : hiddenCats.add(id);
+  (markersByCat[id] || []).forEach(el => { el.style.display = on ? '' : 'none'; });
+  btn.classList.toggle('on', on);
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, m =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+// ════════════ ПЕРЕМИКАЧІ ════════════
+function applyToggles() {
+  if (map.getLayer('bld-3d'))
+    map.setLayoutProperty('bld-3d', 'visibility', show3D ? 'visible' : 'none');
+  if (map.getLayer('housenums'))
+    map.setLayoutProperty('housenums', 'visibility', showNums ? 'visible' : 'none');
+}
+
+document.getElementById('b3d').addEventListener('click', function () {
+  show3D = !show3D;
+  this.classList.toggle('on', show3D);
+  map.easeTo({ pitch: show3D ? 60 : 0, duration: 600 });
+  applyToggles();
+  setTimeout(updateDiag, 700);
+});
+
+document.getElementById('bnum').addEventListener('click', function () {
+  showNums = !showNums;
+  this.classList.toggle('on', showNums);
+  applyToggles();
+});
+
+document.getElementById('bstyle').addEventListener('click', function () {
+  isDark = !isDark;
+  this.textContent = isDark ? '☀️ Світла тема' : '🌙 Темна тема';
+  // Зберігаємо позицію камери й перемальовуємо з іншим стилем
+  map.setStyle(isDark ? STYLE_DARK : STYLE_LIGHT);
+});
+</script>
+</body>
+</html>
