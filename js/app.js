@@ -573,24 +573,13 @@ function closeModalForm(event, modalId) {
 
 function closeAllShopDropdowns() { document.querySelectorAll('.shop-details-dropdown.open').forEach(el => { el.classList.remove('open'); if (el.parentElement) el.parentElement.classList.remove('tile-active'); }); document.querySelectorAll('.shops-tile-grid').forEach(grid => { grid.style.paddingBottom = '0px'; }); }
 
-function closeAllJobsDrawers() {
-  document.querySelectorAll('.jobs-drawer.open').forEach(d => {
-    d.classList.remove('open');
-    const btn = d.previousElementSibling;
-    if (btn && btn.querySelector) {
-      const arr = btn.querySelector('.arr');
-      if (arr) arr.textContent = '▾';
-    }
-  });
-}
-
 document.addEventListener('click', function(e) {
   if (e.target.closest('.image-modal') || e.target.closest('.custom-modal-box')) return;
   if (!e.target.closest('.alert-group')) { const alertDrawer = document.getElementById('alert-drawer'); if (alertDrawer) { alertDrawer.classList.remove('open'); document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active')); } }
   if (!e.target.closest('.train') && !e.target.closest('.details') && !e.target.closest('.pb-category')) { document.querySelectorAll('.details.open').forEach(el => el.classList.remove('open')); document.querySelectorAll('.pb-category.open').forEach(el => el.classList.remove('open')); }
   if (!e.target.closest('.shop-tile')) { closeAllShopDropdowns(); }
   if (!e.target.closest('.schedule-group')) { const transportWidget = document.getElementById('main-list-widget'); if (transportWidget) transportWidget.classList.remove('open'); document.querySelectorAll('#schedule-tabs .tab-btn').forEach(b => b.classList.remove('active')); }
-  if (!e.target.closest('.market-group')) { const marketWidget = document.getElementById('market-drawer'); if (marketWidget) marketWidget.classList.remove('open'); document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active')); closeAllJobsDrawers(); }
+  if (!e.target.closest('.market-group')) { const marketWidget = document.getElementById('market-drawer'); if (marketWidget) marketWidget.classList.remove('open'); document.querySelectorAll('#market-tabs .tab-btn').forEach(b => b.classList.remove('active')); }
 });
 
 function recalcDropdownHeight(imgEl) {
@@ -742,7 +731,6 @@ function toggleMapCategory(catId, btn) {
 
 function switchAppTab(tabId, btn, group) {
   closeAllShopDropdowns();
-  closeAllJobsDrawers();
   // Значення може бути списком: у вкладці «Новини та комунальний інформер»
   // лежать два потоки — комунальні й новини. Раніше знімався лише перший,
   // і червона позначка «Нове» на новинах не гасла ніколи.
@@ -2605,14 +2593,6 @@ async function loadVolunteersData(opts) {
   }
 }
 
-function toggleJobsDrawer(drawerId, btn) {
-  const d = document.getElementById(drawerId);
-  if (!d) return;
-  d.classList.toggle('open');
-  const arr = btn && btn.querySelector ? btn.querySelector('.arr') : null;
-  if (arr) arr.textContent = d.classList.contains('open') ? '▴' : '▾';
-}
-
 // === Стан сортування для ДЦЗ-секції ===
 let dczSortMode = 'date'; // 'date' (спочатку нові) | 'date_asc' (спочатку старі) | 'salary_asc' | 'salary_desc'
 let allDczJobs = [];
@@ -2638,11 +2618,11 @@ function parseDczDate(s) {
 function setDczSort(mode, ev) {
   if (ev && ev.stopPropagation) ev.stopPropagation();
   dczSortMode = mode;
-  const d = document.getElementById('dcz-drawer');
-  if (d) d.innerHTML = renderDczDrawerContent();
+  const d = document.getElementById('dcz-list');
+  if (d) d.innerHTML = renderDczListContent();
 }
 
-function renderDczDrawerContent() {
+function renderDczListContent() {
   let filtered = allDczJobs.slice();
   if (dczSortMode === 'salary_asc')  filtered.sort((a, b) => parseSalaryNum(a.salary) - parseSalaryNum(b.salary));
   if (dczSortMode === 'salary_desc') filtered.sort((a, b) => parseSalaryNum(b.salary) - parseSalaryNum(a.salary));
@@ -2675,6 +2655,41 @@ function renderDczDrawerContent() {
     : '<div class="empty-msg" style="padding: 20px;">Немає вакансій</div>';
 
   return subtitle + sortBar + grid;
+}
+
+// === Джерело вакансії ===
+// Раніше ці дві перевірки жили всередині renderJobs і потрібні були тільки
+// щоб розкласти вакансії по групах. Тепер підпис стоїть на кожній картці —
+// групи більше не згортаються, і поки прокручуєш сорок вакансій поспіль,
+// заголовок групи давно поїхав угору.
+function isWorkUaJob(j) {
+  const s = (((j && j.source) || '') + ' ' + ((j && j.date) || '')).toLowerCase().replace(/[\s._-]/g, '');
+  return s.includes('workua');
+}
+// Джерело ДЦЗ визначаємо терпимо: зайвий пробіл чи інший регістр раніше
+// мовчки перекидав державні вакансії у «Від місцевих підприємців».
+function isDczJob(j) {
+  return String((j && j.source) || '').toLowerCase().replace(/[\s._-]/g, '').includes('дцз');
+}
+const JOB_SOURCES = {
+  dcz:    { icon: '\u{1F3DB}\uFE0F', badge: 'Центр зайнятості',      head: 'Державний центр зайнятості' },
+  workua: { icon: '\u{1F310}',        badge: 'Work.ua',               head: 'Вакансії з Work.ua' },
+  local:  { icon: '\u{1F465}',        badge: 'Від місцевих',          head: 'Від місцевих підприємців' },
+};
+function jobSourceKey(job) {
+  if (isDczJob(job)) return 'dcz';
+  if (isWorkUaJob(job)) return 'workua';
+  return 'local';
+}
+function jobSourceBadgeHtml(job) {
+  const key = jobSourceKey(job), src = JOB_SOURCES[key];
+  return `<div class="job-src job-src-${key}"><span aria-hidden="true">${src.icon}</span>${escapeHTML(src.badge)}</div>`;
+}
+function jobsGroupHeadHtml(key, count) {
+  const src = JOB_SOURCES[key];
+  return `<div class="jobs-head jobs-head-${key}"><span class="jobs-head-name">`
+       + `<span aria-hidden="true">${src.icon}</span>${escapeHTML(src.head)}</span>`
+       + `<span class="jobs-head-count">${count}</span></div>`;
 }
 
 function createJobCardHtml(job, index, prefix) {
@@ -2715,6 +2730,7 @@ function createJobCardHtml(job, index, prefix) {
 
   return `<div class="shop-tile" style="${tileStyle}" onclick="toggleShop('${id}', this)">
       ${vipBadge}
+      ${jobSourceBadgeHtml(job)}
       <div class="shop-tile-name" style="color: var(--highlight-color); font-size: 14px; margin-bottom: 6px; margin-top: 4px;">${escapeHTML(job.title)}${dot}</div>
       <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 4px;"><b>Роботодавець:</b> ${escapeHTML(job.company) || 'Не вказано'}</div>
       <div style="font-size: 11px; color: rgba(255,255,255,0.9); margin-bottom: 8px;"><b>Зайнятість:</b> ${escapeHTML(employment)}</div>
@@ -2750,18 +2766,12 @@ function renderJobs(jobs) {
   const safeJobs = filterSafeJobs(jobs); // ідемпотентно: список уже відфільтрований
   if (!safeJobs.length) { container.innerHTML = '<div class="empty-msg">Актуальних вакансій немає</div>'; return; }
   
-  // Стійке визначення джерела Work.ua: будь-який регістр/написання ("work.ua", "WorkUA", "work ua")
-  const isWorkUa = (j) => {
-    const s = ((j.source || '') + ' ' + (j.date || '')).toLowerCase().replace(/[\s._-]/g, '');
-    return s.includes('workua');
-  };
-  // Джерело ДЦЗ теж визначаємо терпимо: зайвий пробіл або інший регістр
-  // раніше мовчки перекидав державні вакансії у «Від місцевих підприємців»
-  const isDcz = (j) => String(j.source || '').toLowerCase().replace(/[\s._-]/g, '').includes('дцз');
+  // Розкладка по групах: визначення джерела тепер спільне з підписом на картці
   const vipJobs = safeJobs.filter(j => j.isVip || j.vip).reverse();
-  const dczJobs = safeJobs.filter(j => !j.isVip && !j.vip && isDcz(j));
-  const internetJobs = safeJobs.filter(j => !j.isVip && !j.vip && !isDcz(j) && isWorkUa(j));
-  const regularJobs = safeJobs.filter(j => !j.isVip && !j.vip && !isWorkUa(j) && !isDcz(j));
+  const plain = safeJobs.filter(j => !j.isVip && !j.vip);
+  const dczJobs = plain.filter(j => jobSourceKey(j) === 'dcz');
+  const internetJobs = plain.filter(j => jobSourceKey(j) === 'workua');
+  const regularJobs = plain.filter(j => jobSourceKey(j) === 'local');
   
   let html = '';
   if (vipJobs.length > 0) {
@@ -2773,40 +2783,27 @@ function renderJobs(jobs) {
 
   if (dczJobs.length > 0) {
       allDczJobs = dczJobs;
-      html += `<div style="margin-bottom: 10px;">
-        <button onclick="toggleJobsDrawer('dcz-drawer', this)" style="width:100%; background:rgba(56, 189, 248, 0.06); border:1px solid rgba(56, 189, 248, 0.35); padding:12px 15px; border-radius:12px; color:#38bdf8; font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-          <span>🏛 Державний центр зайнятості (${dczJobs.length})</span>
-          <span class="arr" style="font-size:16px;">▾</span>
-        </button>
-        <div id="dcz-drawer" class="jobs-drawer">${renderDczDrawerContent()}</div>
+      html += `<div class="jobs-group">
+        ${jobsGroupHeadHtml('dcz', dczJobs.length)}
+        <div id="dcz-list">${renderDczListContent()}</div>
       </div>`;
   }
 
   if (internetJobs.length > 0) {
       let cards = '';
       internetJobs.forEach((job, i) => { cards += createJobCardHtml(job, i, 'i'); });
-      html += `<div style="margin-bottom: 10px;">
-        <button onclick="toggleJobsDrawer('workua-drawer', this)" style="width:100%; background:rgba(0, 255, 156, 0.05); border:1px solid rgba(0, 255, 156, 0.3); padding:12px 15px; border-radius:12px; color:var(--time-green); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-          <span>🌐 Вакансії з Work.ua (${internetJobs.length})</span>
-          <span class="arr" style="font-size:16px;">▾</span>
-        </button>
-        <div id="workua-drawer" class="jobs-drawer">
-          <div class="shops-tile-grid" style="padding-bottom:10px; padding-top:10px;">${cards}</div>
-        </div>
+      html += `<div class="jobs-group">
+        ${jobsGroupHeadHtml('workua', internetJobs.length)}
+        <div class="shops-tile-grid" style="padding-bottom:10px; padding-top:10px;">${cards}</div>
       </div>`;
   }
   if (regularJobs.length > 0) {
       let cards = '';
       getStableShuffled(regularJobs, 'jobs').forEach((job, i) => { cards += createJobCardHtml(job, i, 'r'); });
-      html += `<div style="margin-bottom: 10px;">
-        <button onclick="toggleJobsDrawer('local-drawer', this)" style="width:100%; background:rgba(255, 204, 0, 0.05); border:1px solid rgba(255, 204, 0, 0.3); padding:12px 15px; border-radius:12px; color:var(--highlight-color); font-weight:800; font-size:11px; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; transition: background 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-          <span>👥 Від місцевих підприємців (${regularJobs.length})</span>
-          <span class="arr" style="font-size:16px;">▾</span>
-        </button>
-        <div id="local-drawer" class="jobs-drawer">
-          <div style="font-size: 10px; color: rgba(255,255,255,0.5); font-weight: 500; padding: 10px 4px 8px; line-height: 1.4;">Оголошення, які додали місцеві підприємці та роботодавці</div>
-          <div class="shops-tile-grid" style="padding-bottom:10px;">${cards}</div>
-        </div>
+      html += `<div class="jobs-group">
+        ${jobsGroupHeadHtml('local', regularJobs.length)}
+        <div class="jobs-note">Оголошення, які додали місцеві підприємці та роботодавці</div>
+        <div class="shops-tile-grid" style="padding-bottom:10px;">${cards}</div>
       </div>`;
   }
   container.innerHTML = html;
