@@ -1464,6 +1464,158 @@ function filterPhonebook() {
     }, 200);
 }
 
+// =========================================================================
+// === ВИВІЗ СМІТТЯ: графік сміттєвоза з data/smittya.yaml ===
+// =========================================================================
+// show: false у файлі ховає вкладку цілком. Час у будні — поле time,
+// у неділю — sunday; якщо sunday нема, у неділю діє той самий час.
+let allGarbageRoutes = [];
+let garbageUpdated = '';
+let garbageSearchTimer = null;
+
+// Пошукова нормалізація поверх спільної foldForSearch: ще й латинські a/b/v
+// одразу після цифри стають кириличними а/б/в — «55a» з англійської
+// розкладки має знайти «55а».
+function smFold(value) {
+  return foldForSearch(value)
+    .replace(/(\d)([abv])/g, (m, d, c) => d + ({ a: 'а', b: 'б', v: 'в' })[c]);
+}
+const SM_STREET_PREFIX = /^(вул\.?|вулиця|б\.?|бульвар|бул\.?)\s*/;
+
+// "вул. Центральна 53, 55, 55а" → { street: "центральна", houses: ["53","55","55а"] }
+// Зупинка без номерів («вул. Степова») означає всю вулицю.
+function smParseAddress(address) {
+  const clean = smFold(address).replace(SM_STREET_PREFIX, '');
+  const m = clean.match(/^(.*?)\s+(\d.*)$/);
+  if (!m) return { street: clean.trim(), houses: [] };
+  return { street: m[1].trim(), houses: m[2].split(',').map(h => h.trim()).filter(Boolean) };
+}
+
+// Запит «Центральна 55» ділимо на вулицю й номер будинку. Номер звіряємо
+// ЦІЛИМ, а не підрядком: інакше «Центральна 5» знаходило б і 55, і 57, і
+// людина бачила б чужий час. Якщо точних збігів нема зовсім — пробуємо той
+// самий номер із дробом чи літерою («Молодіжна 16» → 16/1, 16а), але не інший
+// будинок: «Садова 3» не повинна знаходити 30/21 — це чужий дім і чужий час.
+function smParseQuery(raw) {
+  const tokens = smFold(raw).replace(/([a-zа-я])(\d)/g, '$1 $2').replace(/,/g, ' ')
+    .split(/\s+/).filter(t => t && !/^(вул\.?|вулиця|б\.?|бульвар|бул\.?)$/.test(t));
+  return {
+    street: tokens.filter(t => !/^\d/.test(t)),
+    house: tokens.find(t => /^\d/.test(t)) || null,
+  };
+}
+function smStopMatches(stop, q, loose) {
+  const a = smParseAddress(stop.address);
+  if (q.street.length && !q.street.every(t => a.street.includes(t))) return false;
+  if (!q.house) return q.street.length > 0;
+  if (!a.houses.length) return q.street.length > 0; // уся вулиця — лише коли вулицю назвали
+  return a.houses.some(h => h === q.house
+    || (loose && h.startsWith(q.house) && !/\d/.test(h.charAt(q.house.length))));
+}
+
+function smMinutes(t) { const m = /^(\d{1,2}):(\d{2})$/.exec(String(t || '')); return m ? (+m[1]) * 60 + (+m[2]) : null; }
+function smSpan(times) {
+  const ok = times.filter(t => smMinutes(t) != null).sort((a, b) => smMinutes(a) - smMinutes(b));
+  return ok.length ? (ok.length > 1 && ok[0] !== ok[ok.length - 1] ? ok[0] + '–' + ok[ok.length - 1] : ok[0]) : '';
+}
+
+function renderGarbage(query) {
+  const box = document.getElementById('garbage-list-content'); if (!box) return;
+  const isSunday = getKyivNow().getDay() === 0;
+  const q = smParseQuery(query || '');
+  const searching = q.street.length > 0 || !!q.house;
+
+  // Точний пошук, а якщо порожньо — за початком номера
+  let loose = false;
+  const pick = (lz) => allGarbageRoutes.map(r => ({ route: r, stops: r.stops.filter(st => smStopMatches(st, q, lz)) }))
+                                       .filter(x => x.stops.length);
+  let groups = searching ? pick(false) : allGarbageRoutes.map(r => ({ route: r, stops: r.stops }));
+  if (searching && !groups.length && q.house) { groups = pick(true); loose = groups.length > 0; }
+
+  const found = groups.reduce((n, g) => n + g.stops.length, 0);
+  // У неділю великим стоїть недільний час — кажемо про це прямо, щоб
+  // ніхто не сплутав його з буднім.
+  const sundayNote = isSunday ? '<div class="sm-sunday">Сьогодні неділя — великим показано недільний час</div>' : '';
+  let html = (garbageUpdated ? `<div class="sm-updated">Графік станом на ${escapeHTML(garbageUpdated)}</div>` : '') + sundayNote;
+  if (searching) {
+    html += found
+      ? `<div class="sm-found">Знайдено ${found} ${pluralUk(found, 'зупинку', 'зупинки', 'зупинок')}${loose ? ' <span>(точного номера нема — показуємо схожі)</span>' : ''}</div>`
+      : `<div class="empty-msg" style="font-size: 13px; line-height: 1.5;">Такої адреси в графіку поки нема \u{1F614}<br><span style="font-size: 11px; opacity: 0.7;">Спробуйте лише назву вулиці. Графік ще доповнюється — якщо вашого будинку нема, напишіть нам.</span></div>`;
+  }
+
+  groups.forEach(({ route, stops }) => {
+    const all = route.stops;
+    const weekSpan = smSpan(all.map(s => s.time));
+    const sunSpan = smSpan(all.map(s => s.sunday));
+    // Шапка поводиться так само, як рядки зупинок: великим — час, що діє
+    // сьогодні, дрібним — інший. Інакше в неділю вони суперечили б одне одному.
+    const sunNow = isSunday && !!sunSpan;
+    const bigSpan = sunNow ? sunSpan : weekSpan;
+    const smallSpan = sunNow ? 'пн–сб ' + weekSpan : (sunSpan ? 'нд ' + sunSpan : '');
+    const spanHtml = !weekSpan
+      ? '<span class="sm-span sm-span-none">час уточнюється</span>'
+      : `<span class="sm-span">${escapeHTML(bigSpan)}${smallSpan ? `<small>${escapeHTML(smallSpan)}</small>` : ''}</span>`;
+
+    const rows = stops.map(st => {
+      const main = isSunday && st.sunday ? st.sunday : st.time;
+      const second = isSunday && st.sunday ? (st.time ? 'пн–сб ' + st.time : '') : (st.sunday ? 'нд ' + st.sunday : '');
+      const timeHtml = main
+        ? `<b>${escapeHTML(main)}</b>${second ? `<small>${escapeHTML(second)}</small>` : ''}`
+        : '<b class="sm-notime">—</b>';
+      return `<div class="sm-stop"><div class="sm-time">${timeHtml}</div><div class="sm-addr">${escapeHTML(st.address)}</div></div>`;
+    }).join('');
+
+    html += `<div class="sm-route"><div class="sm-route-head"><span class="sm-route-name">${escapeHTML(route.name)}</span>${spanHtml}</div>`
+          + `<div class="sm-stops">${rows}</div></div>`;
+  });
+
+  if (!searching && !groups.length) html += '<div class="empty-msg">Графік поки порожній</div>';
+  box.innerHTML = html;
+}
+
+function filterGarbage() {
+  const input = document.getElementById('sm-search'); if (!input) return;
+  clearTimeout(garbageSearchTimer);
+  garbageSearchTimer = setTimeout(() => renderGarbage(input.value), 200);
+}
+
+async function loadGarbageData() {
+  const box = document.getElementById('garbage-list-content'); if (!box) return;
+  if (!yamlReady('smittya', loadGarbageData, () => showSectionFailure('garbage-list-content', 'loadGarbageData', 'smittya'))) return;
+  try {
+    const res = await fetch('./data/smittya.yaml?v=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = jsyaml.load(await res.text()) || {};
+
+    // show: false — ховаємо саму вкладку. Через style, а не атрибут hidden:
+    // так вкладку не «воскресить» чиєсь правило display у стилях.
+    const tabBtn = document.querySelector('#market-tabs .tab-btn[onclick*="garbage-tab"]');
+    if (tabBtn) tabBtn.style.display = data.show === false ? 'none' : '';
+    if (data.show === false) return;
+
+    const routes = (Array.isArray(data.routes) ? data.routes : [])
+      .filter(r => r && Array.isArray(r.stops))
+      .map(r => ({
+        name: String(r.name || 'Маршрут'),
+        stops: r.stops.filter(st => st && String(st.address || '').trim() !== '').map(st => ({
+          address: String(st.address).trim(),
+          time: st.time != null ? String(st.time).trim() : '',
+          sunday: st.sunday != null ? String(st.sunday).trim() : '',
+        })),
+      }))
+      .filter(r => r.stops.length);
+    allGarbageRoutes = routes;
+    garbageUpdated = data.updated ? String(data.updated) : '';
+    if (dataChanged('render_garbage', { routes, updated: garbageUpdated })) {
+      const input = document.getElementById('sm-search');
+      renderGarbage(input ? input.value : '');
+    }
+  } catch (e) {
+    logSectionError('вивіз сміття', e); invalidateRender('render_garbage');
+    box.innerHTML = '<div class="empty-msg" style="color: #ff6b6b;">Не вдалося завантажити графік</div>';
+  }
+}
+
 function buildDropdown(id, photosHtml, details) {
   const items = details.map(d => `<div class="shop-inner-item"><span class="detail-icon">${d.icon}</span><div style="width: 100%;"><b>${escapeHTML(d.label)}:</b><br>${d.value}</div></div>`).join('');
   return `<div class="shop-details-dropdown" id="${id}" onclick="event.stopPropagation()"><div class="shop-inner-list">${photosHtml}${items}</div></div>`;
@@ -2995,6 +3147,7 @@ function refreshGroupC() {
     if (!isPageVisible) return;
     loadVolunteersData();
     loadPhoenixData();
+    loadGarbageData();
     loadEventsData();
     loadLongTrainsData();
     loadBlaBlaCarData();
@@ -3613,7 +3766,7 @@ const initApp = () => {
   loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData(); loadDelaysData(); loadSvitloData();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { 
-      loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGalleryData(); loadVolunteersData(); loadPhoenixData();
+      loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGarbageData(); loadGalleryData(); loadVolunteersData(); loadPhoenixData();
       setTimeout(showDailyVolunteerAlert, 1500); 
   }, 600);
   
