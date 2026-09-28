@@ -427,3 +427,12 @@ phoenix:
     photos:
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/IMG_1141.JPG?raw=true"
     active: true
+
+  - name: "Шкуратько Володимир Володимирович"
+    dob: "11.02.1977"
+    date_missing: "09.06.2026"
+    callsign: ""
+    photos:
+      - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-09-28_15-27-34.jpg?raw=true"
+      - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-09-28_15-27-36.jpg?raw=true"
+    active: true
