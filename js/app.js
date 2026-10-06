@@ -1973,7 +1973,7 @@ function renderGrid(data, isChanges = false, alwaysWhite = false) {
     for(let j = 0; j < perCol; j++) {
       const idx = c * perCol + j;
       if (idx < total) {
-        const r = data[idx]; const past = isPast(r[1]); const isVil = (r[0] || "").toLowerCase().includes('вільногірськ'); const rowClass = isVil ? 'schedule-row row-highlight' : 'schedule-row';
+        const r = data[idx]; const past = isPast(r[1]); const isVil = (r[0] || "").toLowerCase().includes('вільногірськ'); const rowClass = (isVil ? 'schedule-row row-highlight' : 'schedule-row') + (r[2] ? ' stop-diff' : '');
         let timeClass = (alwaysWhite || isChanges) ? 'time-normal' : (past ? 'time-passed' : 'time-green');
         html += `<div class="${rowClass}"><div class="schedule-left"><span class="station-number">${idx + 1}.</span><span class="station-name-text">${escapeHTML(r[0])}</span></div><div class="${timeClass}">${escapeHTML(r[1])}</div></div>`;
       }
@@ -2093,6 +2093,36 @@ const HIGHLIGHTED_TRAINS = {
   '87': { label: 'до 15 серпня', until: '2026-08-15' }     // Дніпро → Ковель
 };
 
+// Об'єднані поїзди (однаковий час відправлення з Вільногірська): кольори блоків у шторці
+const LT_VARIANT_COLORS = ['#74b9ff', '#00ff9c', '#ffcc00', '#ff7eb6'];
+
+// Блок «Періодичність» і «Зміни розкладу» для одного поїзда
+function longTrainInfoHtml(x) {
+  let html = "";
+  if (x.periodicityText) html += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність:</b><br><span style="color:inherit; font-weight:500;">${escapeHTML(x.periodicityText)}</span></div>`;
+  if (Array.isArray(x.changes) && x.changes.length) html += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500;">${x.changes.map(c => `<li>${escapeHTML(c)}</li>`).join('')}</ul></div>`;
+  return html;
+}
+
+// Поїзд №79 прямує через Київ — додаємо позначку до маршруту
+function longTrainRouteHtml(x) {
+  const nums = String(x.number || '').split('/').map(n => parseInt(n.replace(/\D/g, ''), 10));
+  return nums.includes(79) ? `${escapeHTML(x.route)} <span style="font-size:0.85em; color:rgba(255,255,255,0.6); font-weight:600;">(через Київ)</span>` : escapeHTML(x.route);
+}
+
+// Шторка об'єднаного поїзда: кожен поїзд окремим блоком свого кольору,
+// станції/час, яких немає в інших поїздів групи, виділено кольором поїзда
+function renderTrainVariants(variants) {
+  const key = s => `${s.station}|${s.time}`;
+  const sets = variants.map(v => new Set((v.stops || []).map(key)));
+  const legend = `<div class="lt-variants-legend">Під цим часом курсують ${variants.length} поїзди. Станції та час, що відрізняються, виділено кольором поїзда.</div>`;
+  return legend + variants.map((v, i) => {
+    const color = LT_VARIANT_COLORS[i % LT_VARIANT_COLORS.length];
+    const rows = (v.stops || []).map(s => [s.station, s.time, sets.some((set, j) => j !== i && !set.has(key(s)))]);
+    return `<div class="lt-variant" style="--v-color:${color}"><div class="lt-variant-head"><span class="lt-variant-num">№${escapeHTML(v.number)}</span><span class="lt-variant-route">${longTrainRouteHtml(v)}</span></div>${rows.length ? renderGrid(rows, false, true) : "Немає даних"}${longTrainInfoHtml(v)}</div>`;
+  }).join('');
+}
+
 async function loadLongTrainsData() {
   try {
     const d = await fetchCachedJson("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule", 'long_trains_api', 30);
@@ -2103,13 +2133,10 @@ async function loadLongTrainsData() {
       const sortedTrains = Array.isArray(d.trains) ? d.trains.filter(Boolean).slice().sort((a, b) => toMin(a.time) - toMin(b.time)) : [];
       if (!dataChanged('render_longtrains', sortedTrains)) return; // без змін — не закриваємо відкриті деталі
       sortedTrains.forEach((x,i) => {
-        if(!x) return; const id = "lt-" + i; const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : []; const hasChanges = x.changes && Array.isArray(x.changes) && x.changes.length > 0;
-        let infoHtml = "";
-        if (x.periodicityText) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: #74b9ff; background: rgba(116, 185, 255, 0.1); border-color: rgba(116, 185, 255, 0.15);"><b>Періодичність:</b><br><span style="color:inherit; font-weight:500;">${escapeHTML(x.periodicityText)}</span></div>`;
-        if (hasChanges) infoHtml += `<div class="details-divider"></div><div class="details-note" style="color: var(--highlight-color); background: rgba(255, 204, 0, 0.1); border-color: rgba(255, 204, 0, 0.15);"><b>Зміни розкладу:</b><ul style="margin: 8px 0 0 0; padding-left: 20px; text-align: left; font-weight: 500;">${x.changes.map(c => `<li>${escapeHTML(c)}</li>`).join('')}</ul></div>`;
-        // Поїзд №79 прямує через Київ — додаємо позначку до маршруту
-        const trainNum79 = parseInt(String(x.number || '').replace(/\D/g, ''), 10);
-        const routeText = trainNum79 === 79 ? `${escapeHTML(x.route)} <span style="font-size:0.85em; color:rgba(255,255,255,0.6); font-weight:600;">(через Київ)</span>` : escapeHTML(x.route);
+        if(!x) return; const id = "lt-" + i; const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
+        // Об'єднаний поїзд (кілька поїздів з однаковим часом) — у шторці кожен окремо
+        const isMulti = Array.isArray(x.variants) && x.variants.length > 1;
+        const routeText = longTrainRouteHtml(x);
         // Зелена підсвітка рейсу (клас train-new забарвлює і рамку, і номер)
         const numDigits = String(x.number || '').replace(/\D/g, '');
         const rawHighlight = HIGHLIGHTED_TRAINS[numDigits];
@@ -2120,8 +2147,10 @@ async function loadLongTrainsData() {
         // Після дати until підсвітка та плашка автоматично зникають
         const untilTxt = isHighlightActive ? String(highlight.label || '').trim() : '';
         const untilTag = untilTxt ? `<div class="train-new-tag">🚆 КУРСУЄ <span class="train-new-date">${escapeHTML(untilTxt)}</span></div>` : '';
-        const routeCell = `<div class="route-cell"><div class="route-text">${routeText}</div>${untilTag}</div>`;
-        h += `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box">${escapeHTML(x.number)}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${infoHtml}</div>`;
+        const routeCell = `<div class="route-cell"><div class="route-text${isMulti ? ' multi' : ''}">${routeText}</div>${untilTag}</div>`;
+        const numHtml = String(x.number || '').split('/').map(escapeHTML).join('/<wbr>');
+        const detailsHtml = isMulti ? renderTrainVariants(x.variants) : `${sm.length ? renderGrid(sm, false, true) : "Немає даних"}${longTrainInfoHtml(x)}`;
+        h += `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${isMulti ? ' multi' : ''}">${numHtml}</div>${routeCell}<div class="time-val">${escapeHTML(x.time)}</div></div><div class="details" id="${id}">${detailsHtml}</div>`;
       });
       document.getElementById("long-trains-list").innerHTML = h;
     }
