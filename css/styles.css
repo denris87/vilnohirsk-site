@@ -619,3 +619,14 @@ a,
 .sm-time b.sm-notime{color:rgba(255,255,255,0.25);}
 .sm-addr{font-size:12.5px;font-weight:600;color:#f1f5f9;line-height:1.45;word-break:break-word;}
 @media (prefers-reduced-motion: reduce){.sm-beta-dot{animation:none;}}
+
+/* Об'єднані далекі поїзди (однаковий час відправлення з Вільногірська) */
+.train-num-box.multi{text-align:center;line-height:1.25;word-break:keep-all;}
+.route-text.multi{white-space:normal;line-height:1.25;}
+.lt-variants-legend{font-size:11px;line-height:1.4;color:rgba(255,255,255,0.65);text-align:center;margin:0 4px 12px;}
+.lt-variant{border:1px solid color-mix(in srgb, var(--v-color) 45%, transparent);border-left:4px solid var(--v-color);border-radius:12px;padding:10px 8px;margin-bottom:14px;background:color-mix(in srgb, var(--v-color) 6%, transparent);}
+.lt-variant:last-child{margin-bottom:0;}
+.lt-variant-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;font-weight:700;font-size:13px;color:#fff;text-align:left;}
+.lt-variant-num{color:#06231a;background:var(--v-color);padding:2px 8px;border-radius:8px;font-size:12px;font-weight:900;}
+.lt-variant .stop-diff .station-name-text,.lt-variant .stop-diff .time-normal{color:var(--v-color) !important;font-weight:700;}
+.lt-variant .stop-diff{background:color-mix(in srgb, var(--v-color) 10%, transparent);border-radius:6px;}
