@@ -2115,7 +2115,7 @@ function longTrainRouteHtml(x) {
 function renderTrainVariants(variants) {
   const key = s => `${s.station}|${s.time}`;
   const sets = variants.map(v => new Set((v.stops || []).map(key)));
-  const legend = `<div class="lt-variants-legend">Під цим часом курсують ${variants.length} поїзди. Станції та час, що відрізняються, виділено кольором поїзда.</div>`;
+  const legend = `<div class="lt-variants-legend">Багатогрупний пасажирський поїзд: вагони різних напрямків курсують разом, маршрут кожної групи — нижче.</div>`;
   return legend + variants.map((v, i) => {
     const color = LT_VARIANT_COLORS[i % LT_VARIANT_COLORS.length];
     const rows = (v.stops || []).map(s => [s.station, s.time, sets.some((set, j) => j !== i && !set.has(key(s)))]);
