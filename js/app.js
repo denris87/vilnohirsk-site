@@ -2123,6 +2123,9 @@ function renderTrainVariants(variants) {
   }).join('');
 }
 
+// Порядок закріплених поїздів на початку списку: 38 Київ → Запоріжжя, далі 79/119 Дніпро → Львів / Хелм
+const LONG_TRAINS_PINNED = ['38', '79'];
+
 async function loadLongTrainsData() {
   try {
     const d = await fetchCachedJson("https://grateful-enthusiasm-production-c1cc.up.railway.app/schedule", 'long_trains_api', 30);
@@ -2130,7 +2133,9 @@ async function loadLongTrainsData() {
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div>`;
       // Сортуємо поїзди за часом відправлення (00:01, 04:04, ...)
       const toMin = (t) => { const m = String(t || '').match(/(\d{1,2}):(\d{2})/); return m ? (+m[1]) * 60 + (+m[2]) : 99999; };
-      const sortedTrains = Array.isArray(d.trains) ? d.trains.filter(Boolean).slice().sort((a, b) => toMin(a.time) - toMin(b.time)) : [];
+      // Поїзди з LONG_TRAINS_PINNED показуються першими у вказаному порядку, решта — за часом
+      const pinIdx = (x) => { const nums = String(x.number || '').split('/'); const i = LONG_TRAINS_PINNED.findIndex(n => nums.includes(n)); return i < 0 ? Infinity : i; };
+      const sortedTrains = Array.isArray(d.trains) ? d.trains.filter(Boolean).slice().sort((a, b) => (pinIdx(a) - pinIdx(b)) || (toMin(a.time) - toMin(b.time))) : [];
       if (!dataChanged('render_longtrains', sortedTrains)) return; // без змін — не закриваємо відкриті деталі
       sortedTrains.forEach((x,i) => {
         if(!x) return; const id = "lt-" + i; const sm = x.stops ? x.stops.map(s => [s.station, s.time]) : [];
