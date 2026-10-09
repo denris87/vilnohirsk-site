@@ -17,7 +17,7 @@ updated: "09.10.2026"
 
 fuels:
   - name: "95E"
-    price: "91.90"
+    price: "88.90"
     color: "#c8ccd2"
   - name: "95"
     price: "88.90"
@@ -29,5 +29,5 @@ fuels:
     price: "97.90"
     color: "#2ecc8f"
   - name: "Газ"
-    price: "42.90"
+    price: "43.40"
     color: "#58c4f5"
