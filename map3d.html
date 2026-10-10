@@ -274,12 +274,15 @@ async function loadPlaces() {
         p && p.show !== false && typeof p.lat === 'number' && typeof p.lng === 'number');
       if (!places.length) return;
 
+      // Колір — лише справжній hex, як і на основній карті: інакше значення з
+      // файлу потрапило б у style як є. Іконку й id теж екрануємо.
+      const color = /^#[0-9a-f]{3,8}$/i.test(String(c.color || '')) ? c.color : '#38bdf8';
       markersByCat[c.id] = [];
       places.forEach(p => {
         const el = document.createElement('div');
         el.className = 'pin';
-        el.innerHTML = `<div class="pin-inner" style="background:${c.color || '#38bdf8'}">
-                          <span>${c.icon || '📍'}</span>
+        el.innerHTML = `<div class="pin-inner" style="background:${color}">
+                          <span>${esc(c.icon || '📍')}</span>
                         </div>`;
         const html = `<div class="pop-title">${esc(p.name || '')}</div>`
           + (p.address ? `<div class="pop-addr">📍 ${esc(p.address)}</div>` : '');
@@ -290,8 +293,8 @@ async function loadPlaces() {
         markersByCat[c.id].push(el);
       });
 
-      buttons.push(`<button class="btn fbtn on" style="--fc:${c.color}" data-cat="${c.id}">`
-        + `${c.icon || ''} ${esc(c.name)}</button>`);
+      buttons.push(`<button class="btn fbtn on" style="--fc:${color}" data-cat="${esc(c.id)}">`
+        + `${esc(c.icon || '')} ${esc(c.name)}</button>`);
     });
 
     host.innerHTML = buttons.join('');

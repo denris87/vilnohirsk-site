@@ -336,9 +336,40 @@ async function fetchCachedText(url, key, ttlMinutes = 1) {
     throw lastError || new Error('Не вдалося завантажити дані');
 }
 
-async function fetchCachedJson(url, key, ttlMinutes = 1) { 
+// Найчастіша помилка ручного редагування JSON — зайва кома перед ] чи }:
+//   [ { "photo": "…" }, ]
+// JSON.parse на ній падає, і розділ зникав цілком: так афіші пролежали
+// порожніми з 30.09 по 10.10 через одну кому в events.json. Прибираємо такі
+// коми — лише поза рядками в лапках — і пробуємо ще раз. У консоль пишемо,
+// щоб файл таки виправили; будь-яку іншу помилку JSON не ховаємо.
+function stripTrailingCommas(text) {
+  let out = '', inStr = false, esc = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inStr) {
+      out += ch;
+      if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') { inStr = true; out += ch; continue; }
+    if (ch === ',') {
+      let j = i + 1;
+      while (j < text.length && /\s/.test(text[j])) j++;
+      if (text[j] === ']' || text[j] === '}') continue;
+    }
+    out += ch;
+  }
+  return out;
+}
+
+async function fetchCachedJson(url, key, ttlMinutes = 1) {
   const text = await fetchCachedText(url, key, ttlMinutes);
-  return JSON.parse(text); 
+  try { return JSON.parse(text); } catch (e) {
+    let data;
+    try { data = JSON.parse(stripTrailingCommas(text)); } catch (_) { throw e; }
+    console.warn(`[${key}] у JSON зайва кома перед ] або } — дані прочитано, але джерело варто виправити`);
+    return data;
+  }
 }
 
 function formatUAPhone(input) {
@@ -1336,7 +1367,12 @@ async function loadEventsData() {
     if (dataChanged('render_events', eventsWithPhotos)) {
       document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(eventsWithPhotos, '#FF3366', 'events', true);
     }
-  } catch(e) { logSectionError('афіші', e); invalidateRender('render_events'); document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
+  } catch(e) {
+    // Раніше тут писало «Афіш поки немає» — тобто збій видавався за порожній
+    // розділ, і зламаний events.json ніхто не помічав десять днів.
+    logSectionError('афіші', e); invalidateRender('render_events');
+    document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Помилка завантаження афіш</div>`;
+  }
 }
 
 async function loadPhonebookData() {
@@ -1806,7 +1842,7 @@ async function loadEstateData() {
           const priceKey = keys.find(k => k && k.toLowerCase().includes('ціна')) || keys[5];
           let rawPrice = priceKey ? row[priceKey] : '';
           // Чистим невидимые символы (NBSP, zero-width space), нормализуем пробелы
-          let cleanPrice = String(rawPrice || '').replace(/ /g, ' ').replace(/[​-‍﻿]/g, '').trim();
+          let cleanPrice = String(rawPrice || '').replace(/\u00a0/g, ' ').replace(/[\u200b-\u200d\ufeff]/g, '').trim();
           // Fallback: если цена пустая — пытаемся выдернуть число из описания (на случай если юзер вписал цену туда)
           if (!cleanPrice) {
             const descText = String(row["Опис"] || row[keys[6]] || '');
@@ -2093,6 +2129,15 @@ const HIGHLIGHTED_TRAINS = {
   '87': { label: 'до 15 серпня', until: '2026-08-15' }     // Дніпро → Ковель
 };
 
+// Запис підсвітки для поїзда. Номер об'єднаного поїзда приходить як «79/119»,
+// і раніше всі цифри зліплювались у «79119» — підсвітка для 119 (він у списку
+// вище) мовчки не спрацювала б. Тепер шукаємо кожен номер окремо.
+function findTrainHighlight(number) {
+  const parts = String(number || '').split('/').map(n => n.replace(/\D/g, '')).filter(Boolean);
+  const hit = parts.find(n => Object.prototype.hasOwnProperty.call(HIGHLIGHTED_TRAINS, n));
+  return hit ? HIGHLIGHTED_TRAINS[hit] : undefined;
+}
+
 // Об'єднані поїзди (однаковий час відправлення з Вільногірська): кольори блоків у шторці
 const LT_VARIANT_COLORS = ['#74b9ff', '#00ff9c', '#ffcc00', '#ff7eb6'];
 
@@ -2143,8 +2188,7 @@ async function loadLongTrainsData() {
         const isMulti = Array.isArray(x.variants) && x.variants.length > 1;
         const routeText = longTrainRouteHtml(x);
         // Зелена підсвітка рейсу (клас train-new забарвлює і рамку, і номер)
-        const numDigits = String(x.number || '').replace(/\D/g, '');
-        const rawHighlight = HIGHLIGHTED_TRAINS[numDigits];
+        const rawHighlight = findTrainHighlight(x.number);
         // Приймаємо і новий запис обʼєктом, і старий одним рядком
         const highlight = (typeof rawHighlight === 'string') ? { label: rawHighlight } : rawHighlight;
         const isHighlightActive = !!highlight && (!highlight.until || getKyivDateISO() <= highlight.until);
