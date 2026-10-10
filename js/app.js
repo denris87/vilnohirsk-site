@@ -336,40 +336,9 @@ async function fetchCachedText(url, key, ttlMinutes = 1) {
     throw lastError || new Error('Не вдалося завантажити дані');
 }
 
-// Найчастіша помилка ручного редагування JSON — зайва кома перед ] чи }:
-//   [ { "photo": "…" }, ]
-// JSON.parse на ній падає, і розділ зникав цілком: так афіші пролежали
-// порожніми з 30.09 по 10.10 через одну кому в events.json. Прибираємо такі
-// коми — лише поза рядками в лапках — і пробуємо ще раз. У консоль пишемо,
-// щоб файл таки виправили; будь-яку іншу помилку JSON не ховаємо.
-function stripTrailingCommas(text) {
-  let out = '', inStr = false, esc = false;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (inStr) {
-      out += ch;
-      if (esc) esc = false; else if (ch === '\\') esc = true; else if (ch === '"') inStr = false;
-      continue;
-    }
-    if (ch === '"') { inStr = true; out += ch; continue; }
-    if (ch === ',') {
-      let j = i + 1;
-      while (j < text.length && /\s/.test(text[j])) j++;
-      if (text[j] === ']' || text[j] === '}') continue;
-    }
-    out += ch;
-  }
-  return out;
-}
-
-async function fetchCachedJson(url, key, ttlMinutes = 1) {
+async function fetchCachedJson(url, key, ttlMinutes = 1) { 
   const text = await fetchCachedText(url, key, ttlMinutes);
-  try { return JSON.parse(text); } catch (e) {
-    let data;
-    try { data = JSON.parse(stripTrailingCommas(text)); } catch (_) { throw e; }
-    console.warn(`[${key}] у JSON зайва кома перед ] або } — дані прочитано, але джерело варто виправити`);
-    return data;
-  }
+  return JSON.parse(text); 
 }
 
 function formatUAPhone(input) {
@@ -1367,12 +1336,7 @@ async function loadEventsData() {
     if (dataChanged('render_events', eventsWithPhotos)) {
       document.getElementById("alert-events-content").innerHTML = buildCarouselHtml(eventsWithPhotos, '#FF3366', 'events', true);
     }
-  } catch(e) {
-    // Раніше тут писало «Афіш поки немає» — тобто збій видавався за порожній
-    // розділ, і зламаний events.json ніхто не помічав десять днів.
-    logSectionError('афіші', e); invalidateRender('render_events');
-    document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Помилка завантаження афіш</div>`;
-  }
+  } catch(e) { logSectionError('афіші', e); invalidateRender('render_events'); document.getElementById("alert-events-content").innerHTML = `<div class="empty-msg" style="margin-bottom:15px;">Афіш поки немає</div>`; }
 }
 
 async function loadPhonebookData() {
