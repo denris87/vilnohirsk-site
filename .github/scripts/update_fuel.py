@@ -13,11 +13,13 @@
   • якщо сторінка змінилась або ціна підозріла (стрибок понад 20 %, не схоже
     на ціну), файл лишається як був, а запуск падає з поясненням — GitHub
     надішле лист.
+  • у суботу й неділю мінфін не оновлюється, тож бот переносить лише дату,
+    лишаючи п'ятничні ціни, — і тільки якщо в п'ятницю ціни таки оновились;
   • якщо джерело просто недоступне, бот тихо чекає наступного запуску, і
     лише коли ціни у файлі старші за STALE_DAYS днів — падає, щоб про це
     дізналась людина.
 
-Запуск:  update_fuel.py data/fuel.yaml [--html сторінка.html] [--dry-run]
+Запуск:  update_fuel.py data/fuel.yaml [--html сторінка.html] [--dry-run] [--today РРРР-ММ-ДД]
 """
 import argparse
 import datetime as dt
@@ -48,8 +50,18 @@ class FormatError(Exception):
 
 
 def kyiv_today():
-    # Київ: UTC+2 узимку, UTC+3 улітку. Для «скільки днів тому» точності в
-    # годину досить, тож беремо +2 і не тягнемо tzdata.
+    # Від київської дати залежить, чи сьогодні вихідний, тож беремо справжній
+    # час із системної бази поясів (на раннерах GitHub вона є). Без неї —
+    # UTC+2: помилитись так можна хіба що на годину біля півночі.
+    try:
+        from zoneinfo import ZoneInfo
+        for name in ("Europe/Kyiv", "Europe/Kiev"):
+            try:
+                return dt.datetime.now(ZoneInfo(name)).date()
+            except Exception:
+                continue
+    except ImportError:
+        pass
     return (dt.datetime.now(dt.timezone.utc) + dt.timedelta(hours=2)).date()
 
 
@@ -151,12 +163,41 @@ def rewrite(text, day, prices):
     return text, seen
 
 
+def weekend_date_only(original, data, have, today, dry_run, path):
+    """Субота й неділя: мінфін не оновлюється, тож переносимо лише дату,
+    а п'ятничні ціни лишаються — п'ятнична знижка на 95E якраз і діє всі
+    вихідні. Але тільки якщо ціни у файлі не старші за п'ятницю: інакше
+    свіжа дата видала б за сьогоднішні ціни, яких ніхто не перевіряв."""
+    friday = today - dt.timedelta(days=today.weekday() - 4)
+    if have is None or have < friday:
+        print(f"вихідний, але ціни у файлі від {data.get('updated')} — старші за п'ятницю "
+              f"{friday:%d.%m.%Y}, дату не переношу")
+        return 0
+    if have >= today:
+        print("вихідний: дата у файлі вже сьогоднішня — нічого не роблю")
+        return 0
+    stamp = f"{today:%d.%m.%Y}"
+    updated, n = re.subn(r'(?m)^updated:\s*"[^"]*"', f'updated: "{stamp}"', original, count=1)
+    check = (yaml.safe_load(updated) or {}) if n == 1 else {}
+    if n != 1 or check.get("updated") != stamp or {**check, "updated": None} != {**data, "updated": None}:
+        print('::error::Дату НЕ перенесено: не знайшов рядок updated: "..." або змінилось щось іще')
+        return 1
+    print(f"вихідний: ціни лишаю п'ятничні, дату переношу {data.get('updated')} → {stamp}")
+    if dry_run:
+        print("--dry-run: файл не записую")
+        return 0
+    path.write_text(updated, encoding="utf-8")
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("file", type=Path)
     ap.add_argument("--html", type=Path, help="розібрати збережену сторінку замість завантаження")
     ap.add_argument("--dry-run", action="store_true", help="лише показати, що змінилось б")
+    ap.add_argument("--today", type=dt.date.fromisoformat, help="вдати, що сьогодні ця дата (РРРР-ММ-ДД) — для перевірок")
     args = ap.parse_args()
+    today = args.today or kyiv_today()
 
     original = args.file.read_text(encoding="utf-8")
     data = yaml.safe_load(original) or {}
@@ -165,10 +206,13 @@ def main():
         return 0
     have = parse_day(data.get("updated"))
 
+    if today.weekday() >= 5:  # 5 — субота, 6 — неділя
+        return weekend_date_only(original, data, have, today, args.dry_run, args.file)
+
     try:
         page = args.html.read_text(encoding="utf-8") if args.html else fetch(SOURCE)
     except SourceError as exc:
-        age = (kyiv_today() - have).days if have else None
+        age = (today - have).days if have else None
         if age is not None and age > STALE_DAYS:
             print(f"::error::Джерело недоступне, а ціни у файлі вже {age} дн. без оновлення: {exc}")
             return 1
@@ -177,7 +221,7 @@ def main():
 
     try:
         day, prices = parse_prices(page)
-        if day > kyiv_today() + dt.timedelta(days=1):
+        if day > today + dt.timedelta(days=1):
             raise FormatError(f"дата даних {day} — у майбутньому")
         print(f"мінфін: {day:%d.%m.%Y}  " + "  ".join(f"{k} {v}" for k, v in prices.items()))
         print(f"у файлі: {data.get('updated')}")
