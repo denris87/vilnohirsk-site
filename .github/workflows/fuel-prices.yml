@@ -1,0 +1,62 @@
+name: fuel-prices
+
+# Автооновлення цін на пальне «Укрнафти» у data/fuel.yaml.
+# Правила й захисти — у шапці .github/scripts/update_fuel.py.
+#
+# Розклад у UTC. Київ — UTC+3 улітку й UTC+2 узимку, тобто запуски
+# приблизно о 10, 12, 14, 16 і 19 за Києвом (узимку на годину раніше).
+# Мінфін публікує свіжі ціни раз на день, близько обіду, і лише в будні.
+# Хвилина 7, а не 0: на початку години GitHub перевантажений і запізнюється.
+
+on:
+  schedule:
+    - cron: '7 7,9,11,13,16 * * *'
+  workflow_dispatch:   # кнопка «Run workflow» на вкладці Actions — оновити просто зараз
+
+permissions:
+  contents: write      # закомітити data/fuel.yaml
+  pages: write         # попросити GitHub Pages перезібрати сайт
+
+concurrency:
+  group: fuel-prices
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Залежності
+        run: python3 -m pip install --quiet pyyaml
+
+      - name: Ціни з мінфіну
+        run: python3 .github/scripts/update_fuel.py data/fuel.yaml
+
+      - name: Закомітити, якщо змінилось
+        id: commit
+        run: |
+          if git diff --quiet -- data/fuel.yaml; then
+            echo "Ціни ті самі — комітити нічого"
+            exit 0
+          fi
+          day=$(sed -n 's/^updated: "\(.*\)"/\1/p' data/fuel.yaml)
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "Ціни на пальне: автооновлення станом на ${day}" -- data/fuel.yaml
+          # Поки бот працював, у main міг лягти чийсь коміт — підтягуємо й пробуємо ще раз
+          git push -q || { git pull -q --rebase && git push -q; }
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Перезібрати сайт
+        if: steps.commit.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Коміт від GITHUB_TOKEN може сам не запустити збірку GitHub Pages,
+          # тож просимо явно. Якщо збірка й так пішла, повторна перезбірка
+          # того самого нічого не ламає.
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" --silent \
+            && echo "Збірку сайту запитано" \
+            || echo "::warning::Не вдалося запитати збірку GitHub Pages — сайт оновиться з наступним комітом"
