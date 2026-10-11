@@ -1148,8 +1148,23 @@ function updateTrainsDelayBadge(delays) {
       : `Затримується електричок: ${count} (до +${max.value} ${max.unit})`);
 }
 
-// Затримки електричок — ручні дані з data/delays.yaml
-// (яскравий банер угорі вкладки «Електрички»). Незалежний від API розкладу.
+// Затримки, які застосунок «Адмінка ВО» сам знаходить у каналі Укрзалізниці
+// або які опублікували з нього: кожна тримається годину від останнього
+// оновлення, потім сервер прибирає її сам. Сервер не відповів — null.
+// Без cache: 'no-store' — сервер дозволяє браузеру хвилину не перепитувати,
+// щоб часті перемикання вкладок не множили запити.
+const SERVER_DELAYS_URL = 'https://dopysy-scheduler.dopysy-scheduler.workers.dev/public/delays';
+async function loadServerDelays() {
+  try {
+    const res = await fetchWithTimeout(SERVER_DELAYS_URL, {}, 6000);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && Array.isArray(data.delays) ? data : null;
+  } catch (e) { return null; }
+}
+
+// Затримки електричок — з сервера застосунку (автоматично) і ручні з
+// data/delays.yaml (яскравий банер угорі вкладки «Електрички»). Незалежний від API розкладу.
 async function loadDelaysData() {
   const host = document.getElementById('trains-delays-banner');
   if (!host) return;
@@ -1159,14 +1174,27 @@ async function loadDelaysData() {
   const hide = () => { host.style.display = 'none'; host.innerHTML = ''; invalidateRender('render_delays'); updateTrainsDelayBadge([]); };
   if (!yamlReady('delays', loadDelaysData, hide)) return; // немає парсера — банер затримок ховаємо
   try {
-    const res = await fetch('./data/delays.yaml?v=' + Date.now());
-    if (!res.ok) { hide(); return; }
-    const data = jsyaml.load(await res.text()) || {};
-    if (data.show === false) { hide(); return; } // весь блок затримок вимкнено вручну
-    const list = Array.isArray(data.delays) ? data.delays : [];
+    const [res, server] = await Promise.all([
+      fetch('./data/delays.yaml?v=' + Date.now()).catch(() => null),
+      loadServerDelays()
+    ]);
     // Лишаємо тільки валідні затримки: увімкнена (show !== false), є номер і додатній час.
     // show: false у рядку ховає саме цю затримку, не видаляючи її з файлу.
-    const delays = list.filter(d => d && d.show !== false && d.number != null && String(d.number).trim() !== '' && parseDelayMinutes(d) > 0);
+    const valid = d => d && d.show !== false && d.number != null && String(d.number).trim() !== '' && parseDelayMinutes(d) > 0;
+    const auto = server ? server.delays.filter(valid) : [];
+    if (!(res && res.ok) && auto.length === 0) { hide(); return; }
+    let data = {};
+    if (res && res.ok) {
+      // Помилка у ручному файлі не ховає автоматичні затримки.
+      try { const parsed = jsyaml.load(await res.text()); if (parsed && typeof parsed === 'object') data = parsed; }
+      catch (e) { logSectionError('затримки електричок (data/delays.yaml)', e); if (auto.length === 0) { hide(); return; } }
+    }
+    if (data.show === false) { hide(); return; } // весь блок затримок вимкнено вручну — і автоматичні теж
+    const list = Array.isArray(data.delays) ? data.delays : [];
+    // Автоматичні — згори; ручна про той самий рейс поступається свіжішій із сервера.
+    const autoNumbers = new Set(auto.map(d => String(d.number).trim()));
+    const delays = auto.concat(list.filter(d => valid(d) && !autoNumbers.has(String(d.number).trim())));
+    if (auto.length) data.updated = server.updated;
     updateTrainsDelayBadge(delays); // бейдж на вкладці: є затримки — видно одразу, немає — знімаємо
 
     if (delays.length === 0) {
