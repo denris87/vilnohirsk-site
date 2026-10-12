@@ -1194,7 +1194,12 @@ async function loadDelaysData() {
     // Автоматичні — згори; ручна про той самий рейс поступається свіжішій із сервера.
     const autoNumbers = new Set(auto.map(d => String(d.number).trim()));
     const delays = auto.concat(list.filter(d => valid(d) && !autoNumbers.has(String(d.number).trim())));
-    if (auto.length) data.updated = server.updated;
+    // Час публікації — свій у кожної затримки: автоматичні беруть власне updated
+    // (якщо сервер його віддає) або загальне серверне, ручні — updated із файлу.
+    // Раніше серверний час підставлявся замість файлового для всього списку.
+    const serverUpdated = auto.length ? server.updated : null;
+    const stampOf = d => String((d.updated != null && d.updated !== '') ? d.updated
+      : (autoNumbers.has(String(d.number).trim()) ? serverUpdated : data.updated) || '').trim();
     updateTrainsDelayBadge(delays); // бейдж на вкладці: є затримки — видно одразу, немає — знімаємо
 
     if (delays.length === 0) {
@@ -1208,9 +1213,8 @@ async function loadDelaysData() {
     }
 
     // Банер затримок — перезбираємо лише коли список змінився
-    if (!dataChanged('render_delays', { updated: data.updated || '', delays: delays })) { host.style.display = 'block'; return; }
+    if (!dataChanged('render_delays', delays.map(d => ({ d: d, at: stampOf(d) })))) { host.style.display = 'block'; return; }
     host.className = 'trains-delays-banner';
-    const updated = data.updated ? `<span class="trains-delays-upd">оновлено ${escapeHTML(String(data.updated))}</span>` : '';
     const rows = delays.map(d => {
       const dl = formatDelay(parseDelayMinutes(d));
       // Два рядки: «№ + маршрут» і «станція + затримка».
@@ -1224,10 +1228,14 @@ async function loadDelaysData() {
         ? `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує зі ст.</span> <b>${escapeHTML(stationTxt)}</b></div>`
         : `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує з</span> <b>початкової станції</b></div>`;
       const note = (d.note && String(d.note).trim()) ? `<div class="delay-note">⚠️ ${escapeHTML(String(d.note))}</div>` : '';
-      return `<div class="delay-row"><div class="delay-top"><div class="delay-num">№${escapeHTML(String(d.number))}</div>${route}</div><div class="delay-bottom">${station}<div class="delay-min"><b>+${dl.value}</b><span>${dl.unit}</span></div></div>${note}</div>`;
+      // Під станцією — коли затримку опубліковали: від цього часу й рахувати,
+      // де зараз електричка. Немає часу — рядок не показуємо.
+      const at = stampOf(d);
+      const stamp = at ? `<div class="delay-stamp">🕐 оновлено ${escapeHTML(at)}</div>` : '';
+      return `<div class="delay-row"><div class="delay-top"><div class="delay-num">№${escapeHTML(String(d.number))}</div>${route}</div><div class="delay-bottom"><div class="delay-where">${station}${stamp}</div><div class="delay-min"><b>+${dl.value}</b><span>${dl.unit}</span></div></div>${note}</div>`;
     }).join('');
 
-    host.innerHTML = `<div class="trains-delays-head"><span class="trains-delays-title"><span class="delay-live-dot"></span>⏱️ Затримки електричок</span>${updated}</div>${rows}`;
+    host.innerHTML = `<div class="trains-delays-head"><span class="trains-delays-title"><span class="delay-live-dot"></span>⏱️ Затримки електричок</span></div>${rows}`;
     host.style.display = 'block';
   } catch (e) { logSectionError('затримки електричок', e); invalidateRender('render_delays'); hide(); }
 }

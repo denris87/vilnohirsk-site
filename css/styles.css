@@ -476,7 +476,9 @@ a,
 .trains-delays-banner{margin-bottom:12px;background:linear-gradient(135deg,rgba(255,77,77,0.16),rgba(255,159,67,0.12));border:1px solid rgba(255,77,77,0.45);border-radius:14px;padding:12px;box-shadow:0 4px 18px rgba(255,77,77,0.18);}
 .trains-delays-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;}
 .trains-delays-title{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.5px;text-shadow:0 1px 3px rgba(0,0,0,0.5);white-space:nowrap;}
-.trains-delays-upd{font-size:9px;font-weight:600;color:rgba(255,255,255,0.55);white-space:nowrap;}
+.delay-where{flex:0 1 auto;min-width:0;margin-right:auto;display:flex;flex-direction:column;align-items:flex-start;gap:5px;}
+.delay-where .delay-station{max-width:100%;margin-right:0;}
+.delay-stamp{font-size:10px;font-weight:600;color:rgba(255,255,255,0.6);padding-left:3px;white-space:nowrap;font-variant-numeric:tabular-nums;}
 .delay-live-dot{width:8px;height:8px;border-radius:50%;background:#ff3b3b;box-shadow:0 0 8px #ff3b3b;flex:0 0 auto;animation:pulseAlert 2s infinite;}
 .delay-row{display:flex;flex-direction:column;gap:7px;background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:10px;margin-top:8px;}
 .delay-top,.delay-bottom{display:flex;align-items:center;gap:8px;min-width:0;}
