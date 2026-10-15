@@ -2027,7 +2027,7 @@ function toggleTransportDetails(id, el) {
 
 // Зміна розкладу електрички з певної дати — необов'язкові поля поїзда в schedule.yaml
 // (репозиторій vilnohirsk-trains), сервер передає їх як є:
-//   until: "20.10.2026" — останній день курсування: червона плашка «⛔ КУРСУЄ до 20 жовтня 2026»,
+//   until: "20.10.2026" — останній день курсування: червона плашка «⛔ КУРСУЄ до 20 жовтня 2026 включно»,
 //                         а з наступного дня рейс сам зникає зі списку;
 //   from:  "21.10.2026" — перший день нового розкладу: до цієї дати зелена плашка «🆕 НОВИЙ з 21 жовтня 2026»
 //                         і час не підсвічується (рейс ще не курсує), з цього дня рейс звичайний.
@@ -2056,7 +2056,8 @@ function trainScheduleWindow(x, today) {
     gone: !!(until && today > until.iso),
     pending: pending,
     fromText: fromRaw && pending ? (from ? from.text : fromRaw) : '',
-    untilText: untilRaw ? (until ? until.text : untilRaw) : ''
+    // until — останній день, коли рейс ще курсує, тому пишемо «включно»
+    untilText: untilRaw ? (until ? until.text + ' включно' : untilRaw) : ''
   };
 }
 
