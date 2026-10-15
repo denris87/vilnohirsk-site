@@ -2025,22 +2025,52 @@ function toggleTransportDetails(id, el) {
     if (isOpening) { target.classList.add('open'); setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 350); }
 }
 
-async function loadTrainsData(){ 
+// Зміна розкладу електрички з певної дати — необов'язкові поля поїзда в schedule.yaml
+// (репозиторій vilnohirsk-trains), сервер передає їх як є:
+//   until: "20.10.2026" — останній день курсування: червона плашка «⛔ КУРСУЄ до 20 жовтня 2026»,
+//                         а з наступного дня рейс сам зникає зі списку;
+//   from:  "21.10.2026" — перший день нового розкладу: до цієї дати зелена плашка «🆕 НОВИЙ з 21 жовтня 2026»
+//                         і час не підсвічується (рейс ще не курсує), з цього дня рейс звичайний.
+// Дату можна писати й як «2026-10-20» чи «20 жовтня 2026». Якщо дату не вдалося розібрати,
+// плашка покаже текст як є, а рейс зі списку не зникне.
+const UA_MONTHS_GENITIVE = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'];
+
+function parseScheduleDate(value) {
+  const s = String(value == null ? '' : value).trim().toLowerCase();
+  let r, y, m, d;
+  if ((r = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/))) { d = +r[1]; m = +r[2]; y = +r[3]; }
+  else if ((r = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) { y = +r[1]; m = +r[2]; d = +r[3]; }
+  else if ((r = s.match(/^(\d{1,2})\s+([^\s\d]+)\s+(\d{4})/))) { d = +r[1]; m = UA_MONTHS_GENITIVE.indexOf(r[2]) + 1; y = +r[3]; }
+  if (!y || !(m >= 1 && m <= 12) || !(d >= 1 && d <= 31)) return null;
+  return { iso: `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`, text: `${d} ${UA_MONTHS_GENITIVE[m - 1]} ${y}` };
+}
+
+function trainScheduleWindow(x, today) {
+  const raw = (v) => (v == null ? '' : String(v).trim());
+  const untilRaw = raw(x.until), fromRaw = raw(x.from);
+  const until = untilRaw ? parseScheduleDate(untilRaw) : null;
+  const from = fromRaw ? parseScheduleDate(fromRaw) : null;
+  // Новий розклад ще не діє. «new» у номері без дати from — як було в червні: час без підсвітки
+  const pending = fromRaw ? !(from && today >= from.iso) : /new/i.test(raw(x.number));
+  return {
+    gone: !!(until && today > until.iso),
+    pending: pending,
+    fromText: fromRaw && pending ? (from ? from.text : fromRaw) : '',
+    untilText: untilRaw ? (until ? until.text : untilRaw) : ''
+  };
+}
+
+async function loadTrainsData(){
   try {
     const d = await fetchCachedJson("https://vilnohirsk-trains-production.up.railway.app/api/trains", 'trains_api', 10);
     if(d&&d.trains) {
       let h = `<div class="table-head"><div>№</div><div>Маршрут</div><div>Відпр.</div></div><div id="trains-content">`;
       let changedTrains = [];
+      const changed = [];
 
-      // Зелену позначку "НОВИЙ з 28 червня 2026" прибрано — новий розклад уже діє.
-      // Лишилась тільки ЧЕРВОНА "КУРСУЄ до 27 червня 2026" для старих парних рейсів.
-      const OLD_UNTIL = 'до 27 червня 2026';
-      const hasNewFlag = (num) => /new/i.test(String(num || ''));
+      // Двійник з новим розкладом записаний у файлі з «new» у номері («6018 new») — на сайті номер без нього
       const cleanNum = (num) => String(num || '').replace(/new/ig, '').replace(/[\s\-_]+$/,'').trim();
-
-      // Збираємо чисті номери, у яких є "new"-версія — щоб позначити парну стару червоним
-      const newNumbers = new Set();
-      d.trains.forEach(x => { if (x && hasNewFlag(x.number)) newNumbers.add(cleanNum(x.number)); });
+      const today = getKyivDateISO();
 
       // Клас статусу (future/soon/passed) і відображуваний час для рядка
       const statusFor = (timeStr) => {
@@ -2056,26 +2086,28 @@ async function loadTrainsData(){
 
       d.trains.forEach((x, i) => {
         if (!x) return; const id = "train-" + i;
+        const win = trainScheduleWindow(x, today);
+        if (win.gone) return; // останній день курсування минув — рейсу вже немає
         const hc = x.note && String(x.note).trim() && String(x.note).trim() !== "змін немає...";
-        if (hc) { changedTrains.push(x.number); }
-
         const number = cleanNum(x.number);
-        const isNew = hasNewFlag(x.number);
-        const isEnding = !isNew && newNumbers.has(number); // стара версія, що скоро скасується
+        if (hc) { changed.push(x); changedTrains.push(number); }
 
         let badgeHtml = '', rowClass = '', numClass = hc ? ' has-changes' : '';
-        if (isEnding) {
-          badgeHtml = `<div class="train-end-tag">⛔ КУРСУЄ <span class="train-end-date">${OLD_UNTIL}</span></div>`;
+        if (win.fromText) {
+          badgeHtml = `<div class="train-new-tag">🆕 НОВИЙ <span class="train-new-date">з ${escapeHTML(win.fromText)}</span></div>`;
+          rowClass = ' train-new'; numClass = '';
+        } else if (win.untilText) {
+          badgeHtml = `<div class="train-end-tag">⛔ КУРСУЄ <span class="train-end-date">до ${escapeHTML(win.untilText)}</span></div>`;
           rowClass = ' train-ending'; numClass = ' has-changes';
         }
 
         const st = statusFor(x.time);
-        // Для нового розкладу (з 28 червня) тимчасово не підсвічуємо час зупинок і час відправлення — все нейтральним
-        const timeSc = isNew ? '' : st.sc;
+        // Поки новий розклад не діє, час зупинок і відправлення не підсвічуємо — все нейтральним
+        const timeSc = win.pending ? '' : st.sc;
         const routeCell = `<div class="route-cell"><div class="route-text">${escapeHTML(x.route)}</div>${badgeHtml}</div>`;
-        const details = `${x.fullSchedule ? renderGrid(x.fullSchedule, false, isNew) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}`;
+        const details = `${x.fullSchedule ? renderGrid(x.fullSchedule, false, win.pending) : "Немає даних"}${hc ? `<div class="details-divider"></div><div class="details-note">${escapeHTML(x.note)}</div>` : ''}${x.altSchedule ? renderGrid(x.altSchedule, true) : ""}`;
 
-        h += `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${numClass}">${escapeHTML(number)}</div>${routeCell}<div class="time-val ${timeSc}">${escapeHTML(isNew ? (x.time || '—') : st.dt)}</div></div><div class="details" id="${id}">${details}</div>`;
+        h += `<div class="train${rowClass}" onclick="toggleTransportDetails('${id}', this)"><div class="train-num-box${numClass}">${escapeHTML(number)}</div>${routeCell}<div class="time-val ${timeSc}">${escapeHTML(win.pending ? (x.time || '—') : st.dt)}</div></div><div class="details" id="${id}">${details}</div>`;
       });
       // Список перемальовується щоразу (час і статуси мають оновлюватись),
       // але відкриті деталі рейсів відновлюємо — інакше вони закривались кожні 2 хв
@@ -2091,7 +2123,7 @@ async function loadTrainsData(){
           if (changedTrains.length > 0) {
               banner.style.display = 'block';
               if (emptyBox) emptyBox.style.display = 'none';
-              list.innerHTML = changedTrains.map(num =>
+              list.innerHTML = [...new Set(changedTrains)].map(num =>
                 `<span class="train-change-tag">${escapeHTML(num)}</span>`
               ).join('');
           } else {
@@ -2102,9 +2134,8 @@ async function loadTrainsData(){
           }
       }
 
-      const changed = d.trains.filter(x => x && x.note && String(x.note).trim() !== "змін немає...");
       checkNotification('trains', changed);
-      updateTrainsTabBadge(changed.length);
+      updateTrainsTabBadge(new Set(changedTrains).size);
     }
   } catch(e){ logSectionError('електрички', e); document.getElementById("list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
 }
