@@ -846,6 +846,28 @@ async function loadWeather(){
 
 // Ціни на пальне АЗС «Укрнафта» — ручні дані з data/fuel.yaml
 let currentFuelData = null; // збережені дані для збільшеного перегляду
+
+// Дата біля цін. Бот пише у fuel.yaml день, на який мінфін опублікував ціни, а
+// публікує той їх лише в будні десь о 13:30, тож зранку у файлі ще вчорашня дата
+// (у вихідні — п'ятнична чи суботня). Ціни при цьому найсвіжіші, які взагалі є,
+// тому з 00:00 за Києвом показуємо сьогоднішню дату — якщо ціни у файлі не старші
+// за останній будній день. Бот відстав (ціни старші) чи auto: false (ціни ведуться
+// вручну) — показуємо дату з файлу як є.
+function fuelShownDate(data) {
+  const raw = data.updated != null ? String(data.updated).trim() : '';
+  const auto = String(data.auto == null ? '' : data.auto).trim().toLowerCase();
+  if (['false', 'no', 'off', '0', 'ні', 'нi', 'нет', 'вимк', 'вимкнено'].includes(auto)) return raw;
+  const m = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (!m) return raw;
+  const fileDay = new Date(+m[3], +m[2] - 1, +m[1]);
+  if (fileDay.getDate() !== +m[1] || fileDay.getMonth() !== +m[2] - 1) return raw; // 31.02 і подібне
+  const now = getKyivNow();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const lastWorkday = new Date(today); // до цього дня мінфін уже мав опублікувати ціни
+  do { lastWorkday.setDate(lastWorkday.getDate() - 1); } while (lastWorkday.getDay() === 0 || lastWorkday.getDay() === 6);
+  if (fileDay >= today || fileDay < lastWorkday) return raw;
+  return `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
+}
 async function loadFuelData() {
   const host = document.getElementById('fuel-widget');
   if (!host) return;
@@ -874,9 +896,10 @@ async function loadFuelData() {
       return `<div class="fuel-item"><span class="fuel-name" style="color:${color};">${name}</span><span class="fuel-price">${priceHtml}</span></div>`;
     }).join('');
 
-    const updated = data.updated ? `<span class="fuel-updated">${escapeHTML(String(data.updated))}</span>` : '';
+    const shownDate = fuelShownDate(data);
+    const updated = shownDate ? `<span class="fuel-updated">${escapeHTML(shownDate)}</span>` : '';
     // Зберігаємо дані для збільшеного перегляду (для людей зі слабким зором)
-    currentFuelData = { fuels: fuels, updated: data.updated || '' };
+    currentFuelData = { fuels: fuels, updated: shownDate };
     // innerHTML лише при реальній зміні: інакше кожні 2 хв даремно перезбирали DOM і рвали виділення тексту
     if (dataChanged('render_fuel', currentFuelData)) {
       host.innerHTML = `<div class="fuel-head"><span class="fuel-title">⛽ Укрнафта <span style="font-weight:600;color:rgba(255,255,255,0.5);">грн/л</span></span>${updated}</div><div class="fuel-grid">${items}</div><div class="fuel-tap-hint">🔍 Збільшити</div>`;
