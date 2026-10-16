@@ -33,7 +33,7 @@
 
 show: true
 auto: true
-updated: "15.10.2026"
+updated: "16.10.2026"
 
 fuels:
   - name: "95E"
