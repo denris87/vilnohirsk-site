@@ -35,7 +35,7 @@
 
 show: true
 auto: true
-updated: "19.10.2026"
+updated: "20.10.2026"
 
 fuels:
   - name: "95E"
