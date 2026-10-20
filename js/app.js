@@ -2054,6 +2054,8 @@ function toggleTransportDetails(id, el) {
 //                         а з наступного дня рейс сам зникає зі списку;
 //   from:  "21.10.2026" — перший день нового розкладу: до цієї дати зелена плашка «🆕 НОВИЙ з 21 жовтня 2026»
 //                         і час не підсвічується (рейс ще не курсує), з цього дня рейс звичайний.
+//   badge: "новий розклад" — зелена плашка «🆕 НОВИЙ РОЗКЛАД», поки поле є у файлі (до дати from
+//                         у ній ще й «з 21 жовтня 2026»). Плашка «КУРСУЄ до …» важливіша й показується замість неї.
 // Дату можна писати й як «2026-10-20» чи «20 жовтня 2026». Якщо дату не вдалося розібрати,
 // плашка покаже текст як є, а рейс зі списку не зникне.
 const UA_MONTHS_GENITIVE = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня', 'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'];
@@ -2116,9 +2118,12 @@ async function loadTrainsData(){
         const number = cleanNum(x.number);
         if (hc) { changed.push(x); changedTrains.push(number); }
 
+        const badgeText = x.badge != null ? String(x.badge).trim() : '';
         let badgeHtml = '', rowClass = '', numClass = hc ? ' has-changes' : '';
-        if (win.fromText) {
-          badgeHtml = `<div class="train-new-tag">🆕 НОВИЙ <span class="train-new-date">з ${escapeHTML(win.fromText)}</span></div>`;
+        if (win.fromText || (badgeText && !win.untilText)) {
+          // Зелена плашка: текст із badge (без нього — «НОВИЙ»), а до дати from — ще й «з …»
+          const since = win.fromText ? ` <span class="train-new-date">з ${escapeHTML(win.fromText)}</span>` : '';
+          badgeHtml = `<div class="train-new-tag">🆕 ${escapeHTML(badgeText || 'НОВИЙ')}${since}</div>`;
           rowClass = ' train-new'; numClass = '';
         } else if (win.untilText) {
           badgeHtml = `<div class="train-end-tag">⛔ КУРСУЄ <span class="train-end-date">до ${escapeHTML(win.untilText)}</span></div>`;
