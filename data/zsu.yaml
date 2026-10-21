@@ -22,13 +22,13 @@
 # ───────────────────────────────────────────────────────────────
 
 volunteers:
-  - title: "На таканину"
-    description: "На тканину та фурнітуру для пошиття м’яких медичних нош та антитепловізійних мінометних чохлів."
-    jar_url: "https://send.monobank.ua/jar/5C8YhvDz5p"
-    card_number: "4874 1000 3287 5828"
-    goal: 22650
-    collected: 16325
-    active: false
+  - title: "На авто"
+    description: "Терміновий збір на авто для військового побратима."
+    jar_url: "https://send.monobank.ua/jar/6Q8pFugzFT"
+    card_number: "4874 1000 3484 1612"
+    goal: 150000
+    collected: 10025
+    active: true
 
 # ─── ШАБЛОН нового збору: прибери «# » зліва й впиши свої дані ───
 #
