@@ -48,7 +48,7 @@ fuels:
     price: "86.90"
     color: "#ffcc00"
   - name: "ДП"
-    price: "100.90"
+    price: "101.90"
     color: "#2ecc8f"
   - name: "Газ"
     price: "50.90"
