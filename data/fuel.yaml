@@ -51,5 +51,5 @@ fuels:
     price: "101.90"
     color: "#2ecc8f"
   - name: "Газ"
-    price: "50.90"
+    price: "51.90"
     color: "#58c4f5"
