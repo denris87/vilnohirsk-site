@@ -995,9 +995,10 @@ function svitloOkTitle(dateStr) {
   return w ? `✅ ${w} відключень немає` : '✅ Відключень немає';
 }
 
-// Радіо ↔ графік відключень: поки відключень немає, на місці плашки графіка
-// тимчасово показується радіо. Щойно у svitlo.yaml з'являються відключення
-// (заповнені slots) — плашка графіка повертається автоматично, радіо ховається.
+// Радіо ↔ графік відключень: плашка графіка стоїть на місці радіо завжди, коли
+// у svitlo.yaml show: true — і з відключеннями, і без них (тоді вона зелена:
+// «✅ Відключень немає»). Радіо повертається лише тоді, коли блок вимкнено
+// (show: false) або файл графіка не завантажився.
 function showRadioInsteadOfSvitlo(svitloHost, divider) {
   if (svitloHost) svitloHost.style.display = 'none';
   const radio = document.querySelector('.radio-container');
@@ -1017,7 +1018,7 @@ async function loadSvitloData() {
   const host = document.getElementById('svitlo-widget');
   if (!host) return;
   const divider = document.getElementById('svitlo-divider');
-  // Блок графіка не показується (вимкнено/помилка/немає відключень) — його місце займає радіо
+  // Блок графіка не показується (вимкнено/помилка) — його місце займає радіо
   const hide = () => { showRadioInsteadOfSvitlo(host, divider); };
   if (!yamlReady('svitlo', loadSvitloData, hide)) return; // немає парсера — на місці графіка лишається радіо
   try {
@@ -1031,17 +1032,19 @@ async function loadSvitloData() {
     const noOutages = !providers.some(p => Array.isArray(p.queues) && p.queues.some(q => q && Array.isArray(q.slots) && q.slots.filter(Boolean).length > 0));
     currentSvitloData = { providers: providers, updated: data.updated || '', revised: data.revised || '', noOutages: noOutages };
 
-    // Відключень немає — тимчасово повертаємо радіо замість зеленої плашки
-    if (noOutages) { hide(); return; }
-
-    // Є відключення — плашка графіка на місці, радіо ховаємо
+    // Плашка графіка на місці радіо: є відключення — «💡 Відключення світла»,
+    // немає — зелена «✅ Сьогодні/Завтра відключень немає»
     hideRadioForSvitlo();
     // Згорнута плашка: назва + дата (+ «Оновлено о…», якщо графік змінювали протягом дня). Повний графік — у вікні по тапу.
     const dateLine = currentSvitloData.updated ? `<span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
     const revLine = currentSvitloData.revised ? `<span class="svitlo-rev">🔄 Оновлено о ${escapeHTML(String(currentSvitloData.revised))}</span>` : '';
     // innerHTML лише при реальній зміні графіка (без зайвих перемальовувань щодва хвилини)
-    if (dataChanged('render_svitlo', { providers: currentSvitloData.providers, updated: currentSvitloData.updated, revised: currentSvitloData.revised })) {
-      host.innerHTML = `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}${revLine}</div>`;
+    // «Сьогодні/Завтра» в зеленому заголовку залежить і від поточної дати, тож він теж у ключі
+    const okTitle = noOutages ? svitloOkTitle(currentSvitloData.updated) : '';
+    if (dataChanged('render_svitlo', { providers: currentSvitloData.providers, updated: currentSvitloData.updated, revised: currentSvitloData.revised, ok: okTitle })) {
+      host.innerHTML = noOutages
+        ? `<div class="svitlo-box svitlo-box-ok"><span class="svitlo-name">${okTitle}</span>${dateLine}${revLine}</div>`
+        : `<div class="svitlo-box"><span class="svitlo-name">💡 Відключення світла</span>${dateLine}${revLine}</div>`;
     }
     host.style.display = 'block';
     host.style.cursor = 'pointer';
