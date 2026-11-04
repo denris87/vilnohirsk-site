@@ -431,7 +431,7 @@ document.addEventListener('touchend', function(e){
 
         <div id="svitlo-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 6px auto; display:none;"></div>
 
-        <!-- Радіо показується, коли у svitlo.yaml немає відключень; щойно з'являються — його місце автоматично займає плашка графіка (перемикає loadSvitloData). -->
+        <!-- Радіо сховане: на його місці плашка графіка відключень. Повертається лише при show: false у svitlo.yaml або якщо графік не завантажився (перемикає loadSvitloData). -->
         <div class="radio-container" style="display: none; align-items: center; gap: 10px; width: 100%; padding: 0 4px;">
           <button id="radio-btn" onclick="toggleRadio()" style="width: 34px; height: 34px; border-radius: 50%; border: none; background: #88dec6; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); flex-shrink: 0; padding: 0; outline: none; transition: transform 0.2s;">
             <span id="radio-icon" style="display: flex; align-items: center; justify-content: center; transform: translateX(1px);"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg></span>
@@ -569,6 +569,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20261020a" defer></script>
+<script src="./js/app.js?v=20261104a" defer></script>
 </body>
 </html>
