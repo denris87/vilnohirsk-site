@@ -28,7 +28,7 @@ volunteers:
     card_number: "4874 1000 3484 1612"
     goal: 150000
     collected: 37757
-    active: true
+    active: false
 
 # ─── ШАБЛОН нового збору: прибери «# » зліва й впиши свої дані ───
 #
