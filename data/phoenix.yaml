@@ -436,11 +436,3 @@ phoenix:
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-09-28_15-27-34.jpg?raw=true"
       - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/photo_2026-09-28_15-27-36.jpg?raw=true"
     active: true
-
-  - name: "Касьяненко Олег Валерійович"
-    dob: "21.10.1987"
-    date_missing: "08.08.2026"
-    callsign: ""
-    photos:
-      - "https://github.com/denris87/vilnohirsk-phoenix-api/blob/main/IMG_3410%202.jpg?raw=true"
-    active: true
