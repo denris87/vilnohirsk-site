@@ -35,11 +35,11 @@
 
 show: true
 auto: true
-updated: "12.11.2026"
+updated: "13.11.2026"
 
 fuels:
   - name: "95E"
-    price: "89.90"
+    price: "86.90"
     color: "#c8ccd2"
   - name: "95"
     price: "86.90"
