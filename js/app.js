@@ -1253,12 +1253,19 @@ async function loadDelaysData() {
       const station = stationTxt
         ? `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує зі ст.</span> <b>${escapeHTML(stationTxt)}</b></div>`
         : `<div class="delay-station">🚉 <span class="delay-station-lbl">прямує з</span> <b>початкової станції</b></div>`;
+      // Прогноз прибуття до Вільногірська — той самий, що в дописі в Telegram
+      // («Прогноз прибуття: 20:51»); сервер його віддає, у ручному файлі —
+      // необов'язкове поле forecast. Немає — плашку не показуємо.
+      const forecastTxt = String(d.forecast == null ? '' : d.forecast).trim();
+      const forecast = forecastTxt
+        ? `<div class="delay-station">🏁 <span class="delay-station-lbl">прогноз прибуття:</span> <b>${escapeHTML(forecastTxt)}</b></div>`
+        : '';
       const note = (d.note && String(d.note).trim()) ? `<div class="delay-note">⚠️ ${escapeHTML(String(d.note))}</div>` : '';
       // Під станцією — коли затримку опубліковали: від цього часу й рахувати,
       // де зараз електричка. Немає часу — рядок не показуємо.
       const at = stampOf(d);
       const stamp = at ? `<div class="delay-stamp">🕐 оновлено ${escapeHTML(at)}</div>` : '';
-      return `<div class="delay-row"><div class="delay-top"><div class="delay-num">№${escapeHTML(String(d.number))}</div>${route}</div><div class="delay-bottom"><div class="delay-where">${station}${stamp}</div><div class="delay-min"><b>+${dl.value}</b><span>${dl.unit}</span></div></div>${note}</div>`;
+      return `<div class="delay-row"><div class="delay-top"><div class="delay-num">№${escapeHTML(String(d.number))}</div>${route}</div><div class="delay-bottom"><div class="delay-where">${station}${forecast}${stamp}</div><div class="delay-min"><b>+${dl.value}</b><span>${dl.unit}</span></div></div>${note}</div>`;
     }).join('');
 
     host.innerHTML = `<div class="trains-delays-head"><span class="trains-delays-title"><span class="delay-live-dot"></span>⏱️ Затримки електричок</span></div>${rows}`;
