@@ -429,10 +429,10 @@ document.addEventListener('touchend', function(e){
       <div class="widget liquid-glass" style="padding: 12px 12px; justify-content: space-between; display: flex; flex-direction: column;">
         <div class="weather-box" id="weather-container" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 72px;"></div>
 
-        <div id="svitlo-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 6px auto; display:none;"></div>
+        <div id="radio-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 6px auto;"></div>
 
-        <!-- Радіо сховане: графік відключень показується смугою під картками. Радіо повертається сюди лише при show: false у svitlo.yaml або якщо графік не завантажився (перемикає loadSvitloData). -->
-        <div class="radio-container" style="display: none; align-items: center; gap: 10px; width: 100%; padding: 0 4px;">
+        <!-- Радіо — на своєму місці між погодою й цінами на пальне. Графік відключень стоїть окремо, смугою під картками. -->
+        <div class="radio-container" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 0 4px;">
           <button id="radio-btn" onclick="toggleRadio()" style="width: 34px; height: 34px; border-radius: 50%; border: none; background: #88dec6; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); flex-shrink: 0; padding: 0; outline: none; transition: transform 0.2s;">
             <span id="radio-icon" style="display: flex; align-items: center; justify-content: center; transform: translateX(1px);"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg></span>
           </button>
@@ -569,6 +569,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20261116b" defer></script>
+<script src="./js/app.js?v=20261116c" defer></script>
 </body>
 </html>
