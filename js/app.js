@@ -995,6 +995,15 @@ function svitloOkTitle(dateStr) {
   return w ? `✅ ${w} відключень немає` : '✅ Відключень немає';
 }
 
+// «Оновлено о …» на згорнутій плашці: якщо дата в revised та сама, що й у графіку
+// (updated), лишаємо тільки час — щоб рядок не переносився у вузькій колонці.
+// Повністю (з датою) — у вікні графіка.
+function svitloRevShort(revised, updated) {
+  const r = String(revised || '').trim();
+  const m = r.match(/^(\d{1,2}:\d{2})\s+(\d{1,2}\.\d{1,2}\.\d{4})$/);
+  return (m && m[2] === String(updated || '').trim()) ? m[1] : r;
+}
+
 // Радіо ↔ графік відключень: плашка графіка стоїть на місці радіо завжди, коли
 // у svitlo.yaml show: true — і з відключеннями, і без них (тоді вона зелена:
 // «✅ Відключень немає»). Радіо повертається лише тоді, коли блок вимкнено
@@ -1037,7 +1046,7 @@ async function loadSvitloData() {
     hideRadioForSvitlo();
     // Згорнута плашка: назва + дата (+ «Оновлено о…», якщо графік змінювали протягом дня). Повний графік — у вікні по тапу.
     const dateLine = currentSvitloData.updated ? `<span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
-    const revLine = currentSvitloData.revised ? `<span class="svitlo-rev">🔄 Оновлено о ${escapeHTML(String(currentSvitloData.revised))}</span>` : '';
+    const revLine = currentSvitloData.revised ? `<span class="svitlo-rev">🔄 Оновлено о ${escapeHTML(svitloRevShort(currentSvitloData.revised, currentSvitloData.updated))}</span>` : '';
     // innerHTML лише при реальній зміні графіка (без зайвих перемальовувань щодва хвилини)
     // «Сьогодні/Завтра» в зеленому заголовку залежить і від поточної дати, тож він теж у ключі
     const okTitle = noOutages ? svitloOkTitle(currentSvitloData.updated) : '';
