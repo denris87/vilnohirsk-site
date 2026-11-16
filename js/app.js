@@ -1004,10 +1004,10 @@ function svitloRevShort(revised, updated) {
   return (m && m[2] === String(updated || '').trim()) ? m[1] : r;
 }
 
-// Радіо ↔ графік відключень: плашка графіка стоїть на місці радіо завжди, коли
-// у svitlo.yaml show: true — і з відключеннями, і без них (тоді вона зелена:
-// «✅ Відключень немає»). Радіо повертається лише тоді, коли блок вимкнено
-// (show: false) або файл графіка не завантажився.
+// Радіо ↔ графік відключень: графік показується смугою на всю ширину під датою
+// й погодою завжди, коли у svitlo.yaml show: true — і з відключеннями, і без них
+// (тоді смуга зелена: «✅ Відключень немає»). Радіо в картці погоди повертається
+// лише тоді, коли блок вимкнено (show: false) або файл графіка не завантажився.
 function showRadioInsteadOfSvitlo(svitloHost, divider) {
   if (svitloHost) svitloHost.style.display = 'none';
   const radio = document.querySelector('.radio-container');
@@ -1062,7 +1062,7 @@ async function loadSvitloData() {
     host.setAttribute('role', 'button');
     host.setAttribute('tabindex', '0');
     host.setAttribute('aria-label', 'Графік відключень світла — натисніть, щоб побачити час');
-    if (divider) divider.style.display = 'block';
+    if (divider) divider.style.display = 'none'; // розділювач у картці погоди лишається тільки для радіо
   } catch (e) { logSectionError('відключення світла', e); invalidateRender('render_svitlo'); hide(); }
 }
 

@@ -431,7 +431,7 @@ document.addEventListener('touchend', function(e){
 
         <div id="svitlo-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 6px auto; display:none;"></div>
 
-        <!-- Радіо сховане: на його місці плашка графіка відключень. Повертається лише при show: false у svitlo.yaml або якщо графік не завантажився (перемикає loadSvitloData). -->
+        <!-- Радіо сховане: графік відключень показується смугою під картками. Радіо повертається сюди лише при show: false у svitlo.yaml або якщо графік не завантажився (перемикає loadSvitloData). -->
         <div class="radio-container" style="display: none; align-items: center; gap: 10px; width: 100%; padding: 0 4px;">
           <button id="radio-btn" onclick="toggleRadio()" style="width: 34px; height: 34px; border-radius: 50%; border: none; background: #88dec6; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); flex-shrink: 0; padding: 0; outline: none; transition: transform 0.2s;">
             <span id="radio-icon" style="display: flex; align-items: center; justify-content: center; transform: translateX(1px);"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg></span>
@@ -446,13 +446,13 @@ document.addEventListener('touchend', function(e){
           <audio id="radio-audio" preload="none"></audio>
         </div>
 
-        <!-- Графік відключень світла (дані з data/svitlo.yaml) -->
-        <div id="svitlo-widget" class="svitlo-widget" style="display:none;"></div>
-
         <div id="fuel-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto; display:none;"></div>
         <div id="fuel-widget" class="fuel-widget" style="display:none;"></div>
       </div>
     </div>
+
+    <!-- Графік відключень світла (дані з data/svitlo.yaml): смуга на всю ширину під датою й погодою -->
+    <div id="svitlo-widget" class="svitlo-widget svitlo-strip liquid-glass" style="display:none;"></div>
 
     <div class="market-group">
       <div class="tabs-wrapper">
