@@ -1004,32 +1004,15 @@ function svitloRevShort(revised, updated) {
   return (m && m[2] === String(updated || '').trim()) ? m[1] : r;
 }
 
-// Радіо ↔ графік відключень: графік показується смугою на всю ширину під датою
-// й погодою завжди, коли у svitlo.yaml show: true — і з відключеннями, і без них
-// (тоді смуга зелена: «✅ Відключень немає»). Радіо в картці погоди повертається
-// лише тоді, коли блок вимкнено (show: false) або файл графіка не завантажився.
-function showRadioInsteadOfSvitlo(svitloHost, divider) {
-  if (svitloHost) svitloHost.style.display = 'none';
-  const radio = document.querySelector('.radio-container');
-  if (radio) radio.style.display = 'flex';
-  if (divider) divider.style.display = 'block'; // розділювач між погодою і радіо
-}
-function hideRadioForSvitlo() {
-  const radio = document.querySelector('.radio-container');
-  if (!radio) return;
-  // якщо радіо саме грало — коректно зупиняємо, щоб не звучало «з-під» графіка
-  const audio = document.getElementById('radio-audio');
-  if (audio && !audio.paused) { try { toggleRadio(); } catch (e) {} }
-  radio.style.display = 'none';
-}
-
+// Графік відключень — смуга на всю ширину під датою й погодою: показується завжди,
+// коли у svitlo.yaml show: true — і з відключеннями, і без них (тоді смуга зелена:
+// «✅ Відключень немає»). Радіо стоїть окремо, у картці погоди, і від графіка не залежить.
 async function loadSvitloData() {
   const host = document.getElementById('svitlo-widget');
   if (!host) return;
-  const divider = document.getElementById('svitlo-divider');
-  // Блок графіка не показується (вимкнено/помилка) — його місце займає радіо
-  const hide = () => { showRadioInsteadOfSvitlo(host, divider); };
-  if (!yamlReady('svitlo', loadSvitloData, hide)) return; // немає парсера — на місці графіка лишається радіо
+  // Графік вимкнено (show: false) чи не завантажився — смугу просто ховаємо
+  const hide = () => { host.style.display = 'none'; };
+  if (!yamlReady('svitlo', loadSvitloData, hide)) return; // немає парсера — смуги не буде
   try {
     const res = await fetch('./data/svitlo.yaml?v=' + Date.now());
     if (!res.ok) { hide(); return; }
@@ -1041,9 +1024,7 @@ async function loadSvitloData() {
     const noOutages = !providers.some(p => Array.isArray(p.queues) && p.queues.some(q => q && Array.isArray(q.slots) && q.slots.filter(Boolean).length > 0));
     currentSvitloData = { providers: providers, updated: data.updated || '', revised: data.revised || '', noOutages: noOutages };
 
-    // Плашка графіка на місці радіо: є відключення — «💡 Відключення світла»,
-    // немає — зелена «✅ Сьогодні/Завтра відключень немає»
-    hideRadioForSvitlo();
+    // Є відключення — «💡 Відключення світла», немає — зелена «✅ Сьогодні/Завтра відключень немає»
     // Згорнута плашка: назва + дата (+ «Оновлено о…», якщо графік змінювали протягом дня). Повний графік — у вікні по тапу.
     const dateLine = currentSvitloData.updated ? `<span class="svitlo-date">на ${escapeHTML(String(currentSvitloData.updated))}</span>` : '';
     const revLine = currentSvitloData.revised ? `<span class="svitlo-rev">🔄 Оновлено о ${escapeHTML(svitloRevShort(currentSvitloData.revised, currentSvitloData.updated))}</span>` : '';
@@ -1062,7 +1043,6 @@ async function loadSvitloData() {
     host.setAttribute('role', 'button');
     host.setAttribute('tabindex', '0');
     host.setAttribute('aria-label', 'Графік відключень світла — натисніть, щоб побачити час');
-    if (divider) divider.style.display = 'none'; // розділювач у картці погоди лишається тільки для радіо
   } catch (e) { logSectionError('відключення світла', e); invalidateRender('render_svitlo'); hide(); }
 }
 
