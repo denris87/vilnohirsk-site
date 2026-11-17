@@ -1,0 +1,4 @@
+# GitHub Pages (Jekyll) за замовчуванням не публікує папки, що починаються з крапки.
+# .well-known потрібна Android-застосунку з Google Play: у ній assetlinks.json,
+# який підтверджує, що застосунок і сайт vilnohirsk.online — одного власника.
+include: [".well-known"]
