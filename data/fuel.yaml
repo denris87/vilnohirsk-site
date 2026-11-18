@@ -35,7 +35,7 @@
 
 show: true
 auto: true
-updated: "17.11.2026"
+updated: "18.11.2026"
 
 fuels:
   - name: "95E"
@@ -51,5 +51,5 @@ fuels:
     price: "99.90"
     color: "#2ecc8f"
   - name: "Газ"
-    price: "60.90"
+    price: "61.90"
     color: "#58c4f5"
