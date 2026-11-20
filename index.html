@@ -94,7 +94,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20261120d">
+<link rel="stylesheet" href="./css/styles.css?v=20261120e">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -304,7 +304,7 @@ document.addEventListener('touchend', function(e){
       <div class="th-brand"><b>Smart Вільногірськ</b><span>міський портал</span></div>
       <div class="th-grid">
         <!-- Щодня: світло й електрички -->
-        <button type="button" class="th-tile th-big th-glow" id="th-svitlo" style="--c:#FFB547;--rgb:255,181,71" onclick="tileAction('svitlo',event)"><span class="th-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg></span><span class="th-txt"><span class="th-l">Світло</span><span class="th-st" id="th-svitlo-status">Графік відключень</span><span class="th-chips" id="th-svitlo-chips"></span></span></button>
+        <button type="button" class="th-tile th-big th-glow" id="th-svitlo" style="--c:#FFB547;--rgb:255,181,71" onclick="tileAction('svitlo',event)"><span class="th-badges" id="th-svitlo-badges"></span><span class="th-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg></span><span class="th-txt"><span class="th-l">Світло</span><span class="th-st" id="th-svitlo-status">Графік відключень</span><span class="th-chips" id="th-svitlo-chips"></span></span></button>
         <button type="button" class="th-tile th-big th-glow" data-tab="trains" style="--c:#38BDF8;--rgb:56,189,248" onclick="openTileSection('trains','schedule',event)"><span class="th-badges"></span><span class="th-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-4.42 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></span><span class="th-txt"><span class="th-l">Електрички</span><span class="th-st" id="th-trains-status"></span><span class="th-d">Розклад Дніпро ↔ П’ятихатки</span></span></button>
         <!-- Транспорт -->
         <button type="button" class="th-tile" data-tab="long-trains" style="--c:#A18CD1;--rgb:161,140,209" onclick="openTileSection('long-trains','schedule',event)"><span class="th-badges"></span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-4 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h2.23l2-2H14l2 2h2v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.5-4-8-4zm0 2c2.76 0 4 .5 4 .5H8s1.24-.5 4-.5zM6.5 7h11v4.5h-11V7zM12 17c-1.66 0-3-1.34-3-3h6c0 1.66-1.34 3-3 3z"/></svg><span class="th-l">Потяги</span></button>
@@ -594,6 +594,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20261120c" defer></script>
+<script src="./js/app.js?v=20261120e" defer></script>
 </body>
 </html>

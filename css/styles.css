@@ -115,6 +115,21 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .svitlo-box-off .svitlo-name{color:#ff9aa2;}
 .svitlo-box-on .svitlo-name{color:#9affc4;}
 .svitlo-box-next .svitlo-name,.svitlo-box-stale .svitlo-name{color:#ffe08a;}
+/* Оновлений графік, якого людина ще не відкривала: смуга світиться, доки не відкриють вікно */
+.svitlo-strip.svitlo-strip-new{border-color:rgba(255,204,0,0.85);box-shadow:0 0 0 1px rgba(255,204,0,0.6),0 0 22px rgba(255,204,0,0.45);animation:svNewGlow 2.2s ease-in-out infinite;}
+@keyframes svNewGlow{0%,100%{box-shadow:0 0 0 1px rgba(255,204,0,0.5),0 0 10px rgba(255,204,0,0.25);}50%{box-shadow:0 0 0 1px rgba(255,204,0,0.9),0 0 26px rgba(255,204,0,0.6);}}
+.svitlo-box-upd .svitlo-name{color:#ffcc00;font-size:14px;}
+.svitlo-box-upd .svitlo-when{white-space:normal;color:#fff;}
+/* У вікні: банер змін, позначки змінених черг, «Було: …» */
+.sv-upd{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;background:rgba(255,204,0,0.12);border:1px solid rgba(255,204,0,0.6);border-radius:14px;padding:10px 12px;margin:10px 0 2px;}
+.sv-upd b{font-size:15px;font-weight:900;color:#ffcc00;}
+.sv-upd span{font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.85);}
+.sv-chg{display:inline-block;vertical-align:2px;margin-left:6px;font-size:10px;font-weight:900;letter-spacing:0.2px;padding:2px 7px;border-radius:7px;background:#ffcc00;color:#1a1200;}
+.sv-q-chg{position:relative;}
+.sv-q-chg::after{content:'';position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#ffcc00;box-shadow:0 0 6px #ffcc00;border:2px solid #0f1830;}
+.sv-was{font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.6);padding:8px 2px 0;margin-top:2px;border-top:1px dashed rgba(255,255,255,0.15);font-variant-numeric:tabular-nums;}
+.sv-was s{color:rgba(255,255,255,0.75);}
+@media (prefers-reduced-motion: reduce){.svitlo-strip.svitlo-strip-new{animation:none;}}
 /* Розумний графік у вікні: вибір своєї черги, стан зараз, шкала доби, відключення з тривалістю */
 .sv-meta{text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:6px;}
 .sv-rev{text-align:center;font-size:12.5px;color:#ffcc00;font-weight:700;margin-bottom:6px;}
@@ -732,6 +747,9 @@ html.tiles-mode .alert-group,html.tiles-mode .schedule-group,html.tiles-mode .ma
 .th-chips:empty{display:none}
 .th-chips span{font-size:10px;font-weight:800;padding:2px 6px;border-radius:7px;background:rgba(255,77,77,0.22);border:1px solid rgba(255,77,77,0.5);color:#ffd2d2}
 .th-chips .th-chip-q{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.32);color:#fff}
+/* Плитка «Світло»: графік оновили, а людина ще не дивилась */
+.th-new{font-size:9.5px;font-weight:900;letter-spacing:0.3px;padding:2px 7px;border-radius:8px;background:linear-gradient(135deg,#ffcc00,#ff8a00);color:#1a1200;box-shadow:0 0 10px rgba(255,170,0,0.8);text-transform:uppercase;white-space:nowrap}
+.th-tile.th-svitlo-new{box-shadow:0 0 0 2px #ffcc00,0 0 20px rgba(255,204,0,0.5)}
 .th-glow{box-shadow:0 0 0 1px rgba(var(--rgb),0.35),0 10px 24px rgba(0,0,0,0.25)}
 .th-ph{background:linear-gradient(135deg,#d32f2f,#8b0000);border-color:#ff4d4d}
 .th-ph svg{color:#fff}

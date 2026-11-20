@@ -812,6 +812,13 @@ function renderSvitloTile(state) {
   svitloTileState = state || null;
   const st = document.getElementById('th-svitlo-status'), chips = document.getElementById('th-svitlo-chips');
   if (!st || !chips) return;
+  const tile = document.getElementById('th-svitlo'), badges = document.getElementById('th-svitlo-badges');
+  const unseen = state ? svitloUnseen(state, getSvitloSeen()) : null;
+  if (tile) tile.classList.toggle('th-svitlo-new', !!unseen);
+  if (badges) {
+    const b = unseen ? `<span class="th-new">${unseen.kind === 'new' ? 'Новий графік' : 'Оновлено'}</span>` : '';
+    if (badges.dataset.v !== b) { badges.dataset.v = b; badges.innerHTML = b; }
+  }
   if (!state) { st.textContent = 'Графік відключень'; st.className = 'th-st'; chips.innerHTML = ''; return; }
   // Обрана своя черга — її стан і найближчі відключення
   const my = svitloMyQueue(state);
@@ -1242,6 +1249,38 @@ function svitloStateText(st, dateStr) {
 // коли у svitlo.yaml show: true — і з відключеннями, і без них (тоді смуга зелена:
 // «✅ Відключень немає»).
 // Якщо людина обрала свою чергу — смуга пише стан саме її черги з відліком часу.
+// === Оновлений графік має бути помітним ===
+// Браузер пам'ятає, який графік людина вже переглядала (відкривала вікно). Якщо графік змінили
+// (інший час у чергах) або вийшов графік на нову дату — смуга й плитка світяться
+// «Графік змінено о …» / «Новий графік на …», доки людина не відкриє вікно. У вікні — що саме змінилось.
+const SVITLO_SEEN_KEY = 'svitlo_seen';
+let svitloModalBase = null; // що людина бачила до відкриття вікна (для позначок «змінено»)
+function svitloSnapshot(d) {
+  const slots = {};
+  d.providers.forEach(p => (Array.isArray(p.queues) ? p.queues : []).forEach(q => {
+    if (q && q.queue != null) slots[svitloQueueId(p, q)] = (Array.isArray(q.slots) ? q.slots : []).filter(Boolean).map(String).join(', ');
+  }));
+  return { updated: String(d.updated || ''), slots: slots };
+}
+function svitloSnapSig(snap) { return snap.updated + '#' + JSON.stringify(snap.slots); }
+function getSvitloSeen() { try { const v = JSON.parse(localStorage.getItem(SVITLO_SEEN_KEY) || 'null'); return v && typeof v.slots === 'object' ? v : null; } catch (e) { return null; } }
+function setSvitloSeen(snap) { try { localStorage.setItem(SVITLO_SEEN_KEY, JSON.stringify(snap)); } catch (e) {} }
+// Чого людина ще не бачила: null — нічого; { kind: 'changed' | 'new', changed: { id: як було } }
+function svitloUnseen(d, base) {
+  if (!d || !base) return null;
+  const cur = svitloSnapshot(d);
+  if (svitloSnapSig(base) === svitloSnapSig(cur)) return null;
+  if (base.updated !== cur.updated) return { kind: 'new', changed: {} };
+  const changed = {};
+  Object.keys(cur.slots).forEach(id => { if (base.slots[id] !== cur.slots[id]) changed[id] = base.slots[id] === undefined ? null : base.slots[id]; });
+  return { kind: 'changed', changed: changed };
+}
+function svitloUnseenTitle(d, u) {
+  if (u.kind === 'new') return `🆕 Новий графік на ${svitloDdMm(d.updated)}`;
+  const t = d.revised ? svitloRevShort(d.revised, d.updated) : '';
+  return '🔄 Графік змінено' + (t ? ` о ${escapeHTML(t)}` : '');
+}
+
 async function loadSvitloData() {
   const host = document.getElementById('svitlo-widget');
   if (!host) return;
@@ -1258,6 +1297,7 @@ async function loadSvitloData() {
     // «Чистий» день: у жодній черзі жодного постачальника немає відключень.
     const noOutages = !providers.some(p => Array.isArray(p.queues) && p.queues.some(q => q && Array.isArray(q.slots) && q.slots.filter(Boolean).length > 0));
     currentSvitloData = { providers: providers, updated: data.updated || '', revised: data.revised || '', noOutages: noOutages };
+    if (!getSvitloSeen()) setSvitloSeen(svitloSnapshot(currentSvitloData)); // перший візит — без підсвітки
     renderSvitloAll();
     host.style.display = 'block';
     host.style.cursor = 'pointer';
@@ -1273,9 +1313,9 @@ async function loadSvitloData() {
 // графіка, при виборі черги і щопівхвилини (svitloTick), щоб відлік «через …» був живим.
 function renderSvitloAll(resetModal) {
   if (!currentSvitloData) return;
+  if (document.getElementById('svitlo-modal')) renderSvitloModal(resetModal); // вікно відкрите — графік переглянуто
   renderSvitloStrip();
   renderSvitloTile(currentSvitloData);
-  if (document.getElementById('svitlo-modal')) renderSvitloModal(resetModal);
 }
 function svitloTick() { if (!document.hidden) renderSvitloAll(); }
 
@@ -1288,8 +1328,14 @@ function renderSvitloStrip() {
   const revLine = d.revised ? `<span class="svitlo-rev">🔄 Оновлено о ${escapeHTML(svitloRevShort(d.revised, d.updated))}</span>` : '';
   const my = svitloMyQueue(d);
   const st = my ? svitloQueueState(my.slots, svitloDayOffset(d.updated)) : null;
+  const unseen = svitloUnseen(d, getSvitloSeen());
+  host.classList.toggle('svitlo-strip-new', !!unseen);
   let html;
-  if (st && st.kind !== 'stale') {
+  if (unseen) {
+    let sub = 'Натисніть, щоб переглянути';
+    if (my && unseen.kind === 'changed') sub = my.id in unseen.changed ? `Ваша черга ${escapeHTML(my.queue)} змінилась` : `Черга ${escapeHTML(my.queue)} без змін`;
+    html = `<div class="svitlo-box svitlo-box-upd"><span class="svitlo-name">${svitloUnseenTitle(d, unseen)}</span><span class="svitlo-when">${sub}</span></div>`;
+  } else if (st && st.kind !== 'stale') {
     const t = svitloStateText(st, d.updated);
     html = `<div class="svitlo-box svitlo-box-${t.cls}"><span class="svitlo-name">${t.ico} Черга ${escapeHTML(my.queue)} · ${t.title}</span><span class="svitlo-when">${t.sub}</span>${revLine}</div>`;
   } else if (d.noOutages) {
@@ -1324,7 +1370,8 @@ function openSvitloModal() {
   });
   document.body.appendChild(modal);
   document.body.style.overflow = 'hidden';
-  renderSvitloModal(true);
+  svitloModalBase = getSvitloSeen();
+  renderSvitloAll(true); // вікно позначить графік переглянутим — смуга й плитка вже без підсвітки
 }
 
 // Вміст вікна. reset — заново вирішити, чи розгорнуто «Усі черги» (розгорнуто, поки черга не обрана);
@@ -1335,13 +1382,26 @@ function renderSvitloModal(reset) {
   const my = svitloMyQueue(d);
   const allEl = body.querySelector('.sv-all');
   const allOpen = (!reset && allEl) ? allEl.open : !my;
-  const html = svitloModalHtml(d, my, allOpen);
+  setSvitloSeen(svitloSnapshot(d)); // людина дивиться саме цей графік
+  const html = svitloModalHtml(d, my, allOpen, svitloUnseen(d, svitloModalBase));
   if (body.dataset.v !== html) { body.dataset.v = html; body.innerHTML = html; }
 }
 
-function svitloModalHtml(d, my, allOpen) {
+function svitloModalHtml(d, my, allOpen, diff) {
+  const chg = (diff && diff.changed) || {};
   const upd = d.updated ? `<div class="sv-meta">на ${escapeHTML(String(d.updated))}</div>` : '';
-  const rev = d.revised ? `<div class="sv-rev">🔄 Оновлено о ${escapeHTML(String(d.revised))}</div>` : '';
+  const rev = d.revised && !(diff && diff.kind === 'changed') ? `<div class="sv-rev">🔄 Оновлено о ${escapeHTML(String(d.revised))}</div>` : '';
+  // Банер про зміни з часу, коли людина дивилась графік востаннє
+  let banner = '';
+  if (diff) {
+    let sub = 'Подивіться час своєї черги';
+    if (diff.kind === 'changed') {
+      const names = Object.keys(chg).map(id => id.split('|').slice(1).join('|'));
+      sub = my && my.id in chg ? `Змінилась ваша черга ${escapeHTML(my.queue)}` : names.length ? 'Змінились черги: ' + names.map(escapeHTML).join(', ') : sub;
+      if (my && !(my.id in chg) && names.length) sub += ` · ваша ${escapeHTML(my.queue)} без змін`;
+    }
+    banner = `<div class="sv-upd"><b>${svitloUnseenTitle(d, diff)}</b><span>${sub}</span></div>`;
+  }
 
   // Вибір черги — лише черги з графіка (наші, Вільногірськ), згруповані за постачальником
   const pick = d.providers.map(p => {
@@ -1350,7 +1410,8 @@ function svitloModalHtml(d, my, allOpen) {
     if (!qs.length) return '';
     const btns = qs.map(q => {
       const id = svitloQueueId(p, q), on = !!my && my.id === id;
-      return `<button type="button" class="sv-q${on ? ' sv-q-on' : ''}" data-id="${escapeHTML(id)}" aria-pressed="${on}" style="--pc:${color}">${escapeHTML(String(q.queue))}</button>`;
+      const ch = id in chg;
+      return `<button type="button" class="sv-q${on ? ' sv-q-on' : ''}${ch ? ' sv-q-chg' : ''}" data-id="${escapeHTML(id)}" aria-pressed="${on}" style="--pc:${color}"${ch ? ' title="Змінено"' : ''}>${escapeHTML(String(q.queue))}</button>`;
     }).join('');
     return `<div class="sv-pick-row"><span class="sv-prov" style="color:${color};border-color:${color}8c;background:${color}29;">${escapeHTML(String(p.name))}</span>${btns}</div>`;
   }).join('');
@@ -1384,10 +1445,11 @@ function svitloModalHtml(d, my, allOpen) {
         <div class="sv-st-txt"><b>${t.title}</b><span>${t.when}</span>${t.left ? `<span class="sv-st-left">${t.left}</span>` : ''}</div>
       </div>
       <div class="sv-day">
-        <div class="sv-day-head"><span>${dayLabel}</span>${st.total ? `<span class="sv-day-total">без світла ${svitloDur(st.total)}</span>` : ''}</div>
+        <div class="sv-day-head"><span>${dayLabel}${my.id in chg ? ' <span class="sv-chg">змінено</span>' : ''}</span>${st.total ? `<span class="sv-day-total">без світла ${svitloDur(st.total)}</span>` : ''}</div>
         <div class="sv-bar" role="img" aria-label="${escapeHTML(barLabel)}">${segs}${nowMark}</div>
         <div class="sv-ticks" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
         <ul class="sv-slots">${rows || '<li class="sv-sl sv-sl-none">Відключень немає</li>'}</ul>
+        ${typeof chg[my.id] === 'string' ? `<div class="sv-was">Було: <s>${chg[my.id] ? escapeHTML(chg[my.id]).replace(/-/g, '–') : 'без відключень'}</s></div>` : ''}
       </div>`;
   }
 
@@ -1401,7 +1463,8 @@ function svitloModalHtml(d, my, allOpen) {
       const times = slots.length
         ? slots.map(s => `<span class="svitlo-ot">${escapeHTML(String(s)).replace(/-/g, '–')}</span>`).join('')
         : `<span class="svitlo-ot-none">без відключень</span>`;
-      return `<div class="svitlo-oq"><span class="svitlo-oq-label">${escapeHTML(String(q.queue != null ? q.queue : ''))} черга</span><span class="svitlo-oq-times">${times}</span></div>`;
+      const ch = q.queue != null && svitloQueueId(p, q) in chg;
+      return `<div class="svitlo-oq"><span class="svitlo-oq-label">${escapeHTML(String(q.queue != null ? q.queue : ''))} черга${ch ? '<span class="sv-chg">змінено</span>' : ''}</span><span class="svitlo-oq-times">${times}</span></div>`;
     }).join('');
     const url = svitloDocUrl(p);
     const find = url ? `<a class="svitlo-find" href="${escapeHTML(url)}" target="_blank" rel="noopener" style="color:${color};background:${color}1a;border:1px solid ${color}55;">🔎 Знайти свою чергу <span class="svitlo-find-go">↗</span></a>` : '';
@@ -1410,12 +1473,13 @@ function svitloModalHtml(d, my, allOpen) {
   const okBanner = d.noOutages ? `<div class="svitlo-okbanner"><span class="svitlo-okbanner-title">${svitloOkTitle(d.updated)}</span><span class="svitlo-okbanner-sub">світло має бути цілий день</span></div>` : '';
   const all = `<details class="sv-all"${allOpen ? ' open' : ''}><summary>Усі черги Вільногірська</summary>${okBanner}<div>${sections}</div></details>`;
 
-  return `${upd}${rev}${pickBlock}${mine}${all}`;
+  return `${upd}${rev}${banner}${pickBlock}${mine}${all}`;
 }
 
 function closeSvitloModal() {
   const m = document.getElementById('svitlo-modal');
   if (m) m.remove();
+  svitloModalBase = null;
   if (!document.querySelector('.custom-modal-overlay.active') && !document.querySelector('.image-modal.active')) {
     document.body.style.overflow = '';
   }
