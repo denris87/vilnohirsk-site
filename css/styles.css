@@ -720,9 +720,9 @@ html.tiles-mode .alert-group,html.tiles-mode .schedule-group,html.tiles-mode .ma
 .th-l{display:block;font-size:10.5px;font-weight:800;line-height:1.15;letter-spacing:-0.1px}
 .th-txt{display:block;min-width:0}
 .th-d{display:block;font-size:10.5px;font-weight:600;color:rgba(255,255,255,0.65);margin-top:2px}
-.th-w2,.th-w4{flex-direction:row;justify-content:flex-start;gap:11px;padding:10px 14px;text-align:left}
-.th-w2{grid-column:span 2} .th-w4{grid-column:span 4}
-.th-w2 .th-l,.th-w4 .th-l{font-size:13px}
+.th-w2,.th-w3,.th-w4{flex-direction:row;justify-content:flex-start;gap:11px;padding:10px 14px;text-align:left}
+.th-w2{grid-column:span 2} .th-w3{grid-column:span 3} .th-w4{grid-column:span 4}
+.th-w2 .th-l,.th-w3 .th-l,.th-w4 .th-l{font-size:13px}
 .th-big{grid-column:span 2;grid-row:span 2;align-items:flex-start;justify-content:space-between;padding:14px;text-align:left}
 .th-big .th-l{font-size:16px}
 .th-ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(var(--rgb),0.18)}
