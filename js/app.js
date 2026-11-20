@@ -791,7 +791,7 @@ function closeTileSection(fromHistory) {
   if (!root.classList.contains('section-open')) return;
   // Кнопка «Назад» на екрані — це крок назад в історії; закриє вже обробник popstate
   if (!fromHistory && history.state && history.state.tileSection) { history.back(); return; }
-  root.classList.remove('section-open');
+  root.classList.remove('section-open', 'cabinet-open');
   document.querySelectorAll('.main-list-widget, .shopping-drawer, .alert-drawer').forEach(d => d.classList.remove('open'));
   document.querySelectorAll('.tab-btn, .tab-alert').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
@@ -874,7 +874,7 @@ function syncTileHome() {
     st.className = 'th-st ' + (n ? 'th-bad' : 'th-ok');
   }
   // Шторку закрили не з плитки (напр. повторним викликом) — прибираємо й екран розділу
-  if (document.documentElement.classList.contains('section-open') && !document.querySelector('.alert-drawer.open, .main-list-widget.open, .shopping-drawer.open')) {
+  if (document.documentElement.classList.contains('section-open') && !document.documentElement.classList.contains('cabinet-open') && !document.querySelector('.alert-drawer.open, .main-list-widget.open, .shopping-drawer.open')) {
     closeTileSection(true);
   }
 }
@@ -894,6 +894,227 @@ function initTileHome() {
     });
   }
   syncTileHome();
+  initCabinet();
+}
+
+// === МІЙ КАБІНЕТ — лише в новому дизайні (головна плитками) ===
+// Вхід через Firebase Authentication (той самий проєкт, що й сповіщення): Google або e-mail з паролем.
+// Бібліотека входу вантажиться тільки в режимі плиток — у старому дизайні кабінету й входу немає.
+const FIREBASE_AUTH_SDK = 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js';
+let cabAuth = null, cabUser = null, cabKnown = false;
+let cabState = 'idle'; // idle | loading | ready | error
+let cabMode = 'in';     // in — вхід, up — реєстрація
+let cabConfirmDelete = false;
+const CAB_G_LOGO = '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 38.2 44 33 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
+const CAB_USER_ICO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
+
+function ensureAuth() {
+  if (cabState === 'loading' || cabState === 'ready') return;
+  if (!window.firebase || typeof firebase.initializeApp !== 'function') { cabState = 'error'; renderAccount(); return; }
+  cabState = 'loading'; renderAccount();
+  const start = () => {
+    try {
+      if (!firebase.apps || !firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+      cabAuth = firebase.auth();
+      cabAuth.languageCode = 'uk'; // листи (підтвердження, відновлення пароля) і вікно Google — українською
+      cabState = 'ready';
+      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) cabMode = 'in'; renderAccount(); });
+    } catch (e) { cabState = 'error'; logSectionError('кабінет', e); renderAccount(); }
+  };
+  if (typeof firebase.auth === 'function') { start(); return; }
+  const s = document.createElement('script');
+  s.src = FIREBASE_AUTH_SDK; s.async = true;
+  s.onload = start;
+  s.onerror = () => { cabState = 'error'; renderAccount(); };
+  document.head.appendChild(s);
+}
+
+function cabName(u) { return (u && (u.displayName || (u.email || '').split('@')[0])) || 'Ви'; }
+function cabAvatar(u, size) {
+  if (u && u.photoURL && /^https:\/\//.test(u.photoURL)) return `<img class="cab-ava-img" src="${escapeHTML(u.photoURL)}" alt="" width="${size}" height="${size}" referrerpolicy="no-referrer">`;
+  return `<span class="cab-ava-txt" style="width:${size}px;height:${size}px">${escapeHTML(cabName(u).trim().charAt(0).toUpperCase() || '?')}</span>`;
+}
+
+// Кнопка в шапці плиткової головної + вміст кабінету, якщо він відкритий
+function renderAccount() {
+  const btn = document.getElementById('th-account');
+  if (btn) {
+    const html = cabUser
+      ? `${cabAvatar(cabUser, 26)}<span class="th-acc-name">${escapeHTML(cabName(cabUser).split(' ')[0])}</span>`
+      : `<span class="th-acc-ico">${CAB_USER_ICO}</span><span class="th-acc-name">Увійти</span>`;
+    if (btn.dataset.v !== html) { btn.dataset.v = html; btn.innerHTML = html; }
+    btn.setAttribute('aria-label', cabUser ? 'Мій кабінет' : 'Увійти в кабінет');
+  }
+  if (document.documentElement.classList.contains('cabinet-open')) renderCabinet();
+}
+
+function renderCabinet() {
+  const body = document.getElementById('cabinet-body');
+  if (!body) return;
+  let html;
+  if (cabState === 'error') {
+    html = `<div class="cab-card cab-center"><b>Не вдалося завантажити вхід</b><p>Перевірте з'єднання з інтернетом і спробуйте ще раз.</p><button type="button" class="cab-btn" data-act="retry">Спробувати ще раз</button></div>`;
+  } else if (cabState !== 'ready' || !cabKnown) {
+    html = `<div class="cab-card cab-center"><p>Завантаження…</p></div>`;
+  } else if (!cabUser) {
+    const up = cabMode === 'up';
+    html = `
+      <div class="cab-hero"><span class="cab-hero-ico">${CAB_USER_ICO}</span><h2>Мій кабінет</h2>
+        <p>Увійдіть, щоб подавати оголошення й керувати ними: бачити, що на модерації, і видаляти свої.</p></div>
+      <button type="button" class="cab-google" data-act="google">${CAB_G_LOGO}<span>Увійти через Google</span></button>
+      <div class="cab-or"><span>або через e-mail</span></div>
+      <div class="cab-tabs" role="tablist">
+        <button type="button" role="tab" aria-selected="${!up}" class="${up ? '' : 'on'}" data-act="mode-in">Вхід</button>
+        <button type="button" role="tab" aria-selected="${up}" class="${up ? 'on' : ''}" data-act="mode-up">Реєстрація</button>
+      </div>
+      <form class="cab-form" id="cab-form" novalidate>
+        ${up ? `<label class="cab-field"><span>Ваше ім'я</span><input type="text" id="cab-name" autocomplete="name" maxlength="40" required placeholder="Як до вас звертатися"></label>` : ''}
+        <label class="cab-field"><span>E-mail</span><input type="email" id="cab-email" autocomplete="email" inputmode="email" required placeholder="name@gmail.com"></label>
+        <label class="cab-field"><span>Пароль</span><input type="password" id="cab-pass" autocomplete="${up ? 'new-password' : 'current-password'}" minlength="6" required placeholder="${up ? 'Щонайменше 6 символів' : 'Ваш пароль'}"></label>
+        <button type="submit" class="cab-submit">${up ? 'Зареєструватися' : 'Увійти'}</button>
+        ${up ? '' : '<button type="button" class="cab-link" data-act="forgot">Забули пароль?</button>'}
+        <div class="cab-msg" id="cab-msg" role="status" aria-live="polite"></div>
+      </form>
+      <p class="cab-fine">Входячи, ви погоджуєтеся з <a href="/privacy.html" target="_blank" rel="noopener">політикою конфіденційності</a>.</p>`;
+  } else {
+    const u = cabUser;
+    const isPassword = (u.providerData || []).some(p => p && p.providerId === 'password');
+    const verify = isPassword && !u.emailVerified
+      ? `<div class="cab-note"><b>Підтвердьте e-mail</b><span>Ми надіслали лист на ${escapeHTML(u.email || '')}. Відкрийте посилання з листа, потім натисніть «Я підтвердив».</span>
+           <div class="cab-row"><button type="button" class="cab-btn cab-btn-sm" data-act="reload">Я підтвердив</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="resend">Надіслати ще раз</button></div></div>` : '';
+    const del = cabConfirmDelete
+      ? `<div class="cab-confirm"><b>Видалити акаунт?</b><span>Акаунт і вхід буде видалено назавжди.</span>
+           <div class="cab-row"><button type="button" class="cab-btn cab-btn-sm cab-btn-danger" data-act="delete-yes">Так, видалити</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="delete-no">Скасувати</button></div></div>`
+      : `<button type="button" class="cab-link cab-link-danger" data-act="delete">Видалити акаунт</button>`;
+    html = `
+      <div class="cab-profile">${cabAvatar(u, 52)}<div class="cab-profile-txt"><b>${escapeHTML(cabName(u))}</b><span>${escapeHTML(u.email || '')}</span></div></div>
+      ${verify}
+      <div class="cab-card">
+        <div class="cab-card-head">Мої оголошення</div>
+        <p class="cab-empty">Поки що порожньо. Незабаром звідси можна буде подати оголошення в Барахолку, Нерухомість, Знахідки й Вакансії, бачити, чи пройшло воно модерацію, і видаляти свої.</p>
+      </div>
+      <div class="cab-msg" id="cab-msg" role="status" aria-live="polite"></div>
+      <button type="button" class="cab-btn cab-btn-ghost cab-wide" data-act="signout">Вийти</button>
+      ${del}`;
+  }
+  if (body.dataset.v !== html) { body.dataset.v = html; body.innerHTML = html; }
+}
+
+function cabMsg(text, kind) {
+  const m = document.getElementById('cab-msg');
+  if (m) { m.textContent = text || ''; m.className = 'cab-msg' + (kind ? ' cab-msg-' + kind : ''); }
+}
+function cabError(e) {
+  const code = (e && e.code) || '';
+  const map = {
+    'auth/invalid-email': 'Невірний формат e-mail.',
+    'auth/missing-email': 'Вкажіть e-mail.',
+    'auth/missing-password': 'Вкажіть пароль.',
+    'auth/invalid-credential': 'Невірний e-mail або пароль.',
+    'auth/invalid-login-credentials': 'Невірний e-mail або пароль.',
+    'auth/wrong-password': 'Невірний e-mail або пароль.',
+    'auth/user-not-found': 'Невірний e-mail або пароль.',
+    'auth/email-already-in-use': 'Акаунт із таким e-mail уже є. Увійдіть або відновіть пароль.',
+    'auth/weak-password': 'Пароль має бути щонайменше 6 символів.',
+    'auth/too-many-requests': 'Забагато спроб. Спробуйте трохи пізніше.',
+    'auth/network-request-failed': "Немає з'єднання з інтернетом.",
+    'auth/popup-blocked': 'Браузер заблокував вікно входу Google. Дозвольте спливаючі вікна або увійдіть через e-mail.',
+    'auth/unauthorized-domain': 'Вхід з цієї адреси ще не дозволено в налаштуваннях Firebase.',
+    'auth/operation-not-allowed': 'Цей спосіб входу вимкнено.',
+    'auth/user-disabled': 'Цей акаунт заблоковано. Напишіть нам у Telegram @vilnohirsk.',
+    'auth/account-exists-with-different-credential': 'Цей e-mail уже зареєстровано іншим способом. Увійдіть через e-mail або Google — як реєструвались.',
+    'auth/requires-recent-login': 'З міркувань безпеки увійдіть ще раз і повторіть.'
+  };
+  if (code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return '';
+  return map[code] || ('Не вдалося. ' + (code ? '(' + code + ')' : 'Спробуйте ще раз.'));
+}
+async function cabBusy(btn, fn) {
+  if (btn) { btn.disabled = true; btn.classList.add('is-busy'); }
+  try { await fn(); } catch (e) { const t = cabError(e); if (t) cabMsg(t, 'err'); }
+  finally { if (btn && btn.isConnected) { btn.disabled = false; btn.classList.remove('is-busy'); } }
+}
+
+async function cabAction(act, btn) {
+  if (act === 'retry') { cabState = 'idle'; ensureAuth(); return; }
+  if (!cabAuth) return;
+  if (act === 'mode-in' || act === 'mode-up') { cabMode = act === 'mode-up' ? 'up' : 'in'; renderCabinet(); return; }
+  if (act === 'google') return cabBusy(btn, async () => {
+    const p = new firebase.auth.GoogleAuthProvider();
+    p.setCustomParameters({ prompt: 'select_account' });
+    await cabAuth.signInWithPopup(p);
+    showToast('✅ Ви увійшли', 'success');
+  });
+  if (act === 'forgot') return cabBusy(btn, async () => {
+    const email = ((document.getElementById('cab-email') || {}).value || '').trim();
+    if (!email) { cabMsg('Впишіть e-mail у поле вище — надішлемо лист для відновлення пароля.', 'err'); return; }
+    await cabAuth.sendPasswordResetEmail(email);
+    cabMsg(`Якщо акаунт з ${email} існує, ми надіслали на нього лист для відновлення пароля. Перевірте й «Спам».`, 'ok');
+  });
+  if (act === 'signout') return cabBusy(btn, async () => { await cabAuth.signOut(); showToast('Ви вийшли з кабінету', 'info'); });
+  if (act === 'resend') return cabBusy(btn, async () => { await cabUser.sendEmailVerification(); cabMsg('Лист надіслано ще раз. Перевірте й «Спам».', 'ok'); });
+  if (act === 'reload') return cabBusy(btn, async () => {
+    await cabUser.reload(); cabUser = cabAuth.currentUser; renderCabinet();
+    if (cabUser && !cabUser.emailVerified) cabMsg('Ще не підтверджено. Відкрийте посилання з листа.', 'err');
+  });
+  if (act === 'delete') { cabConfirmDelete = true; renderCabinet(); return; }
+  if (act === 'delete-no') { cabConfirmDelete = false; renderCabinet(); return; }
+  if (act === 'delete-yes') return cabBusy(btn, async () => {
+    try { await cabUser.delete(); showToast('Акаунт видалено', 'info'); }
+    catch (e) {
+      if (e && e.code === 'auth/requires-recent-login') { await cabAuth.signOut(); showToast('З міркувань безпеки увійдіть ще раз і повторіть видалення', 'error'); return; }
+      throw e;
+    }
+  });
+}
+
+async function cabSubmit(form) {
+  const up = cabMode === 'up';
+  const email = form.querySelector('#cab-email').value.trim(), pass = form.querySelector('#cab-pass').value;
+  const nameEl = form.querySelector('#cab-name'), name = nameEl ? nameEl.value.trim() : '';
+  if (up && !name) { cabMsg("Вкажіть ім'я.", 'err'); return; }
+  if (!email) { cabMsg('Вкажіть e-mail.', 'err'); return; }
+  if (pass.length < 6) { cabMsg('Пароль має бути щонайменше 6 символів.', 'err'); return; }
+  const btn = form.querySelector('.cab-submit');
+  await cabBusy(btn, async () => {
+    if (up) {
+      const cred = await cabAuth.createUserWithEmailAndPassword(email, pass);
+      try { await cred.user.updateProfile({ displayName: name }); } catch (e) {}
+      try { await cred.user.sendEmailVerification(); } catch (e) {}
+      cabUser = cabAuth.currentUser; renderAccount();
+      showToast('✅ Акаунт створено. Підтвердьте e-mail з листа', 'success');
+    } else {
+      await cabAuth.signInWithEmailAndPassword(email, pass);
+      showToast('✅ Ви увійшли', 'success');
+    }
+  });
+}
+
+function openCabinet(ev) {
+  if (ev) ev.stopPropagation();
+  const root = document.documentElement;
+  if (!root.classList.contains('tiles-mode')) return; // кабінет — лише в новому дизайні
+  const title = document.getElementById('section-bar-title');
+  if (title) title.textContent = 'Мій кабінет';
+  root.classList.add('cabinet-open');
+  if (!root.classList.contains('section-open')) {
+    root.classList.add('section-open');
+    try { history.pushState({ tileSection: 'cabinet' }, ''); } catch (e) {}
+  }
+  ensureAuth();
+  renderCabinet();
+  const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
+}
+
+function initCabinet() {
+  if (!document.documentElement.classList.contains('tiles-mode')) return;
+  const body = document.getElementById('cabinet-body');
+  if (body) {
+    body.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (b) cabAction(b.dataset.act, b); });
+    body.addEventListener('submit', (e) => { e.preventDefault(); cabSubmit(e.target); });
+  }
+  renderAccount();
+  // Вхід підтягуємо трохи згодом, щоб не гальмувати першу появу головної; аватар з'явиться, щойно Firebase згадає людину
+  setTimeout(ensureAuth, 800);
 }
 
 // === ДРАГ-СВАЙП (ГОРТАННЯ МИШКОЮ НА ПК) ===
