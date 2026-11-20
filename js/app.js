@@ -575,6 +575,7 @@ function closeAllShopDropdowns() { document.querySelectorAll('.shop-details-drop
 
 document.addEventListener('click', function(e) {
   if (e.target.closest('.image-modal') || e.target.closest('.custom-modal-box')) return;
+  if (e.target.closest('.section-bar')) return; // шапка розділу, відкритого з плитки, — свої кнопки
   if (!e.target.closest('.alert-group')) { const alertDrawer = document.getElementById('alert-drawer'); if (alertDrawer) { alertDrawer.classList.remove('open'); document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active')); } }
   if (!e.target.closest('.train') && !e.target.closest('.details') && !e.target.closest('.pb-category')) { document.querySelectorAll('.details.open').forEach(el => el.classList.remove('open')); document.querySelectorAll('.pb-category.open').forEach(el => el.classList.remove('open')); }
   if (!e.target.closest('.shop-tile')) { closeAllShopDropdowns(); }
@@ -748,6 +749,144 @@ function switchAppTab(tabId, btn, group) {
   if (tabId === 'alert-volunteers') { try { loadVolunteersData({forceRefresh: true}); } catch(e) { logSectionError('збори ЗСУ', e); } }
   if (tabId === 'map-tab') { try { initCityMap(); } catch(e) { logSectionError('карта міста', e); } }
   window.dataLayer = window.dataLayer || []; window.dataLayer.push({ 'event': 'tab_view', 'tab_name': tabId, 'tab_group': group });
+}
+
+// ===== ГОЛОВНА ПЛИТКАМИ («бенто») =====
+// Поки що попередній перегляд: працює лише з класом html.tiles-mode (?tiles=1 в адресі вмикає
+// й запам'ятовує, ?tiles=0 вимикає — див. скрипт у <head>). Плитки відкривають ті самі розділи,
+// що й старі вкладки (switchAppTab), але окремим екраном із шапкою «Назад».
+const TILE_TITLES = {
+  'alert-feed': 'Новини та комунальний інформер', 'alert-events': 'Афіші', 'alert-gallery': 'Фото міста',
+  'alert-volunteers': 'Допомога ЗСУ', 'alert-promos': 'Акції', 'alert-phoenix': 'ФЕНІКС · розшук',
+  'trains': 'Електрички', 'long-trains': 'Потяги', 'buses': 'Автобуси', 'blablacar': 'Попутники', 'map-tab': 'Карта міста',
+  'city-guide-tab': 'Міський довідник', 'estate-tab': 'Нерухомість', 'shopping-tab': 'Шопінг', 'flea-market-tab': 'Барахолка',
+  'jobs-tab': 'Вакансії', 'lost-found-tab': 'Знахідки', 'garbage-tab': 'Вивіз сміття'
+};
+let trainsDelaysKnown = false;   // поки затримки не завантажились, плитка не пише «Без затримок»
+let svitloTileState = null;      // графік світла для плитки (null — вимкнено чи не завантажився)
+
+function tileSourceTab(tabId) {
+  return document.querySelector(`.tab-btn[onclick*="'${tabId}'"], .tab-alert[onclick*="'${tabId}'"]`);
+}
+
+function openTileSection(tabId, group, ev) {
+  if (ev) ev.stopPropagation(); // інакше загальний обробник кліків одразу закрив би шторку: клік поза групою
+  const tab = tileSourceTab(tabId);
+  if (!tab) return;
+  if (!tab.classList.contains('active')) switchAppTab(tabId, tab, group);
+  const title = document.getElementById('section-bar-title');
+  if (title) title.textContent = TILE_TITLES[tabId] || '';
+  const root = document.documentElement;
+  if (!root.classList.contains('section-open')) {
+    root.classList.add('section-open');
+    // Окремий крок в історії: системна кнопка «Назад» (і в застосунку з Google Play) закриє розділ, а не сайт
+    try { history.pushState({ tileSection: tabId }, ''); } catch (e) {}
+  }
+  const drawer = document.querySelector('.alert-drawer.open, .main-list-widget.open, .shopping-drawer.open');
+  if (drawer) drawer.scrollTop = 0;
+}
+
+function closeTileSection(fromHistory) {
+  const root = document.documentElement;
+  if (!root.classList.contains('section-open')) return;
+  // Кнопка «Назад» на екрані — це крок назад в історії; закриє вже обробник popstate
+  if (!fromHistory && history.state && history.state.tileSection) { history.back(); return; }
+  root.classList.remove('section-open');
+  document.querySelectorAll('.main-list-widget, .shopping-drawer, .alert-drawer').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.tab-btn, .tab-alert').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+}
+window.addEventListener('popstate', () => closeTileSection(true));
+
+function tileAction(action, ev) {
+  if (ev) ev.stopPropagation();
+  if (action === 'svitlo') {
+    if (svitloTileState) openSvitloModal(); else showToast('Графік відключень зараз не публікується', 'info');
+  } else if (action === 'radio') toggleRadio();
+  else if (action === 'notify') handlePushButtonClick();
+  else if (action === 'admins') openModalForm('custom-feedback-form', 'feedback-modal');
+  else if (action === 'donate') openModalForm(null, 'donate-modal');
+}
+
+// Плитка «Світло»: стан і черги з відключеннями — з того самого svitlo.yaml
+function renderSvitloTile(state) {
+  svitloTileState = state || null;
+  const st = document.getElementById('th-svitlo-status'), chips = document.getElementById('th-svitlo-chips');
+  if (!st || !chips) return;
+  if (!state) { st.textContent = 'Графік відключень'; st.className = 'th-st'; chips.innerHTML = ''; return; }
+  const m = String(state.updated || '').match(/(\d{1,2})\.(\d{1,2})/);
+  const day = m ? ` · ${m[1].padStart(2, '0')}.${m[2].padStart(2, '0')}` : '';
+  if (state.noOutages) { st.textContent = 'Відключень немає' + day; st.className = 'th-st th-ok'; chips.innerHTML = ''; return; }
+  st.textContent = 'Є відключення' + day; st.className = 'th-st';
+  const queues = [];
+  (state.providers || []).forEach(p => (Array.isArray(p.queues) ? p.queues : []).forEach(q => {
+    if (q && q.queue != null && Array.isArray(q.slots) && q.slots.filter(Boolean).length) queues.push(String(q.queue));
+  }));
+  chips.innerHTML = queues.map(q => `<span>${escapeHTML(q)}</span>`).join('');
+}
+
+// Живі позначки плиток — копії бейджів зі старих вкладок (ті самі дані, кольори й підказки)
+function tileBadgesHtml(tabId) {
+  const tab = tileSourceTab(tabId);
+  if (!tab) return '';
+  let html = '';
+  tab.querySelectorAll(':scope > [class$="-live-badge"], :scope > .map-new-badge').forEach(b => {
+    if (tabId === 'trains' && b.classList.contains('delays-live-badge')) return; // затримки — рядком на самій плитці
+    html += b.outerHTML;
+  });
+  if (tabId === 'alert-phoenix') {
+    const m = ((document.getElementById('phoenix-tab-count') || {}).textContent || '').match(/\d+/);
+    if (m) html += `<span class="th-count">${m[0]}</span>`;
+  }
+  return html;
+}
+
+function syncTileHome() {
+  document.querySelectorAll('#tile-home .th-tile[data-tab]').forEach(tile => {
+    const box = tile.querySelector('.th-badges');
+    if (!box) return;
+    const html = tileBadgesHtml(tile.dataset.tab);
+    if (box.dataset.v !== html) { box.dataset.v = html; box.innerHTML = html; }
+  });
+  const st = document.getElementById('th-trains-status');
+  if (st) {
+    const b = (tileSourceTab('trains') || document).querySelector('.delays-live-badge b');
+    const n = b ? parseInt(b.textContent, 10) || 0 : 0;
+    const txt = n ? `${n} ${pluralUk(n, 'затримка', 'затримки', 'затримок')}` : (trainsDelaysKnown ? 'Без затримок' : '');
+    if (st.textContent !== txt) st.textContent = txt;
+    st.className = 'th-st ' + (n ? 'th-bad' : 'th-ok');
+  }
+  // Шторку закрили не з плитки (напр. повторним викликом) — прибираємо й екран розділу
+  if (document.documentElement.classList.contains('section-open') && !document.querySelector('.alert-drawer.open, .main-list-widget.open, .shopping-drawer.open')) {
+    closeTileSection(true);
+  }
+}
+
+function initTileHome() {
+  if (!document.getElementById('tile-home')) return;
+  let timer = null;
+  const kick = () => { if (!timer) timer = setTimeout(() => { timer = null; syncTileHome(); }, 60); };
+  if (window.MutationObserver) {
+    ['alert-tabs', 'schedule-tabs', 'market-tabs'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) new MutationObserver(kick).observe(el, { childList: true, subtree: true, characterData: true });
+    });
+    ['alert-drawer', 'main-list-widget', 'market-drawer'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) new MutationObserver(kick).observe(el, { attributes: true, attributeFilter: ['class'] });
+    });
+  }
+  // Радіо: плитка світиться й пише «Грає», поки грає
+  const audio = document.getElementById('radio-audio');
+  if (audio) {
+    const upd = () => {
+      const on = !audio.paused;
+      const tile = document.getElementById('th-radio'); if (tile) tile.classList.toggle('th-on', on);
+      const label = document.getElementById('th-radio-label'); if (label) label.textContent = on ? 'Грає' : 'Радіо';
+    };
+    ['play', 'playing', 'pause', 'ended', 'emptied', 'error'].forEach(ev => audio.addEventListener(ev, upd));
+  }
+  syncTileHome();
 }
 
 // === ДРАГ-СВАЙП (ГОРТАННЯ МИШКОЮ НА ПК) ===
@@ -1011,7 +1150,7 @@ async function loadSvitloData() {
   const host = document.getElementById('svitlo-widget');
   if (!host) return;
   // Графік вимкнено (show: false) чи не завантажився — смугу просто ховаємо
-  const hide = () => { host.style.display = 'none'; };
+  const hide = () => { host.style.display = 'none'; renderSvitloTile(null); };
   if (!yamlReady('svitlo', loadSvitloData, hide)) return; // немає парсера — смуги не буде
   try {
     const res = await fetch('./data/svitlo.yaml?v=' + Date.now());
@@ -1023,6 +1162,7 @@ async function loadSvitloData() {
     // «Чистий» день: у жодній черзі жодного постачальника немає відключень.
     const noOutages = !providers.some(p => Array.isArray(p.queues) && p.queues.some(q => q && Array.isArray(q.slots) && q.slots.filter(Boolean).length > 0));
     currentSvitloData = { providers: providers, updated: data.updated || '', revised: data.revised || '', noOutages: noOutages };
+    renderSvitloTile(currentSvitloData);
 
     // Є відключення — «💡 Відключення світла», немає — зелена «✅ Сьогодні/Завтра відключень немає»
     // Згорнута плашка: назва + дата (+ «Оновлено о…», якщо графік змінювали протягом дня). Повний графік — у вікні по тапу.
@@ -1145,6 +1285,7 @@ function formatDelay(min) {
 // Бейдж затримок на вкладці «Електрички» — аналогічний бейджу «зміни розкладу»,
 // але в кольорах затримок: видно з головного екрана, що електрички запізнюються.
 function updateTrainsDelayBadge(delays) {
+  trainsDelaysKnown = true;
   const tab = document.querySelector('.tab-btn[onclick*="\'trains\'"]');
   if (!tab) return;
   tab.style.position = 'relative';
@@ -3899,6 +4040,7 @@ function showIOSInstructions() {
 // =========================================================================
 
 const initApp = () => {
+  initTileHome();
   updateDateTime(); setInterval(updateDateTime, 1000); 
   loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData(); loadDelaysData(); loadSvitloData();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
