@@ -115,6 +115,21 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .svitlo-box-off .svitlo-name{color:#ff9aa2;}
 .svitlo-box-on .svitlo-name{color:#9affc4;}
 .svitlo-box-next .svitlo-name,.svitlo-box-stale .svitlo-name{color:#ffe08a;}
+/* Оновлений графік, якого людина ще не відкривала: смуга світиться, доки не відкриють вікно */
+.svitlo-strip.svitlo-strip-new{border-color:rgba(255,204,0,0.85);box-shadow:0 0 0 1px rgba(255,204,0,0.6),0 0 22px rgba(255,204,0,0.45);animation:svNewGlow 2.2s ease-in-out infinite;}
+@keyframes svNewGlow{0%,100%{box-shadow:0 0 0 1px rgba(255,204,0,0.5),0 0 10px rgba(255,204,0,0.25);}50%{box-shadow:0 0 0 1px rgba(255,204,0,0.9),0 0 26px rgba(255,204,0,0.6);}}
+.svitlo-box-upd .svitlo-name{color:#ffcc00;font-size:14px;}
+.svitlo-box-upd .svitlo-when{white-space:normal;color:#fff;}
+/* У вікні: банер змін, позначки змінених черг, «Було: …» */
+.sv-upd{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;background:rgba(255,204,0,0.12);border:1px solid rgba(255,204,0,0.6);border-radius:14px;padding:10px 12px;margin:10px 0 2px;}
+.sv-upd b{font-size:15px;font-weight:900;color:#ffcc00;}
+.sv-upd span{font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.85);}
+.sv-chg{display:inline-block;vertical-align:2px;margin-left:6px;font-size:10px;font-weight:900;letter-spacing:0.2px;padding:2px 7px;border-radius:7px;background:#ffcc00;color:#1a1200;}
+.sv-q-chg{position:relative;}
+.sv-q-chg::after{content:'';position:absolute;top:-4px;right:-4px;width:10px;height:10px;border-radius:50%;background:#ffcc00;box-shadow:0 0 6px #ffcc00;border:2px solid #0f1830;}
+.sv-was{font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.6);padding:8px 2px 0;margin-top:2px;border-top:1px dashed rgba(255,255,255,0.15);font-variant-numeric:tabular-nums;}
+.sv-was s{color:rgba(255,255,255,0.75);}
+@media (prefers-reduced-motion: reduce){.svitlo-strip.svitlo-strip-new{animation:none;}}
 /* Розумний графік у вікні: вибір своєї черги, стан зараз, шкала доби, відключення з тривалістю */
 .sv-meta{text-align:center;font-size:13px;color:rgba(255,255,255,0.55);font-weight:600;margin-bottom:6px;}
 .sv-rev{text-align:center;font-size:12.5px;color:#ffcc00;font-weight:700;margin-bottom:6px;}
@@ -127,36 +142,78 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .sv-q-on{background:var(--pc);border-color:var(--pc);color:#0b1d3a;box-shadow:0 4px 14px rgba(0,0,0,0.3);}
 .sv-q:focus-visible{outline:2px solid #fff;outline-offset:2px;}
 .sv-hint{font-size:12px;line-height:1.45;font-weight:600;color:rgba(255,255,255,0.6);margin-top:2px;}
-.sv-status{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;margin-bottom:12px;border:1px solid;}
-.sv-st-off{background:rgba(255,77,77,0.14);border-color:rgba(255,77,77,0.5);}
-.sv-st-on,.sv-st-ok{background:rgba(0,255,156,0.1);border-color:rgba(0,255,156,0.4);}
-.sv-st-next,.sv-st-stale{background:rgba(255,204,0,0.08);border-color:rgba(255,204,0,0.35);}
-.sv-st-ico{flex:0 0 auto;font-size:26px;line-height:1;}
-.sv-st-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
-.sv-st-txt b{font-size:20px;font-weight:900;line-height:1.15;color:#fff;}
-.sv-st-off .sv-st-txt b{color:#ff9aa2;}
-.sv-st-on .sv-st-txt b,.sv-st-ok .sv-st-txt b{color:#5dffb0;}
-.sv-st-next .sv-st-txt b,.sv-st-stale .sv-st-txt b{color:#ffe08a;}
-.sv-st-txt span{font-size:13px;font-weight:700;line-height:1.35;color:rgba(255,255,255,0.82);font-variant-numeric:tabular-nums;}
-.sv-st-txt .sv-st-left{font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.6);}
-.sv-day{background:rgba(0,0,0,0.22);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:12px;margin-bottom:14px;}
-.sv-day-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px;font-weight:800;color:#fff;margin-bottom:8px;}
-.sv-day-total{color:#ffb3b8;font-weight:700;white-space:nowrap;}
-.sv-bar{position:relative;height:26px;border-radius:8px;overflow:hidden;background:rgba(0,255,156,0.22);border:1px solid rgba(255,255,255,0.12);}
-.sv-seg{position:absolute;top:0;bottom:0;background:#ff4d4d;}
-.sv-pastbar{position:absolute;left:0;top:0;bottom:0;background:rgba(6,12,28,0.55);}
-.sv-nowmark{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:#ffcc00;box-shadow:0 0 8px #ffcc00;}
-.sv-ticks{display:flex;justify-content:space-between;font-size:10.5px;font-weight:700;color:rgba(255,255,255,0.5);margin:4px 1px 6px;font-variant-numeric:tabular-nums;}
-.sv-slots{list-style:none;margin:0;padding:0;}
-.sv-sl{display:flex;align-items:baseline;gap:10px;padding:8px 2px;border-top:1px solid rgba(255,255,255,0.07);font-variant-numeric:tabular-nums;}
-.sv-sl:first-child{border-top:0;}
-.sv-sl-t{font-size:15px;font-weight:800;color:#fff;white-space:nowrap;}
-.sv-sl-d{font-size:12px;font-weight:700;color:rgba(255,255,255,0.55);white-space:nowrap;}
-.sv-tag{margin-left:auto;align-self:center;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:7px;color:rgba(255,255,255,0.6);background:rgba(255,255,255,0.08);}
-.sv-tag-now{color:#fff;background:#e53935;}
-.sv-sl-past .sv-sl-t,.sv-sl-past .sv-sl-d{opacity:0.45;}
-.sv-sl-now .sv-sl-t{color:#ff9aa2;}
-.sv-sl-none{font-size:14px;font-weight:800;color:#5dffb0;}
+/* Добовий графік черги: зелене — є світло, сіре — немає; «Зараз»; підсумки; усі періоди доби */
+.sv2-tabs{display:flex;gap:8px;margin:4px 0 12px;}
+.sv2-tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);opacity:0.45;}
+.sv2-tab b{font-size:13px;font-weight:900;color:#fff;}
+.sv2-tab span{font-size:11.5px;font-weight:700;color:rgba(255,255,255,0.72);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.sv2-tab-on{opacity:1;background:rgba(56,189,248,0.14);border-color:rgba(56,189,248,0.5);box-shadow:inset 0 -3px 0 #38bdf8;}
+.sv2-note{font-size:12.5px;font-weight:700;line-height:1.4;color:#ffe08a;background:rgba(255,204,0,0.08);border:1px solid rgba(255,204,0,0.3);border-radius:12px;padding:8px 10px;margin:0 0 12px;}
+.sv2-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:12px 12px 8px;margin-bottom:10px;}
+.sv2-card-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 10px;margin-bottom:10px;}
+.sv2-title{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:900;color:#fff;}
+.sv2-legend{font-size:11px;font-weight:700;color:rgba(255,255,255,0.75);white-space:nowrap;}
+.sv2-legend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin:0 5px 0 8px;vertical-align:-2px;}
+.sv2-legend i:first-child{margin-left:0;}
+.sv2-on{background:linear-gradient(180deg,#9cf5b0,#5fd68a);}
+.sv2-off{background:linear-gradient(180deg,#b8c0ce,#8b95a7);}
+.sv2-track{position:relative;padding-top:6px;}
+.sv2-track-now{padding-top:36px;}
+.sv2-bar{position:relative;height:22px;border-radius:11px;overflow:hidden;background:#5fd68a;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.12);}
+.sv2-seg{position:absolute;top:0;bottom:0;}
+.sv2-now{position:absolute;top:0;width:2px;height:47px;margin-left:-1px;background:#22c55e;z-index:2;}
+.sv2-now::after{content:'';position:absolute;left:50%;bottom:-6px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#fff;border:3px solid #22c55e;box-sizing:border-box;}
+.sv2-now-pill{position:absolute;top:0;left:50%;transform:translateX(-50%);white-space:nowrap;background:#22c55e;color:#fff;font-size:12px;font-weight:900;padding:4px 9px;border-radius:9px;box-shadow:0 4px 12px rgba(34,197,94,0.45);font-variant-numeric:tabular-nums;}
+.sv2-now-l .sv2-now-pill{left:-8px;transform:none;}
+.sv2-now-r .sv2-now-pill{left:auto;right:-8px;transform:none;}
+.sv2-labels{position:relative;height:22px;margin-top:4px;}
+.sv2-labels-2{height:38px;}
+.sv2-lb{position:absolute;top:6px;transform:translateX(-50%);font-size:11px;font-weight:800;color:rgba(255,255,255,0.8);white-space:nowrap;font-variant-numeric:tabular-nums;}
+.sv2-lb::before{content:'';position:absolute;left:50%;top:-6px;width:1px;height:5px;background:rgba(255,255,255,0.4);}
+.sv2-lb-l{transform:none;}
+.sv2-lb-l::before{left:0;}
+.sv2-lb-r{transform:translateX(-100%);}
+.sv2-lb-r::before{left:auto;right:0;}
+.sv2-lb-2{top:22px;}
+.sv2-lb-2::before{display:none;}
+.sv2-sum{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:14px;}
+.sv2-sumc{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:14px;border:1px solid;min-width:0;}
+.sv2-sumc-on{background:linear-gradient(135deg,rgba(95,214,138,0.24),rgba(95,214,138,0.07));border-color:rgba(95,214,138,0.4);}
+.sv2-sumc-off{background:linear-gradient(135deg,rgba(170,180,200,0.22),rgba(170,180,200,0.06));border-color:rgba(170,180,200,0.32);}
+.sv2-sumc-top{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:rgba(255,255,255,0.85);}
+.sv2-ico{width:28px;height:28px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;}
+.sv2-sumc-on .sv2-ico{background:rgba(95,214,138,0.25);color:#86efac;}
+.sv2-sumc-off .sv2-ico{background:rgba(170,180,200,0.22);color:#d3d9e3;}
+.sv2-sumc b{font-size:19px;font-weight:900;line-height:1.1;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.sv2-list-head{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:900;color:#fff;margin:0 0 8px;}
+.sv2-list{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:6px;}
+.sv2-p{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 10px;border-radius:14px;border:1px solid;}
+.sv2-p-on{background:rgba(95,214,138,0.09);border-color:rgba(95,214,138,0.26);}
+.sv2-p-off{background:rgba(170,180,200,0.08);border-color:rgba(170,180,200,0.2);}
+.sv2-p-ico{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;}
+.sv2-p-on .sv2-p-ico{background:rgba(95,214,138,0.2);color:#86efac;}
+.sv2-p-off .sv2-p-ico{background:rgba(170,180,200,0.18);color:#d3d9e3;}
+.sv2-p-main{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.sv2-p-main b{font-size:16px;font-weight:900;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.sv2-p-main span{font-size:12px;font-weight:800;}
+.sv2-p-on .sv2-p-main span{color:#86efac;}
+.sv2-p-off .sv2-p-main span{color:#cbd2de;}
+.sv2-p-side{display:flex;flex-direction:column;align-items:flex-end;gap:3px;text-align:right;}
+.sv2-p-dur{font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);white-space:nowrap;}
+.sv2-p-pill{font-size:11px;font-weight:900;color:#fff;background:#22c55e;padding:3px 10px;border-radius:9px;}
+.sv2-p-left{font-size:11px;font-weight:700;color:rgba(255,255,255,0.85);white-space:nowrap;}
+.sv2-p-past{opacity:0.5;}
+.sv2-p-now.sv2-p-on{border:2px solid #4ade80;background:rgba(74,222,128,0.16);box-shadow:0 0 14px rgba(74,222,128,0.2);}
+.sv2-p-now.sv2-p-off{border:2px solid #cbd2de;background:rgba(170,180,200,0.17);}
+.sv2-p-now.sv2-p-off .sv2-p-pill{background:#64748b;}
+/* «Усі черги»: міні-шкала доби в кожної черги, тап — показати чергу вгорі */
+.svitlo-oq.sv2-oq{display:block;cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:10px;}
+.sv2-oq:active{background:rgba(255,255,255,0.05);}
+.sv2-oq:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+.sv2-oq-top{display:flex;align-items:center;gap:8px;}
+.sv2-oq-mine{background:rgba(255,204,0,0.07);}
+.sv2-mini{position:relative;height:8px;border-radius:5px;overflow:hidden;margin-top:8px;background:#5fd68a;}
+.sv2-mini-now{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 4px rgba(0,0,0,0.7);}
 .sv-all{border-top:1px solid rgba(255,255,255,0.1);padding-top:6px;}
 .sv-all>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:800;color:rgba(255,255,255,0.85);padding:8px 2px 12px;-webkit-tap-highlight-color:transparent;}
 .sv-all>summary::-webkit-details-marker{display:none;}
@@ -732,6 +789,9 @@ html.tiles-mode .alert-group,html.tiles-mode .schedule-group,html.tiles-mode .ma
 .th-chips:empty{display:none}
 .th-chips span{font-size:10px;font-weight:800;padding:2px 6px;border-radius:7px;background:rgba(255,77,77,0.22);border:1px solid rgba(255,77,77,0.5);color:#ffd2d2}
 .th-chips .th-chip-q{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.32);color:#fff}
+/* Плитка «Світло»: графік оновили, а людина ще не дивилась */
+.th-new{font-size:9.5px;font-weight:900;letter-spacing:0.3px;padding:2px 7px;border-radius:8px;background:linear-gradient(135deg,#ffcc00,#ff8a00);color:#1a1200;box-shadow:0 0 10px rgba(255,170,0,0.8);text-transform:uppercase;white-space:nowrap}
+.th-tile.th-svitlo-new{box-shadow:0 0 0 2px #ffcc00,0 0 20px rgba(255,204,0,0.5)}
 .th-glow{box-shadow:0 0 0 1px rgba(var(--rgb),0.35),0 10px 24px rgba(0,0,0,0.25)}
 .th-ph{background:linear-gradient(135deg,#d32f2f,#8b0000);border-color:#ff4d4d}
 .th-ph svg{color:#fff}
