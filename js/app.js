@@ -796,7 +796,12 @@ function closeTileSection(fromHistory) {
   document.querySelectorAll('.tab-btn, .tab-alert').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
 }
-window.addEventListener('popstate', () => closeTileSection(true));
+window.addEventListener('popstate', (e) => {
+  // У кабінеті «Назад» повертає з підекрана («Сповіщення», «Мої оголошення») на головний екран кабінету
+  const st = e.state || {};
+  if (document.documentElement.classList.contains('cabinet-open') && st.tileSection === 'cabinet') { cabShowView(st.sub || 'home', true); return; }
+  closeTileSection(true);
+});
 
 function tileAction(action, ev) {
   if (ev) ev.stopPropagation();
@@ -951,8 +956,9 @@ function renderAccount() {
 function renderCabinet() {
   const body = document.getElementById('cabinet-body');
   if (!body) return;
-  // Три частини: вгорі вхід чи профіль, посередині сповіщення (працюють і без входу), внизу оголошення й вихід
-  if (!document.getElementById('cab-push')) body.innerHTML = '<div id="cab-top" class="cab-part"></div><div id="cab-push" class="cab-card cab-push"></div><div id="cab-bottom" class="cab-part"></div>';
+  // Головний екран кабінету: вгорі вхід чи профіль, далі плитки («Сповіщення», «Мої оголошення»), унизу вихід.
+  // Підекран (#cab-sub) — уміст плитки, що її відкрили; «Назад» повертає на головний екран кабінету.
+  if (!document.getElementById('cab-home')) body.innerHTML = '<div id="cab-home" class="cab-part"><div id="cab-top" class="cab-part"></div><div id="cab-tiles" class="th-grid cab-tiles"></div><div id="cab-bottom" class="cab-part"></div></div><div id="cab-sub" class="cab-part" hidden></div>';
   let top = '', bottom = '';
   if (cabState === 'error') {
     top = `<div class="cab-card cab-center"><b>Не вдалося завантажити вхід</b><p>Перевірте з'єднання з інтернетом і спробуйте ще раз.</p><button type="button" class="cab-btn" data-act="retry">Спробувати ще раз</button></div>`;
@@ -992,26 +998,46 @@ function renderCabinet() {
       <div class="cab-profile">${cabAvatar(u, 52)}<div class="cab-profile-txt"><b>${escapeHTML(cabName(u))}</b><span>${escapeHTML(u.email || '')}</span></div></div>
       ${verify}`;
     bottom = `
-      <div class="cab-card">
-        <div class="cab-card-head">Мої оголошення</div>
-        <p class="cab-empty">Поки що порожньо. Незабаром звідси можна буде подати оголошення в Барахолку, Нерухомість, Знахідки й Вакансії, бачити, чи пройшло воно модерацію, і видаляти свої.</p>
-      </div>
       <div class="cab-msg" id="cab-msg" role="status" aria-live="polite"></div>
       <button type="button" class="cab-btn cab-btn-ghost cab-wide" data-act="signout">Вийти</button>
       ${del}`;
   }
-  const t = document.getElementById('cab-top'), b = document.getElementById('cab-bottom');
+  // Плитки кабінету: «Сповіщення» (працюють і без входу) і, після входу, «Мої оголошення»
+  const subOn = cabPushSubscribed(), perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+  const nOn = subOn ? getCurrentCategories().length : 0;
+  const pushSt = subOn ? `Увімкнено · ${nOn} ${pluralUk(nOn, 'тема', 'теми', 'тем')}` : perm === 'denied' ? 'Заблоковано в браузері' : 'Вимкнено';
+  const tiles = `<button type="button" class="th-tile ${cabUser ? 'th-w2' : 'th-w4'}${subOn ? ' th-on' : ''}" data-act="view-push" style="--c:#FFCC00;--rgb:255,204,0">${CAB_BELL_ICO}<span class="th-txt"><span class="th-l">Сповіщення</span><span class="th-d">${pushSt}</span></span></button>`
+    + (cabUser ? `<button type="button" class="th-tile th-w2" data-act="view-ads" style="--c:#00FF9C;--rgb:0,255,156">${CAB_ADS_ICO}<span class="th-txt"><span class="th-l">Мої оголошення</span><span class="th-d">Незабаром</span></span></button>` : '');
+  const t = document.getElementById('cab-top'), b = document.getElementById('cab-bottom'), tl = document.getElementById('cab-tiles');
   if (t.dataset.v !== top) { t.dataset.v = top; t.innerHTML = top; }
+  if (tl.dataset.v !== tiles) { tl.dataset.v = tiles; tl.innerHTML = tiles; }
   if (b.dataset.v !== bottom) { b.dataset.v = bottom; b.innerHTML = bottom; }
-  renderCabPush();
-  if (cabFocusPush) cabScrollToPush();
+  // Який екран показати
+  const home = document.getElementById('cab-home'), sub = document.getElementById('cab-sub'), title = document.getElementById('section-bar-title');
+  home.hidden = cabView !== 'home'; sub.hidden = cabView === 'home';
+  if (title) title.textContent = cabView === 'push' ? 'Сповіщення' : cabView === 'ads' ? 'Мої оголошення' : 'Мій кабінет';
+  if (cabView === 'push') {
+    if (!document.getElementById('cab-push')) sub.innerHTML = '<div id="cab-push" class="cab-push"></div>';
+    renderCabPush();
+  } else if (cabView === 'ads') {
+    sub.innerHTML = `<div class="cab-card"><p class="cab-empty">Поки що порожньо. Незабаром звідси можна буде подати оголошення в Барахолку, Нерухомість, Знахідки й Вакансії, бачити, чи пройшло воно модерацію, і видаляти свої.</p></div>`;
+  } else if (sub.innerHTML) sub.innerHTML = '';
+}
+const CAB_BELL_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>';
+const CAB_ADS_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>';
+let cabView = 'home'; // home — головний екран кабінету; push — сповіщення; ads — мої оголошення
+function cabShowView(v, fromHistory) {
+  cabView = v || 'home';
+  if (cabView === 'push') { cabPushDraft = null; cabPushConfirmOff = false; }
+  if (!fromHistory && cabView !== 'home') { try { history.pushState({ tileSection: 'cabinet', sub: cabView }, ''); } catch (e) {} }
+  renderCabinet();
+  const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
 }
 
 // === Сповіщення в кабінеті: усі ті самі теми й дії, що й у вікні «Важливі сповіщення» старого дизайну ===
 // Працюють і без входу: підписка, як і раніше, прив'язана до цього пристрою (браузера).
 let cabPushDraft = null;        // теми, які людина зараз обирає (до збереження)
 let cabPushConfirmOff = false;  // підтвердження «Вимкнути всі сповіщення»
-let cabFocusPush = false;       // кабінет відкрили з плитки «Сповіщення» — тримаємо блок у полі зору
 function cabPushSubscribed() { return localStorage.getItem('push_subscribed') === '1' && ('Notification' in window) && Notification.permission === 'granted'; }
 function cabPushSaved() { return (cabPushSubscribed() ? getCurrentCategories() : getDefaultCategories()).slice(); }
 function cabPushDirty() { return (cabPushDraft || []).slice().sort().join(',') !== cabPushSaved().sort().join(','); }
@@ -1023,7 +1049,7 @@ function renderCabPush() {
   const sub = cabPushSubscribed();
   const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
   const ios = isIOS() && !isPWA();
-  const n = sub ? getCurrentCategories().length : 0;
+  const n = sub ? getCurrentCategories().length : 0, k = cabPushDraft.length;
   const stat = sub ? ['ok', `Увімкнено · ${n} ${pluralUk(n, 'тема', 'теми', 'тем')}`] : perm === 'denied' ? ['bad', 'Заблоковано'] : ['off', 'Вимкнено'];
   let note = '';
   if (ios) note = `<div class="cab-note"><b>На iPhone — з головного екрана</b><span>Через обмеження Apple сповіщення на iPhone працюють, лише коли сайт додано на головний екран і відкрито з іконки.</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm" data-act="push-ios">Як додати на головний екран</button></div></div>`;
@@ -1031,33 +1057,31 @@ function renderCabPush() {
   else if (perm === 'denied') note = `<div class="cab-note"><b>Сповіщення заборонено для сайту</b><span>Дозвольте їх у налаштуваннях браузера: значок 🔒 біля адреси → «Сповіщення» → «Дозволити». Потім поверніться сюди.</span></div>`;
   const groups = {};
   PUSH_CATEGORIES.forEach(c => { (groups[c.group] = groups[c.group] || []).push(c); });
-  const list = Object.keys(groups).map(g => `<div class="cab-pgroup"><div class="cab-pgroup-head">${escapeHTML(g)}</div>${groups[g].map(c => `<label class="cab-pcat"><input type="checkbox" data-cat="${escapeHTML(c.id)}"${cabPushDraft.includes(c.id) ? ' checked' : ''}><span class="cab-pcat-ico" aria-hidden="true">${c.icon}</span><span class="cab-pcat-txt"><b>${escapeHTML(c.name)}</b><small>${escapeHTML(c.desc)}</small></span><span class="cab-switch" aria-hidden="true"></span></label>`).join('')}</div>`).join('');
+  const grid = Object.keys(groups).map(g => `<div class="cab-pgroup"><div class="cab-pgroup-head">${escapeHTML(g)}</div><div class="cab-pgrid">${groups[g].map(c => `<label class="cab-ptile" title="${escapeHTML(c.desc)}"><input type="checkbox" data-cat="${escapeHTML(c.id)}"${cabPushDraft.includes(c.id) ? ' checked' : ''}><span class="cab-ptile-ico" aria-hidden="true">${c.icon}</span><span class="cab-ptile-name">${escapeHTML(c.name)}</span><span class="cab-ptile-check" aria-hidden="true">✓</span></label>`).join('')}</div></div>`).join('');
   const canOn = isPushSupported() && perm !== 'denied';
-  const main = sub
-    ? `<button type="button" class="cab-submit" data-act="push-save"${cabPushDirty() ? '' : ' disabled'}>Зберегти зміни</button>`
-    : ios ? `<button type="button" class="cab-submit" data-act="push-ios">Увімкнути сповіщення</button>`
-    : `<button type="button" class="cab-submit" data-act="push-on"${canOn ? '' : ' disabled'}>Увімкнути сповіщення</button>`;
+  let bar = '';
+  if (!sub) bar = ios ? `<button type="button" class="cab-submit" data-act="push-ios">Увімкнути сповіщення</button>`
+    : `<button type="button" class="cab-submit" data-act="push-on"${canOn && k ? '' : ' disabled'}>Увімкнути сповіщення · ${k} ${pluralUk(k, 'тема', 'теми', 'тем')}</button>`;
+  else if (cabPushDirty()) bar = `<button type="button" class="cab-submit" data-act="push-save">Зберегти зміни</button>`;
   const off = !sub ? '' : cabPushConfirmOff
     ? `<div class="cab-confirm"><b>Вимкнути всі сповіщення?</b><span>Ви більше не отримуватимете жодних сповіщень. Увімкнути знову можна будь-коли.</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm cab-btn-danger" data-act="push-off-yes">Так, вимкнути</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="push-off-no">Скасувати</button></div></div>`
     : `<button type="button" class="cab-link cab-link-danger" data-act="push-off">Вимкнути всі сповіщення</button>`;
   const html = `
-    <div class="cab-card-head cab-push-head"><span>🔔 Сповіщення</span><span class="cab-pstat cab-pstat-${stat[0]}">${stat[1]}</span></div>
-    <p class="cab-push-sub">Оберіть, про що надсилати сповіщення на цей пристрій. Змінити можна будь-коли.</p>
+    <div class="cab-pstatus"><span class="cab-pstat cab-pstat-${stat[0]}">${stat[1]}</span><span class="cab-pcount">Обрано ${k} з ${PUSH_CATEGORIES.length}</span></div>
+    <p class="cab-push-sub">Торкніться плитки, щоб увімкнути чи вимкнути тему.</p>
     ${note}
-    <div class="cab-plist">${list}</div>
-    <div class="cab-prow"><button type="button" class="cab-btn cab-btn-sm" data-act="push-all">Обрати все</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="push-none">Зняти все</button><span class="cab-pcount">Обрано: <b id="cab-pcount">${cabPushDraft.length}</b> з ${PUSH_CATEGORIES.length}</span></div>
-    ${main}
-    ${off}`;
+    ${grid}
+    <div class="cab-prow"><button type="button" class="cab-btn cab-btn-sm" data-act="push-all">Обрати все</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="push-none">Зняти все</button></div>
+    ${off}
+    <div class="cab-pbar"${bar ? '' : ' hidden'}>${bar}</div>`;
   if (box.dataset.v !== html) { box.dataset.v = html; box.innerHTML = html; }
 }
-// Галочку змінили — лічильник і кнопку оновлюємо на місці, без перемальовування списку
+// Плитку теми торкнули — оновлюємо вибір і перемальовуємо (лічильник, кнопка внизу)
 function cabPushToggle(input) {
   const id = input.dataset.cat;
   cabPushDraft = (cabPushDraft || []).filter(x => x !== id);
   if (input.checked) cabPushDraft.push(id);
-  const c = document.getElementById('cab-pcount'); if (c) c.textContent = cabPushDraft.length;
-  const save = document.querySelector('#cab-push [data-act="push-save"]'); if (save) save.disabled = !cabPushDirty();
-  const box = document.getElementById('cab-push'); if (box) box.dataset.v = ''; // наступне перемальовування — з новими галочками
+  renderCabPush();
 }
 async function cabPushAction(act, btn) {
   if (act === 'push-all') { cabPushDraft = PUSH_CATEGORIES.map(c => c.id); renderCabPush(); return; }
@@ -1074,11 +1098,6 @@ async function cabPushAction(act, btn) {
   if (act === 'push-on') return cabBusy(btn, async () => { await subscribeToPush(cabPushDraft.slice()); done(); });
   if (act === 'push-save') return cabBusy(btn, async () => { await savePushPreferences(cabPushDraft.slice()); done(); });
 }
-function cabScrollToPush() {
-  const c = document.getElementById('cabinet'), t = document.getElementById('cab-push');
-  if (c && t) c.scrollTop = Math.max(0, t.offsetTop - 12);
-}
-
 function cabMsg(text, kind) {
   const m = document.getElementById('cab-msg');
   if (m) { m.textContent = text || ''; m.className = 'cab-msg' + (kind ? ' cab-msg-' + kind : ''); }
@@ -1115,6 +1134,7 @@ async function cabBusy(btn, fn) {
 
 async function cabAction(act, btn) {
   if (act === 'retry') { cabState = 'idle'; ensureAuth(); return; }
+  if (act === 'view-push' || act === 'view-ads') { cabShowView(act.slice(5)); return; }
   if (act.indexOf('push-') === 0) return cabPushAction(act, btn); // сповіщення — і без входу
   if (!cabAuth) return;
   if (act === 'mode-in' || act === 'mode-up') { cabMode = act === 'mode-up' ? 'up' : 'in'; renderCabinet(); return; }
@@ -1173,20 +1193,16 @@ function openCabinet(ev, focus) {
   if (ev) ev.stopPropagation();
   const root = document.documentElement;
   if (!root.classList.contains('tiles-mode')) return; // кабінет — лише в новому дизайні
-  const title = document.getElementById('section-bar-title');
-  if (title) title.textContent = 'Мій кабінет';
   root.classList.add('cabinet-open');
+  cabView = focus === 'push' ? 'push' : 'home';
   if (!root.classList.contains('section-open')) {
     root.classList.add('section-open');
-    try { history.pushState({ tileSection: 'cabinet' }, ''); } catch (e) {}
+    try { history.pushState(cabView === 'home' ? { tileSection: 'cabinet' } : { tileSection: 'cabinet', sub: cabView }, ''); } catch (e) {}
   }
   cabPushDraft = null; cabPushConfirmOff = false; // свіжий стан підписки при кожному відкритті
-  cabFocusPush = focus === 'push';
   const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
   ensureAuth();
   renderCabinet();
-  // З плитки «Сповіщення» — блок сповіщень у полі зору, поки довантажується вхід (до першого дотику чи 3 с)
-  if (cabFocusPush) setTimeout(() => { cabFocusPush = false; }, 3000);
 }
 
 function initCabinet() {
@@ -1197,8 +1213,6 @@ function initCabinet() {
     body.addEventListener('submit', (e) => { e.preventDefault(); cabSubmit(e.target); });
     body.addEventListener('change', (e) => { if (e.target.matches('input[data-cat]')) cabPushToggle(e.target); });
   }
-  const cab = document.getElementById('cabinet');
-  if (cab) ['touchstart', 'wheel', 'keydown'].forEach(ev => cab.addEventListener(ev, () => { cabFocusPush = false; }, { passive: true }));
   renderAccount();
   // Вхід підтягуємо трохи згодом, щоб не гальмувати першу появу головної; аватар з'явиться, щойно Firebase згадає людину
   setTimeout(ensureAuth, 800);
