@@ -1264,12 +1264,17 @@ function svitloSnapshot(d) {
 }
 function svitloSnapSig(snap) { return snap.updated + '#' + JSON.stringify(snap.slots); }
 function getSvitloSeen() { try { const v = JSON.parse(localStorage.getItem(SVITLO_SEEN_KEY) || 'null'); return v && typeof v.slots === 'object' ? v : null; } catch (e) { return null; } }
-function setSvitloSeen(snap) { try { localStorage.setItem(SVITLO_SEEN_KEY, JSON.stringify(snap)); } catch (e) {} }
-// Чого людина ще не бачила: null — нічого; { kind: 'changed' | 'new', changed: { id: як було } }
+// opened — людина справді відкривала вікно з цим графіком (а не просто зайшла на сайт уперше)
+function setSvitloSeen(snap, opened) { try { localStorage.setItem(SVITLO_SEEN_KEY, JSON.stringify(Object.assign({}, snap, { opened: !!opened }))); } catch (e) {} }
+// Чого людина ще не бачила: null — нічого; { kind: 'changed' | 'new', changed: { id: як було }, unknown? }
+// Графік із позначкою revised («змінено о …») підсвічується й тоді, коли людина його ще не відкривала —
+// навіть якщо зайшла вперше вже після зміни (тоді невідомо, що саме змінилось: unknown).
 function svitloUnseen(d, base) {
-  if (!d || !base) return null;
+  if (!d) return null;
+  const revisedNotOpened = !!d.revised && !(base && base.opened);
+  if (!base) return revisedNotOpened ? { kind: 'changed', changed: {}, unknown: true } : null;
   const cur = svitloSnapshot(d);
-  if (svitloSnapSig(base) === svitloSnapSig(cur)) return null;
+  if (svitloSnapSig(base) === svitloSnapSig(cur)) return revisedNotOpened ? { kind: 'changed', changed: {}, unknown: true } : null;
   if (base.updated !== cur.updated) return { kind: 'new', changed: {} };
   const changed = {};
   Object.keys(cur.slots).forEach(id => { if (base.slots[id] !== cur.slots[id]) changed[id] = base.slots[id] === undefined ? null : base.slots[id]; });
@@ -1279,6 +1284,16 @@ function svitloUnseenTitle(d, u) {
   if (u.kind === 'new') return `🆕 Новий графік на ${svitloDdMm(d.updated)}`;
   const t = d.revised ? svitloRevShort(d.revised, d.updated) : '';
   return '🔄 Графік змінено' + (t ? ` о ${escapeHTML(t)}` : '');
+}
+
+// Спливаюче повідомлення вгорі — один раз на кожну зміну графіка (далі лишається підсвічена смуга)
+function svitloUpdateToast() {
+  const d = currentSvitloData, u = svitloUnseen(d, getSvitloSeen());
+  if (!u) return;
+  const key = svitloSnapSig(svitloSnapshot(d)) + '|' + (d.revised || '');
+  try { if (localStorage.getItem('svitlo_toast') === key) return; localStorage.setItem('svitlo_toast', key); } catch (e) { return; }
+  const t = d.revised ? svitloRevShort(d.revised, d.updated) : '';
+  showToast(u.kind === 'new' ? `🆕 Вийшов новий графік світла на ${svitloDdMm(d.updated)}` : `🔄 Графік світла змінено${t ? ' о ' + t : ''}`, 'info');
 }
 
 async function loadSvitloData() {
@@ -1297,8 +1312,9 @@ async function loadSvitloData() {
     // «Чистий» день: у жодній черзі жодного постачальника немає відключень.
     const noOutages = !providers.some(p => Array.isArray(p.queues) && p.queues.some(q => q && Array.isArray(q.slots) && q.slots.filter(Boolean).length > 0));
     currentSvitloData = { providers: providers, updated: data.updated || '', revised: data.revised || '', noOutages: noOutages };
-    if (!getSvitloSeen()) setSvitloSeen(svitloSnapshot(currentSvitloData)); // перший візит — без підсвітки
+    if (!getSvitloSeen()) setSvitloSeen(svitloSnapshot(currentSvitloData), false); // перший візит: звідси рахуємо зміни
     renderSvitloAll();
+    svitloUpdateToast();
     host.style.display = 'block';
     host.style.cursor = 'pointer';
     host.onclick = openSvitloModal;
@@ -1333,7 +1349,7 @@ function renderSvitloStrip() {
   let html;
   if (unseen) {
     let sub = 'Натисніть, щоб переглянути';
-    if (my && unseen.kind === 'changed') sub = my.id in unseen.changed ? `Ваша черга ${escapeHTML(my.queue)} змінилась` : `Черга ${escapeHTML(my.queue)} без змін`;
+    if (my && unseen.kind === 'changed') sub = unseen.unknown ? `Перевірте час черги ${escapeHTML(my.queue)}` : my.id in unseen.changed ? `Ваша черга ${escapeHTML(my.queue)} змінилась` : `Черга ${escapeHTML(my.queue)} без змін`;
     html = `<div class="svitlo-box svitlo-box-upd"><span class="svitlo-name">${svitloUnseenTitle(d, unseen)}</span><span class="svitlo-when">${sub}</span></div>`;
   } else if (st && st.kind !== 'stale') {
     const t = svitloStateText(st, d.updated);
@@ -1388,7 +1404,7 @@ function renderSvitloModal(reset) {
   const my = svitloMyQueue(d);
   const allEl = body.querySelector('.sv-all');
   const allOpen = (!reset && allEl) ? allEl.open : !my;
-  setSvitloSeen(svitloSnapshot(d)); // людина дивиться саме цей графік
+  setSvitloSeen(svitloSnapshot(d), true); // людина дивиться саме цей графік
   const html = svitloModalHtml(d, my, allOpen, svitloUnseen(d, svitloModalBase));
   if (body.dataset.v !== html) { body.dataset.v = html; body.innerHTML = html; }
 }
