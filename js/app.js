@@ -923,7 +923,7 @@ function ensureAuth() {
       cabAuth = firebase.auth();
       cabAuth.languageCode = 'uk'; // листи (підтвердження, відновлення пароля) і вікно Google — українською
       cabState = 'ready';
-      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) cabMode = 'in'; renderAccount(); });
+      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) cabMode = 'in'; cabAds = { state: 'idle', rides: [], confirm: '' }; renderAccount(); if (u) cabLoadAds(); });
     } catch (e) { cabState = 'error'; logSectionError('кабінет', e); renderAccount(); }
   };
   if (typeof firebase.auth === 'function') { start(); return; }
@@ -1007,7 +1007,7 @@ function renderCabinet() {
   const nOn = subOn ? getCurrentCategories().length : 0;
   const pushSt = subOn ? `Увімкнено · ${nOn} ${pluralUk(nOn, 'тема', 'теми', 'тем')}` : perm === 'denied' ? 'Заблоковано в браузері' : 'Вимкнено';
   const tiles = `<button type="button" class="th-tile ${cabUser ? 'th-w2' : 'th-w4'}${subOn ? ' th-on' : ''}" data-act="view-push" style="--c:#FFCC00;--rgb:255,204,0">${CAB_BELL_ICO}<span class="th-txt"><span class="th-l">Сповіщення</span><span class="th-d">${pushSt}</span></span></button>`
-    + (cabUser ? `<button type="button" class="th-tile th-w2" data-act="view-ads" style="--c:#00FF9C;--rgb:0,255,156">${CAB_ADS_ICO}<span class="th-txt"><span class="th-l">Мої оголошення</span><span class="th-d">Незабаром</span></span></button>` : '');
+    + (cabUser ? `<button type="button" class="th-tile th-w2" data-act="view-ads" style="--c:#00FF9C;--rgb:0,255,156">${CAB_ADS_ICO}<span class="th-txt"><span class="th-l">Мої оголошення</span><span class="th-d">${cabAdsTileText()}</span></span></button>` : '');
   const t = document.getElementById('cab-top'), b = document.getElementById('cab-bottom'), tl = document.getElementById('cab-tiles');
   if (t.dataset.v !== top) { t.dataset.v = top; t.innerHTML = top; }
   if (tl.dataset.v !== tiles) { tl.dataset.v = tiles; tl.innerHTML = tiles; }
@@ -1017,11 +1017,12 @@ function renderCabinet() {
   home.hidden = cabView !== 'home'; sub.hidden = cabView === 'home';
   if (title) title.textContent = cabView === 'push' ? 'Сповіщення' : cabView === 'ads' ? 'Мої оголошення' : 'Мій кабінет';
   if (cabView === 'push') {
-    if (!document.getElementById('cab-push')) sub.innerHTML = '<div id="cab-push" class="cab-push"></div>';
+    if (!document.getElementById('cab-push')) { sub.innerHTML = '<div id="cab-push" class="cab-push"></div>'; sub.dataset.v = ''; }
     renderCabPush();
   } else if (cabView === 'ads') {
-    sub.innerHTML = `<div class="cab-card"><p class="cab-empty">Поки що порожньо. Незабаром звідси можна буде подати оголошення в Барахолку, Нерухомість, Знахідки й Вакансії, бачити, чи пройшло воно модерацію, і видаляти свої.</p></div>`;
-  } else if (sub.innerHTML) sub.innerHTML = '';
+    const a = cabAdsHtml();
+    if (sub.dataset.v !== a) { sub.dataset.v = a; sub.innerHTML = a; }
+  } else if (sub.innerHTML) { sub.innerHTML = ''; sub.dataset.v = ''; }
 }
 const CAB_BELL_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>';
 const CAB_ADS_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>';
@@ -1029,6 +1030,7 @@ let cabView = 'home'; // home — головний екран кабінету; 
 function cabShowView(v, fromHistory) {
   cabView = v || 'home';
   if (cabView === 'push') { cabPushDraft = null; cabPushConfirmOff = false; }
+  if (cabView === 'ads' && !fromHistory) { cabAds.confirm = ''; cabLoadAds(); }
   if (!fromHistory && cabView !== 'home') { try { history.pushState({ tileSection: 'cabinet', sub: cabView }, ''); } catch (e) {} }
   renderCabinet();
   const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
@@ -1098,6 +1100,82 @@ async function cabPushAction(act, btn) {
   if (act === 'push-on') return cabBusy(btn, async () => { await subscribeToPush(cabPushDraft.slice()); done(); });
   if (act === 'push-save') return cabBusy(btn, async () => { await savePushPreferences(cabPushDraft.slice()); done(); });
 }
+// === «Мої оголошення» в кабінеті ===
+// Поки тут поїздки з «Попутників»: їх приймає наш сервер на Railway, і він пам'ятає, хто подав поїздку з кабінету.
+// Барахолка, Нерухомість, Знахідки, Вакансії й Акції йдуть через Apps Script — з'являться тут після його оновлення.
+const BLABLA_API = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app';
+let cabAds = { state: 'idle', rides: [], confirm: '' }; // state: idle | loading | ready | error | noserver
+
+async function cabLoadAds() {
+  if (!cabUser) { cabAds = { state: 'idle', rides: [], confirm: '' }; return; }
+  cabAds.state = 'loading'; renderCabinet();
+  try {
+    const token = await cabUser.getIdToken();
+    const r = await fetchWithTimeout(BLABLA_API + '/api/my-rides', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' }, 10000);
+    if (r.status === 404) cabAds.state = 'noserver'; // сервер попуток ще не оновлено
+    else if (!r.ok) throw new Error('HTTP ' + r.status);
+    else { const d = await r.json(); cabAds.rides = Array.isArray(d) ? d : []; cabAds.state = 'ready'; }
+  } catch (e) { cabAds.state = 'error'; logSectionError('мої оголошення', e); }
+  renderCabinet();
+}
+function cabRideActive(x) { return String(x.date || '') >= getKyivDateISO(); }
+function cabAdsTileText() {
+  if (cabAds.state !== 'ready') return 'Ваші поїздки й оголошення';
+  const n = cabAds.rides.filter(cabRideActive).length;
+  return n ? `${n} ${pluralUk(n, 'активна поїздка', 'активні поїздки', 'активних поїздок')}` : 'Активних поки немає';
+}
+function cabAdsHtml() {
+  const newBtns = `<div class="cab-row cab-ads-new"><button type="button" class="cab-btn" data-act="ride-new-driver">🚗 Я водій — запропоную</button><button type="button" class="cab-btn" data-act="ride-new-passenger">🧍 Я пасажир — шукаю</button></div>`;
+  let list;
+  if (cabAds.state === 'loading' || cabAds.state === 'idle') list = `<p class="cab-empty">Завантаження…</p>`;
+  else if (cabAds.state === 'noserver') list = `<p class="cab-empty">Сервер попуток ще не оновлено. Щойно його оновлять, тут з'являться поїздки, які ви подасте з кабінету.</p>`;
+  else if (cabAds.state === 'error') list = `<p class="cab-empty">Не вдалося завантажити. Перевірте інтернет.</p><button type="button" class="cab-btn cab-btn-sm" data-act="ads-reload">Спробувати ще раз</button>`;
+  else if (!cabAds.rides.length) list = `<p class="cab-empty">Поки немає жодної поїздки. Подайте її кнопкою нижче — і вона з'явиться тут. Поїздки, подані без входу в кабінет, сюди не потрапляють.</p>`;
+  else list = cabAds.rides.map(x => {
+    const id = String(x._id || ''), active = cabRideActive(x), drv = x.type !== 'passenger';
+    const d = String(x.date || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    const meta = [d ? `${d[3]}.${d[2]}` : escapeHTML(String(x.date || '')), x.time ? escapeHTML(String(x.time)) : '', x.seats ? `${escapeHTML(String(x.seats))} ${drv ? 'місц.' : 'потр. місц.'}` : '', drv ? (x.price > 0 ? `${escapeHTML(String(x.price))} грн` : 'ціна договірна') : ''].filter(Boolean).join(' · ');
+    const act = cabAds.confirm === id
+      ? `<div class="cab-confirm"><b>Видалити поїздку?</b><span>Її більше не буде видно в «Попутниках».</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm cab-btn-danger" data-act="ride-del-yes" data-id="${escapeHTML(id)}">Так, видалити</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="ride-del-no">Скасувати</button></div></div>`
+      : `<div class="cab-ad-actions"><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="ride-del" data-id="${escapeHTML(id)}">Видалити</button></div>`;
+    return `<div class="cab-ad${active ? '' : ' cab-ad-past'}">
+      <div class="cab-ad-top"><span class="cab-ad-kind">${drv ? '🚗 Пропозиція водія' : '🧍 Запит пасажира'}</span><span class="cab-ad-st ${active ? 'cab-ad-st-on' : 'cab-ad-st-off'}">${active ? 'Опубліковано' : 'Минула'}</span></div>
+      <b class="cab-ad-title">${escapeHTML(String(x.from || ''))} → ${escapeHTML(String(x.to || ''))}</b>
+      <span class="cab-ad-meta">${meta}</span>
+      ${x.comment ? `<span class="cab-ad-note">💬 ${escapeHTML(String(x.comment))}</span>` : ''}
+      ${act}
+    </div>`;
+  }).join('');
+  return `
+    <div class="cab-card cab-ads">
+      <div class="cab-card-head">🚗 Попутники</div>
+      ${list}
+      ${newBtns}
+    </div>
+    <div class="cab-card cab-soon"><b>Барахолка, Нерухомість, Знахідки, Вакансії, Акції</b><span>З'являться тут трохи згодом. Поки подавайте їх у розділах, як і раніше.</span></div>`;
+}
+async function cabAdsAction(act, btn) {
+  if (act === 'ads-reload') return cabLoadAds();
+  if (act === 'ride-new-driver' || act === 'ride-new-passenger') {
+    openModalForm('custom-blabla-form', 'blabla-modal');
+    document.getElementById('input-type').value = act === 'ride-new-driver' ? 'driver' : 'passenger';
+    const nm = document.getElementById('input-name'); if (nm && !nm.value && cabUser) nm.value = cabName(cabUser).slice(0, 30);
+    return;
+  }
+  if (act === 'ride-del') { cabAds.confirm = btn.dataset.id; renderCabinet(); return; }
+  if (act === 'ride-del-no') { cabAds.confirm = ''; renderCabinet(); return; }
+  if (act === 'ride-del-yes') return cabBusy(btn, async () => {
+    const id = btn.dataset.id;
+    const token = await cabUser.getIdToken();
+    const r = await fetchWithTimeout(BLABLA_API + '/api/rides/' + encodeURIComponent(id), { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } }, 10000);
+    if (!r.ok) { showToast('❌ Не вдалося видалити поїздку. Спробуйте ще раз.', 'error'); return; }
+    cabAds.rides = cabAds.rides.filter(x => String(x._id) !== id); cabAds.confirm = '';
+    renderCabinet();
+    delete memoryDataCache['blabla_api']; loadBlaBlaCarData(); // список у «Попутниках» — одразу без неї
+    showToast('Поїздку видалено', 'info');
+  });
+}
+
 function cabMsg(text, kind) {
   const m = document.getElementById('cab-msg');
   if (m) { m.textContent = text || ''; m.className = 'cab-msg' + (kind ? ' cab-msg-' + kind : ''); }
@@ -1135,6 +1213,7 @@ async function cabBusy(btn, fn) {
 async function cabAction(act, btn) {
   if (act === 'retry') { cabState = 'idle'; ensureAuth(); return; }
   if (act === 'view-push' || act === 'view-ads') { cabShowView(act.slice(5)); return; }
+  if (act.indexOf('ride-') === 0 || act === 'ads-reload') return cabAdsAction(act, btn);
   if (act.indexOf('push-') === 0) return cabPushAction(act, btn); // сповіщення — і без входу
   if (!cabAuth) return;
   if (act === 'mode-in' || act === 'mode-up') { cabMode = act === 'mode-up' ? 'up' : 'in'; renderCabinet(); return; }
@@ -3118,11 +3197,14 @@ async function submitBlaBlaForm(event) {
   const submitBtn = document.getElementById('form-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Відправка...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
   const formData = { type: document.getElementById('input-type').value, name: document.getElementById('input-name').value, from: document.getElementById('input-from').value, to: document.getElementById('input-to').value, date: document.getElementById('input-date').value, time: document.getElementById('input-time-to').value ? `${document.getElementById('input-time-from').value} - ${document.getElementById('input-time-to').value}` : document.getElementById('input-time-from').value, seats: parseInt(document.getElementById('input-seats').value, 10), price: document.getElementById('input-price').value ? parseInt(document.getElementById('input-price').value, 10) : 0, phone: document.getElementById('input-phone').value, comment: document.getElementById('input-comment').value };
   try {
-    const API_URL = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides'; 
-    const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) });
+    const headers = { 'Content-Type': 'application/json' };
+    // Є вхід у кабінет (бета) — додаємо токен: сервер запам'ятає, чия поїздка, і вона з'явиться в «Моїх оголошеннях»
+    if (cabUser && document.documentElement.classList.contains('beta-mode')) { try { headers.Authorization = 'Bearer ' + await cabUser.getIdToken(); } catch (e) {} }
+    const response = await fetch(BLABLA_API + '/api/rides', { method: 'POST', headers: headers, body: JSON.stringify(formData) });
     if (!response.ok) throw new Error('Помилка сервера при збереженні');
     showToast('✅ Ваше оголошення успішно додано!', 'success');
     closeModalForm(null, 'blabla-modal'); switchBlaBlaList(formData.type === 'driver' ? 'drivers' : 'passengers'); loadBlaBlaCarData(); 
+    if (cabUser && document.documentElement.classList.contains('cabinet-open')) cabLoadAds(); // подали з кабінету — оновити «Мої оголошення»
   } catch (error) { showToast('❌ Помилка при відправці: ' + error.message, 'error'); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
 }
 
@@ -3259,7 +3341,7 @@ function updateBlaBlaToggleCounts(driversCount, passengersCount) {
 
 async function loadBlaBlaCarData() {
   try {
-    const raw = await fetchCachedJson('https://vilnohirsk-blablacar-api-production-67d3.up.railway.app/api/rides', 'blabla_api', 2);
+    const raw = await fetchCachedJson(BLABLA_API + '/api/rides', 'blabla_api', 2);
     const d = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.rides) ? raw.rides : []);
     markNewItems(d, 'blablacar');
     checkNotification('blablacar', d);
