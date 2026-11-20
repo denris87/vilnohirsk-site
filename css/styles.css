@@ -638,3 +638,71 @@ a,
 .lt-variant-num{color:#06231a;background:var(--v-color);padding:2px 8px;border-radius:8px;font-size:12px;font-weight:900;}
 .lt-variant .stop-diff .station-name-text,.lt-variant .stop-diff .time-normal{color:var(--v-color) !important;font-weight:700;}
 .lt-variant .stop-diff{background:color-mix(in srgb, var(--v-color) 10%, transparent);border-radius:6px;}
+
+/* ===== ГОЛОВНА ПЛИТКАМИ («бенто») — лише з класом html.tiles-mode (?tiles=1) ===== */
+.tile-home,.section-bar{display:none}
+html.tiles-mode .tile-home{display:block}
+/* Стара головна в режимі плиток: вкладки, дата/погода/радіо/пальне, смуга світла, кнопки зв'язку */
+html.tiles-mode .alert-main-widget,
+html.tiles-mode .schedule-group>.tabs-wrapper,
+html.tiles-mode .market-group>.tabs-wrapper,
+html.tiles-mode .top-row,
+html.tiles-mode #svitlo-widget,
+html.tiles-mode .connect-head,
+html.tiles-mode .connect-actions,
+html.tiles-mode .donate-btn{display:none!important}
+/* Групи без вкладок не займають місця: лишаються тільки їхні шторки-розділи */
+html.tiles-mode .alert-group,html.tiles-mode .schedule-group,html.tiles-mode .market-group{display:contents!important}
+
+.th-brand{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:2px 4px 12px}
+.th-brand b{font-size:19px;font-weight:900;letter-spacing:-0.3px;color:#fff}
+.th-brand span{font-size:11px;font-weight:700;letter-spacing:0.4px;color:rgba(255,255,255,0.62);white-space:nowrap}
+.th-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:86px;gap:8px}
+.th-tile{position:relative;-webkit-appearance:none;appearance:none;margin:0;font:inherit;color:#fff;text-align:center;cursor:pointer;
+  border-radius:20px;padding:10px 6px;background:rgba(6,14,36,0.5);border:1px solid rgba(255,255,255,0.1);border-top-color:rgba(255,255,255,0.18);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;box-shadow:0 8px 20px rgba(0,0,0,0.22);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;transition:transform 0.12s ease}
+.th-tile:active{transform:scale(0.97)}
+.th-tile:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.th-tile svg{flex:0 0 auto;color:var(--c)}
+.th-l{display:block;font-size:10.5px;font-weight:800;line-height:1.15;letter-spacing:-0.1px}
+.th-txt{display:block;min-width:0}
+.th-d{display:block;font-size:10.5px;font-weight:600;color:rgba(255,255,255,0.65);margin-top:2px}
+.th-w2,.th-w4{flex-direction:row;justify-content:flex-start;gap:11px;padding:10px 14px;text-align:left}
+.th-w2{grid-column:span 2} .th-w4{grid-column:span 4}
+.th-w2 .th-l,.th-w4 .th-l{font-size:13px}
+.th-big{grid-column:span 2;grid-row:span 2;align-items:flex-start;justify-content:space-between;padding:14px;text-align:left}
+.th-big .th-l{font-size:16px}
+.th-ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(var(--rgb),0.18)}
+.th-st{display:block;font-size:12px;font-weight:800;color:var(--c);margin-top:4px}
+.th-st.th-bad{color:#ff7a85} .th-st.th-ok{color:#5dffb0}
+.th-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.th-chips:empty{display:none}
+.th-chips span{font-size:10px;font-weight:800;padding:2px 6px;border-radius:7px;background:rgba(255,77,77,0.22);border:1px solid rgba(255,77,77,0.5);color:#ffd2d2}
+.th-glow{box-shadow:0 0 0 1px rgba(var(--rgb),0.35),0 10px 24px rgba(0,0,0,0.25)}
+.th-ph{background:linear-gradient(135deg,#d32f2f,#8b0000);border-color:#ff4d4d}
+.th-ph svg{color:#fff}
+.th-tile.th-on{box-shadow:0 0 0 2px var(--c),0 0 16px rgba(var(--rgb),0.55)}
+/* Живі позначки — копії бейджів зі старих вкладок (ті самі дані й кольори) */
+.th-badges{position:absolute;top:6px;right:6px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:3px;max-width:calc(100% - 12px);pointer-events:none}
+.th-badges:empty{display:none}
+.th-badges>*{position:static!important;transform:none!important;margin:0!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important}
+.th-count{font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:8px;background:#fff;color:#b71c1c;line-height:1.2}
+
+/* Розділ, відкритий з плитки, — окремим екраном поверх головної (вікна сайту лишаються вище) */
+html.tiles-mode.section-open,html.tiles-mode.section-open body{overflow:hidden}
+html.tiles-mode .alert-drawer.open,html.tiles-mode .main-list-widget.open,html.tiles-mode .shopping-drawer.open{
+  position:fixed;top:calc(56px + env(safe-area-inset-top,0px));left:0;right:0;bottom:0;width:auto;max-height:none;margin:0;border:0;border-radius:0;z-index:2000;
+  padding:14px max(12px,calc((100vw - 760px) / 2)) calc(28px + env(safe-area-inset-bottom,0px));
+  overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  background:linear-gradient(170deg,#1e3c72 0%,#2a5298 45%,#0d5f9e 100%);opacity:1;visibility:visible;pointer-events:auto}
+html.tiles-mode.section-open .section-bar{display:flex;position:fixed;top:0;left:0;right:0;z-index:2001;align-items:center;gap:10px;
+  box-sizing:border-box;height:calc(56px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) max(12px,calc((100vw - 760px) / 2)) 0;
+  background:#16305f;border-bottom:1px solid rgba(255,255,255,0.12);box-shadow:0 6px 18px rgba(0,0,0,0.25)}
+/* Липкий пошук (довідник, сміття) — під панеллю «Назад», у кольорі екрана розділу */
+html.tiles-mode.section-open .pb-search-container{background:linear-gradient(to bottom,#1e3c72 80%,rgba(30,60,114,0))}
+.sb-back{-webkit-appearance:none;appearance:none;border:0;margin:0;font:inherit;display:flex;align-items:center;gap:6px;flex:0 0 auto;
+  padding:8px 12px 8px 9px;border-radius:12px;background:rgba(255,255,255,0.12);color:#fff;font-size:14px;font-weight:800;cursor:pointer}
+.sb-back:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.sb-title{min-width:0;font-size:15px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (prefers-reduced-motion: reduce){.th-tile{transition:none}.th-tile:active{transform:none}}
