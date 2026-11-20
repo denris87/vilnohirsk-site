@@ -94,7 +94,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20261120b">
+<link rel="stylesheet" href="./css/styles.css?v=20261120c">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -322,8 +322,7 @@ document.addEventListener('touchend', function(e){
         <button type="button" class="th-tile" data-tab="jobs-tab" style="--c:#E056FD;--rgb:224,86,253" onclick="openTileSection('jobs-tab','market',event)"><span class="th-badges"></span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg><span class="th-l">Вакансії</span></button>
         <button type="button" class="th-tile" data-tab="lost-found-tab" style="--c:#00FFEA;--rgb:0,255,234" onclick="openTileSection('lost-found-tab','market',event)"><span class="th-badges"></span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><span class="th-l">Знахідки</span></button>
         <button type="button" class="th-tile" data-tab="garbage-tab" style="--c:#FFCC00;--rgb:255,204,0" onclick="openTileSection('garbage-tab','market',event)"><span class="th-badges"></span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg><span class="th-l">Сміття</span></button>
-        <button type="button" class="th-tile" id="th-radio" style="--c:#88DEC6;--rgb:136,222,198" onclick="tileAction('radio',event)"><span class="th-badges"></span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3.24 6.15C2.51 6.43 2 7.17 2 8v12c0 1.1.89 2 2 2h16c1.11 0 2-.9 2-2V8c0-1.11-.89-2-2-2H8.3l8.26-3.34L15.88 1 3.24 6.15zM7 20c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm13-8h-2v-2h-2v2H4V8h16v4z"/></svg><span class="th-l" id="th-radio-label">Радіо</span></button>
-        <button type="button" class="th-tile" id="th-notify" style="--c:#FFCC00;--rgb:255,204,0" onclick="tileAction('notify',event)"><span class="th-badges"></span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg><span class="th-l">Сповіщення</span></button>
+        <button type="button" class="th-tile th-w2" id="th-notify" style="--c:#FFCC00;--rgb:255,204,0" onclick="tileAction('notify',event)"><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg><span class="th-txt"><span class="th-l">Сповіщення</span><span class="th-d">Світло, ЗСУ, новини міста</span></span><span class="th-badges"></span></button>
         <button type="button" class="th-tile th-w2" id="th-admins" style="--c:#00FF9C;--rgb:0,255,156" onclick="tileAction('admins',event)"><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 11H6V9h2v2zm5 0h-2V9h2v2zm5 0h-2V9h2v2z"/></svg><span class="th-txt"><span class="th-l">Зв'язок з адмінами</span><span class="th-d">Відгуки й ідеї</span></span><span class="th-badges"></span></button>
         <button type="button" class="th-tile th-w2" id="th-donate" style="--c:#FF5C7A;--rgb:255,92,122" onclick="tileAction('donate',event)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="th-txt"><span class="th-l">Підтримати</span><span class="th-d">Донат на розвиток</span></span><span class="th-badges"></span></button>
       </div>
@@ -461,23 +460,6 @@ document.addEventListener('touchend', function(e){
       <div class="widget liquid-glass" style="padding: 12px 12px; justify-content: space-between; display: flex; flex-direction: column;">
         <div class="weather-box" id="weather-container" style="flex: 1; display: flex; align-items: center; justify-content: center; min-height: 72px;"></div>
 
-        <div id="radio-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 6px auto;"></div>
-
-        <!-- Радіо — на своєму місці між погодою й цінами на пальне. Графік відключень стоїть окремо, смугою під картками. -->
-        <div class="radio-container" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 0 4px;">
-          <button id="radio-btn" onclick="toggleRadio()" style="width: 34px; height: 34px; border-radius: 50%; border: none; background: #88dec6; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); flex-shrink: 0; padding: 0; outline: none; transition: transform 0.2s;">
-            <span id="radio-icon" style="display: flex; align-items: center; justify-content: center; transform: translateX(1px);"><svg width="14" height="14" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg></span>
-          </button>
-          <div style="display: flex; flex-direction: column; align-items: flex-start; justify-content: center; line-height: 1.25; flex: 1; min-width: 0;">
-            <div id="radio-track-name" style="font-size: 12px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">muzdance.com.ua</div>
-            <div id="radio-status" style="font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.5px;">PAUSED</div>
-          </div>
-          <div class="equalizer" id="equalizer" style="margin-left: 0; margin-right: 0;">
-            <div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div>
-          </div>
-          <audio id="radio-audio" preload="none"></audio>
-        </div>
-
         <div id="fuel-divider" style="width: 90%; height: 1px; background: rgba(255,255,255,0.15); margin: 8px auto; display:none;"></div>
         <div id="fuel-widget" class="fuel-widget" style="display:none;"></div>
       </div>
@@ -604,6 +586,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20261120b" defer></script>
+<script src="./js/app.js?v=20261120c" defer></script>
 </body>
 </html>

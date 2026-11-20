@@ -802,8 +802,7 @@ function tileAction(action, ev) {
   if (ev) ev.stopPropagation();
   if (action === 'svitlo') {
     if (svitloTileState) openSvitloModal(); else showToast('Графік відключень зараз не публікується', 'info');
-  } else if (action === 'radio') toggleRadio();
-  else if (action === 'notify') handlePushButtonClick();
+  } else if (action === 'notify') handlePushButtonClick();
   else if (action === 'admins') openModalForm('custom-feedback-form', 'feedback-modal');
   else if (action === 'donate') openModalForm(null, 'donate-modal');
 }
@@ -886,16 +885,6 @@ function initTileHome() {
       const el = document.getElementById(id);
       if (el) new MutationObserver(kick).observe(el, { attributes: true, attributeFilter: ['class'] });
     });
-  }
-  // Радіо: плитка світиться й пише «Грає», поки грає
-  const audio = document.getElementById('radio-audio');
-  if (audio) {
-    const upd = () => {
-      const on = !audio.paused;
-      const tile = document.getElementById('th-radio'); if (tile) tile.classList.toggle('th-on', on);
-      const label = document.getElementById('th-radio-label'); if (label) label.textContent = on ? 'Грає' : 'Радіо';
-    };
-    ['play', 'playing', 'pause', 'ended', 'emptied', 'error'].forEach(ev => audio.addEventListener(ev, upd));
   }
   syncTileHome();
 }
@@ -1115,7 +1104,7 @@ function closeFuelModal() {
   }
 }
 
-// === ГРАФІК ВІДКЛЮЧЕНЬ СВІТЛА — дані з data/svitlo.yaml (показується замість радіо) ===
+// === ГРАФІК ВІДКЛЮЧЕНЬ СВІТЛА — дані з data/svitlo.yaml ===
 let currentSvitloData = null;
 function svitloColor(p) { return /^#[0-9a-f]{3,8}$/i.test(String((p && p.color) || '')) ? p.color : '#ffcc00'; }
 // Посилання на офіційний документ постачальника (для кнопки «Знайти свою чергу»).
@@ -1251,7 +1240,7 @@ function svitloStateText(st, dateStr) {
 
 // Графік відключень — смуга на всю ширину під датою й погодою: показується завжди,
 // коли у svitlo.yaml show: true — і з відключеннями, і без них (тоді смуга зелена:
-// «✅ Відключень немає»). Радіо стоїть окремо, у картці погоди, і від графіка не залежить.
+// «✅ Відключень немає»).
 // Якщо людина обрала свою чергу — смуга пише стан саме її черги з відліком часу.
 async function loadSvitloData() {
   const host = document.getElementById('svitlo-widget');
@@ -3476,43 +3465,6 @@ async function loadJobsData() {
     if (!allJobs.length) { invalidateRender('render_jobs'); showSectionFailure('jobs-list-content', 'loadJobsData', 'jobs'); return; }
     publishJobs(allJobs);
   }
-}
-
-let radioStatsInterval;
-async function updateRadioStats() {
-  try {
-    const audio = document.getElementById('radio-audio');
-    if (audio.paused) return; // не делаем запрос если радио не играет
-    const res = await fetch('https://myradio24.com/users/muzdance/status.json?t=' + Date.now());
-    if(res.ok) {
-      const data = await res.json();
-      if (!audio.paused && data.listeners !== undefined) {
-         document.getElementById('radio-track-name').innerHTML = `muzdance.com.ua <span style="color: var(--time-green); margin-left: 4px;">🎧 ${data.listeners}</span>`;
-      }
-    }
-  } catch(e) {}
-}
-
-function toggleRadio() {
-    const audio = document.getElementById('radio-audio'); const icon = document.getElementById('radio-icon'); const status = document.getElementById('radio-status'); const eq = document.getElementById('equalizer');
-    if (!audio || !icon || !status || !eq) return;
-    if (audio.paused) {
-        status.innerText = 'ЗАВАНТАЖЕННЯ...'; status.style.color = '#38bdf8'; eq.classList.add('playing');
-        audio.src = "https://myradio24.org/muzdance?t=" + new Date().getTime(); audio.load();
-        const playPromise = audio.play();
-        if (playPromise !== undefined) { 
-          playPromise.then(() => { 
-            icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg>'; 
-            status.innerText = 'PLAY'; status.style.color = '#00ff9c'; icon.style.transform = 'none'; 
-            updateRadioStats();
-            if(!radioStatsInterval) radioStatsInterval = setInterval(updateRadioStats, 30000); // 15с → 30с для экономии трафика
-          }).catch(error => { status.innerText = 'ПОМИЛКА'; status.style.color = '#ff4d4d'; eq.classList.remove('playing'); }); 
-        }
-    } else {
-        audio.pause(); audio.src = ""; icon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="#0b1d3a"><path d="M5 3l14 9-14 9V3z"/></svg>'; status.innerText = 'PAUSED'; status.style.color = 'rgba(255,255,255,0.5)'; eq.classList.remove('playing'); icon.style.transform = 'translateX(1px)';
-        document.getElementById('radio-track-name').innerText = 'muzdance.com.ua';
-        if(radioStatsInterval) { clearInterval(radioStatsInterval); radioStatsInterval = null; }
-    }
 }
 
 async function showDailyVolunteerAlert() {
