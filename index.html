@@ -94,7 +94,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20261120f">
+<link rel="stylesheet" href="./css/styles.css?v=20261120h">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -301,7 +301,7 @@ document.addEventListener('touchend', function(e){
     <!-- ГОЛОВНА ПЛИТКАМИ («бенто»). Поки що попередній перегляд: показується лише з класом
          html.tiles-mode (?tiles=1 вмикає й запам'ятовує, ?tiles=0 вимикає). Плитки відкривають ті самі розділи. -->
     <div id="tile-home" class="tile-home">
-      <div class="th-brand"><b>Smart Вільногірськ</b><span>міський портал</span></div>
+      <div class="th-brand"><b>Smart Вільногірськ</b><button type="button" class="th-acc" id="th-account" onclick="openCabinet(event)" aria-label="Увійти в кабінет"><span class="th-acc-name">Увійти</span></button></div>
       <div class="th-grid">
         <!-- Щодня: світло й електрички -->
         <button type="button" class="th-tile th-big th-glow" id="th-svitlo" style="--c:#FFB547;--rgb:255,181,71" onclick="tileAction('svitlo',event)"><span class="th-badges" id="th-svitlo-badges"></span><span class="th-ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/></svg></span><span class="th-txt"><span class="th-l">Світло</span><span class="th-st" id="th-svitlo-status">Графік відключень</span><span class="th-chips" id="th-svitlo-chips"></span></span></button>
@@ -587,6 +587,8 @@ document.addEventListener('touchend', function(e){
 </div>
 
 <!-- Шапка розділу, відкритого з плитки: «Назад» повертає на головну (системна кнопка «Назад» теж) -->
+<!-- Мій кабінет (лише новий дизайн): вхід і свої оголошення — окремим екраном під панеллю «Назад» -->
+<div id="cabinet" class="cabinet"><div id="cabinet-body" class="cabinet-body"></div></div>
 <div id="section-bar" class="section-bar"><button type="button" class="sb-back" onclick="closeTileSection()" aria-label="Назад на головну"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>Назад</button><span class="sb-title" id="section-bar-title"></span></div>
 
 <!-- PapaParse и app.js перенесены в конец body для быстрой первой отрисовки -->
@@ -594,6 +596,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20261120g" defer></script>
+<script src="./js/app.js?v=20261120h" defer></script>
 </body>
 </html>
