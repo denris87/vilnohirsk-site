@@ -748,7 +748,7 @@ a,
 .lt-variant .stop-diff .station-name-text,.lt-variant .stop-diff .time-normal{color:var(--v-color) !important;font-weight:700;}
 .lt-variant .stop-diff{background:color-mix(in srgb, var(--v-color) 10%, transparent);border-radius:6px;}
 
-/* ===== ГОЛОВНА ПЛИТКАМИ («бенто») — лише з класом html.tiles-mode (?tiles=1) ===== */
+/* ===== ГОЛОВНА ПЛИТКАМИ («бенто») — клас html.tiles-mode тепер у всіх; стара головна схована ===== */
 .tile-home,.section-bar{display:none}
 html.tiles-mode .tile-home{display:block}
 /* Стара головна в режимі плиток: вкладки, дата/погода/радіо/пальне, смуга світла, кнопки зв'язку */
@@ -820,7 +820,9 @@ html.tiles-mode.section-open .pb-search-container{background:linear-gradient(to 
 .sb-title{min-width:0;font-size:15px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (prefers-reduced-motion: reduce){.th-tile{transition:none}.th-tile:active{transform:none}}
 
-/* ===== МІЙ КАБІНЕТ — лише новий дизайн (html.tiles-mode) ===== */
+/* ===== МІЙ КАБІНЕТ — вхід лише в бета-версії (html.beta-mode, ?tiles=1) ===== */
+html:not(.beta-mode) #th-account{display:none!important}
+html.beta-mode .th-brand>.th-sub{display:none}
 .th-acc{-webkit-appearance:none;appearance:none;margin:0;font:inherit;display:flex;align-items:center;gap:8px;max-width:55%;min-height:38px;padding:4px 15px 4px 4px;border-radius:999px;background:#fff;border:0;color:#0b1d3a;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,0.25);-webkit-tap-highlight-color:transparent;transition:transform 0.12s ease}
 .th-acc:active{transform:scale(0.97)}
 .th-acc:focus-visible{outline:3px solid #0b1d3a;outline-offset:2px}

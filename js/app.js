@@ -902,9 +902,9 @@ function initTileHome() {
   initCabinet();
 }
 
-// === МІЙ КАБІНЕТ — лише в новому дизайні (головна плитками) ===
+// === МІЙ КАБІНЕТ — вхід поки лише в бета-версії (?tiles=1, клас html.beta-mode) ===
 // Вхід через Firebase Authentication (той самий проєкт, що й сповіщення): Google або e-mail з паролем.
-// Бібліотека входу вантажиться тільки в режимі плиток — у старому дизайні кабінету й входу немає.
+// Бібліотека входу вантажиться тільки в бета-версії. Екран «Сповіщення» (той самий #cabinet) — для всіх.
 const FIREBASE_AUTH_SDK = 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js';
 let cabAuth = null, cabUser = null, cabKnown = false;
 let cabState = 'idle'; // idle | loading | ready | error
@@ -1192,7 +1192,9 @@ async function cabSubmit(form) {
 function openCabinet(ev, focus) {
   if (ev) ev.stopPropagation();
   const root = document.documentElement;
-  if (!root.classList.contains('tiles-mode')) return; // кабінет — лише в новому дизайні
+  if (!root.classList.contains('tiles-mode')) return;
+  // Вхід і головний екран кабінету — поки лише в бета-версії (?tiles=1); екран «Сповіщення» — для всіх
+  if (focus !== 'push' && !root.classList.contains('beta-mode')) return;
   root.classList.add('cabinet-open');
   cabView = focus === 'push' ? 'push' : 'home';
   if (!root.classList.contains('section-open')) {
@@ -1201,7 +1203,7 @@ function openCabinet(ev, focus) {
   }
   cabPushDraft = null; cabPushConfirmOff = false; // свіжий стан підписки при кожному відкритті
   const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
-  ensureAuth();
+  if (root.classList.contains('beta-mode')) ensureAuth(); // бібліотеку входу — лише в бета-версії
   renderCabinet();
 }
 
@@ -1213,6 +1215,7 @@ function initCabinet() {
     body.addEventListener('submit', (e) => { e.preventDefault(); cabSubmit(e.target); });
     body.addEventListener('change', (e) => { if (e.target.matches('input[data-cat]')) cabPushToggle(e.target); });
   }
+  if (!document.documentElement.classList.contains('beta-mode')) return; // вхід у кабінет — лише в бета-версії (?tiles=1)
   renderAccount();
   // Вхід підтягуємо трохи згодом, щоб не гальмувати першу появу головної; аватар з'явиться, щойно Firebase згадає людину
   setTimeout(ensureAuth, 800);
@@ -4028,10 +4031,7 @@ function refreshGroupA() {
     loadSvitloData();
     loadAlerts();
     loadPromosData();
-    loadExchangeRates();
     loadTickerData();
-    loadWeather();
-    loadFuelData();
 }
 
 // Группа B (реже, тяжёлое): барахолка, недвижка, шопинг, вакансии, бюро находок
@@ -4665,8 +4665,8 @@ function showIOSInstructions() {
 
 const initApp = () => {
   initTileHome();
-  updateDateTime(); setInterval(updateDateTime, 1000); 
-  loadWeather(); loadAlerts(); loadExchangeRates(); loadFuelData(); loadDelaysData(); loadSvitloData();
+  // Стара головна (дата й час, погода, курси валют, ціни на пальне) у новому дизайні схована — їх не вантажимо
+  loadAlerts(); loadDelaysData(); loadSvitloData();
   setTimeout(() => { loadTrainsData(); loadLongTrainsData(); loadBusesData(); loadEventsData(); loadTickerData(); }, 100);
   setTimeout(() => { 
       loadPromosData(); loadShopsData(); loadFleaMarketData(); loadEstateData(); loadLostFoundData(); loadBlaBlaCarData(); loadJobsData(); loadPhonebookData(); loadGarbageData(); loadGalleryData(); loadVolunteersData(); loadPhoenixData();
