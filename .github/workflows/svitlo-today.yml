@@ -1,0 +1,61 @@
+name: svitlo-today
+
+# Графік світла: сьогоднішній лишається до кінця доби.
+# Коли в data/svitlo.yaml публікують графік на наступний день, попередній графік
+# зберігається в data/svitlo-prev.yaml (подробиці — у .github/scripts/svitlo_prev.py).
+# Сайт показує вкладки «Сьогодні / Завтра», а опівночі вчорашній графік зникає сам.
+# Правки на ту саму дату (лише час чи revised) робота пропускає.
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'data/svitlo.yaml' ]
+
+permissions:
+  contents: write      # закомітити data/svitlo-prev.yaml
+  pages: write         # попросити GitHub Pages перезібрати сайт
+
+# Кілька правок поспіль — по черзі, щоб копія відповідала порядку змін
+concurrency:
+  group: svitlo-today
+  cancel-in-progress: false
+
+jobs:
+  keep-today:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Попередня версія графіка
+        run: git fetch -q --depth=1 origin "${{ github.event.before }}" || echo "::notice::Попереднього коміту немає"
+
+      - name: Зберегти сьогоднішній графік, якщо вийшов графік на наступний день
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: python3 .github/scripts/svitlo_prev.py
+
+      - name: Закомітити, якщо змінилось
+        id: commit
+        run: |
+          if [ -z "$(git status --porcelain -- data/svitlo-prev.yaml)" ]; then
+            echo "Копію не змінено — комітити нічого"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/svitlo-prev.yaml
+          git commit -q -m "Графік світла: сьогоднішній лишається до кінця доби"
+          # Поки робота йшла, у main міг лягти ще один коміт — підтягуємо й пробуємо ще раз
+          git push -q || { git pull -q --rebase && git push -q; }
+          echo "pushed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Перезібрати сайт
+        if: steps.commit.outputs.pushed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Коміт від GITHUB_TOKEN може сам не запустити збірку GitHub Pages — просимо явно
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" --silent \
+            && echo "Збірку сайту запитано" \
+            || echo "::warning::Не вдалося запитати збірку GitHub Pages — сайт оновиться з наступним комітом"
