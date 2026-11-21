@@ -785,6 +785,43 @@ html.tiles-mode .alert-group,html.tiles-mode .schedule-group,html.tiles-mode .ma
 .th-w2 .th-l,.th-w3 .th-l,.th-w4 .th-l{font-size:13px}
 .th-big{grid-column:span 2;grid-row:span 2;align-items:flex-start;justify-content:space-between;padding:14px;text-align:left}
 .th-big .th-l{font-size:16px}
+/* Великі плитки «Світло» й «Електрички»: на телефоні — компактно (стан + мініграфік / 2 найближчі рейси),
+   на широкому екрані праворуч — подробиці (усі черги зі шкалою доби / 4 найближчі рейси) */
+.th-rich{container-type:inline-size;flex-direction:row;align-items:stretch;gap:14px}
+.th-rich-main{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;flex:1 1 auto;min-width:0}
+.th-rich .th-txt{width:100%}
+.th-sub{display:block;font-size:11px;font-weight:700;line-height:1.3;color:rgba(255,255,255,0.72);margin-top:2px}
+.th-sub:empty,.th-wide-only{display:none}
+.th-compact{display:flex;flex-direction:column;gap:3px;width:100%;margin-top:6px}
+.th-compact:empty{display:none}
+.th-compact .sv2-mini{margin:1px 0 0;height:7px}
+.th-rich-side{display:none}
+@container (min-width: 340px){
+  .th-rich-main{flex:0 0 42%}
+  .th-rich .th-wide-only{display:block}
+  .th-rich .th-compact,.th-rich .th-chips{display:none}
+  .th-rich-side{display:flex;flex-direction:column;justify-content:center;gap:7px;flex:1 1 auto;min-width:0;padding-left:14px;border-left:1px solid rgba(255,255,255,0.12)}
+}
+.th-side-h{font-size:10px;font-weight:900;letter-spacing:0.4px;text-transform:uppercase;color:rgba(255,255,255,0.55)}
+.th-side-f{font-size:11px;font-weight:800;color:rgba(255,255,255,0.78)}
+/* Світло: черга, шкала доби (зелене — є світло), стан */
+.th-q{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:8px;font-size:11px;font-weight:800;padding:2px 4px;margin:0 -4px;border-radius:7px}
+.th-q b{font-size:12px;font-weight:900}
+.th-q .sv2-mini{margin:0;height:7px}
+.th-q-mine{background:rgba(255,255,255,0.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.22)}
+.th-q-st{color:rgba(255,255,255,0.78);font-variant-numeric:tabular-nums;white-space:nowrap}
+.th-q-st.off{color:#ff9aa2}
+.th-q-st.on{color:#8ff0b5}
+.th-q-na{font-size:10.5px;color:rgba(255,255,255,0.6)}
+/* Електрички: найближчі відправлення з Вільногірська */
+.th-tr{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:baseline;gap:6px;width:100%;font-size:11.5px;font-weight:700}
+.th-tr b{font-size:13px;font-weight:900;font-variant-numeric:tabular-nums}
+.th-tr-to{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(255,255,255,0.86)}
+.th-tr-in{color:rgba(255,255,255,0.62);font-variant-numeric:tabular-nums;white-space:nowrap}
+.th-tr-del{color:#ff9aa2;font-weight:900;white-space:nowrap}
+.th-tr-none{font-size:11px;font-weight:700;line-height:1.35;color:rgba(255,255,255,0.75)}
+.th-compact .th-tr{gap:5px;font-size:11px}
+.th-compact .th-tr b{font-size:12.5px}
 .th-ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(var(--rgb),0.18)}
 .th-st{display:block;font-size:12px;font-weight:800;color:var(--c);margin-top:4px}
 .th-st.th-bad{color:#ff7a85} .th-st.th-ok{color:#5dffb0}

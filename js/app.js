@@ -831,6 +831,8 @@ const TILE_TITLES = {
   'jobs-tab': 'Вакансії', 'lost-found-tab': 'Знахідки', 'garbage-tab': 'Вивіз сміття'
 };
 let trainsDelaysKnown = false;   // поки затримки не завантажились, плитка не пише «Без затримок»
+let trainsTileList = null;       // рейси для плитки «Електрички» — ті самі, що в розкладі
+let trainsTileDelays = {};       // номер рейсу (лише цифри) → затримка в хвилинах
 let svitloTileState = null;      // графік світла для плитки (null — вимкнено чи не завантажився)
 
 function tileSourceTab(tabId) {
@@ -880,11 +882,13 @@ function tileAction(action, ev) {
   else if (action === 'donate') openModalForm(null, 'donate-modal');
 }
 
-// Плитка «Світло»: стан і черги з відключеннями — з того самого svitlo.yaml
+// Плитка «Світло»: стан і черги з відключеннями — з того самого svitlo.yaml.
+// На телефоні — стан своєї черги, «через …» і мініграфік доби; на широкому екрані праворуч ще й усі черги.
 function renderSvitloTile(state) {
   svitloTileState = state || null;
   const st = document.getElementById('th-svitlo-status'), chips = document.getElementById('th-svitlo-chips');
   if (!st || !chips) return;
+  const put = (id, html) => { const el = document.getElementById(id); if (el && el.dataset.v !== html) { el.dataset.v = html; el.innerHTML = html; } };
   const tile = document.getElementById('th-svitlo'), badges = document.getElementById('th-svitlo-badges');
   const unseen = state ? svitloUnseen(state, getSvitloSeen()) : null;
   if (tile) tile.classList.toggle('th-svitlo-new', !!unseen);
@@ -892,22 +896,29 @@ function renderSvitloTile(state) {
     const b = unseen ? `<span class="th-new">${unseen.kind === 'new' ? 'Новий графік' : 'Оновлено'}</span>` : '';
     if (badges.dataset.v !== b) { badges.dataset.v = b; badges.innerHTML = b; }
   }
-  if (!state) { st.textContent = 'Графік відключень'; st.className = 'th-st'; chips.innerHTML = ''; return; }
+  if (!state) { st.textContent = 'Графік відключень'; st.className = 'th-st'; chips.innerHTML = ''; put('th-svitlo-sub', ''); put('th-svitlo-compact', ''); put('th-svitlo-side', ''); return; }
   // Живий стан — за сьогоднішнім графіком, навіть коли вже вийшов завтрашній
   const live = svitloTodayData() || state, nextDay = svitloNextData();
+  const off = svitloDayOffset(live.updated), now = (off == null || off === 0) ? svitloNowMin() : null;
+  const nst = nextDay ? svitloNextState(nextDay) : null;
+  const tmr = nextDay ? svitloNextText(nst) : '';
   // Обрана своя черга — її стан і найближчі відключення
   const my = svitloMyQueue(live);
-  const qs = my ? svitloQueueState(my.slots, svitloDayOffset(live.updated)) : null;
+  const qs = my ? svitloQueueState(my.slots, off) : null;
+  put('th-svitlo-side', svitloTileSide(live, my, now, off, tmr));
   if (qs && qs.kind !== 'stale') {
     const t = svitloStateText(qs, live.updated);
     st.textContent = t.short;
     st.className = 'th-st' + (t.cls === 'off' ? ' th-bad' : (t.cls === 'on' || t.cls === 'ok') ? ' th-ok' : '');
+    put('th-svitlo-sub', qs.kind === 'off' || qs.kind === 'on' ? `ще ${svitloDur(qs.left)}` : escapeHTML(tmr));
+    put('th-svitlo-compact', qs.kind === 'unknown' ? '' : svitloMiniBar(qs.merged, now));
     const next = qs.merged.filter(r => qs.now == null || r[0] > qs.now).slice(0, 2);
-    const nst = !next.length && nextDay ? svitloNextState(nextDay) : null; // сьогодні вже все — показати завтрашнє
-    const tmr = nst && nst.kind === 'ahead' ? `<span>завтра з ${svitloClock(nst.first)}</span>` : '';
-    chips.innerHTML = `<span class="th-chip-q">Черга ${escapeHTML(my.queue)}</span>` + next.map(r => `<span>${svitloClock(r[0])}–${svitloClock(r[1])}</span>`).join('') + tmr;
+    const tmrChip = !next.length && nst && nst.kind === 'ahead' ? `<span>завтра з ${svitloClock(nst.first)}</span>` : ''; // сьогодні вже все — показати завтрашнє
+    chips.innerHTML = `<span class="th-chip-q">Черга ${escapeHTML(my.queue)}</span>` + next.map(r => `<span>${svitloClock(r[0])}–${svitloClock(r[1])}</span>`).join('') + tmrChip;
     return;
   }
+  put('th-svitlo-compact', '');
+  put('th-svitlo-sub', live.revised ? `оновлено о ${escapeHTML(svitloRevShort(live.revised, live.updated))}` : '');
   const m = String(live.updated || '').match(/(\d{1,2})\.(\d{1,2})/);
   const day = m ? ` · ${m[1].padStart(2, '0')}.${m[2].padStart(2, '0')}` : '';
   if (live.noOutages) { st.textContent = 'Відключень немає' + day; st.className = 'th-st th-ok'; chips.innerHTML = ''; return; }
@@ -917,6 +928,28 @@ function renderSvitloTile(state) {
     if (q && q.queue != null && Array.isArray(q.slots) && q.slots.filter(Boolean).length) queues.push(String(q.queue));
   }));
   chips.innerHTML = queues.map(q => `<span>${escapeHTML(q)}</span>`).join('');
+}
+// Права половина широкої плитки: кожна черга зі шкалою доби (зелене — є світло) і станом зараз
+function svitloTileSide(d, my, now, off, tmr) {
+  if (off != null && off < 0) return `<span class="th-side-h">Графік на ${svitloDdMm(d.updated)}</span><span class="th-side-f">⏳ Новий графік ще не опублікували</span>`;
+  const head = off === 0 || off == null ? 'Черги сьогодні' : off === 1 ? 'Черги на завтра' : `Черги на ${svitloDdMm(d.updated)}`;
+  const rows = [];
+  d.providers.forEach(p => (Array.isArray(p.queues) ? p.queues : []).forEach(q => {
+    if (!q || q.queue == null) return;
+    const s = svitloQueueState((Array.isArray(q.slots) ? q.slots : []).filter(Boolean), off);
+    let txt = '', cls = '';
+    if (s.kind === 'off') { txt = `немає до ${svitloClock(s.until)}`; cls = 'off'; }
+    else if (s.kind === 'on') { txt = `є до ${svitloClock(s.next)}`; cls = 'on'; }
+    else if (s.kind === 'done') { txt = 'є до 24:00'; cls = 'on'; }
+    else if (s.kind === 'clear') { txt = 'без відключень'; cls = 'on'; }
+    else if (s.kind === 'ahead') txt = `з ${svitloClock(s.first)}`;
+    else txt = 'є відключення';
+    const bar = s.kind === 'unknown' ? '<span class="th-q-na">час — у вікні</span>' : svitloMiniBar(s.merged, now);
+    const mine = !!my && my.id === svitloQueueId(p, q);
+    rows.push(`<span class="th-q${mine ? ' th-q-mine' : ''}"><b style="color:${svitloColor(p)}">${escapeHTML(String(q.queue))}</b>${bar}<span class="th-q-st ${cls}">${txt}</span></span>`);
+  }));
+  const foot = tmr ? `🗓️ ${tmr}` : d.revised ? `🔄 Оновлено о ${svitloRevShort(d.revised, d.updated)}` : '';
+  return `<span class="th-side-h">${head}</span>${rows.slice(0, 5).join('')}${foot ? `<span class="th-side-f">${escapeHTML(foot)}</span>` : ''}`;
 }
 
 // Живі позначки плиток — копії бейджів зі старих вкладок (ті самі дані, кольори й підказки)
@@ -954,6 +987,45 @@ function syncTileHome() {
   if (document.documentElement.classList.contains('section-open') && !document.documentElement.classList.contains('cabinet-open') && !document.querySelector('.alert-drawer.open, .main-list-widget.open, .shopping-drawer.open')) {
     closeTileSection(true);
   }
+}
+
+// Плитка «Електрички»: найближчі відправлення з Вільногірська — на телефоні 2, на широкому екрані 4
+function trainsTileUpcoming() {
+  if (!Array.isArray(trainsTileList)) return null;
+  const n = getKyivNow(), nowMin = n.getHours() * 60 + n.getMinutes();
+  const rows = [];
+  trainsTileList.forEach(x => {
+    const m = String((x && x.time) || '').match(/^\s*(\d{1,2}):(\d{2})/);
+    if (!m) return;
+    const route = String(x.route || '').trim(), parts = route.split(/\s*(?:→|->|—|–)\s*/).filter(Boolean);
+    const num = String(x.number || '').replace(/new/ig, '').replace(/\D/g, '');
+    rows.push({ t: +m[1] * 60 + +m[2], time: `${m[1].padStart(2, '0')}:${m[2]}`, to: parts.length > 1 ? parts[parts.length - 1] : route, delay: trainsTileDelays[num] || 0 });
+  });
+  rows.sort((a, b) => a.t - b.t);
+  return { next: rows.filter(r => r.t + r.delay >= nowMin), first: rows[0] || null, nowMin: nowMin };
+}
+function renderTrainsTile() {
+  const compact = document.getElementById('th-trains-compact'), side = document.getElementById('th-trains-side');
+  if (!compact || !side) return;
+  const put = (el, html) => { if (el.dataset.v !== html) { el.dataset.v = html; el.innerHTML = html; } };
+  const u = trainsTileUpcoming();
+  if (!u || !u.first) { put(compact, ''); put(side, ''); return; }
+  // short — вузька плитка: відлік лише коли до рейсу менше години (інакше не влазить назва напрямку)
+  const row = (r, short) => {
+    const left = r.t + r.delay - u.nowMin;
+    const tail = r.delay ? `<span class="th-tr-del">+${r.delay} хв</span>`
+      : left <= 0 ? '<span class="th-tr-in">зараз</span>'
+      : left < 60 ? `<span class="th-tr-in">${left} хв</span>`
+      : short ? '' : `<span class="th-tr-in">${svitloDur(left)}</span>`;
+    return `<span class="th-tr"><b>${r.time}</b><span class="th-tr-to">${short ? '' : '→ '}${escapeHTML(r.to)}</span>${tail}</span>`;
+  };
+  if (!u.next.length) {
+    const none = `<span class="th-tr-none">Сьогодні рейсів більше немає · завтра о ${u.first.time}</span>`;
+    put(compact, none); put(side, `<span class="th-side-h">З Вільногірська</span>${none}`);
+    return;
+  }
+  put(compact, u.next.slice(0, 2).map(r => row(r, true)).join(''));
+  put(side, `<span class="th-side-h">Найближчі з Вільногірська</span>${u.next.slice(0, 4).map(r => row(r, false)).join('')}`);
 }
 
 function initTileHome() {
@@ -2558,7 +2630,7 @@ async function loadDelaysData() {
   // Разом із очищенням HTML скидаємо підпис: інакше наступне завантаження з
   // тими самими даними виходило раніше відмальовки й на місці банера
   // лишалась порожня рамка (перевірено: довжина HTML 0 при display:block).
-  const hide = () => { host.style.display = 'none'; host.innerHTML = ''; invalidateRender('render_delays'); updateTrainsDelayBadge([]); };
+  const hide = () => { host.style.display = 'none'; host.innerHTML = ''; invalidateRender('render_delays'); updateTrainsDelayBadge([]); trainsTileDelays = {}; renderTrainsTile(); };
   if (!yamlReady('delays', loadDelaysData, hide)) return; // немає парсера — банер затримок ховаємо
   try {
     const [res, server] = await Promise.all([
@@ -2588,6 +2660,9 @@ async function loadDelaysData() {
     const stampOf = d => String((d.updated != null && d.updated !== '') ? d.updated
       : (autoNumbers.has(String(d.number).trim()) ? serverUpdated : data.updated) || '').trim();
     updateTrainsDelayBadge(delays); // бейдж на вкладці: є затримки — видно одразу, немає — знімаємо
+    trainsTileDelays = {};
+    delays.forEach(d => { const k = String(d.number).replace(/\D/g, ''); if (k) trainsTileDelays[k] = parseDelayMinutes(d); });
+    renderTrainsTile();
 
     if (delays.length === 0) {
       // Затримок немає — показуємо спокійний зелений статус замість порожнечі
@@ -3536,6 +3611,9 @@ async function loadTrainsData(){
 
       checkNotification('trains', changed);
       updateTrainsTabBadge(new Set(changedTrains).size);
+      // Плитка «Електрички»: лише ті, що курсують сьогодні (без нового розкладу, що ще не діє)
+      trainsTileList = d.trains.filter(x => { if (!x) return false; const w = trainScheduleWindow(x, today); return !w.gone && !w.pending; });
+      renderTrainsTile();
     }
   } catch(e){ logSectionError('електрички', e); document.getElementById("list").innerHTML='<div class="empty-msg">Помилка завантаження</div>'; } 
 }
@@ -5248,6 +5326,7 @@ const initApp = () => {
   setInterval(refreshGroupB, 5 * 60 * 1000);  // каждые 5 минут — основное
   setInterval(refreshGroupC, 8 * 60 * 1000);  // каждые 8 минут — редкое
   setInterval(svitloTick, 30 * 1000);          // світло своєї черги: «через …» без нового завантаження
+  setInterval(() => { if (!document.hidden) renderTrainsTile(); }, 30 * 1000); // плитка «Електрички»: «через … хв»
   
   // Слежение за видимостью страницы — не обновляем фоновую вкладку
   document.addEventListener('visibilitychange', () => {
