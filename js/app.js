@@ -2138,11 +2138,88 @@ function svitloRevShort(revised, updated) {
 // === «Розумний» графік: своя черга ===
 // Людина обирає свою чергу серед тих, що є в svitlo.yaml (тобто лише черги Вільногірська),
 // і сайт сам рахує за київським часом, чи є зараз світло, до котрої години і скільки лишилось.
-// Вибір пам'ятає браузер (localStorage) — нікуди не надсилається.
+// Вибір пам'ятає браузер (localStorage). На сервер черга йде лише тоді, коли людина вмикає
+// нагадування про відключення (разом із токеном сповіщень цього пристрою) — див. svitloRemindToggle.
 const SVITLO_QUEUE_KEY = 'svitlo_queue';
 function svitloQueueId(p, q) { return String(p.name) + '|' + String(q.queue); }
 function getSvitloChoice() { try { return localStorage.getItem(SVITLO_QUEUE_KEY) || ''; } catch (e) { return ''; } }
 function setSvitloChoice(id) { try { if (id) localStorage.setItem(SVITLO_QUEUE_KEY, id); else localStorage.removeItem(SVITLO_QUEUE_KEY); } catch (e) {} }
+
+// === Нагадування за 30 хв до відключення своєї черги ===
+// Сповіщення надсилає скрипт (Notify.gs): кожні 5 хвилин дивиться графік і шле тим, хто ввімкнув.
+// Сайт передає йому токен сповіщень цього пристрою й чергу; вимкнули — запис прибирається.
+const SVITLO_REMIND_KEY = 'svitlo_remind';      // черга, для якої ввімкнено ('ЦЕК|2.2'), або нічого
+const SVITLO_REMIND_AT = 'svitlo_remind_at';    // коли востаннє підтвердили серверу (раз на 3 дні — знову)
+let svitloRemindBusy = false;
+function svitloRemindQueue() { try { return localStorage.getItem(SVITLO_REMIND_KEY) || ''; } catch (e) { return ''; } }
+function svitloRemindSet(q) {
+  try {
+    if (q) { localStorage.setItem(SVITLO_REMIND_KEY, q); localStorage.setItem(SVITLO_REMIND_AT, String(Date.now())); }
+    else { localStorage.removeItem(SVITLO_REMIND_KEY); localStorage.removeItem(SVITLO_REMIND_AT); }
+  } catch (e) {}
+}
+function svitloRemindActive() { return !!svitloRemindQueue() && cabPushSubscribed(); }
+function svitloRemindSend(on, queue) {
+  let token = '';
+  try { token = localStorage.getItem('push_token') || ''; } catch (e) {}
+  if (!token) return Promise.resolve(false);
+  return fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ formType: 'push_svitlo', token: token, queue: queue || '', on: !!on }) }).then(() => true, () => false);
+}
+function svitloRemindHtml(my) {
+  if (!isPushSupported() && !(isIOS() && !isPWA())) return '';
+  const on = svitloRemindActive() && svitloRemindQueue() === my.id;
+  const denied = ('Notification' in window) && Notification.permission === 'denied';
+  const sub = isIOS() && !isPWA() ? 'На iPhone працює, коли сайт додано на головний екран'
+    : denied ? 'Сповіщення заборонено для сайту — дозвольте їх у налаштуваннях браузера'
+    : on ? `За 30 хв до відключення черги ${escapeHTML(my.queue)}. Уночі (з 23:00 до 06:00) не турбуємо`
+    : `Сповіщення за 30 хв до відключення черги ${escapeHTML(my.queue)}`;
+  return `<div class="sv-remind${on ? ' sv-remind-on' : ''}"><div class="sv-remind-txt"><b>🔔 Нагадувати про відключення</b><span>${sub}</span></div>`
+    + `<button type="button" class="sv-remind-sw" role="switch" aria-checked="${on}" aria-label="Нагадувати про відключення" data-remind="1"${svitloRemindBusy ? ' disabled' : ''}><i></i></button></div>`;
+}
+async function svitloRemindToggle() {
+  const q = getSvitloChoice();
+  if (svitloRemindBusy || !q) return;
+  const label = q.split('|').pop();
+  if (svitloRemindActive() && svitloRemindQueue() === q) {
+    svitloRemindBusy = true; renderSvitloModal();
+    await svitloRemindSend(false);
+    svitloRemindSet('');
+    svitloRemindBusy = false; renderSvitloModal();
+    showToast('🔕 Нагадування про відключення вимкнено', 'info');
+    return;
+  }
+  if (isIOS() && !isPWA()) { showIOSInstructions(); return; }
+  if (!isPushSupported()) { showToast('❌ Цей браузер не підтримує сповіщення', 'error'); return; }
+  if (('Notification' in window) && Notification.permission === 'denied') { showToast('🚫 Сповіщення заборонено для сайту. Дозвольте їх у налаштуваннях браузера.', 'error'); return; }
+  svitloRemindBusy = true; renderSvitloModal();
+  try {
+    // Ще не підписані на сповіщення — спершу звичайна підписка (дозвіл браузера, токен, теми за замовчуванням)
+    if (!cabPushSubscribed()) await subscribeToPush(getCurrentCategories());
+    if (!cabPushSubscribed()) return; // дозволу не дали чи щось пішло не так — підказку вже показано
+    if (!(await svitloRemindSend(true, q))) { showToast('❌ Не вдалося ввімкнути — перевірте інтернет', 'error'); return; }
+    svitloRemindSet(q);
+    showToast(`🔔 Нагадаємо за 30 хв до відключення черги ${label}`, 'success');
+  } finally {
+    svitloRemindBusy = false; renderSvitloModal();
+  }
+}
+// Людина змінила чергу — нагадування переходять на нову; зняла вибір — вимикаємо
+function svitloRemindFollow() {
+  const rq = svitloRemindQueue(), q = getSvitloChoice();
+  if (!rq || rq === q) return;
+  if (!q || !cabPushSubscribed()) { svitloRemindSend(false); svitloRemindSet(''); if (!q) showToast('🔕 Нагадування вимкнено — черга не обрана', 'info'); return; }
+  svitloRemindSend(true, q); svitloRemindSet(q);
+}
+// Раз на 3 дні нагадати серверу, що пристрій ще з нами (і на випадок, якщо токен сповіщень змінився)
+function svitloRemindRefresh() {
+  const rq = svitloRemindQueue();
+  if (!rq || !cabPushSubscribed()) return;
+  let at = 0;
+  try { at = Number(localStorage.getItem(SVITLO_REMIND_AT)) || 0; } catch (e) {}
+  if (Date.now() - at < 3 * 86400000) return;
+  svitloRemindSend(true, rq).then(ok => { if (ok) svitloRemindSet(rq); });
+}
 
 // Обрана черга, якщо вона є в поточному графіку: { id, queue, slots }
 function svitloMyQueue(data) {
@@ -2310,6 +2387,7 @@ function renderSvitloAll(resetModal) {
   if (document.getElementById('svitlo-modal')) renderSvitloModal(resetModal); // вікно відкрите — графік переглянуто
   renderSvitloStrip();
   renderSvitloTile(currentSvitloData);
+  svitloRemindRefresh();
 }
 function svitloTick() { if (!document.hidden) renderSvitloAll(); }
 
@@ -2365,11 +2443,12 @@ function openSvitloModal() {
   body.addEventListener('click', (e) => {
     const tab = e.target.closest('.sv2-tab[data-day]');
     if (tab) { svitloModalDay = tab.dataset.day; renderSvitloModal(); return; } // «Сьогодні» / «Завтра»
+    if (e.target.closest('[data-remind]')) { svitloRemindToggle(); return; } // нагадування про відключення
     const b = e.target.closest('.sv-q');
-    if (b) { setSvitloChoice(getSvitloChoice() === b.dataset.id ? '' : b.dataset.id); renderSvitloAll(true); return; }
+    if (b) { setSvitloChoice(getSvitloChoice() === b.dataset.id ? '' : b.dataset.id); svitloRemindFollow(); renderSvitloAll(true); return; }
     // Рядок черги в «Усіх чергах» — показати саме цю чергу (без посилань усередині)
     const row = e.target.closest('.sv2-oq[data-id]');
-    if (row && !e.target.closest('a')) { setSvitloChoice(row.dataset.id); renderSvitloAll(true); modal.scrollTop = 0; }
+    if (row && !e.target.closest('a')) { setSvitloChoice(row.dataset.id); svitloRemindFollow(); renderSvitloAll(true); modal.scrollTop = 0; }
   });
   body.addEventListener('keydown', (e) => {
     const row = e.target.closest && e.target.closest('.sv2-oq[data-id]');
@@ -2565,7 +2644,7 @@ function svitloModalHtml(d, my, allOpen, diff, dayTabs) {
   const okBanner = d.noOutages ? `<div class="svitlo-okbanner"><span class="svitlo-okbanner-title">${svitloOkTitle(d.updated)}</span><span class="svitlo-okbanner-sub">світло має бути цілий день</span></div>` : '';
   const all = `<details class="sv-all"${allOpen ? ' open' : ''}><summary>Усі черги Вільногірська</summary>${okBanner}<div>${sections}</div></details>`;
 
-  return `${dayTabs || ''}${upd}${rev}${banner}${pickBlock}${mine}${all}`;
+  return `${dayTabs || ''}${upd}${rev}${banner}${pickBlock}${my ? svitloRemindHtml(my) : ''}${mine}${all}`;
 }
 
 function closeSvitloModal() {
@@ -4760,7 +4839,7 @@ let firebaseInitialized = false;
 // id повинен співпадати з тим що пишеш в G колонку Push_Tokens
 const PUSH_CATEGORIES = [
   // ВАЖЛИВЕ
-  { id: 'communal',    icon: '⚡', name: 'Комунальні новини', desc: 'Світло, вода, газ', group: 'Важливе', defaultOn: true },
+  { id: 'communal',    icon: '⚡', name: 'Комунальні новини', desc: 'Графік світла, вивіз сміття, вода, газ', group: 'Важливе', defaultOn: true },
   { id: 'news',        icon: '📰', name: 'Новини міста',      desc: 'Міські новини',     group: 'Важливе', defaultOn: true },
   { id: 'volunteers',  icon: '🇺🇦', name: 'Допомога ЗСУ',     desc: 'Нові збори',         group: 'Важливе', defaultOn: true },
   { id: 'phoenix',     icon: '🚒', name: 'Фенікс (зниклі)',   desc: 'Пошук людей',        group: 'Важливе', defaultOn: true },
@@ -4769,10 +4848,10 @@ const PUSH_CATEGORIES = [
   { id: 'gallery',     icon: '📸', name: 'Фото міста',        desc: 'Нові фото',          group: 'Події та акції', defaultOn: false },
   { id: 'promos',      icon: '🔥', name: 'Акції магазинів',   desc: 'Знижки та акції',    group: 'Події та акції', defaultOn: false },
   // ТРАНСПОРТ
-  { id: 'trains',      icon: '🚆', name: 'Електрички',        desc: 'Зміни розкладу',     group: 'Транспорт', defaultOn: false },
+  { id: 'trains',      icon: '🚆', name: 'Електрички',        desc: 'Затримки й зміни розкладу', group: 'Транспорт', defaultOn: false },
   { id: 'buses',       icon: '🚌', name: 'Автобуси',          desc: 'Зміни розкладу',     group: 'Транспорт', defaultOn: false },
   { id: 'long_trains', icon: '🛤️', name: 'Потяги (далекі)',  desc: 'Зміни розкладу',     group: 'Транспорт', defaultOn: false },
-  { id: 'blablacar',   icon: '🚗', name: 'BlaBlaCar',         desc: 'Нові попутки',       group: 'Транспорт', defaultOn: false },
+  { id: 'blablacar',   icon: '🚗', name: 'Попутки',           desc: 'Нові поїздки',       group: 'Транспорт', defaultOn: false },
   // ОГОЛОШЕННЯ
   { id: 'estate',      icon: '🏠', name: 'Нерухомість',       desc: 'Нові оголошення',    group: 'Оголошення', defaultOn: false },
   { id: 'shopping',    icon: '🛍', name: 'Шопінг',            desc: 'Нові магазини',      group: 'Оголошення', defaultOn: false },
@@ -5015,6 +5094,7 @@ async function notifyServerUnsubscribe(token) {
 
 async function unsubscribeFromPush() {
   const token = localStorage.getItem('push_token');
+  if (token && svitloRemindQueue()) { await svitloRemindSend(false); svitloRemindSet(''); } // нагадування про світло — теж
   // Firebase піднімається ліниво, лише під час підписки. Після перезавантаження
   // сторінки messaging знову null — і стара відписка нічого не робила: токен
   // лишався живим, людина бачила «відписано», а сповіщення далі приходили.
