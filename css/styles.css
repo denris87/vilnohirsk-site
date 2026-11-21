@@ -142,19 +142,6 @@ body{color:var(--text-main);font-family:-apple-system,BlinkMacSystemFont,"SF Pro
 .sv-q-on{background:var(--pc);border-color:var(--pc);color:#0b1d3a;box-shadow:0 4px 14px rgba(0,0,0,0.3);}
 .sv-q:focus-visible{outline:2px solid #fff;outline-offset:2px;}
 .sv-hint{font-size:12px;line-height:1.45;font-weight:600;color:rgba(255,255,255,0.6);margin-top:2px;}
-/* Нагадування про відключення своєї черги: текст + перемикач */
-.sv-remind{display:flex;align-items:center;gap:12px;margin:-4px 0 14px;padding:11px 12px 11px 14px;border-radius:14px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);}
-.sv-remind-on{background:rgba(255,204,0,0.08);border-color:rgba(255,204,0,0.35);}
-.sv-remind-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
-.sv-remind-txt b{font-size:14px;font-weight:800;color:#fff;}
-.sv-remind-txt span{font-size:12px;line-height:1.4;font-weight:600;color:rgba(255,255,255,0.66);}
-.sv-remind-sw{-webkit-appearance:none;appearance:none;flex:0 0 auto;position:relative;width:50px;height:30px;margin:0;padding:0;border-radius:15px;border:0;cursor:pointer;background:rgba(255,255,255,0.22);transition:background 0.18s ease;-webkit-tap-highlight-color:transparent;}
-.sv-remind-sw i{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.35);transition:transform 0.18s ease;}
-.sv-remind-sw[aria-checked="true"]{background:#ffcc00;}
-.sv-remind-sw[aria-checked="true"] i{transform:translateX(20px);}
-.sv-remind-sw:disabled{opacity:0.55;cursor:progress;}
-.sv-remind-sw:focus-visible{outline:2px solid #fff;outline-offset:2px;}
-@media (prefers-reduced-motion: reduce){.sv-remind-sw,.sv-remind-sw i{transition:none;}}
 /* Добовий графік черги: зелене — є світло, сіре — немає; «Зараз»; підсумки; усі періоди доби */
 .sv2-tabs{display:flex;gap:8px;margin:4px 0 12px;}
 .sv2-tab{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);opacity:0.45;}
