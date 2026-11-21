@@ -522,7 +522,7 @@ const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
 });
 
 async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos) {
-  event.preventDefault(); if (!validateCaptcha(formId)) return;
+  event.preventDefault(); if (cabBlockedSubmit() || !validateCaptcha(formId)) return;
   const btn = document.getElementById(btnId); const origText = btn.innerText; btn.innerText = maxPhotos ? 'Обробка фото...' : 'Відправка...'; btn.disabled = true; btn.style.opacity = '0.7';
   try {
     const form = document.getElementById(formId); const formData = new FormData(form); const sheetData = { formType: type };
@@ -926,7 +926,7 @@ function ensureAuth() {
       cabAuth = firebase.auth();
       cabAuth.languageCode = 'uk'; // листи (підтвердження, відновлення пароля) і вікно Google — українською
       cabState = 'ready';
-      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) cabMode = 'in'; cabAds = cabAdsBlank(); renderAccount(); if (u) cabLoadAds(); });
+      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) cabMode = 'in'; cabAds = cabAdsBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(); } });
     } catch (e) { cabState = 'error'; logSectionError('кабінет', e); renderAccount(); }
   };
   if (typeof firebase.auth === 'function') { start(); return; }
@@ -999,7 +999,7 @@ function renderCabinet() {
       : `<button type="button" class="cab-link cab-link-danger" data-act="delete">Видалити акаунт</button>`;
     top = `
       <div class="cab-profile">${cabAvatar(u, 52)}<div class="cab-profile-txt"><b>${escapeHTML(cabName(u))}</b><span>${escapeHTML(u.email || '')}</span></div></div>
-      ${verify}`;
+      ${verify}${cabBanned ? CAB_BANNED_NOTE : ''}`;
     bottom = `
       <div class="cab-msg" id="cab-msg" role="status" aria-live="polite"></div>
       <button type="button" class="cab-btn cab-btn-ghost cab-wide" data-act="signout">Вийти</button>
@@ -1010,7 +1010,8 @@ function renderCabinet() {
   const nOn = subOn ? getCurrentCategories().length : 0;
   const pushSt = subOn ? `Увімкнено · ${nOn} ${pluralUk(nOn, 'тема', 'теми', 'тем')}` : perm === 'denied' ? 'Заблоковано в браузері' : 'Вимкнено';
   const tiles = `<button type="button" class="th-tile ${cabUser ? 'th-w2' : 'th-w4'}${subOn ? ' th-on' : ''}" data-act="view-push" style="--c:#FFCC00;--rgb:255,204,0">${CAB_BELL_ICO}<span class="th-txt"><span class="th-l">Сповіщення</span><span class="th-d">${pushSt}</span></span></button>`
-    + (cabUser ? `<button type="button" class="th-tile th-w2" data-act="view-ads" style="--c:#00FF9C;--rgb:0,255,156">${CAB_ADS_ICO}<span class="th-txt"><span class="th-l">Мої оголошення</span><span class="th-d">${cabAdsTileText()}</span></span></button>` : '');
+    + (cabUser ? `<button type="button" class="th-tile th-w2" data-act="view-ads" style="--c:#00FF9C;--rgb:0,255,156">${CAB_ADS_ICO}<span class="th-txt"><span class="th-l">Мої оголошення</span><span class="th-d">${cabAdsTileText()}</span></span></button>` : '')
+    + (cabUser && cabIsAdmin ? `<button type="button" class="th-tile th-w4" data-act="view-stats" style="--c:#7cc4ff;--rgb:124,196,255">${CAB_STATS_ICO}<span class="th-txt"><span class="th-l">Статистика</span><span class="th-d">${cabStatsTileText()}</span></span></button>` : '');
   const t = document.getElementById('cab-top'), b = document.getElementById('cab-bottom'), tl = document.getElementById('cab-tiles');
   if (t.dataset.v !== top) { t.dataset.v = top; t.innerHTML = top; }
   if (tl.dataset.v !== tiles) { tl.dataset.v = tiles; tl.innerHTML = tiles; }
@@ -1018,22 +1019,26 @@ function renderCabinet() {
   // Який екран показати
   const home = document.getElementById('cab-home'), sub = document.getElementById('cab-sub'), title = document.getElementById('section-bar-title');
   home.hidden = cabView !== 'home'; sub.hidden = cabView === 'home';
-  if (title) title.textContent = cabView === 'push' ? 'Сповіщення' : cabView === 'ads' ? 'Мої оголошення' : 'Мій кабінет';
+  if (title) title.textContent = cabView === 'push' ? 'Сповіщення' : cabView === 'ads' ? 'Мої оголошення' : cabView === 'stats' ? 'Статистика' : 'Мій кабінет';
   if (cabView === 'push') {
     if (!document.getElementById('cab-push')) { sub.innerHTML = '<div id="cab-push" class="cab-push"></div>'; sub.dataset.v = ''; }
     renderCabPush();
   } else if (cabView === 'ads') {
     const a = cabAdsHtml();
     if (sub.dataset.v !== a) { sub.dataset.v = a; sub.innerHTML = a; }
+  } else if (cabView === 'stats') {
+    const a = cabStatsHtml();
+    if (sub.dataset.v !== a) { sub.dataset.v = a; sub.innerHTML = a; const q = document.getElementById('cab-stats-q'); if (q) q.value = cabStatsQuery; cabStatsFilter(); }
   } else if (sub.innerHTML) { sub.innerHTML = ''; sub.dataset.v = ''; }
 }
 const CAB_BELL_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>';
 const CAB_ADS_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>';
-let cabView = 'home'; // home — головний екран кабінету; push — сповіщення; ads — мої оголошення
+let cabView = 'home'; // home — головний екран кабінету; push — сповіщення; ads — мої оголошення; stats — статистика (адмін)
 function cabShowView(v, fromHistory) {
   cabView = v || 'home';
   if (cabView === 'push') { cabPushDraft = null; cabPushConfirmOff = false; }
   if (cabView === 'ads' && !fromHistory) { cabAds.confirm = ''; cabLoadAds(); }
+  if (cabView === 'stats' && (!fromHistory || !cabStats)) { cabStatsConfirm = ''; cabLoadStats(); }
   if (!fromHistory && cabView !== 'home') { try { history.pushState({ tileSection: 'cabinet', sub: cabView }, ''); } catch (e) {} }
   renderCabinet();
   const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
@@ -1122,6 +1127,7 @@ const CAB_AD_ST = {
   pending:    ['cab-ad-st-wait', 'Обробляється', 'Зберігаємо фото й перевіряємо текст. Оновіть сторінку за хвилину.'],
   rejected:   ['cab-ad-st-bad',  'Відхилено',    'Не пройшло перевірку. Виправте текст і подайте знову.'],
   removed:    ['cab-ad-st-off',  'Знято',        'Оголошення прибрано з розділу.'],
+  blocked:    ['cab-ad-st-bad',  'Заблоковано',  'Оголошення заблоковано адміністратором.'],
   other:      ['cab-ad-st-off',  '',             '']
 };
 function cabAdsBlank() { return { state: 'idle', rides: [], adsState: 'idle', ads: [], confirm: '' }; }
@@ -1139,6 +1145,8 @@ async function cabLoadAds(quiet) {
   try { token = await cabUser.getIdToken(); } catch (e) {}
   const [rides, ads] = await Promise.all([cabFetchRides(token), cabFetchSheetAds(token)]);
   if (seq !== cabAdsSeq || !cabUser) return; // поки вантажили, людина вийшла або почалось нове завантаження
+  if (typeof ads.banned === 'boolean') { cabBanned = ads.banned; cabSaveFlags(); }
+  delete ads.banned;
   if (!(quiet && rides.state === 'error' && cabAds.state === 'ready')) Object.assign(cabAds, rides);
   if (!(quiet && ads.adsState === 'error' && cabAds.adsState === 'ready')) Object.assign(cabAds, ads);
   renderCabinet();
@@ -1155,7 +1163,7 @@ async function cabFetchRides(token) {
 async function cabFetchSheetAds(token) {
   try {
     const d = await cabScript({ formType: 'cabinet_my_ads', idToken: token });
-    if (d.status === 'ok' && Array.isArray(d.ads)) return { adsState: 'ready', ads: d.ads };
+    if (d.status === 'ok' && Array.isArray(d.ads)) return { adsState: 'ready', ads: d.ads, banned: d.banned };
     if (d.status === 'auth') return { adsState: 'auth' };
     throw new Error(d.message || 'status ' + d.status);
   } catch (e) { logSectionError('мої оголошення', e); return { adsState: 'error' }; }
@@ -1181,7 +1189,7 @@ function cabAdsTileText() {
     + (cabAds.adsState === 'ready' ? cabAds.ads.filter(cabSheetAdActive).length : 0);
   return n ? `${n} ${pluralUk(n, 'активне оголошення', 'активні оголошення', 'активних оголошень')}` : 'Активних поки немає';
 }
-function cabAdsHtml() { return cabRidesCardHtml() + cabSheetAdsCardHtml(); }
+function cabAdsHtml() { return (cabBanned ? CAB_BANNED_NOTE : '') + cabRidesCardHtml() + cabSheetAdsCardHtml(); }
 
 function cabRidesCardHtml() {
   const newBtns = `<div class="cab-row cab-ads-new"><button type="button" class="cab-btn" data-act="ride-new-driver">🚗 Я водій — запропоную</button><button type="button" class="cab-btn" data-act="ride-new-passenger">🧍 Я пасажир — шукаю</button></div>`;
@@ -1209,7 +1217,7 @@ function cabRidesCardHtml() {
     <div class="cab-card cab-ads">
       <div class="cab-card-head">🚗 Попутники</div>
       ${list}
-      ${newBtns}
+      ${cabBanned ? '' : newBtns}
     </div>`;
 }
 
@@ -1227,8 +1235,8 @@ function cabSheetAdsCardHtml() {
     <div class="cab-card cab-ads">
       <div class="cab-card-head">📦 Оголошення</div>
       ${list}
-      <span class="cab-ads-new-l">Подати нове:</span>
-      <div class="cab-row cab-ads-new cab-ads-new4">${btns}</div>
+      ${cabBanned ? '' : `<span class="cab-ads-new-l">Подати нове:</span>
+      <div class="cab-row cab-ads-new cab-ads-new4">${btns}</div>`}
     </div>`;
 }
 function cabAdPrice(a) {
@@ -1294,6 +1302,221 @@ async function cabAdsAction(act, btn) {
   });
 }
 
+// === Статистика й блокування (лише для адміністратора) ===
+// Хто адміністратор, вирішує Apps Script: підтверджений e-mail зі списку у Властивостях скрипта (CABINET_ADMINS).
+// Сайт лише показує плитку тим, кому скрипт відповів admin: true; самі дані скрипт віддає тільки адміну.
+let cabIsAdmin = false, cabBanned = false;
+let cabStats = null;      // { state: loading | ready | error | forbidden | noadmin | auth, users, phones, sheet }
+let cabStatsConfirm = ''; // uid, для якого показано «Заблокувати?»
+let cabStatsQuery = '';   // пошук у списку користувачів
+const CAB_DAY = 864e5;
+const CAB_STATS_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>';
+const CAB_BANNED_NOTE = '<div class="cab-confirm cab-banned"><b>🚫 Акаунт заблоковано</b><span>Адміністратор заблокував цей акаунт: подавати з нього оголошення й поїздки не можна. Якщо це помилка — напишіть нам у Telegram <a href="https://t.me/vilnohirsk" target="_blank" rel="noopener">@vilnohirsk</a>.</span></div>';
+
+function cabHelloState() { try { return JSON.parse(localStorage.getItem('cab_hello') || '{}') || {}; } catch (e) { return {}; } }
+function cabSaveFlags() {
+  if (!cabUser) return;
+  const st = cabHelloState();
+  if (st.uid !== cabUser.uid) return;
+  st.admin = cabIsAdmin; st.banned = cabBanned;
+  try { localStorage.setItem('cab_hello', JSON.stringify(st)); } catch (e) {}
+}
+// Новий вхід або вихід: прапорці «адмін» і «заблоковано» — з останньої відповіді скрипта для цього акаунта
+function cabResetAdmin(u) {
+  const st = cabHelloState();
+  cabIsAdmin = !!(u && st.uid === u.uid && st.admin);
+  cabBanned = !!(u && st.uid === u.uid && st.banned);
+  cabStats = null; cabStatsConfirm = ''; cabStatsQuery = '';
+}
+// Відмітка візиту для статистики: не частіше ніж раз на 3 години з цього пристрою
+async function cabHello(force) {
+  const u = cabUser; if (!u) return;
+  const st = cabHelloState();
+  if (!force && st.uid === u.uid && Date.now() - (st.t || 0) < 3 * 3600 * 1000) return;
+  try {
+    const d = await cabScript({ formType: 'cabinet_hello', idToken: await u.getIdToken() });
+    if (d.status !== 'ok' || cabUser !== u) return;
+    cabIsAdmin = !!d.admin; cabBanned = !!d.banned;
+    try { localStorage.setItem('cab_hello', JSON.stringify({ uid: u.uid, t: Date.now(), admin: cabIsAdmin, banned: cabBanned })); } catch (e) {}
+    renderAccount();
+  } catch (e) { logSectionError('кабінет: відмітка візиту', e); }
+}
+// Перед видаленням акаунта: стерти e-mail та ім'я із записів статистики
+async function cabBye() {
+  try { await cabScript({ formType: 'cabinet_bye', idToken: await cabUser.getIdToken() }); } catch (e) { logSectionError('кабінет: видалення з таблиці', e); }
+  try { localStorage.removeItem('cab_hello'); } catch (e) {}
+}
+// Заблокованому не даємо подати оголошення (сервер його все одно не прийме)
+function cabBlockedSubmit() {
+  if (!(cabUser && cabBanned && document.documentElement.classList.contains('beta-mode'))) return false;
+  showToast('🚫 Ваш акаунт заблоковано: подавати оголошення не можна', 'error');
+  return true;
+}
+
+async function cabLoadStats() {
+  const u = cabUser; if (!u) return;
+  if (!cabStats || cabStats.state !== 'ready') cabStats = { state: 'loading' };
+  renderCabinet();
+  let next;
+  try {
+    const d = await cabScript({ formType: 'cabinet_admin_stats', idToken: await u.getIdToken() });
+    next = d.status === 'ok'
+      ? { state: 'ready', users: Array.isArray(d.users) ? d.users : [], phones: Number(d.phones) || 0, sheet: String(d.sheet || '') }
+      : { state: ['forbidden', 'noadmin', 'auth'].indexOf(d.status) >= 0 ? d.status : 'error' };
+  } catch (e) { logSectionError('статистика', e); next = { state: 'error' }; }
+  if (cabUser !== u) return;
+  if (next.state === 'forbidden' || next.state === 'noadmin') { cabIsAdmin = false; cabSaveFlags(); }
+  cabStats = next;
+  renderCabinet();
+}
+
+const cabDayFmt = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Kyiv', year: 'numeric', month: '2-digit', day: '2-digit' });
+function cabKyivDay(ms) { const p = {}; cabDayFmt.formatToParts(new Date(ms)).forEach(x => { p[x.type] = x.value; }); return `${p.year}-${p.month}-${p.day}`; }
+function cabDdMm(ms, year) { const d = cabKyivDay(ms).split('-'); return year ? `${d[2]}.${d[1]}.${d[0]}` : `${d[2]}.${d[1]}`; }
+function cabAgo(ms) {
+  const d = cabKyivDay(ms);
+  return d === cabKyivDay(Date.now()) ? 'сьогодні' : d === cabKyivDay(Date.now() - CAB_DAY) ? 'вчора' : cabDdMm(ms, true);
+}
+function cabStatsLive() { return cabStats && cabStats.state === 'ready' ? cabStats.users.filter(u => !u.deleted) : []; }
+function cabStatsNew(users, days) { const from = Date.now() - days * CAB_DAY; return users.filter(u => !u.early && u.created >= from).length; }
+function cabStatsTileText() {
+  if (!cabStats || cabStats.state !== 'ready') return 'Хто зареєструвався · блокування';
+  const live = cabStatsLive();
+  return `${live.length} ${pluralUk(live.length, 'користувач', 'користувачі', 'користувачів')} · +${cabStatsNew(live, 7)} за тиждень`;
+}
+
+function cabStatsHtml() {
+  const s = cabStats || { state: 'loading' };
+  if (s.state === 'loading') return '<div class="cab-card"><p class="cab-empty">Завантаження…</p></div>';
+  if (s.state === 'noadmin') return '<div class="cab-card"><p class="cab-empty">Адміністратора ще не призначено: додайте свій e-mail у Властивості скрипта Apps Script, ключ CABINET_ADMINS.</p></div>';
+  if (s.state === 'forbidden') return '<div class="cab-card"><p class="cab-empty">Статистика доступна лише адміністратору.</p></div>';
+  if (s.state === 'auth') return '<div class="cab-card"><p class="cab-empty">Не вдалося підтвердити вхід. Вийдіть з кабінету й увійдіть знову.</p></div>';
+  if (s.state !== 'ready') return '<div class="cab-card"><p class="cab-empty">Не вдалося завантажити статистику. Перевірте інтернет.</p><button type="button" class="cab-btn cab-btn-sm" data-act="stats-reload">Спробувати ще раз</button></div>';
+  const now = Date.now(), users = s.users.slice().sort((a, b) => (b.created || 0) - (a.created || 0));
+  const live = users.filter(u => !u.deleted), deleted = users.length - live.length;
+  const active = live.filter(u => u.last >= now - 7 * CAB_DAY).length, banned = live.filter(u => u.banned).length;
+  const google = live.filter(u => u.provider === 'Google').length, mail = live.filter(u => u.provider === 'E-mail').length;
+  const tile = (num, label, sub, cls) => `<div class="cab-stat${cls ? ' ' + cls : ''}"><b>${num}</b><span>${label}</span>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  return `
+    <div class="cab-stats-grid">
+      ${tile(live.length, pluralUk(live.length, 'користувач', 'користувачі', 'користувачів'), `Google ${google} · E-mail ${mail}`)}
+      ${tile('+' + cabStatsNew(live, 7), 'нових за 7 днів', `за 30 днів +${cabStatsNew(live, 30)}`)}
+      ${tile(active, 'заходили за 7 днів', '')}
+      ${tile(banned, 'заблоковано', `телефонів у чорному списку: ${s.phones}`, banned ? 'cab-stat-bad' : '')}
+    </div>
+    ${deleted ? `<p class="cab-fine">Ще ${deleted} ${pluralUk(deleted, 'людина видалила', 'людини видалили', 'людей видалили')} свій акаунт.</p>` : ''}
+    ${cabStatsChart(live)}
+    <div class="cab-card cab-users">
+      <div class="cab-card-head">👥 Хто зареєструвався</div>
+      <input type="search" id="cab-stats-q" class="cab-search" placeholder="Пошук: ім'я або e-mail" autocomplete="off" aria-label="Пошук користувача">
+      ${users.map(cabStatsUserHtml).join('')}
+      <p class="cab-empty" id="cab-stats-none" hidden>Нікого не знайдено.</p>
+    </div>
+    <div class="cab-row cab-stats-tools">
+      <button type="button" class="cab-btn cab-btn-ghost" data-act="stats-reload">Оновити</button>
+      ${/^https:\/\/docs\.google\.com\//.test(s.sheet) ? `<a class="cab-btn cab-btn-ghost" href="${escapeHTML(s.sheet)}" target="_blank" rel="noopener">Відкрити таблицю</a>` : ''}
+    </div>`;
+}
+
+// Реєстрації по днях за 30 днів (за київським часом) — тих, хто й досі з нами, як і цифри вгорі.
+// Один ряд: без легенди, назва — у заголовку картки.
+function cabStatsChart(users) {
+  const days = [];
+  for (let i = 29; i >= 0; i--) { const ms = Date.now() - i * CAB_DAY; days.push({ key: cabKyivDay(ms), ms, n: 0 }); }
+  const idx = {}; days.forEach((d, i) => { idx[d.key] = i; });
+  users.forEach(u => { if (u.created && !u.early) { const i = idx[cabKyivDay(u.created)]; if (i !== undefined) days[i].n++; } });
+  const max = Math.max(1, ...days.map(d => d.n)), total = days.reduce((s, d) => s + d.n, 0);
+  const W = 300, H = 118, L = 16, R = 2, T = 8, B = 18, ch = H - T - B, slot = (W - L - R) / days.length, bw = slot - 2, base = T + ch;
+  const f = (v) => v.toFixed(1);
+  const bars = days.map((d, i) => {
+    const x = L + i * slot + 1, label = `${cabDdMm(d.ms)}: ${d.n} ${pluralUk(d.n, 'реєстрація', 'реєстрації', 'реєстрацій')}`;
+    let mark = '';
+    if (d.n) {
+      const h = Math.max(3, d.n / max * ch), y = base - h, r = Math.min(3, bw / 2, h);
+      mark = `<path class="cab-chart-bar" d="M${f(x)} ${base}V${f(y + r)}Q${f(x)} ${f(y)} ${f(x + r)} ${f(y)}H${f(x + bw - r)}Q${f(x + bw)} ${f(y)} ${f(x + bw)} ${f(y + r)}V${base}Z"/>`;
+    }
+    return `<g class="cab-chart-day" data-act="stats-day" data-label="${escapeHTML(label)}" tabindex="0" role="img" aria-label="${escapeHTML(label)}"><rect class="cab-chart-hit" x="${f(L + i * slot)}" y="${T}" width="${f(slot)}" height="${ch + B}"/>${mark}</g>`;
+  }).join('');
+  return `
+    <div class="cab-card">
+      <div class="cab-card-head">📈 Реєстрації за 30 днів</div>
+      <p class="cab-chart-cap" id="cab-chart-cap" aria-live="polite">Усього за 30 днів: ${total}. Торкніться стовпчика, щоб побачити день.</p>
+      <svg class="cab-chart" viewBox="0 0 ${W} ${H}" role="group" aria-label="Реєстрації по днях за 30 днів">
+        <line class="cab-chart-grid" x1="${L}" x2="${W - R}" y1="${T}" y2="${T}"/>
+        <line class="cab-chart-axis" x1="${L}" x2="${W - R}" y1="${base}" y2="${base}"/>
+        <text class="cab-chart-t" x="${L - 4}" y="${T + 3}" text-anchor="end">${max}</text>
+        <text class="cab-chart-t" x="${L - 4}" y="${base + 3}" text-anchor="end">0</text>
+        <text class="cab-chart-t" x="${L}" y="${H - 4}">${cabDdMm(days[0].ms)}</text>
+        <text class="cab-chart-t" x="${W - R}" y="${H - 4}" text-anchor="end">сьогодні</text>
+        ${bars}
+      </svg>
+    </div>`;
+}
+function cabStatsDay(g) {
+  const cap = document.getElementById('cab-chart-cap');
+  if (cap) cap.textContent = g.dataset.label || '';
+  document.querySelectorAll('#cab-sub .cab-chart-day.on').forEach(x => x.classList.remove('on'));
+  g.classList.add('on');
+}
+
+function cabStatsUserHtml(u) {
+  const me = !!(cabUser && u.uid === cabUser.uid);
+  const name = u.name || (u.email ? u.email.split('@')[0] : (u.deleted ? 'Акаунт видалено' : 'Без імені'));
+  const badge = u.deleted ? '<span class="cab-ad-st cab-ad-st-off">Видалено</span>'
+    : u.banned ? '<span class="cab-ad-st cab-ad-st-bad">Заблоковано</span>'
+    : (me || u.admin) ? `<span class="cab-ad-st cab-ad-st-on">${me ? 'Це ви' : 'Адмін'}</span>`
+    : u.provider ? `<span class="cab-ad-st cab-ad-st-off">${escapeHTML(u.provider)}</span>` : '';
+  const meta = (u.early
+    ? [u.created ? 'Перше оголошення ' + cabDdMm(u.created, true) : '']
+    : [u.created ? 'Зареєстровано ' + cabDdMm(u.created, true) : '', u.last ? 'останній візит ' + cabAgo(u.last) : '', u.days > 1 ? `днів з візитами: ${u.days}` : ''])
+    .concat([`оголошень: ${u.ads || 0}`]).filter(Boolean).join(' · ');
+  const note = u.deleted ? `Акаунт видалено ${cabDdMm(u.deleted, true)}.`
+    : u.banned ? `Заблоковано ${cabDdMm(u.banned, true)}: оголошення сховано, нові з акаунта й телефонів не приймаються.`
+    : u.early ? 'Оголошення подано до запуску статистики; візитів відтоді не було.' : '';
+  let act = '';
+  if (!u.deleted && !me && !u.admin) {
+    act = cabStatsConfirm === u.uid
+      ? `<div class="cab-confirm"><b>Заблокувати цей акаунт?</b><span>Оголошення й поїздки цієї людини зникнуть із сайту, а нові з її акаунта та телефонів не прийматимуться. Розблокувати можна будь-коли.</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm cab-btn-danger" data-act="stats-ban-yes" data-uid="${escapeHTML(u.uid)}">Так, заблокувати</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="stats-ban-no">Скасувати</button></div></div>`
+      : `<div class="cab-ad-actions">${u.banned
+        ? `<button type="button" class="cab-btn cab-btn-sm" data-act="stats-unban" data-uid="${escapeHTML(u.uid)}">Розблокувати</button>`
+        : `<button type="button" class="cab-btn cab-btn-sm cab-btn-ghost cab-btn-warn" data-act="stats-ban" data-uid="${escapeHTML(u.uid)}">🚫 Заблокувати</button>`}</div>`;
+  }
+  return `<div class="cab-user${u.deleted ? ' cab-ad-past' : ''}" data-q="${escapeHTML((u.name + ' ' + u.email).toLowerCase())}">
+      <div class="cab-user-top"><span class="cab-ava-txt cab-user-ava">${escapeHTML((name.trim().charAt(0) || '?').toUpperCase())}</span><div class="cab-user-id"><b>${escapeHTML(name)}</b>${u.email ? `<span>${escapeHTML(u.email)}</span>` : ''}</div>${badge}</div>
+      <span class="cab-ad-meta">${escapeHTML(meta)}</span>
+      ${note ? `<span class="cab-ad-note">${escapeHTML(note)}</span>` : ''}
+      ${act}
+    </div>`;
+}
+function cabStatsFilter() {
+  const q = cabStatsQuery.trim().toLowerCase();
+  let shown = 0;
+  document.querySelectorAll('#cab-sub .cab-user').forEach(el => { const hit = !q || (el.dataset.q || '').indexOf(q) >= 0; el.hidden = !hit; if (hit) shown++; });
+  const none = document.getElementById('cab-stats-none'); if (none) none.hidden = shown > 0;
+}
+async function cabStatsAction(act, btn) {
+  if (act === 'stats-reload') return cabLoadStats();
+  if (act === 'stats-day') { cabStatsDay(btn); return; }
+  if (act === 'stats-ban') { cabStatsConfirm = btn.dataset.uid; renderCabinet(); return; }
+  if (act === 'stats-ban-no') { cabStatsConfirm = ''; renderCabinet(); return; }
+  if (act === 'stats-ban-yes' || act === 'stats-unban') return cabBusy(btn, async () => {
+    const ban = act === 'stats-ban-yes';
+    let d = null;
+    try {
+      d = await cabScript({ formType: 'cabinet_admin_ban', idToken: await cabUser.getIdToken(), uid: btn.dataset.uid, ban });
+      if (d.status !== 'ok') throw new Error(d.message || d.status);
+    } catch (e) {
+      logSectionError('блокування', e);
+      showToast('❌ ' + (d && d.message ? d.message : 'Не вдалося. Спробуйте ще раз.'), 'error');
+      return;
+    }
+    cabStatsConfirm = '';
+    showToast(ban ? `🚫 Заблоковано. Сховано оголошень: ${d.ads || 0}. Поїздки зникнуть за кілька хвилин.` : `Розблоковано. Повернуто оголошень: ${d.ads || 0}.`, 'info');
+    ['flea', 'estate', 'lost', 'job'].forEach(k => { const c = CAB_AD_KINDS[k]; delete memoryDataCache[c.cache]; try { c.reload(); } catch (e) {} });
+    await cabLoadStats();
+  });
+}
+
 function cabMsg(text, kind) {
   const m = document.getElementById('cab-msg');
   if (m) { m.textContent = text || ''; m.className = 'cab-msg' + (kind ? ' cab-msg-' + kind : ''); }
@@ -1330,7 +1553,8 @@ async function cabBusy(btn, fn) {
 
 async function cabAction(act, btn) {
   if (act === 'retry') { cabState = 'idle'; ensureAuth(); return; }
-  if (act === 'view-push' || act === 'view-ads') { cabShowView(act.slice(5)); return; }
+  if (act === 'view-push' || act === 'view-ads' || act === 'view-stats') { cabShowView(act.slice(5)); return; }
+  if (act.indexOf('stats-') === 0) return cabStatsAction(act, btn);
   if (act.indexOf('ride-') === 0 || act.indexOf('ad-') === 0 || act === 'ads-reload') return cabAdsAction(act, btn);
   if (act.indexOf('push-') === 0) return cabPushAction(act, btn); // сповіщення — і без входу
   if (!cabAuth) return;
@@ -1356,7 +1580,7 @@ async function cabAction(act, btn) {
   if (act === 'delete') { cabConfirmDelete = true; renderCabinet(); return; }
   if (act === 'delete-no') { cabConfirmDelete = false; renderCabinet(); return; }
   if (act === 'delete-yes') return cabBusy(btn, async () => {
-    try { await cabUser.delete(); showToast('Акаунт видалено', 'info'); }
+    try { await cabBye(); await cabUser.delete(); showToast('Акаунт видалено', 'info'); }
     catch (e) {
       if (e && e.code === 'auth/requires-recent-login') { await cabAuth.signOut(); showToast('З міркувань безпеки увійдіть ще раз і повторіть видалення', 'error'); return; }
       throw e;
@@ -1401,6 +1625,7 @@ function openCabinet(ev, focus) {
   cabPushDraft = null; cabPushConfirmOff = false; // свіжий стан підписки при кожному відкритті
   const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
   if (root.classList.contains('beta-mode')) ensureAuth(); // бібліотеку входу — лише в бета-версії
+  if (cabUser && cabIsAdmin && (!cabStats || cabStats.state === 'error')) cabLoadStats(); // цифри на плитці «Статистика»
   renderCabinet();
 }
 
@@ -1411,6 +1636,9 @@ function initCabinet() {
     body.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (b) cabAction(b.dataset.act, b); });
     body.addEventListener('submit', (e) => { e.preventDefault(); cabSubmit(e.target); });
     body.addEventListener('change', (e) => { if (e.target.matches('input[data-cat]')) cabPushToggle(e.target); });
+    body.addEventListener('input', (e) => { if (e.target.id === 'cab-stats-q') { cabStatsQuery = e.target.value; cabStatsFilter(); } });
+    const day = (e) => { const g = e.target.closest && e.target.closest('.cab-chart-day'); if (g) cabStatsDay(g); };
+    body.addEventListener('pointerover', day); body.addEventListener('focusin', day);
   }
   if (!document.documentElement.classList.contains('beta-mode')) return; // вхід у кабінет — лише в бета-версії (?tiles=1)
   renderAccount();
@@ -3311,7 +3539,7 @@ function switchBlaBlaList(type) {
 }
 
 async function submitBlaBlaForm(event) {
-  event.preventDefault(); if (!validateCaptcha('custom-blabla-form')) return;
+  event.preventDefault(); if (cabBlockedSubmit() || !validateCaptcha('custom-blabla-form')) return;
   const submitBtn = document.getElementById('form-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Відправка...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
   const formData = { type: document.getElementById('input-type').value, name: document.getElementById('input-name').value, from: document.getElementById('input-from').value, to: document.getElementById('input-to').value, date: document.getElementById('input-date').value, time: document.getElementById('input-time-to').value ? `${document.getElementById('input-time-from').value} - ${document.getElementById('input-time-to').value}` : document.getElementById('input-time-from').value, seats: parseInt(document.getElementById('input-seats').value, 10), price: document.getElementById('input-price').value ? parseInt(document.getElementById('input-price').value, 10) : 0, phone: document.getElementById('input-phone').value, comment: document.getElementById('input-comment').value };
   try {
@@ -3319,7 +3547,7 @@ async function submitBlaBlaForm(event) {
     // Є вхід у кабінет (бета) — додаємо токен: сервер запам'ятає, чия поїздка, і вона з'явиться в «Моїх оголошеннях»
     const idToken = await cabAdsToken(); if (idToken) headers.Authorization = 'Bearer ' + idToken;
     const response = await fetch(BLABLA_API + '/api/rides', { method: 'POST', headers: headers, body: JSON.stringify(formData) });
-    if (!response.ok) throw new Error('Помилка сервера при збереженні');
+    if (!response.ok) { let why = ''; try { why = (await response.json()).error || ''; } catch (e) {} throw new Error(why || 'Помилка сервера при збереженні'); }
     showToast('✅ Ваше оголошення успішно додано!', 'success');
     closeModalForm(null, 'blabla-modal'); switchBlaBlaList(formData.type === 'driver' ? 'drivers' : 'passengers'); loadBlaBlaCarData(); 
     if (idToken) cabAdsChanged(); // подали з кабінету — оновити «Мої оголошення»
