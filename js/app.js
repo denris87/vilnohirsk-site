@@ -552,46 +552,42 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
 
 const UA_MONTHS_NOM = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'];
 const UA_WEEKDAYS_FULL = ['неділя', 'понеділок', 'вівторок', 'середа', 'четвер', "п'ятниця", 'субота'];
-// Дата поїздки: місяць — поточний і ще 3 наступні (рік не показуємо, він підставляється сам), число — цифрами.
-// Значення для сервера — у прихованому #input-date (РРРР-ММ-ДД).
+const UA_MONTHS_IN = ['у січні', 'у лютому', 'у березні', 'у квітні', 'у травні', 'у червні', 'у липні', 'у серпні', 'у вересні', 'у жовтні', 'у листопаді', 'у грудні'];
+// Дата поїздки: число 1…31 і місяць січень…грудень (поточний обрано одразу). Року немає — він підставляється сам:
+// місяць, що цього року вже минув, — наступний рік. Значення для сервера — у прихованому #input-date (РРРР-ММ-ДД).
 function fillRideDate() {
-  const mSel = document.getElementById('input-month');
-  if (!mSel) return;
-  const [y, m] = getKyivDateISO().split('-').map(Number);
-  let html = '<option value="">Місяць</option>';
-  for (let i = 0; i < 4; i++) {
-    const k = m - 1 + i, yy = y + Math.floor(k / 12), mm = k % 12;
-    html += `<option value="${yy}-${String(mm + 1).padStart(2, '0')}">${UA_MONTHS_NOM[mm]}</option>`;
-  }
-  mSel.innerHTML = html;
-  mSel.value = `${y}-${String(m).padStart(2, '0')}`; // поточний місяць обрано одразу — лишається вибрати число
-  syncRideDate(true);
+  const dSel = document.getElementById('input-day'), mSel = document.getElementById('input-month');
+  if (!dSel || !mSel) return;
+  let days = '<option value="">Число</option>';
+  for (let d = 1; d <= 31; d++) days += `<option value="${d}">${d}</option>`;
+  dSel.innerHTML = days;
+  mSel.innerHTML = '<option value="">Місяць</option>' + UA_MONTHS_NOM.map((name, i) => `<option value="${i + 1}">${name}</option>`).join('');
+  mSel.value = String(Number(getKyivDateISO().split('-')[1]));
+  syncRideDate();
 }
-function syncRideDate(monthChanged) {
+function syncRideDate() {
   const dSel = document.getElementById('input-day'), mSel = document.getElementById('input-month');
   const out = document.getElementById('input-date'), hint = document.getElementById('input-date-hint');
   if (!dSel || !mSel || !out) return;
   const today = getKyivDateISO(), [ty, tm, td] = today.split('-').map(Number);
-  if (monthChanged) {
-    const keep = Number(dSel.value);
-    let first = 1, last = 31;
-    if (mSel.value) {
-      const [yy, mm] = mSel.value.split('-').map(Number);
-      last = new Date(Date.UTC(yy, mm, 0)).getUTCDate(); // скільки днів у місяці
-      if (yy === ty && mm === tm) first = td;            // у поточному місяці — лише від сьогодні
+  const d = Number(dSel.value), m = Number(mSel.value), pad = (n) => String(n).padStart(2, '0');
+  let msg = '', bad = false;
+  out.value = '';
+  if (d && m) {
+    const y = m > tm || (m === tm && d >= td) ? ty : m < tm ? ty + 1 : ty;
+    const inMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    if (d > inMonth) { bad = true; msg = `Такої дати немає: ${UA_MONTHS_IN[m - 1]} ${inMonth} ${pluralUk(inMonth, 'день', 'дні', 'днів')}`; }
+    else if (m === tm && d < td) { bad = true; msg = 'Ця дата вже минула'; }
+    else {
+      out.value = `${y}-${pad(m)}-${pad(d)}`;
+      const wd = UA_WEEKDAYS_FULL[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+      const tomorrow = new Date(Date.UTC(ty, tm - 1, td + 1)).toISOString().slice(0, 10);
+      msg = out.value === today ? `Сьогодні, ${wd}` : out.value === tomorrow ? `Завтра, ${wd}` : wd.charAt(0).toUpperCase() + wd.slice(1);
+      if (y > ty) msg += `, ${y} рік`;
     }
-    let html = '<option value="">Число</option>';
-    for (let d = first; d <= last; d++) html += `<option value="${d}">${d}</option>`;
-    dSel.innerHTML = html;
-    if (keep >= first && keep <= last) dSel.value = String(keep);
   }
-  out.value = dSel.value && mSel.value ? `${mSel.value}-${String(dSel.value).padStart(2, '0')}` : '';
-  if (!hint) return;
-  if (!out.value) { hint.textContent = ''; return; }
-  const [yy, mm, dd] = out.value.split('-').map(Number);
-  const wd = UA_WEEKDAYS_FULL[new Date(Date.UTC(yy, mm - 1, dd)).getUTCDay()];
-  const tomorrow = new Date(Date.UTC(ty, tm - 1, td + 1)).toISOString().slice(0, 10);
-  hint.textContent = out.value === today ? `Сьогодні, ${wd}` : out.value === tomorrow ? `Завтра, ${wd}` : wd.charAt(0).toUpperCase() + wd.slice(1);
+  dSel.setCustomValidity(bad ? msg : ''); // браузер не дасть відправити форму з такою датою
+  if (hint) { hint.textContent = msg; hint.classList.toggle('bad', bad); }
 }
 // Час кожні 30 хвилин: 00:00 … 23:30; after — лише пізніший за нього (для «до»)
 function rideTimeOptions(after) {
