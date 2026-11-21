@@ -550,11 +550,80 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
   } catch (e) { showToast('❌ Помилка: ' + e.message, 'error'); } finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
 }
 
+const UA_MONTHS_NOM = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'];
+const UA_WEEKDAYS_FULL = ['неділя', 'понеділок', 'вівторок', 'середа', 'четвер', "п'ятниця", 'субота'];
+// Дата поїздки: місяць — поточний і ще 3 наступні (рік не показуємо, він підставляється сам), число — цифрами.
+// Значення для сервера — у прихованому #input-date (РРРР-ММ-ДД).
+function fillRideDate() {
+  const mSel = document.getElementById('input-month');
+  if (!mSel) return;
+  const [y, m] = getKyivDateISO().split('-').map(Number);
+  let html = '<option value="">Місяць</option>';
+  for (let i = 0; i < 4; i++) {
+    const k = m - 1 + i, yy = y + Math.floor(k / 12), mm = k % 12;
+    html += `<option value="${yy}-${String(mm + 1).padStart(2, '0')}">${UA_MONTHS_NOM[mm]}</option>`;
+  }
+  mSel.innerHTML = html;
+  mSel.value = `${y}-${String(m).padStart(2, '0')}`; // поточний місяць обрано одразу — лишається вибрати число
+  syncRideDate(true);
+}
+function syncRideDate(monthChanged) {
+  const dSel = document.getElementById('input-day'), mSel = document.getElementById('input-month');
+  const out = document.getElementById('input-date'), hint = document.getElementById('input-date-hint');
+  if (!dSel || !mSel || !out) return;
+  const today = getKyivDateISO(), [ty, tm, td] = today.split('-').map(Number);
+  if (monthChanged) {
+    const keep = Number(dSel.value);
+    let first = 1, last = 31;
+    if (mSel.value) {
+      const [yy, mm] = mSel.value.split('-').map(Number);
+      last = new Date(Date.UTC(yy, mm, 0)).getUTCDate(); // скільки днів у місяці
+      if (yy === ty && mm === tm) first = td;            // у поточному місяці — лише від сьогодні
+    }
+    let html = '<option value="">Число</option>';
+    for (let d = first; d <= last; d++) html += `<option value="${d}">${d}</option>`;
+    dSel.innerHTML = html;
+    if (keep >= first && keep <= last) dSel.value = String(keep);
+  }
+  out.value = dSel.value && mSel.value ? `${mSel.value}-${String(dSel.value).padStart(2, '0')}` : '';
+  if (!hint) return;
+  if (!out.value) { hint.textContent = ''; return; }
+  const [yy, mm, dd] = out.value.split('-').map(Number);
+  const wd = UA_WEEKDAYS_FULL[new Date(Date.UTC(yy, mm - 1, dd)).getUTCDay()];
+  const tomorrow = new Date(Date.UTC(ty, tm - 1, td + 1)).toISOString().slice(0, 10);
+  hint.textContent = out.value === today ? `Сьогодні, ${wd}` : out.value === tomorrow ? `Завтра, ${wd}` : wd.charAt(0).toUpperCase() + wd.slice(1);
+}
+// Час кожні 30 хвилин: 00:00 … 23:30; after — лише пізніший за нього (для «до»)
+function rideTimeOptions(after) {
+  let html = '<option value="">--:--</option>';
+  for (let h = 0; h < 24; h++) for (const mm of ['00', '30']) {
+    const t = String(h).padStart(2, '0') + ':' + mm;
+    if (!after || t > after) html += `<option value="${t}">${t}</option>`;
+  }
+  return html;
+}
+function fillRideTimes() {
+  const from = document.getElementById('input-time-from');
+  if (!from || from.tagName !== 'SELECT') return;
+  from.innerHTML = rideTimeOptions();
+  syncRideTimeTo();
+}
+// «до» — лише після «з»; обране раніше «до» лишаємо, якщо воно ще підходить
+function syncRideTimeTo() {
+  const from = document.getElementById('input-time-from'), to = document.getElementById('input-time-to');
+  if (!from || !to || to.tagName !== 'SELECT') return;
+  const keep = to.value;
+  to.innerHTML = rideTimeOptions(from.value);
+  if (keep && (!from.value || keep > from.value)) to.value = keep;
+}
+
 function openModalForm(formId, modalId) {
   if (modalId) {
     const form = document.getElementById(formId); if(form) form.reset(); if(formId) setupCaptcha(formId);
     // Не даємо вибрати минулу дату (поїздка BlaBlaCar, термін дії акції тощо)
     if (form) form.querySelectorAll('input[type="date"]').forEach(d => { d.min = getKyivDateISO(); });
+    // Попутки: дата — число й місяць зі списків (рік підставляється сам), час — лише :00 і :30
+    if (formId === 'custom-blabla-form') { fillRideDate(); fillRideTimes(); }
     document.getElementById(modalId).classList.add('active');
   } else {
     document.getElementById(formId).classList.add('active');
