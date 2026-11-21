@@ -4760,7 +4760,9 @@ let firebaseInitialized = false;
 // id повинен співпадати з тим що пишеш в G колонку Push_Tokens
 const PUSH_CATEGORIES = [
   // ВАЖЛИВЕ
-  { id: 'communal',    icon: '⚡', name: 'Комунальні новини', desc: 'Світло, вода, газ', group: 'Важливе', defaultOn: true },
+  { id: 'communal',    icon: '⚡', name: 'Комунальні новини', desc: 'Вода, газ, тепло',   group: 'Важливе', defaultOn: true },
+  { id: 'svitlo',      icon: '💡', name: 'Графік світла',     desc: 'Новий графік і зміни', group: 'Важливе', defaultOn: true },
+  { id: 'smittya',     icon: '🗑️', name: 'Вивіз сміття',      desc: 'Зміни графіка',      group: 'Важливе', defaultOn: true },
   { id: 'news',        icon: '📰', name: 'Новини міста',      desc: 'Міські новини',     group: 'Важливе', defaultOn: true },
   { id: 'volunteers',  icon: '🇺🇦', name: 'Допомога ЗСУ',     desc: 'Нові збори',         group: 'Важливе', defaultOn: true },
   { id: 'phoenix',     icon: '🚒', name: 'Фенікс (зниклі)',   desc: 'Пошук людей',        group: 'Важливе', defaultOn: true },
@@ -4770,9 +4772,11 @@ const PUSH_CATEGORIES = [
   { id: 'promos',      icon: '🔥', name: 'Акції магазинів',   desc: 'Знижки та акції',    group: 'Події та акції', defaultOn: false },
   // ТРАНСПОРТ
   { id: 'trains',      icon: '🚆', name: 'Електрички',        desc: 'Зміни розкладу',     group: 'Транспорт', defaultOn: false },
+  { id: 'train_delays', icon: '⏱️', name: 'Затримки електричок', desc: 'Коли електричка запізнюється', group: 'Транспорт', defaultOn: false },
   { id: 'buses',       icon: '🚌', name: 'Автобуси',          desc: 'Зміни розкладу',     group: 'Транспорт', defaultOn: false },
   { id: 'long_trains', icon: '🛤️', name: 'Потяги (далекі)',  desc: 'Зміни розкладу',     group: 'Транспорт', defaultOn: false },
-  { id: 'blablacar',   icon: '🚗', name: 'BlaBlaCar',         desc: 'Нові попутки',       group: 'Транспорт', defaultOn: false },
+  { id: 'blablacar',   icon: '🚗', name: 'Попутки',           desc: 'Нові поїздки',       group: 'Транспорт', defaultOn: false },
+  { id: 'fuel',        icon: '⛽', name: 'Ціни на пальне',    desc: 'Коли змінюються ціни', group: 'Транспорт', defaultOn: false },
   // ОГОЛОШЕННЯ
   { id: 'estate',      icon: '🏠', name: 'Нерухомість',       desc: 'Нові оголошення',    group: 'Оголошення', defaultOn: false },
   { id: 'shopping',    icon: '🛍', name: 'Шопінг',            desc: 'Нові магазини',      group: 'Оголошення', defaultOn: false },
@@ -4780,6 +4784,27 @@ const PUSH_CATEGORIES = [
   { id: 'jobs',        icon: '💼', name: 'Вакансії',          desc: 'Нові вакансії',      group: 'Оголошення', defaultOn: false },
   { id: 'lost',        icon: '🔍', name: 'Знахідки',          desc: 'Бюро знахідок',      group: 'Оголошення', defaultOn: false }
 ];
+
+// Нові теми для тих, хто підписався раніше. «Графік світла» й «Вивіз сміття» раніше входили в
+// «Комунальні новини» — хто їх обрав, отримує й нові теми (вимкнути можна в «Сповіщеннях»).
+// Решта нових тем — лише за бажанням. Робиться один раз на пристрої.
+const PUSH_TOPICS_VERSION = '2';
+async function migratePushTopics() {
+  try {
+    if (localStorage.getItem('push_topics_v') === PUSH_TOPICS_VERSION) return;
+    const token = localStorage.getItem('push_token');
+    if (localStorage.getItem('push_subscribed') !== '1' || !token) { localStorage.setItem('push_topics_v', PUSH_TOPICS_VERSION); return; }
+    const cats = getCurrentCategories();
+    const add = cats.includes('communal') ? ['svitlo', 'smittya'].filter(c => !cats.includes(c)) : [];
+    if (add.length) {
+      const next = cats.concat(add);
+      if (!(await updateCategoriesOnServer(token, next))) return; // немає зв'язку — спробуємо наступного разу
+      localStorage.setItem('push_categories', JSON.stringify(next));
+      updatePushButtonState();
+    }
+    localStorage.setItem('push_topics_v', PUSH_TOPICS_VERSION);
+  } catch (e) {}
+}
 
 // Категории по умолчанию (для нового подписчика)
 function getDefaultCategories() {
@@ -4963,6 +4988,7 @@ async function subscribeToPush(selectedCategories) {
     localStorage.setItem('push_subscribed', '1');
     localStorage.setItem('push_token', token);
     localStorage.setItem('push_categories', JSON.stringify(selectedCategories));
+    localStorage.setItem('push_topics_v', PUSH_TOPICS_VERSION); // теми вже нові
     
     showToast(`✅ Підписано на ${selectedCategories.length} категорій!`, 'success');
     updatePushButtonState();
@@ -5384,6 +5410,7 @@ const initApp = () => {
   // === PUSH-УВЕДОМЛЕНИЯ: инициализация состояния кнопки ===
   setTimeout(() => {
     updatePushButtonState();
+    migratePushTopics();
     // Регистрируем единый Service Worker для всех: даёт PWA активный SW
     // и мигрирует старые регистрации firebase-messaging-sw.js на /sw.js
     if ('serviceWorker' in navigator) {
