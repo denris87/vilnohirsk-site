@@ -184,13 +184,14 @@ document.addEventListener('touchend', function(e){
     <div class="close-modal-btn" onclick="closeModalForm(null, 'estate-modal')">&times;</div>
     <h3 class="form-title" style="color: #ff9f43;">🏠 Додати нерухомість</h3>
     <form id="custom-estate-form" onsubmit="submitGenericForm(event, 'custom-estate-form', 'estate-modal', 'estate-submit-btn', 'estate', 5)">
-      <div class="form-row"><div class="form-group"><label class="form-label">Угода</label><select class="form-input" name="dealType" required><option value="Оренда">Оренда</option><option value="Продаж">Продаж</option></select></div><div class="form-group"><label class="form-label">Об'єкт</label><select class="form-input" name="propertyType" required><option value="Квартира">Квартира</option><option value="Будинок">Будинок</option><option value="Кімната">Кімната</option><option value="Комерція">Комерція</option><option value="Гараж">Гараж</option></select></div></div>
-      <div class="form-row"><div class="form-group"><label class="form-label">Кімнат</label><select class="form-input" name="rooms"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4+</option><option value="-">-</option></select></div><div class="form-group"><label class="form-label">Ціна ($)</label><input type="tel" class="form-input" name="price" placeholder="15000" required maxlength="7" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Угода</label><select class="form-input" name="dealType" required onchange="syncEstatePrice()"><option value="Оренда">Оренда</option><option value="Продаж">Продаж</option></select></div><div class="form-group"><label class="form-label">Об'єкт</label><select class="form-input" name="propertyType" required><option value="Квартира">Квартира</option><option value="Будинок">Будинок</option><option value="Кімната">Кімната</option><option value="Комерція">Комерція</option><option value="Гараж">Гараж</option></select></div></div>
+      <div class="form-row"><div class="form-group"><label class="form-label">Кімнат</label><select class="form-input" name="rooms"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4+</option><option value="-">-</option></select></div><div class="form-group"><label class="form-label" id="estate-price-label">Ціна (грн)</label><input type="tel" class="form-input" name="price" placeholder="5000" required maxlength="7" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div></div>
       <div class="form-group"><label class="form-label">Опис та адреса</label><textarea class="form-input" name="description" rows="3" placeholder="Деталі, район..." required></textarea></div>
       <div class="form-group"><label class="form-label">Фотографії (до 5)</label><input type="file" class="form-input" name="photos" accept="image/*" multiple required></div>
       <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" name="phone" pattern="^\+380[0-9]{9}$" value="+380" placeholder="+380971234567" required oninput="formatUAPhone(this)"></div>
       <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть відповідь" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn estate" id="estate-submit-btn" style="background: linear-gradient(135deg, #ff9f43, #ff6b6b); box-shadow: 0 4px 15px rgba(255, 159, 67, 0.3);">Опублікувати</button>
+      <p class="form-note">📣 Після перевірки оголошення разом із фото й номером телефону з'явиться в Telegram-чаті <a href="https://t.me/vilnohirsk_orenda" target="_blank" rel="noopener">@vilnohirsk_orenda</a>. Через тиждень чат прибирає його сам.</p>
     </form>
   </div>
 </div>
@@ -597,6 +598,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20261121m" defer></script>
+<script src="./js/app.js?v=20261121n" defer></script>
 </body>
 </html>

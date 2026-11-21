@@ -531,7 +531,7 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
         if (key !== 'photos') {
             let finalVal = val;
             if (key === 'phone' && val !== '+380') finalVal = "'" + val;
-            if (type === 'estate' && key === 'price' && val) finalVal = val + ' $';
+            if (type === 'estate' && key === 'price' && val) finalVal = val + ' ' + estateCurrency(formData.get('dealType'));
             sheetData[key] = finalVal;
         }
     }
@@ -546,8 +546,26 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
     await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
     showToast(idToken ? '✅ Відправлено! Статус — у «Моїх оголошеннях»' : '✅ Успішно відправлено на модерацію!', 'success');
     closeModalForm(null, modalId); form.reset(); setupCaptcha(formId);
+    if (type === 'estate') { syncEstatePrice(); orendaKick(); }
     if (idToken) cabAdsChanged();
   } catch (e) { showToast('❌ Помилка: ' + e.message, 'error'); } finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
+}
+
+// Нерухомість: оренда — у гривнях, продаж — у доларах (підпис поля «Ціна» міняється разом з угодою)
+function estateCurrency(deal) { return /продаж/i.test(String(deal || '')) ? '$' : 'грн'; }
+function syncEstatePrice() {
+  const form = document.getElementById('custom-estate-form'), label = document.getElementById('estate-price-label');
+  if (!form || !label) return;
+  const cur = estateCurrency(form.elements.dealType && form.elements.dealType.value);
+  label.textContent = `Ціна (${cur})`;
+  if (form.elements.price) form.elements.price.placeholder = cur === '$' ? '15000' : '5000';
+}
+// Оголошення нерухомості щойно збережено — просимо скрипт одразу опублікувати його в Telegram-чаті
+// @vilnohirsk_orenda (якщо його схвалила перевірка). Не вийшло — за кілька хвилин це зробить сам скрипт.
+function orendaKick() {
+  try {
+    fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', keepalive: true, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ formType: 'orenda_sync' }) }).catch(() => {});
+  } catch (e) {}
 }
 
 const UA_MONTHS_NOM = ['Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень', 'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'];
@@ -620,6 +638,7 @@ function openModalForm(formId, modalId) {
     if (form) form.querySelectorAll('input[type="date"]').forEach(d => { d.min = getKyivDateISO(); });
     // Попутки: дата — число й місяць зі списків (рік підставляється сам), час — лише :00 і :30
     if (formId === 'custom-blabla-form') { fillRideDate(); fillRideTimes(); }
+    if (formId === 'custom-estate-form') syncEstatePrice();
     document.getElementById(modalId).classList.add('active');
   } else {
     document.getElementById(formId).classList.add('active');
@@ -3286,7 +3305,9 @@ function renderEstateList(items, hasMore = false) {
     if (item.photos.length > 0) { photosHtml = `<div class="gallery-preview" onclick="openImageModal(JSON.parse(decodeURIComponent('${packForAttr(item.photos.map(getDriveImageUrl))}')), 0, event)"><img alt="Фото об’єкта нерухомості" src="${escapeHTML(getDriveImageUrl(item.photos[0]))}" loading="lazy" decoding="async" onload="if(recalcDropdownHeight) recalcDropdownHeight(this); this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;"><div class="gallery-text">🔍 Галерея (${item.photos.length} фото)</div></div>`; }
     const dealColor = item.dealType.toLowerCase() === 'оренда' ? '#00b8ff' : '#ff3366';
     let displayPrice = item.price ? String(item.price).trim() : 'Договірна';
-    if (displayPrice !== 'Договірна' && !displayPrice.includes('$')) { displayPrice += ' $'; }
+    // Валюта вже в ціні («4000 грн», «15000 $»); у найстаріших оголошень її немає — тоді долари, як і було
+    if (displayPrice !== 'Договірна' && !/\$|грн|₴/i.test(displayPrice)) { displayPrice += ' $'; }
+    displayPrice = displayPrice.replace(/^(\d{4,})(?=\s*(?:\$|грн))/, (d) => d.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0'));
     
     const dropdownHtml = buildDropdown(id, photosHtml, [ {icon: '📌', label: 'Тип об\'єкта', value: `${escapeHTML(item.propertyType)} (${escapeHTML(item.dealType)})`}, {icon: '📍', label: 'Локація', value: escapeHTML(item.location || 'Вільногірськ')}, {icon: '📝', label: 'Опис та адреса', value: nl2br(item.description)}, {icon: '📞', label: 'Телефон', value: phoneLinkHtml(item.phone)} ]);
     
