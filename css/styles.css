@@ -795,6 +795,10 @@ html.tiles-mode .alert-group,html.tiles-mode .schedule-group,html.tiles-mode .ma
 .th-compact{display:flex;flex-direction:column;gap:3px;width:100%;margin-top:6px}
 .th-compact:empty{display:none}
 .th-compact .sv2-mini{margin:1px 0 0;height:7px}
+/* Світло без обраної черги (телефон): черги шкалами доби */
+.th-compact:has(.th-qc){gap:4px;margin-top:7px}
+.th-qc{display:grid;grid-template-columns:24px minmax(0,1fr);align-items:center;gap:6px;font-size:10.5px;font-weight:900;line-height:1}
+.th-qc .sv2-mini{margin:0;height:6px}
 .th-rich-side{display:none}
 @container (min-width: 340px){
   .th-rich-main{flex:0 0 42%}
@@ -820,8 +824,13 @@ html.tiles-mode .alert-group,html.tiles-mode .schedule-group,html.tiles-mode .ma
 .th-tr-in{color:rgba(255,255,255,0.62);font-variant-numeric:tabular-nums;white-space:nowrap}
 .th-tr-del{color:#ff9aa2;font-weight:900;white-space:nowrap}
 .th-tr-none{font-size:11px;font-weight:700;line-height:1.35;color:rgba(255,255,255,0.75)}
-.th-compact .th-tr{gap:5px;font-size:11px}
-.th-compact .th-tr b{font-size:12.5px}
+/* Плитка на телефоні вузька (від ~130 px вмісту): щільніше, щоб «П'ятихатки» й «45 хв» уміщувались разом */
+.th-compact .th-tr{gap:4px;font-size:10.5px}
+.th-compact .th-tr b{font-size:12px}
+.th-compact .th-tr-in,.th-compact .th-tr-del{font-size:10px}
+/* Зовсім вузькі телефони (до ~345 px): відлік «N хв» поруч із назвою не влазить — лишаємо час і напрямок */
+@container (max-width: 127px){ .th-compact .th-tr-in:not(.th-tr-now),.th-st-day{display:none} }
+@media (max-width: 374px){ .th-big.th-rich{padding:14px 12px} }
 .th-ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:rgba(var(--rgb),0.18)}
 .th-st{display:block;font-size:12px;font-weight:800;color:var(--c);margin-top:4px}
 .th-st.th-bad{color:#ff7a85} .th-st.th-ok{color:#5dffb0}
