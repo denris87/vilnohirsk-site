@@ -934,6 +934,11 @@ html.tiles-mode.cabinet-open .cabinet{display:block;position:fixed;top:calc(56px
 .cab-ad-actions{display:flex;justify-content:flex-end;margin-top:2px}
 .cab-ads-new{margin-top:2px}
 .cab-ads-new .cab-btn{flex:1 1 0;min-width:0;padding:10px 8px;font-size:13px}
-.cab-soon{display:flex;flex-direction:column;gap:4px}
-.cab-soon b{font-size:13.5px;color:#fff}
-.cab-soon span{font-size:12.5px;line-height:1.45;color:rgba(255,255,255,0.72)}
+.cab-ad-st-wait{color:#ffd76a;background:rgba(255,204,0,0.13);border-color:rgba(255,204,0,0.45)}
+.cab-ad-st-bad{color:#ff9aa2;background:rgba(255,77,77,0.13);border-color:rgba(255,77,77,0.5)}
+.cab-ad-main{display:flex;align-items:center;gap:10px;min-width:0}
+.cab-ad-ph{flex:0 0 52px;width:52px;height:52px;border-radius:10px;object-fit:cover;background:rgba(255,255,255,0.08)}
+.cab-ad-txt{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cab-ads-new-l{font-size:12px;font-weight:800;color:rgba(255,255,255,0.7);margin-top:4px}
+.cab-ads-new4{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (min-width:600px){.cab-ads-new4{grid-template-columns:repeat(4,minmax(0,1fr))}}

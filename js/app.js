@@ -540,10 +540,13 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
       const photos = form.querySelector('input[name="photos"]').files; if (photos.length > maxPhotos) throw new Error(`Максимум ${maxPhotos} фото!`);
       let b64 = []; for (let i = 0; i < photos.length; i++) b64.push(await compressAndGetBase64(photos[i])); sheetData.photosBase64 = b64;
     }
+    // Є вхід у кабінет (бета) — додаємо токен: оголошення з'явиться в «Моїх оголошеннях» зі статусом модерації
+    const idToken = await cabAdsToken(); if (idToken) sheetData.idToken = idToken;
     btn.innerText = 'Збереження...';
     await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
-    showToast('✅ Успішно відправлено на модерацію!', 'success');
+    showToast(idToken ? '✅ Відправлено! Статус — у «Моїх оголошеннях»' : '✅ Успішно відправлено на модерацію!', 'success');
     closeModalForm(null, modalId); form.reset(); setupCaptcha(formId);
+    if (idToken) cabAdsChanged();
   } catch (e) { showToast('❌ Помилка: ' + e.message, 'error'); } finally { btn.innerText = origText; btn.disabled = false; btn.style.opacity = '1'; }
 }
 
@@ -923,7 +926,7 @@ function ensureAuth() {
       cabAuth = firebase.auth();
       cabAuth.languageCode = 'uk'; // листи (підтвердження, відновлення пароля) і вікно Google — українською
       cabState = 'ready';
-      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) cabMode = 'in'; cabAds = { state: 'idle', rides: [], confirm: '' }; renderAccount(); if (u) cabLoadAds(); });
+      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) cabMode = 'in'; cabAds = cabAdsBlank(); renderAccount(); if (u) cabLoadAds(); });
     } catch (e) { cabState = 'error'; logSectionError('кабінет', e); renderAccount(); }
   };
   if (typeof firebase.auth === 'function') { start(); return; }
@@ -1101,35 +1104,91 @@ async function cabPushAction(act, btn) {
   if (act === 'push-save') return cabBusy(btn, async () => { await savePushPreferences(cabPushDraft.slice()); done(); });
 }
 // === «Мої оголошення» в кабінеті ===
-// Поки тут поїздки з «Попутників»: їх приймає наш сервер на Railway, і він пам'ятає, хто подав поїздку з кабінету.
-// Барахолка, Нерухомість, Знахідки, Вакансії й Акції йдуть через Apps Script — з'являться тут після його оновлення.
+// Поїздки з «Попутників» приймає наш сервер на Railway — він пам'ятає, хто подав поїздку з кабінету.
+// Барахолка, Нерухомість, Знахідки, Вакансії (і Акції) йдуть через Apps Script у таблицю, а хто що подав
+// з кабінету, скрипт записує в окрему приватну таблицю (Cabinet.gs) — звідти й список нижче.
 const BLABLA_API = 'https://vilnohirsk-blablacar-api-production-67d3.up.railway.app';
-let cabAds = { state: 'idle', rides: [], confirm: '' }; // state: idle | loading | ready | error | noserver
+const CAB_AD_KINDS = {
+  flea:   { name: 'Барахолка',   ico: '🛍️', btn: 'Барахолка',   form: ['custom-flea-form', 'flea-modal'],     cache: 'flea_csv',   reload: () => loadFleaMarketData() },
+  estate: { name: 'Нерухомість', ico: '🏠', btn: 'Нерухомість', form: ['custom-estate-form', 'estate-modal'], cache: 'estate_csv', reload: () => loadEstateData() },
+  lost:   { name: 'Знахідки',    ico: '🔍', btn: 'Знахідки',    form: ['custom-lost-form', 'lost-modal'],     cache: 'lost_csv',   reload: () => loadLostFoundData() },
+  job:    { name: 'Вакансії',    ico: '💼', btn: 'Вакансія',    form: ['custom-job-form', 'job-modal'],       cache: 'jobs_csv',   reload: () => loadJobsData() },
+  promo:  { name: 'Акції',       ico: '🔥', btn: '',            form: null,                                   cache: 'promos_api', reload: () => loadPromosData() }
+};
+// Як показати статус оголошення з таблиці: [клас, напис, пояснення]
+const CAB_AD_ST = {
+  published:  ['cab-ad-st-on',   'Опубліковано', ''],
+  moderation: ['cab-ad-st-wait', 'На модерації', "Оголошення перевіряє адміністратор. Після перевірки воно з'явиться в розділі."],
+  pending:    ['cab-ad-st-wait', 'Обробляється', 'Зберігаємо фото й перевіряємо текст. Оновіть сторінку за хвилину.'],
+  rejected:   ['cab-ad-st-bad',  'Відхилено',    'Не пройшло перевірку. Виправте текст і подайте знову.'],
+  removed:    ['cab-ad-st-off',  'Знято',        'Оголошення прибрано з розділу.'],
+  other:      ['cab-ad-st-off',  '',             '']
+};
+function cabAdsBlank() { return { state: 'idle', rides: [], adsState: 'idle', ads: [], confirm: '' }; }
+let cabAds = cabAdsBlank(); // state — поїздки, adsState — оголошення: idle | loading | ready | error | noserver | auth
+let cabAdsSeq = 0;
 
-async function cabLoadAds() {
-  if (!cabUser) { cabAds = { state: 'idle', rides: [], confirm: '' }; return; }
-  cabAds.state = 'loading'; renderCabinet();
-  try {
-    const token = await cabUser.getIdToken();
-    const r = await fetchWithTimeout(BLABLA_API + '/api/my-rides', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' }, 10000);
-    if (r.status === 404) cabAds.state = 'noserver'; // сервер попуток ще не оновлено
-    else if (!r.ok) throw new Error('HTTP ' + r.status);
-    else { const d = await r.json(); cabAds.rides = Array.isArray(d) ? d : []; cabAds.state = 'ready'; }
-  } catch (e) { cabAds.state = 'error'; logSectionError('мої оголошення', e); }
+// quiet — тихе оновлення: список лишається на місці, поки вантажимо новий
+async function cabLoadAds(quiet) {
+  if (!cabUser) { cabAds = cabAdsBlank(); return; }
+  const seq = ++cabAdsSeq;
+  if (!quiet || cabAds.state !== 'ready') cabAds.state = 'loading';
+  if (!quiet || cabAds.adsState !== 'ready') cabAds.adsState = 'loading';
+  renderCabinet();
+  let token = '';
+  try { token = await cabUser.getIdToken(); } catch (e) {}
+  const [rides, ads] = await Promise.all([cabFetchRides(token), cabFetchSheetAds(token)]);
+  if (seq !== cabAdsSeq || !cabUser) return; // поки вантажили, людина вийшла або почалось нове завантаження
+  if (!(quiet && rides.state === 'error' && cabAds.state === 'ready')) Object.assign(cabAds, rides);
+  if (!(quiet && ads.adsState === 'error' && cabAds.adsState === 'ready')) Object.assign(cabAds, ads);
   renderCabinet();
 }
-function cabRideActive(x) { return String(x.date || '') >= getKyivDateISO(); }
-function cabAdsTileText() {
-  if (cabAds.state !== 'ready') return 'Ваші поїздки й оголошення';
-  const n = cabAds.rides.filter(cabRideActive).length;
-  return n ? `${n} ${pluralUk(n, 'активна поїздка', 'активні поїздки', 'активних поїздок')}` : 'Активних поки немає';
+async function cabFetchRides(token) {
+  try {
+    const r = await fetchWithTimeout(BLABLA_API + '/api/my-rides', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' }, 15000);
+    if (r.status === 404) return { state: 'noserver' }; // сервер попуток ще не оновлено
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const d = await r.json();
+    return { state: 'ready', rides: Array.isArray(d) ? d : [] };
+  } catch (e) { logSectionError('мої поїздки', e); return { state: 'error' }; }
 }
-function cabAdsHtml() {
+async function cabFetchSheetAds(token) {
+  try {
+    const d = await cabScript({ formType: 'cabinet_my_ads', idToken: token });
+    if (d.status === 'ok' && Array.isArray(d.ads)) return { adsState: 'ready', ads: d.ads };
+    if (d.status === 'auth') return { adsState: 'auth' };
+    throw new Error(d.message || 'status ' + d.status);
+  } catch (e) { logSectionError('мої оголошення', e); return { adsState: 'error' }; }
+}
+// Запит до Apps Script, відповідь якого треба прочитати. text/plain — щоб браузер не слав окремий CORS-запит наперед
+async function cabScript(payload) {
+  const r = await fetchWithTimeout(APP_SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload), cache: 'no-store' }, 30000);
+  const text = await r.text();
+  try { return JSON.parse(text); } catch (e) { throw new Error('Apps Script відповів не JSON — скрипт ще не оновлено?'); }
+}
+// Токен входу для форм оголошень: лише в бета-версії і лише коли людина в кабінеті
+async function cabAdsToken() {
+  if (!cabUser || !document.documentElement.classList.contains('beta-mode')) return '';
+  try { return await cabUser.getIdToken(); } catch (e) { return ''; }
+}
+function cabAdsChanged() { if (cabUser) cabLoadAds(true); } // подали оголошення — оновити «Мої оголошення» і лічильник на плитці
+
+function cabRideActive(x) { return String(x.date || '') >= getKyivDateISO(); }
+function cabSheetAdActive(a) { return a.state === 'published' || a.state === 'moderation' || a.state === 'pending'; }
+function cabAdsTileText() {
+  if (cabAds.state !== 'ready' && cabAds.adsState !== 'ready') return 'Ваші поїздки й оголошення';
+  const n = (cabAds.state === 'ready' ? cabAds.rides.filter(cabRideActive).length : 0)
+    + (cabAds.adsState === 'ready' ? cabAds.ads.filter(cabSheetAdActive).length : 0);
+  return n ? `${n} ${pluralUk(n, 'активне оголошення', 'активні оголошення', 'активних оголошень')}` : 'Активних поки немає';
+}
+function cabAdsHtml() { return cabRidesCardHtml() + cabSheetAdsCardHtml(); }
+
+function cabRidesCardHtml() {
   const newBtns = `<div class="cab-row cab-ads-new"><button type="button" class="cab-btn" data-act="ride-new-driver">🚗 Я водій — запропоную</button><button type="button" class="cab-btn" data-act="ride-new-passenger">🧍 Я пасажир — шукаю</button></div>`;
   let list;
   if (cabAds.state === 'loading' || cabAds.state === 'idle') list = `<p class="cab-empty">Завантаження…</p>`;
   else if (cabAds.state === 'noserver') list = `<p class="cab-empty">Сервер попуток ще не оновлено. Щойно його оновлять, тут з'являться поїздки, які ви подасте з кабінету.</p>`;
-  else if (cabAds.state === 'error') list = `<p class="cab-empty">Не вдалося завантажити. Перевірте інтернет.</p><button type="button" class="cab-btn cab-btn-sm" data-act="ads-reload">Спробувати ще раз</button>`;
+  else if (cabAds.state === 'error') list = `<p class="cab-empty">Не вдалося завантажити поїздки. Перевірте інтернет.</p><button type="button" class="cab-btn cab-btn-sm" data-act="ads-reload">Спробувати ще раз</button>`;
   else if (!cabAds.rides.length) list = `<p class="cab-empty">Поки немає жодної поїздки. Подайте її кнопкою нижче — і вона з'явиться тут. Поїздки, подані без входу в кабінет, сюди не потрапляють.</p>`;
   else list = cabAds.rides.map(x => {
     const id = String(x._id || ''), active = cabRideActive(x), drv = x.type !== 'passenger';
@@ -1151,9 +1210,53 @@ function cabAdsHtml() {
       <div class="cab-card-head">🚗 Попутники</div>
       ${list}
       ${newBtns}
-    </div>
-    <div class="cab-card cab-soon"><b>Барахолка, Нерухомість, Знахідки, Вакансії, Акції</b><span>З'являться тут трохи згодом. Поки подавайте їх у розділах, як і раніше.</span></div>`;
+    </div>`;
 }
+
+function cabSheetAdsCardHtml() {
+  const st = cabAds.adsState;
+  let list;
+  if (st === 'loading' || st === 'idle') list = `<p class="cab-empty">Завантаження…</p>`;
+  else if (st === 'auth') list = `<p class="cab-empty">Не вдалося підтвердити вхід. Вийдіть з кабінету й увійдіть знову.</p>`;
+  else if (st === 'error') list = `<p class="cab-empty">Не вдалося завантажити оголошення. Перевірте інтернет.</p><button type="button" class="cab-btn cab-btn-sm" data-act="ads-reload">Спробувати ще раз</button>`;
+  else if (!cabAds.ads.length) list = `<p class="cab-empty">Поки немає жодного. Подайте оголошення кнопкою нижче — тут буде видно, чи пройшло воно модерацію. Оголошення, подані без входу в кабінет, сюди не потрапляють.</p>`;
+  else list = cabAds.ads.map(cabSheetAdHtml).join('');
+  const btns = Object.keys(CAB_AD_KINDS).filter(k => CAB_AD_KINDS[k].form)
+    .map(k => `<button type="button" class="cab-btn" data-act="ad-new" data-kind="${k}">${CAB_AD_KINDS[k].ico} ${CAB_AD_KINDS[k].btn}</button>`).join('');
+  return `
+    <div class="cab-card cab-ads">
+      <div class="cab-card-head">📦 Оголошення</div>
+      ${list}
+      <span class="cab-ads-new-l">Подати нове:</span>
+      <div class="cab-row cab-ads-new cab-ads-new4">${btns}</div>
+    </div>`;
+}
+function cabAdPrice(a) {
+  const p = String(a.price || '').trim();
+  if (!p || p === '-') return '';
+  return (a.kind === 'flea' || a.kind === 'job') && /^\d[\d\s.,]*$/.test(p) ? p + ' грн' : p;
+}
+function cabSheetAdHtml(a) {
+  const k = CAB_AD_KINDS[a.kind] || { name: 'Оголошення', ico: '📦' };
+  const st = CAB_AD_ST[a.state] || CAB_AD_ST.other;
+  const id = String(a.id || ''), removed = a.state === 'removed';
+  const kind = a.kind === 'lost' && a.sub ? (a.sub === 'Втрачено' ? '❗ Втрачено' : '🔍 Знайдено') : `${k.ico} ${k.name}`;
+  const pill = st[1] || String(a.statusText || '').slice(0, 24) || 'Невідомо';
+  const d = a.date ? new Date(a.date) : null;
+  const when = d && !isNaN(d) ? 'Подано ' + d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Kyiv' }) : '';
+  const meta = [when, cabAdPrice(a), a.kind === 'job' || a.kind === 'promo' ? String(a.sub || '') : ''].filter(Boolean).map(escapeHTML).join(' · ');
+  const photo = a.photo ? `<img class="cab-ad-ph" src="${escapeHTML(getDriveImageUrl(a.photo))}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '';
+  const act = cabAds.confirm === id
+    ? `<div class="cab-confirm"><b>Видалити оголошення?</b><span>${a.state === 'published' ? `Його більше не буде видно в розділі «${escapeHTML(k.name)}».` : 'Воно зникне з цього списку.'}</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm cab-btn-danger" data-act="ad-del-yes" data-id="${escapeHTML(id)}">Так, видалити</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="ad-del-no">Скасувати</button></div></div>`
+    : `<div class="cab-ad-actions"><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="${removed ? 'ad-del-yes' : 'ad-del'}" data-id="${escapeHTML(id)}">${removed ? 'Прибрати зі списку' : 'Видалити'}</button></div>`;
+  return `<div class="cab-ad${removed || a.state === 'rejected' ? ' cab-ad-past' : ''}">
+      <div class="cab-ad-top"><span class="cab-ad-kind">${kind}</span><span class="cab-ad-st ${st[0]}">${escapeHTML(pill)}</span></div>
+      <div class="cab-ad-main">${photo}<div class="cab-ad-txt"><b class="cab-ad-title">${escapeHTML(String(a.title || '').trim() || 'Без назви')}</b>${meta ? `<span class="cab-ad-meta">${meta}</span>` : ''}</div></div>
+      ${st[2] ? `<span class="cab-ad-note">${st[2]}</span>` : ''}
+      ${act}
+    </div>`;
+}
+
 async function cabAdsAction(act, btn) {
   if (act === 'ads-reload') return cabLoadAds();
   if (act === 'ride-new-driver' || act === 'ride-new-passenger') {
@@ -1162,17 +1265,32 @@ async function cabAdsAction(act, btn) {
     const nm = document.getElementById('input-name'); if (nm && !nm.value && cabUser) nm.value = cabName(cabUser).slice(0, 30);
     return;
   }
-  if (act === 'ride-del') { cabAds.confirm = btn.dataset.id; renderCabinet(); return; }
-  if (act === 'ride-del-no') { cabAds.confirm = ''; renderCabinet(); return; }
+  if (act === 'ad-new') { const k = CAB_AD_KINDS[btn.dataset.kind]; if (k && k.form) openModalForm(k.form[0], k.form[1]); return; }
+  if (act === 'ride-del' || act === 'ad-del') { cabAds.confirm = btn.dataset.id; renderCabinet(); return; }
+  if (act === 'ride-del-no' || act === 'ad-del-no') { cabAds.confirm = ''; renderCabinet(); return; }
   if (act === 'ride-del-yes') return cabBusy(btn, async () => {
     const id = btn.dataset.id;
-    const token = await cabUser.getIdToken();
-    const r = await fetchWithTimeout(BLABLA_API + '/api/rides/' + encodeURIComponent(id), { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } }, 10000);
-    if (!r.ok) { showToast('❌ Не вдалося видалити поїздку. Спробуйте ще раз.', 'error'); return; }
+    try {
+      const token = await cabUser.getIdToken();
+      const r = await fetchWithTimeout(BLABLA_API + '/api/rides/' + encodeURIComponent(id), { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } }, 15000);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+    } catch (e) { showToast('❌ Не вдалося видалити поїздку. Спробуйте ще раз.', 'error'); return; }
     cabAds.rides = cabAds.rides.filter(x => String(x._id) !== id); cabAds.confirm = '';
     renderCabinet();
     delete memoryDataCache['blabla_api']; loadBlaBlaCarData(); // список у «Попутниках» — одразу без неї
     showToast('Поїздку видалено', 'info');
+  });
+  if (act === 'ad-del-yes') return cabBusy(btn, async () => {
+    const id = btn.dataset.id, ad = cabAds.ads.find(a => String(a.id) === id);
+    try {
+      const d = await cabScript({ formType: 'cabinet_delete_ad', idToken: await cabUser.getIdToken(), id });
+      if (d.status !== 'ok' && d.status !== 'notfound') throw new Error(d.message || 'status ' + d.status);
+    } catch (e) { logSectionError('видалення оголошення', e); showToast('❌ Не вдалося видалити оголошення. Спробуйте ще раз.', 'error'); return; }
+    cabAds.ads = cabAds.ads.filter(a => String(a.id) !== id); cabAds.confirm = '';
+    renderCabinet();
+    const k = ad && CAB_AD_KINDS[ad.kind];
+    if (k && ad.state === 'published') { delete memoryDataCache[k.cache]; try { k.reload(); } catch (e) {} } // розділ — одразу без нього
+    showToast(ad && ad.state === 'removed' ? 'Прибрано зі списку' : 'Оголошення видалено', 'info');
   });
 }
 
@@ -1213,7 +1331,7 @@ async function cabBusy(btn, fn) {
 async function cabAction(act, btn) {
   if (act === 'retry') { cabState = 'idle'; ensureAuth(); return; }
   if (act === 'view-push' || act === 'view-ads') { cabShowView(act.slice(5)); return; }
-  if (act.indexOf('ride-') === 0 || act === 'ads-reload') return cabAdsAction(act, btn);
+  if (act.indexOf('ride-') === 0 || act.indexOf('ad-') === 0 || act === 'ads-reload') return cabAdsAction(act, btn);
   if (act.indexOf('push-') === 0) return cabPushAction(act, btn); // сповіщення — і без входу
   if (!cabAuth) return;
   if (act === 'mode-in' || act === 'mode-up') { cabMode = act === 'mode-up' ? 'up' : 'in'; renderCabinet(); return; }
@@ -3199,12 +3317,12 @@ async function submitBlaBlaForm(event) {
   try {
     const headers = { 'Content-Type': 'application/json' };
     // Є вхід у кабінет (бета) — додаємо токен: сервер запам'ятає, чия поїздка, і вона з'явиться в «Моїх оголошеннях»
-    if (cabUser && document.documentElement.classList.contains('beta-mode')) { try { headers.Authorization = 'Bearer ' + await cabUser.getIdToken(); } catch (e) {} }
+    const idToken = await cabAdsToken(); if (idToken) headers.Authorization = 'Bearer ' + idToken;
     const response = await fetch(BLABLA_API + '/api/rides', { method: 'POST', headers: headers, body: JSON.stringify(formData) });
     if (!response.ok) throw new Error('Помилка сервера при збереженні');
     showToast('✅ Ваше оголошення успішно додано!', 'success');
     closeModalForm(null, 'blabla-modal'); switchBlaBlaList(formData.type === 'driver' ? 'drivers' : 'passengers'); loadBlaBlaCarData(); 
-    if (cabUser && document.documentElement.classList.contains('cabinet-open')) cabLoadAds(); // подали з кабінету — оновити «Мої оголошення»
+    if (idToken) cabAdsChanged(); // подали з кабінету — оновити «Мої оголошення»
   } catch (error) { showToast('❌ Помилка при відправці: ' + error.message, 'error'); } finally { submitBtn.innerText = originalBtnText; submitBtn.disabled = false; submitBtn.style.opacity = '1'; }
 }
 
