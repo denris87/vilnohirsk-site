@@ -911,18 +911,27 @@ function renderSvitloTile(state) {
     st.textContent = t.short;
     st.className = 'th-st' + (t.cls === 'off' ? ' th-bad' : (t.cls === 'on' || t.cls === 'ok') ? ' th-ok' : '');
     put('th-svitlo-sub', qs.kind === 'off' || qs.kind === 'on' ? `ще ${svitloDur(qs.left)}` : escapeHTML(tmr));
+    const subEl = document.getElementById('th-svitlo-sub'); if (subEl) subEl.classList.remove('th-wide-only');
     put('th-svitlo-compact', qs.kind === 'unknown' ? '' : svitloMiniBar(qs.merged, now));
     const next = qs.merged.filter(r => qs.now == null || r[0] > qs.now).slice(0, 2);
     const tmrChip = !next.length && nst && nst.kind === 'ahead' ? `<span>завтра з ${svitloClock(nst.first)}</span>` : ''; // сьогодні вже все — показати завтрашнє
     chips.innerHTML = `<span class="th-chip-q">Черга ${escapeHTML(my.queue)}</span>` + next.map(r => `<span>${svitloClock(r[0])}–${svitloClock(r[1])}</span>`).join('') + tmrChip;
     return;
   }
-  put('th-svitlo-compact', '');
+  // Без обраної черги: на телефоні — шкала доби кожної черги (зелене — є світло); «оновлено о …» — лише на широкому
+  const qrows = (off != null && off < 0) || live.noOutages ? [] : (live.providers || []).flatMap(p => (Array.isArray(p.queues) ? p.queues : []).filter(q => q && q.queue != null).map(q => {
+    const s = svitloQueueState((Array.isArray(q.slots) ? q.slots : []).filter(Boolean), off);
+    return `<span class="th-qc"><b style="color:${svitloColor(p)}">${escapeHTML(String(q.queue))}</b>${s.kind === 'unknown' ? '<span class="th-q-na">час — у вікні</span>' : svitloMiniBar(s.merged, now)}</span>`;
+  })).slice(0, 4);
+  put('th-svitlo-compact', qrows.join(''));
   put('th-svitlo-sub', live.revised ? `оновлено о ${escapeHTML(svitloRevShort(live.revised, live.updated))}` : '');
+  const subEl = document.getElementById('th-svitlo-sub'); if (subEl) subEl.classList.toggle('th-wide-only', qrows.length > 0);
   const m = String(live.updated || '').match(/(\d{1,2})\.(\d{1,2})/);
-  const day = m ? ` · ${m[1].padStart(2, '0')}.${m[2].padStart(2, '0')}` : '';
-  if (live.noOutages) { st.textContent = 'Відключень немає' + day; st.className = 'th-st th-ok'; chips.innerHTML = ''; return; }
-  st.textContent = 'Є відключення' + day; st.className = 'th-st';
+  // Дата — окремим елементом: на зовсім вузьких телефонах вона ховається, щоб стан не переносився на другий рядок
+  const day = m ? `<span class="th-st-day"> · ${m[1].padStart(2, '0')}.${m[2].padStart(2, '0')}</span>` : '';
+  if (live.noOutages) { st.innerHTML = 'Відключень немає' + day; st.className = 'th-st th-ok'; chips.innerHTML = ''; return; }
+  st.innerHTML = 'Є відключення' + day; st.className = 'th-st';
+  if (qrows.length) { chips.innerHTML = ''; return; } // черги вже видно шкалами
   const queues = [];
   (live.providers || []).forEach(p => (Array.isArray(p.queues) ? p.queues : []).forEach(q => {
     if (q && q.queue != null && Array.isArray(q.slots) && q.slots.filter(Boolean).length) queues.push(String(q.queue));
@@ -990,6 +999,9 @@ function syncTileHome() {
 }
 
 // Плитка «Електрички»: найближчі відправлення з Вільногірська — на телефоні 2, на широкому екрані 4
+// Службова частина назви станції: «П'ятихатки-Пас.», «П'ятихатки-Стик.», «Дніпро-Головний», «Кам'янське-Пасажирська».
+// Назви, де після дефіса — інше місто («Запоріжжя-Кам’янське»), лишаються як є
+const TRAIN_STATION_SUFFIX = /\s*-\s*(?:пас(?:ажирськ\S*)?|гол(?:овн\S*)?|стик(?:ов\S*)?|сорт(?:увальн\S*)?|вузл(?:ов\S*)?|товарн\S*)\.?$/i;
 function trainsTileUpcoming() {
   if (!Array.isArray(trainsTileList)) return null;
   const n = getKyivNow(), nowMin = n.getHours() * 60 + n.getMinutes();
@@ -997,9 +1009,13 @@ function trainsTileUpcoming() {
   trainsTileList.forEach(x => {
     const m = String((x && x.time) || '').match(/^\s*(\d{1,2}):(\d{2})/);
     if (!m) return;
-    const route = String(x.route || '').trim(), parts = route.split(/\s*(?:→|->|—|–)\s*/).filter(Boolean);
+    // Напрямок — кінцева станція: сервер пише маршрут як «перша → остання» («Дніпро-Головний → П'ятихатки-Пас.»);
+    // як стрілки немає — остання зупинка з розкладу. На плитці лише місто, без «-Пас.», «-Стик.», «-Головний»
+    const route = String(x.route || '').trim(), parts = route.split(/\s+-\s+|\s*(?:→|->|—|–)\s*/).filter(Boolean);
+    const stops = Array.isArray(x.fullSchedule) ? x.fullSchedule : [], last = stops[stops.length - 1];
+    const end = parts.length > 1 ? parts[parts.length - 1] : (Array.isArray(last) && last[0] ? String(last[0]).trim() : '');
     const num = String(x.number || '').replace(/new/ig, '').replace(/\D/g, '');
-    rows.push({ t: +m[1] * 60 + +m[2], time: `${m[1].padStart(2, '0')}:${m[2]}`, to: parts.length > 1 ? parts[parts.length - 1] : route, delay: trainsTileDelays[num] || 0 });
+    rows.push({ t: +m[1] * 60 + +m[2], time: `${m[1].padStart(2, '0')}:${m[2]}`, to: end ? (end.replace(TRAIN_STATION_SUFFIX, '').trim() || end) : route, delay: trainsTileDelays[num] || 0 });
   });
   rows.sort((a, b) => a.t - b.t);
   return { next: rows.filter(r => r.t + r.delay >= nowMin), first: rows[0] || null, nowMin: nowMin };
@@ -1014,7 +1030,7 @@ function renderTrainsTile() {
   const row = (r, short) => {
     const left = r.t + r.delay - u.nowMin;
     const tail = r.delay ? `<span class="th-tr-del">+${r.delay} хв</span>`
-      : left <= 0 ? '<span class="th-tr-in">зараз</span>'
+      : left <= 0 ? '<span class="th-tr-in th-tr-now">зараз</span>'
       : left < 60 ? `<span class="th-tr-in">${left} хв</span>`
       : short ? '' : `<span class="th-tr-in">${svitloDur(left)}</span>`;
     return `<span class="th-tr"><b>${r.time}</b><span class="th-tr-to">${short ? '' : '→ '}${escapeHTML(r.to)}</span>${tail}</span>`;
