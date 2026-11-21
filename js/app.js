@@ -1026,10 +1026,12 @@ function renderTrainsTile() {
   const put = (el, html) => { if (el.dataset.v !== html) { el.dataset.v = html; el.innerHTML = html; } };
   const u = trainsTileUpcoming();
   if (!u || !u.first) { put(compact, ''); put(side, ''); return; }
+  // Запізнення: до години — «+15 хв»; довше — «+1 год 39 хв» (на вузькій плитці — «+1:39»), як і в розділі, а не «+99 хв»
+  const late = (min, short) => min < 60 ? `+${min} хв` : short ? `+${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}` : `+${svitloDur(min)}`;
   // short — вузька плитка: відлік лише коли до рейсу менше години (інакше не влазить назва напрямку)
   const row = (r, short) => {
     const left = r.t + r.delay - u.nowMin;
-    const tail = r.delay ? `<span class="th-tr-del">+${r.delay} хв</span>`
+    const tail = r.delay ? `<span class="th-tr-del" title="Запізнення ${svitloDur(r.delay)}">${late(r.delay, short)}</span>`
       : left <= 0 ? '<span class="th-tr-in th-tr-now">зараз</span>'
       : left < 60 ? `<span class="th-tr-in">${left} хв</span>`
       : short ? '' : `<span class="th-tr-in">${svitloDur(left)}</span>`;
