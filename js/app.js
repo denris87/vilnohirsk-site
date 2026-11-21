@@ -1475,12 +1475,14 @@ function cabStatsUserHtml(u) {
     : [u.created ? 'Зареєстровано ' + cabDdMm(u.created, true) : '', u.last ? 'останній візит ' + cabAgo(u.last) : '', u.days > 1 ? `днів з візитами: ${u.days}` : ''])
     .concat([`оголошень: ${u.ads || 0}`]).filter(Boolean).join(' · ');
   const note = u.deleted ? `Акаунт видалено ${cabDdMm(u.deleted, true)}.`
-    : u.banned ? `Заблоковано ${cabDdMm(u.banned, true)}: оголошення сховано, нові з акаунта й телефонів не приймаються.`
+    : u.banned ? (u.signinOff
+      ? `Заблоковано ${cabDdMm(u.banned, true)}: вхід закрито, оголошення сховано, нові з її телефонів не приймаються.`
+      : `Заблоковано ${cabDdMm(u.banned, true)}: оголошення сховано, нові з акаунта й телефонів не приймаються. Вхід ще відкритий — закрийте його у Firebase Console.`)
     : u.early ? 'Оголошення подано до запуску статистики; візитів відтоді не було.' : '';
   let act = '';
   if (!u.deleted && !me && !u.admin) {
     act = cabStatsConfirm === u.uid
-      ? `<div class="cab-confirm"><b>Заблокувати цей акаунт?</b><span>Оголошення й поїздки цієї людини зникнуть із сайту, а нові з її акаунта та телефонів не прийматимуться. Розблокувати можна будь-коли.</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm cab-btn-danger" data-act="stats-ban-yes" data-uid="${escapeHTML(u.uid)}">Так, заблокувати</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="stats-ban-no">Скасувати</button></div></div>`
+      ? `<div class="cab-confirm"><b>Заблокувати цей акаунт?</b><span>Вхід на сайт для цієї людини закриється, її оголошення й поїздки зникнуть, а нові з її телефонів не прийматимуться. Розблокувати можна будь-коли.</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm cab-btn-danger" data-act="stats-ban-yes" data-uid="${escapeHTML(u.uid)}">Так, заблокувати</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="stats-ban-no">Скасувати</button></div></div>`
       : `<div class="cab-ad-actions">${u.banned
         ? `<button type="button" class="cab-btn cab-btn-sm" data-act="stats-unban" data-uid="${escapeHTML(u.uid)}">Розблокувати</button>`
         : `<button type="button" class="cab-btn cab-btn-sm cab-btn-ghost cab-btn-warn" data-act="stats-ban" data-uid="${escapeHTML(u.uid)}">🚫 Заблокувати</button>`}</div>`;
@@ -1515,7 +1517,10 @@ async function cabStatsAction(act, btn) {
       return;
     }
     cabStatsConfirm = '';
-    showToast(ban ? `🚫 Заблоковано. Сховано оголошень: ${d.ads || 0}. Поїздки зникнуть за кілька хвилин.` : `Розблоковано. Повернуто оголошень: ${d.ads || 0}.`, 'info');
+    const closed = d.signin === 'off' || d.signin === 'gone'; // gone — акаунта у Firebase уже немає
+    if (!ban) showToast(`Розблоковано${d.signin === 'on' ? ': вхід відкрито,' : '.'} повернуто оголошень: ${d.ads || 0}.`, 'info');
+    else if (closed) showToast(`🚫 Заблоковано: вхід закрито, сховано оголошень: ${d.ads || 0}. Поїздки зникнуть за 2 хв.`, 'info');
+    else showToast(`🚫 Заблоковано, сховано оголошень: ${d.ads || 0}. Вхід закрити не вдалося — зробіть це у Firebase Console.`, 'error');
     ['flea', 'estate', 'lost', 'job'].forEach(k => { const c = CAB_AD_KINDS[k]; delete memoryDataCache[c.cache]; try { c.reload(); } catch (e) {} });
     await cabLoadStats();
   });
