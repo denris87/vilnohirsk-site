@@ -926,7 +926,7 @@ function ensureAuth() {
       cabAuth = firebase.auth();
       cabAuth.languageCode = 'uk'; // листи (підтвердження, відновлення пароля) і вікно Google — українською
       cabState = 'ready';
-      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) cabMode = 'in'; cabAds = cabAdsBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(); } });
+      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) cabMode = 'in'; cabAds = cabAdsBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(document.documentElement.classList.contains('cabinet-open')); } });
     } catch (e) { cabState = 'error'; logSectionError('кабінет', e); renderAccount(); }
   };
   if (typeof firebase.auth === 'function') { start(); return; }
@@ -1328,11 +1328,15 @@ function cabResetAdmin(u) {
   cabBanned = !!(u && st.uid === u.uid && st.banned);
   cabStats = null; cabStatsConfirm = ''; cabStatsQuery = '';
 }
-// Відмітка візиту для статистики: не частіше ніж раз на 3 години з цього пристрою
+// Відмітка візиту для статистики: не частіше ніж раз на 3 години з цього пристрою.
+// force — людина сама відкрила кабінет: перепитуємо одразу (не частіше ніж раз на хвилину), щоб
+// новий адмін чи щойно заблокований побачили свій стан без 3-годинного очікування.
+let cabHelloAt = 0;
 async function cabHello(force) {
   const u = cabUser; if (!u) return;
   const st = cabHelloState();
-  if (!force && st.uid === u.uid && Date.now() - (st.t || 0) < 3 * 3600 * 1000) return;
+  if (force ? Date.now() - cabHelloAt < 60 * 1000 : (st.uid === u.uid && Date.now() - (st.t || 0) < 3 * 3600 * 1000)) return;
+  cabHelloAt = Date.now();
   try {
     const d = await cabScript({ formType: 'cabinet_hello', idToken: await u.getIdToken() });
     if (d.status !== 'ok' || cabUser !== u) return;
@@ -1625,6 +1629,7 @@ function openCabinet(ev, focus) {
   cabPushDraft = null; cabPushConfirmOff = false; // свіжий стан підписки при кожному відкритті
   const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
   if (root.classList.contains('beta-mode')) ensureAuth(); // бібліотеку входу — лише в бета-версії
+  if (cabUser) cabHello(true); // свіжий стан: адмін / заблоковано
   if (cabUser && cabIsAdmin && (!cabStats || cabStats.state === 'error')) cabLoadStats(); // цифри на плитці «Статистика»
   renderCabinet();
 }
