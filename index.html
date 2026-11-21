@@ -94,7 +94,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20261121e">
+<link rel="stylesheet" href="./css/styles.css?v=20261121f">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -123,6 +123,7 @@ document.addEventListener('touchend', function(e){
       <input type="hidden" id="input-type" value="">
       <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть відповідь" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn driver" id="form-submit-btn">Опублікувати</button>
+      <p class="form-note">📣 Поїздка також з'явиться в Telegram-чаті попуток <a href="https://t.me/blablacarvln" target="_blank" rel="noopener">@blablacarvln</a> разом із номером телефону. Через 3 дні чат прибирає її сам.</p>
     </form>
   </div>
 </div>

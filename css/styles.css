@@ -881,6 +881,8 @@ html.tiles-mode.cabinet-open .cabinet{display:block;position:fixed;top:calc(56px
 .cab-btn-sm{padding:8px 12px;font-size:13px}
 .cab-btn-ghost{background:transparent}
 a.cab-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+.form-note{margin:12px 2px 0;font-size:12.5px;line-height:1.45;color:rgba(255,255,255,0.72);text-align:center}
+.form-note a{color:#7cc4ff;font-weight:800;text-decoration:none}
 .cab-btn-danger{background:#e53935;border-color:#e53935}
 .cab-wide{width:100%}
 .is-busy{opacity:0.6;pointer-events:none}
