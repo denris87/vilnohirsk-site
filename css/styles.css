@@ -880,6 +880,7 @@ html.tiles-mode.cabinet-open .cabinet{display:block;position:fixed;top:calc(56px
 .cab-btn{-webkit-appearance:none;appearance:none;margin:0;font:inherit;padding:11px 16px;border-radius:12px;border:1px solid rgba(255,255,255,0.26);background:rgba(255,255,255,0.14);color:#fff;font-size:14px;font-weight:800;cursor:pointer}
 .cab-btn-sm{padding:8px 12px;font-size:13px}
 .cab-btn-ghost{background:transparent}
+a.cab-btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .cab-btn-danger{background:#e53935;border-color:#e53935}
 .cab-wide{width:100%}
 .is-busy{opacity:0.6;pointer-events:none}
