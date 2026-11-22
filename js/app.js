@@ -5082,7 +5082,7 @@ async function showDailyVolunteerAlert() {
     } catch (e) { console.error("Failed to load daily ZSU alert", e); }
 }
 
-// === ТЕХПІДТРИМКА: звернення → Apps Script (Support.gs) → адміністраторам у Telegram (@vln_online_bot) ===
+// === ТЕХПІДТРИМКА: звернення → Apps Script (Support.gs) → адміністраторам у Telegram (@Vilnogirsk_bot) ===
 // Контакт обов'язковий: Telegram-нік або телефон — так само перевіряє й сервер.
 const SUPPORT_TOPIC_LABEL = { bug: '🐞 Помилка', question: '❓ Питання', idea: '💡 Ідея', place: '🏪 Додати заклад', ads: '📢 Реклама', other: '💬 Інше' };
 const SUPPORT_HINT = 'Сюди ми вам і відповімо';
