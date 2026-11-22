@@ -768,7 +768,6 @@ html.tiles-mode .alert-group,html.tiles-mode .schedule-group,html.tiles-mode .ma
 
 .th-brand{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 4px 12px}
 .th-brand b{font-size:19px;font-weight:900;letter-spacing:-0.3px;color:#fff}
-.th-brand>span{font-size:11px;font-weight:700;letter-spacing:0.4px;color:rgba(255,255,255,0.62);white-space:nowrap}
 .th-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:86px;gap:8px}
 .th-tile{position:relative;-webkit-appearance:none;appearance:none;margin:0;font:inherit;color:#fff;text-align:center;cursor:pointer;
   border-radius:20px;padding:14px 4px 6px;background:rgba(6,14,36,0.5);border:1px solid rgba(255,255,255,0.1);border-top-color:rgba(255,255,255,0.18);
@@ -889,9 +888,7 @@ html.tiles-mode.section-open .pb-search-container{background:linear-gradient(to 
 .sb-title{min-width:0;font-size:15px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (prefers-reduced-motion: reduce){.th-tile{transition:none}.th-tile:active{transform:none}}
 
-/* ===== МІЙ КАБІНЕТ — вхід лише в бета-версії (html.beta-mode, ?tiles=1) ===== */
-html:not(.beta-mode) #th-account{display:none!important}
-html.beta-mode .th-brand>.th-sub{display:none}
+/* ===== МІЙ КАБІНЕТ — кнопка в шапці головної для всіх ===== */
 .th-acc{-webkit-appearance:none;appearance:none;margin:0;font:inherit;display:flex;align-items:center;gap:8px;max-width:55%;min-height:38px;padding:4px 15px 4px 4px;border-radius:999px;background:#fff;border:0;color:#0b1d3a;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,0.25);-webkit-tap-highlight-color:transparent;transition:transform 0.12s ease}
 .th-acc:active{transform:scale(0.97)}
 .th-acc:focus-visible{outline:3px solid #0b1d3a;outline-offset:2px}

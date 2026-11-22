@@ -903,8 +903,7 @@ function tileAction(action, ev) {
   if (ev) ev.stopPropagation();
   if (action === 'svitlo') {
     if (svitloTileState) openSvitloModal(); else showToast('Графік відключень зараз не публікується', 'info');
-  } else if (action === 'notify') openCabinet(null, 'push'); // сповіщення в новому дизайні — у кабінеті
-  else if (action === 'admins') openModalForm('custom-feedback-form', 'feedback-modal');
+  } else if (action === 'admins') openModalForm('custom-feedback-form', 'feedback-modal');
   else if (action === 'donate') openModalForm(null, 'donate-modal');
 }
 
@@ -1115,9 +1114,9 @@ function initTileHome() {
   initCabinet();
 }
 
-// === МІЙ КАБІНЕТ — вхід поки лише в бета-версії (?tiles=1, клас html.beta-mode) ===
+// === МІЙ КАБІНЕТ — для всіх: вхід, «Мої оголошення», «Мій день», «Сповіщення», «Обране», «Мої дані» ===
 // Вхід через Firebase Authentication (той самий проєкт, що й сповіщення): Google або e-mail з паролем.
-// Бібліотека входу вантажиться тільки в бета-версії. Екран «Сповіщення» (той самий #cabinet) — для всіх.
+// Сповіщення й особисте працюють і без входу.
 const FIREBASE_AUTH_SDK = 'https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js';
 let cabAuth = null, cabUser = null, cabKnown = false;
 let cabState = 'idle'; // idle | loading | ready | error
@@ -1137,7 +1136,7 @@ function ensureAuth() {
       cabAuth = firebase.auth();
       cabAuth.languageCode = 'uk'; // листи (підтвердження, відновлення пароля) і вікно Google — українською
       cabState = 'ready';
-      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) { cabMode = 'in'; cabEmailOpen = false; } cabAds = cabAdsBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(document.documentElement.classList.contains('cabinet-open')); } });
+      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) { cabMode = 'in'; cabEmailOpen = false; } cabAuthMark(!!u); cabAds = cabAdsBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(document.documentElement.classList.contains('cabinet-open')); } });
     } catch (e) { cabState = 'error'; logSectionError('кабінет', e); renderAccount(); }
   };
   if (typeof firebase.auth === 'function') { start(); return; }
@@ -1148,6 +1147,12 @@ function ensureAuth() {
   document.head.appendChild(s);
 }
 
+// Хтось входив на цьому пристрої — тоді бібліотеку входу підтягуємо одразу (аватар у шапці, токен у формах);
+// іншим вона вантажиться, лише коли відкривають кабінет
+function cabAuthMark(on) { try { if (on) localStorage.setItem('cab_auth', '1'); else localStorage.removeItem('cab_auth'); } catch (e) {} }
+function cabAuthUsed() {
+  try { return localStorage.getItem('cab_auth') === '1' || !!localStorage.getItem('cab_hello') || localStorage.getItem('tiles_mode') === '1'; } catch (e) { return false; }
+}
 function cabName(u) { return (u && (u.displayName || (u.email || '').split('@')[0])) || 'Ви'; }
 function cabAvatar(u, size) {
   if (u && u.photoURL && /^https:\/\//.test(u.photoURL)) return `<img class="cab-ava-img" src="${escapeHTML(u.photoURL)}" alt="" width="${size}" height="${size}" referrerpolicy="no-referrer">`;
@@ -1182,7 +1187,7 @@ function renderCabinet() {
     const up = cabMode === 'up';
     top = `
       <div class="cab-hero"><span class="cab-hero-ico">${CAB_USER_ICO}</span><h2>Мій кабінет</h2>
-        <p>Увійдіть, щоб подавати оголошення й керувати ними: бачити, що на модерації, і видаляти свої.</p></div>
+        <p>Увійдіть, щоб подавати оголошення й керувати ними: бачити, що на модерації, і видаляти свої. Сповіщення, «Мій день» і «Обране» працюють і без входу.</p></div>
       <button type="button" class="cab-google" data-act="google">${CAB_G_LOGO}<span>Увійти через Google</span></button>
       ${!cabEmailOpen && !up ? `<button type="button" class="cab-btn cab-btn-ghost cab-wide" data-act="email-open">Увійти через e-mail</button>
       <p class="cab-fine">Входячи, ви погоджуєтеся з <a href="/privacy.html" target="_blank" rel="noopener">політикою конфіденційності</a>.</p>` : `
@@ -1509,9 +1514,8 @@ function cabFavHtml() {
     + '<p class="cab-fine">Список зберігається на цьому пристрої.</p>';
 }
 
-// Зірочка в «Міському довіднику» (лише там, де є кабінет — у бета-версії)
+// Зірочка «В обране» в «Міському довіднику»
 let pbFavIndex = {};
-function pbFavOn() { return document.documentElement.classList.contains('beta-mode'); }
 function pbToggleFav(btn) {
   const it = pbFavIndex[btn.dataset.k]; if (!it) return;
   const list = myFavs(), i = list.findIndex(f => f.k === it.k);
@@ -1721,9 +1725,9 @@ async function cabScript(payload) {
   const text = await r.text();
   try { return JSON.parse(text); } catch (e) { throw new Error('Apps Script відповів не JSON — скрипт ще не оновлено?'); }
 }
-// Токен входу для форм оголошень: лише в бета-версії і лише коли людина в кабінеті
+// Токен входу для форм оголошень — коли людина увійшла в кабінет
 async function cabAdsToken() {
-  if (!cabUser || !document.documentElement.classList.contains('beta-mode')) return '';
+  if (!cabUser) return '';
   try { return await cabUser.getIdToken(); } catch (e) { return ''; }
 }
 function cabAdsChanged() { if (cabUser) cabLoadAds(true); } // подали оголошення — оновити «Мої оголошення» і лічильник на плитці
@@ -1899,7 +1903,7 @@ async function cabBye() {
 }
 // Заблокованому не даємо подати оголошення (сервер його все одно не прийме)
 function cabBlockedSubmit() {
-  if (!(cabUser && cabBanned && document.documentElement.classList.contains('beta-mode'))) return false;
+  if (!(cabUser && cabBanned)) return false;
   showToast('🚫 Ваш акаунт заблоковано: подавати оголошення не можна', 'error');
   return true;
 }
@@ -2172,8 +2176,6 @@ function openCabinet(ev, focus) {
   if (ev) ev.stopPropagation();
   const root = document.documentElement;
   if (!root.classList.contains('tiles-mode')) return;
-  // Вхід і головний екран кабінету — поки лише в бета-версії (?tiles=1); екран «Сповіщення» — для всіх
-  if (focus !== 'push' && !root.classList.contains('beta-mode')) return;
   root.classList.add('cabinet-open');
   cabView = focus === 'push' ? 'push' : 'home';
   if (!root.classList.contains('section-open')) {
@@ -2182,7 +2184,7 @@ function openCabinet(ev, focus) {
   }
   cabPushDraft = null; cabPushConfirmOff = false; // свіжий стан підписки при кожному відкритті
   const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
-  if (root.classList.contains('beta-mode')) ensureAuth(); // бібліотеку входу — лише в бета-версії
+  ensureAuth(); // бібліотека входу — щойно відкрили кабінет (тим, хто вже входив, — ще під час завантаження сторінки)
   if (cabUser) cabHello(true); // свіжий стан: адмін / заблоковано
   if (cabUser && cabIsAdmin && (!cabStats || cabStats.state === 'error')) cabLoadStats(); // цифри на плитці «Статистика»
   renderCabinet();
@@ -2204,10 +2206,10 @@ function initCabinet() {
     const day = (e) => { const g = e.target.closest && e.target.closest('.cab-chart-day'); if (g) cabStatsDay(g); };
     body.addEventListener('pointerover', day); body.addEventListener('focusin', day);
   }
-  if (!document.documentElement.classList.contains('beta-mode')) return; // вхід у кабінет — лише в бета-версії (?tiles=1)
   renderAccount();
-  // Вхід підтягуємо трохи згодом, щоб не гальмувати першу появу головної; аватар з'явиться, щойно Firebase згадає людину
-  setTimeout(ensureAuth, 800);
+  // Хто вже входив на цьому пристрої — підтягуємо вхід трохи згодом, щоб не гальмувати першу появу головної;
+  // аватар з'явиться, щойно Firebase згадає людину. Решті бібліотека входу вантажиться, лише коли відкривають кабінет
+  if (cabAuthUsed()) setTimeout(ensureAuth, 800);
 }
 
 // === ДРАГ-СВАЙП (ГОРТАННЯ МИШКОЮ НА ПК) ===
@@ -3326,9 +3328,9 @@ function renderPhonebook(categories, searchQuery = '') {
   // чи прибрали номер у базі — цифра поїде за ним сама, руками правити нічого.
   let allPhones = 0, allItems = 0, allCats = 0, foundPhones = 0, foundItems = 0;
   let marked = 0, allOk = 0;
-  // Зірочка «В обране» (кабінет) — лише в бета-версії, де кабінет є
-  const favOn = pbFavOn(), favKeys = favOn ? new Set(myFavs().map(f => f.k)) : null;
-  if (favOn) pbFavIndex = {};
+  // Зірочка «В обране» (кабінет)
+  const favKeys = new Set(myFavs().map(f => f.k));
+  pbFavIndex = {};
   categories.forEach((cat) => {
      if (!cat || !cat.items || !Array.isArray(cat.items)) return;
      let itemsHtml = ''; let categoryHasMatch = false; let catItems = 0;
@@ -3345,7 +3347,7 @@ function renderPhonebook(categories, searchQuery = '') {
             categoryHasMatch = true; hasResults = true; foundItems++; foundPhones += phonesArray.length;
             let phonesHtml = phonesArray.map(p => { let clean = p.toString().replace(/[^0-9+]/g, ''); return `<a href="tel:${clean}" class="pb-phone-btn" onclick="event.stopPropagation();">${escapeHTML(p)}</a>`; }).join('');
             let markHtml = pbMarkHtml(item);
-            if (favOn && safeTitle) {
+            if (safeTitle) {
               const k = myFavKey(catName, safeTitle), on = favKeys.has(k);
               pbFavIndex[k] = { k: k, t: safeTitle, p: phonesArray.map(String), c: String(catName) };
               markHtml = `<div class="pb-tile-tags">${markHtml}<button type="button" class="pb-fav${on ? ' on' : ''}" data-k="${escapeHTML(k)}" aria-pressed="${on ? 'true' : 'false'}" aria-label="${escapeHTML((on ? 'Прибрати з обраного: ' : 'Додати в обране: ') + safeTitle)}" onclick="event.stopPropagation(); pbToggleFav(this)">${on ? '★' : '☆'}</button></div>`;
