@@ -1161,13 +1161,15 @@ a.cab-btn{display:inline-flex;align-items:center;justify-content:center;text-dec
 .sup-chip input:checked+span{color:#062a1c;background:#00ff9c;border-color:#00ff9c}
 .sup-chip input:focus-visible+span{outline:2px solid #fff;outline-offset:2px}
 .sup-field{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:2px}
-.sup-field em{font-style:normal;font-size:11px;font-weight:800;color:#ffd166;margin-bottom:7px}
+.sup-field em{font-style:normal;font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);margin-bottom:7px}
 .sup-input{font-size:15px;margin-bottom:12px}
 textarea.sup-input{resize:vertical;min-height:96px;line-height:1.45}
 #beta-feedback-contact{margin-bottom:5px}
 .sup-input.sup-bad{border-color:#ff6b78;box-shadow:0 0 0 3px rgba(255,107,120,0.2)}
 .sup-hint{display:block;font-size:12px;line-height:1.4;color:rgba(255,255,255,0.6);margin:0 2px 12px}
 .sup-hint.sup-hint-bad{color:#ff9aa2;font-weight:700}
+.sup-hint.sup-hint-ok{color:#00ff9c;font-weight:700}
+.sup-input.sup-ok{border-color:rgba(0,255,156,0.55)}
 .sup-submit{background:linear-gradient(135deg,#00ff9c,#00b8ff);box-shadow:0 4px 15px rgba(0,255,156,0.3);margin-top:14px}
 .sup-submit:disabled{opacity:0.6;cursor:default}
 .sup-fine{margin:10px 0 0;text-align:center;font-size:11.5px;line-height:1.4;color:rgba(255,255,255,0.55)}
