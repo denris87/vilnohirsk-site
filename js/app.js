@@ -639,6 +639,7 @@ function openModalForm(formId, modalId) {
     // Попутки: дата — число й місяць зі списків (рік підставляється сам), час — лише :00 і :30
     if (formId === 'custom-blabla-form') { fillRideDate(); fillRideTimes(); }
     if (formId === 'custom-estate-form') syncEstatePrice();
+    if (form) cabFillForm(form); // ім'я й телефон з «Моїх даних» у кабінеті — у порожні поля
     document.getElementById(modalId).classList.add('active');
   } else {
     document.getElementById(formId).classList.add('active');
@@ -663,6 +664,7 @@ function closeAllShopDropdowns() { document.querySelectorAll('.shop-details-drop
 document.addEventListener('click', function(e) {
   if (e.target.closest('.image-modal') || e.target.closest('.custom-modal-box')) return;
   if (e.target.closest('.section-bar')) return; // шапка розділу, відкритого з плитки, — свої кнопки
+  if (e.target.closest('#cabinet')) return; // кабінет — свої кнопки («Відкрити довідник» відкриває розділ — не закривати його тут же)
   if (!e.target.closest('.alert-group')) { const alertDrawer = document.getElementById('alert-drawer'); if (alertDrawer) { alertDrawer.classList.remove('open'); document.querySelectorAll('#alert-tabs .tab-alert').forEach(b => b.classList.remove('active')); } }
   if (!e.target.closest('.train') && !e.target.closest('.details') && !e.target.closest('.pb-category')) { document.querySelectorAll('.details.open').forEach(el => el.classList.remove('open')); document.querySelectorAll('.pb-category.open').forEach(el => el.classList.remove('open')); }
   if (!e.target.closest('.shop-tile')) { closeAllShopDropdowns(); }
@@ -888,7 +890,12 @@ function closeTileSection(fromHistory) {
 window.addEventListener('popstate', (e) => {
   // У кабінеті «Назад» повертає з підекрана («Сповіщення», «Мої оголошення») на головний екран кабінету
   const st = e.state || {};
-  if (document.documentElement.classList.contains('cabinet-open') && st.tileSection === 'cabinet') { cabShowView(st.sub || 'home', true); return; }
+  const root = document.documentElement;
+  if (root.classList.contains('cabinet-open') && st.tileSection === 'cabinet') { cabShowView(st.sub || 'home', true); return; }
+  // Розділ відкрили з кабінету (напр. «Відкрити довідник» з «Обраного») — «Назад» повертає в кабінет, на той самий екран
+  if (st.tileSection === 'cabinet' && root.classList.contains('section-open')) {
+    closeTileSection(true); root.classList.add('section-open', 'cabinet-open'); cabShowView(st.sub || 'home', true); return;
+  }
   closeTileSection(true);
 });
 
@@ -905,6 +912,7 @@ function tileAction(action, ev) {
 // На телефоні — стан своєї черги, «через …» і мініграфік доби; на широкому екрані праворуч ще й усі черги.
 function renderSvitloTile(state) {
   svitloTileState = state || null;
+  cabMineRefresh(); // відкритий кабінет: «Мій день» — за тим самим станом
   const st = document.getElementById('th-svitlo-status'), chips = document.getElementById('th-svitlo-chips');
   if (!st || !chips) return;
   const put = (id, html) => { const el = document.getElementById(id); if (el && el.dataset.v !== html) { el.dataset.v = html; el.innerHTML = html; } };
@@ -1040,8 +1048,14 @@ function syncTileHome() {
 // Назви, де після дефіса — інше місто («Запоріжжя-Кам’янське»), лишаються як є
 const TRAIN_STATION_SUFFIX = /\s*-\s*(?:пас(?:ажирськ\S*)?|гол(?:овн\S*)?|стик(?:ов\S*)?|сорт(?:увальн\S*)?|вузл(?:ов\S*)?|товарн\S*)\.?$/i;
 function trainsTileUpcoming() {
-  if (!Array.isArray(trainsTileList)) return null;
+  const rows = trainsTileRows();
+  if (!rows) return null;
   const n = getKyivNow(), nowMin = n.getHours() * 60 + n.getMinutes();
+  return { next: rows.filter(r => r.t + r.delay >= nowMin), first: rows[0] || null, nowMin: nowMin };
+}
+// Рейси на сьогодні (за часом): час, куди, номер (лише цифри), затримка — для плитки й «Моїх електричок» у кабінеті
+function trainsTileRows() {
+  if (!Array.isArray(trainsTileList)) return null;
   const rows = [];
   trainsTileList.forEach(x => {
     const m = String((x && x.time) || '').match(/^\s*(\d{1,2}):(\d{2})/);
@@ -1052,12 +1066,12 @@ function trainsTileUpcoming() {
     const stops = Array.isArray(x.fullSchedule) ? x.fullSchedule : [], last = stops[stops.length - 1];
     const end = parts.length > 1 ? parts[parts.length - 1] : (Array.isArray(last) && last[0] ? String(last[0]).trim() : '');
     const num = String(x.number || '').replace(/new/ig, '').replace(/\D/g, '');
-    rows.push({ t: +m[1] * 60 + +m[2], time: `${m[1].padStart(2, '0')}:${m[2]}`, to: end ? (end.replace(TRAIN_STATION_SUFFIX, '').trim() || end) : route, delay: trainsTileDelays[num] || 0 });
+    rows.push({ t: +m[1] * 60 + +m[2], time: `${m[1].padStart(2, '0')}:${m[2]}`, to: end ? (end.replace(TRAIN_STATION_SUFFIX, '').trim() || end) : route, num: num, delay: trainsTileDelays[num] || 0 });
   });
-  rows.sort((a, b) => a.t - b.t);
-  return { next: rows.filter(r => r.t + r.delay >= nowMin), first: rows[0] || null, nowMin: nowMin };
+  return rows.sort((a, b) => a.t - b.t);
 }
 function renderTrainsTile() {
+  cabMineRefresh(); // відкритий кабінет: «Мої електрички» й «Мій день» (розклад, затримки, відлік хвилин)
   const compact = document.getElementById('th-trains-compact'), side = document.getElementById('th-trains-side');
   if (!compact || !side) return;
   const put = (el, html) => { if (el.dataset.v !== html) { el.dataset.v = html; el.innerHTML = html; } };
@@ -1108,6 +1122,7 @@ const FIREBASE_AUTH_SDK = 'https://www.gstatic.com/firebasejs/10.8.1/firebase-au
 let cabAuth = null, cabUser = null, cabKnown = false;
 let cabState = 'idle'; // idle | loading | ready | error
 let cabMode = 'in';     // in — вхід, up — реєстрація
+let cabEmailOpen = false; // форма входу через e-mail розгорнута (за замовчуванням — лише кнопка, щоб «Мій день» було видно одразу)
 let cabConfirmDelete = false;
 const CAB_G_LOGO = '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 38.2 44 33 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
 const CAB_USER_ICO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
@@ -1122,7 +1137,7 @@ function ensureAuth() {
       cabAuth = firebase.auth();
       cabAuth.languageCode = 'uk'; // листи (підтвердження, відновлення пароля) і вікно Google — українською
       cabState = 'ready';
-      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) cabMode = 'in'; cabAds = cabAdsBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(document.documentElement.classList.contains('cabinet-open')); } });
+      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) { cabMode = 'in'; cabEmailOpen = false; } cabAds = cabAdsBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(document.documentElement.classList.contains('cabinet-open')); } });
     } catch (e) { cabState = 'error'; logSectionError('кабінет', e); renderAccount(); }
   };
   if (typeof firebase.auth === 'function') { start(); return; }
@@ -1157,7 +1172,7 @@ function renderCabinet() {
   if (!body) return;
   // Головний екран кабінету: вгорі вхід чи профіль, далі плитки («Сповіщення», «Мої оголошення»), унизу вихід.
   // Підекран (#cab-sub) — уміст плитки, що її відкрили; «Назад» повертає на головний екран кабінету.
-  if (!document.getElementById('cab-home')) body.innerHTML = '<div id="cab-home" class="cab-part"><div id="cab-top" class="cab-part"></div><div id="cab-tiles" class="th-grid cab-tiles"></div><div id="cab-bottom" class="cab-part"></div></div><div id="cab-sub" class="cab-part" hidden></div>';
+  if (!document.getElementById('cab-home')) body.innerHTML = '<div id="cab-home" class="cab-part"><div id="cab-top" class="cab-part"></div><div id="cab-day" class="cab-part"></div><div id="cab-tiles" class="th-grid cab-tiles"></div><div id="cab-bottom" class="cab-part"></div></div><div id="cab-sub" class="cab-part" hidden></div>';
   let top = '', bottom = '';
   if (cabState === 'error') {
     top = `<div class="cab-card cab-center"><b>Не вдалося завантажити вхід</b><p>Перевірте з'єднання з інтернетом і спробуйте ще раз.</p><button type="button" class="cab-btn" data-act="retry">Спробувати ще раз</button></div>`;
@@ -1169,6 +1184,8 @@ function renderCabinet() {
       <div class="cab-hero"><span class="cab-hero-ico">${CAB_USER_ICO}</span><h2>Мій кабінет</h2>
         <p>Увійдіть, щоб подавати оголошення й керувати ними: бачити, що на модерації, і видаляти свої.</p></div>
       <button type="button" class="cab-google" data-act="google">${CAB_G_LOGO}<span>Увійти через Google</span></button>
+      ${!cabEmailOpen && !up ? `<button type="button" class="cab-btn cab-btn-ghost cab-wide" data-act="email-open">Увійти через e-mail</button>
+      <p class="cab-fine">Входячи, ви погоджуєтеся з <a href="/privacy.html" target="_blank" rel="noopener">політикою конфіденційності</a>.</p>` : `
       <div class="cab-or"><span>або через e-mail</span></div>
       <div class="cab-tabs" role="tablist">
         <button type="button" role="tab" aria-selected="${!up}" class="${up ? '' : 'on'}" data-act="mode-in">Вхід</button>
@@ -1182,7 +1199,7 @@ function renderCabinet() {
         ${up ? '' : '<button type="button" class="cab-link" data-act="forgot">Забули пароль?</button>'}
         <div class="cab-msg" id="cab-msg" role="status" aria-live="polite"></div>
       </form>
-      <p class="cab-fine">Входячи, ви погоджуєтеся з <a href="/privacy.html" target="_blank" rel="noopener">політикою конфіденційності</a>.</p>`;
+      <p class="cab-fine">Входячи, ви погоджуєтеся з <a href="/privacy.html" target="_blank" rel="noopener">політикою конфіденційності</a>.</p>`}`;
   } else {
     const u = cabUser;
     const isPassword = (u.providerData || []).some(p => p && p.providerId === 'password');
@@ -1201,22 +1218,28 @@ function renderCabinet() {
       <button type="button" class="cab-btn cab-btn-ghost cab-wide" data-act="signout">Вийти</button>
       ${del}`;
   }
-  // Плитки кабінету: «Сповіщення» (працюють і без входу) і, після входу, «Мої оголошення»
+  // Плитки кабінету: «Сповіщення», «Обране», «Мої дані» (працюють і без входу) і, після входу, «Мої оголошення»
   const subOn = cabPushSubscribed(), perm = ('Notification' in window) ? Notification.permission : 'unsupported';
   const nOn = subOn ? getCurrentCategories().length : 0;
   const pushSt = subOn ? `Увімкнено · ${nOn} ${pluralUk(nOn, 'тема', 'теми', 'тем')}` : perm === 'denied' ? 'Заблоковано в браузері' : 'Вимкнено';
   const tiles = `<button type="button" class="th-tile ${cabUser ? 'th-w2' : 'th-w4'}${subOn ? ' th-on' : ''}" data-act="view-push" style="--c:#FFCC00;--rgb:255,204,0">${CAB_BELL_ICO}<span class="th-txt"><span class="th-l">Сповіщення</span><span class="th-d">${pushSt}</span></span></button>`
     + (cabUser ? `<button type="button" class="th-tile th-w2" data-act="view-ads" style="--c:#00FF9C;--rgb:0,255,156">${CAB_ADS_ICO}<span class="th-txt"><span class="th-l">Мої оголошення</span><span class="th-d">${cabAdsTileText()}</span></span></button>` : '')
+    + cabMineTilesHtml()
     + (cabUser && cabIsAdmin ? `<button type="button" class="th-tile th-w4" data-act="view-stats" style="--c:#7cc4ff;--rgb:124,196,255">${CAB_STATS_ICO}<span class="th-txt"><span class="th-l">Статистика</span><span class="th-d">${cabStatsTileText()}</span></span></button>` : '');
-  const t = document.getElementById('cab-top'), b = document.getElementById('cab-bottom'), tl = document.getElementById('cab-tiles');
+  const t = document.getElementById('cab-top'), b = document.getElementById('cab-bottom'), tl = document.getElementById('cab-tiles'), dy = document.getElementById('cab-day');
   if (t.dataset.v !== top) { t.dataset.v = top; t.innerHTML = top; }
+  const day = cabView === 'home' ? cabMyDayHtml() : (dy.dataset.v || '');
+  if (dy.dataset.v !== day) { dy.dataset.v = day; dy.innerHTML = day; }
   if (tl.dataset.v !== tiles) { tl.dataset.v = tiles; tl.innerHTML = tiles; }
   if (b.dataset.v !== bottom) { b.dataset.v = bottom; b.innerHTML = bottom; }
   // Який екран показати
   const home = document.getElementById('cab-home'), sub = document.getElementById('cab-sub'), title = document.getElementById('section-bar-title');
   home.hidden = cabView !== 'home'; sub.hidden = cabView === 'home';
-  if (title) title.textContent = cabView === 'push' ? 'Сповіщення' : cabView === 'ads' ? 'Мої оголошення' : cabView === 'stats' ? 'Статистика' : 'Мій кабінет';
-  if (cabView === 'push') {
+  if (title) title.textContent = CAB_VIEW_TITLES[cabView] || 'Мій кабінет';
+  // Інший підекран — починаємо з чистого (кожен малює свій вміст)
+  if (sub.dataset.view !== cabView) { sub.dataset.view = cabView; sub.dataset.v = ''; sub.innerHTML = ''; }
+  if (CAB_MINE_VIEWS.includes(cabView)) cabRenderMine(sub);
+  else if (cabView === 'push') {
     if (!document.getElementById('cab-push')) { sub.innerHTML = '<div id="cab-push" class="cab-push"></div>'; sub.dataset.v = ''; }
     renderCabPush();
   } else if (cabView === 'ads') {
@@ -1229,7 +1252,16 @@ function renderCabinet() {
 }
 const CAB_BELL_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>';
 const CAB_ADS_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>';
-let cabView = 'home'; // home — головний екран кабінету; push — сповіщення; ads — мої оголошення; stats — статистика (адмін)
+let cabView = 'home'; // home — головний екран кабінету; push — сповіщення; ads — мої оголошення; stats — статистика (адмін);
+                      // myhome, mytrains, fav, me — особисте («Мій дім», «Мої електрички», «Обране», «Мої дані»)
+const CAB_VIEW_TITLES = { push: 'Сповіщення', ads: 'Мої оголошення', stats: 'Статистика', myhome: 'Мій дім', mytrains: 'Мої електрички', fav: 'Обране', me: 'Мої дані' };
+const CAB_MINE_VIEWS = ['myhome', 'mytrains', 'fav', 'me'];
+// Плитки «Обране» й «Мої дані» на головному екрані кабінету
+function cabMineTilesHtml() {
+  const favN = myFavs().length, p = myProfile();
+  return `<button type="button" class="th-tile th-w2" data-act="view-fav" style="--c:#FFD54A;--rgb:255,213,74">${CAB_ICO_STAR}<span class="th-txt"><span class="th-l">Обране</span><span class="th-d">${favN ? `${favN} ${pluralUk(favN, 'номер', 'номери', 'номерів')}` : 'Номери з довідника'}</span></span></button>`
+    + `<button type="button" class="th-tile th-w2" data-act="view-me" style="--c:#A18CD1;--rgb:161,140,209">${CAB_ICO_CARD}<span class="th-txt"><span class="th-l">Мої дані</span><span class="th-d">${p.phone ? escapeHTML(myPhoneFmt(p.phone)) : 'Підставляти у форми'}</span></span></button>`;
+}
 function cabShowView(v, fromHistory) {
   cabView = v || 'home';
   if (cabView === 'push') { cabPushDraft = null; cabPushConfirmOff = false; }
@@ -1238,6 +1270,322 @@ function cabShowView(v, fromHistory) {
   if (!fromHistory && cabView !== 'home') { try { history.pushState({ tileSection: 'cabinet', sub: cabView }, ''); } catch (e) {} }
   renderCabinet();
   const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
+}
+
+// === Особисте в кабінеті: «Мій день», «Мій дім», «Мої електрички», «Обране», «Мої дані» ===
+// Працює й без входу, як «Сповіщення»: усе лежить лише в цьому браузері (localStorage) і нікуди не надсилається —
+// адреса, рейси, номери, телефон. Телефон потрапить на сервер, тільки коли людина сама подасть оголошення.
+const MY_HOME_KEY = 'my_home', MY_TRAINS_KEY = 'my_trains', MY_FAV_KEY = 'my_contacts', MY_PROFILE_KEY = 'my_profile';
+const MY_FAV_MAX = 60;
+function myGet(key, def) { try { const v = JSON.parse(localStorage.getItem(key) || 'null'); return v == null ? def : v; } catch (e) { return def; } }
+function mySet(key, val) { try { if (val == null) localStorage.removeItem(key); else localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+function myHome() { const h = myGet(MY_HOME_KEY, null); return h && typeof h.address === 'string' && h.address ? h : null; }
+function myTrains() { const a = myGet(MY_TRAINS_KEY, []); return Array.isArray(a) ? a.map(String).filter(Boolean) : []; }
+function myFavs() { const a = myGet(MY_FAV_KEY, []); return Array.isArray(a) ? a.filter(f => f && f.k && f.t && Array.isArray(f.p)) : []; }
+function myProfile() { const p = myGet(MY_PROFILE_KEY, null); return p && typeof p === 'object' ? { name: String(p.name || ''), phone: /^\+380\d{9}$/.test(p.phone || '') ? p.phone : '' } : { name: '', phone: '' }; }
+function myPhoneFmt(p) { const d = String(p || '').replace(/\D/g, ''); return d.length === 12 ? `+${d.slice(0, 2)} ${d.slice(2, 5)} ${d.slice(5, 8)} ${d.slice(8, 10)} ${d.slice(10)}` : String(p || ''); }
+
+const CAB_SVG = (d, size) => `<svg viewBox="0 0 24 24" width="${size || 22}" height="${size || 22}" fill="currentColor" aria-hidden="true"><path d="${d}"/></svg>`;
+const CAB_ICO_LIGHT = CAB_SVG('M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z');
+const CAB_ICO_BIN = CAB_SVG('M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z');
+const CAB_ICO_TRAIN = CAB_SVG('M12 2c-4.42 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm3.5-7H6V6h5v4zm2 0V6h5v4h-5zm3.5 7c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z');
+const CAB_ICO_STAR = CAB_SVG('M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z', 28);
+const CAB_ICO_CARD = CAB_SVG('M3 5v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.11 0-2 .9-2 2zm12 4c0 1.66-1.34 3-3 3s-3-1.34-3-3 1.34-3 3-3 3 1.34 3 3zm-9 8c0-2 4-3.1 6-3.1s6 1.1 6 3.1v1H6v-1z', 28);
+const CAB_ICO_PHONE = CAB_SVG('M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z', 16);
+const CAB_DAY_COLORS = { light: ['#FFB547', '255,181,71'], bin: ['#FFCC00', '255,204,0'], train: ['#38BDF8', '56,189,248'] };
+
+// Кабінет відкрито — оновити «Мій день» і особисті екрани (дані підвантажились, минула хвилина)
+function cabMineRefresh() {
+  if (!document.documentElement.classList.contains('cabinet-open')) return;
+  if (cabView === 'home' || cabView === 'myhome' || cabView === 'mytrains' || cabView === 'fav') renderCabinet();
+}
+
+// Рядок «Мого дня»: що (label), стан (value), подробиці (sub); тап — налаштувати чи подивитись докладно
+function cabDayRow(act, kind, ico, label, value, sub, cls) {
+  const c = CAB_DAY_COLORS[kind];
+  return `<button type="button" class="cab-day-row" data-act="${act}" style="--c:${c[0]};--rgb:${c[1]}"><span class="cab-day-ico">${ico}</span>`
+    + `<span class="cab-day-txt"><span class="cab-day-l">${label}</span><span class="cab-day-v${cls ? ' cab-day-' + cls : ''}">${value}</span>${sub ? `<span class="cab-day-s">${sub}</span>` : ''}</span>`
+    + '<span class="cab-day-go" aria-hidden="true">›</span></button>';
+}
+function cabMyDayHtml() {
+  let date = '';
+  try { date = new Intl.DateTimeFormat('uk-UA', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Kyiv' }).format(new Date()); } catch (e) {}
+  return `<section class="cab-day" aria-labelledby="cab-day-h"><div class="cab-day-head"><h2 id="cab-day-h">Мій день</h2>${date ? `<span>${escapeHTML(date)}</span>` : ''}</div>`
+    + cabDayLight() + cabDayBin() + cabDayTrain() + '</section>';
+}
+
+// Світло: стан своєї черги — так само, як на плитці «Світло»
+function cabDayLight() {
+  const row = (v, s, cls, label) => cabDayRow('day-light', 'light', CAB_ICO_LIGHT, label || 'Світло', v, s, cls);
+  const state = svitloTileState;
+  if (!state) return row('Графік зараз не публікується', '', 'mut');
+  if (!getSvitloChoice()) return row('Оберіть свою чергу', 'Покажемо, коли світло є і коли вимкнуть', 'cta');
+  const live = svitloTodayData() || state, my = svitloMyQueue(live);
+  if (!my) return row('Вашої черги немає в цьому графіку', 'Торкніться, щоб обрати іншу', 'cta');
+  const qs = svitloQueueState(my.slots, svitloDayOffset(live.updated)), t = svitloStateText(qs, live.updated);
+  const next = svitloNextData(), tmr = next ? svitloNextText(svitloNextState(next)) : '';
+  const sub = qs.kind === 'off' ? `Увімкнуть ${t.left}` : qs.kind === 'on' ? `Вимкнуть ${t.left}` : (tmr && (qs.kind === 'done' || qs.kind === 'clear')) ? tmr : t.when;
+  const cls = t.cls === 'off' ? 'bad' : (t.cls === 'on' || t.cls === 'ok') ? 'ok' : '';
+  return row(escapeHTML(t.short), escapeHTML(sub), cls, `Світло · черга ${escapeHTML(my.queue)}`);
+}
+
+// Сміття: зупинка біля дому — шукаємо її в поточному графіку щоразу заново (за адресою, бажано в тому ж маршруті)
+function myHomeStop() {
+  const h = myHome(); if (!h) return null;
+  let any = null;
+  for (const r of allGarbageRoutes) for (const st of r.stops) {
+    if (st.address !== h.address) continue;
+    if (r.name === h.route) return { route: r, stop: st };
+    if (!any) any = { route: r, stop: st };
+  }
+  return any;
+}
+// Коли машина біля дому: у неділю — недільний час (якщо є), в інші дні — будній
+function myBinWhen(stop) {
+  const n = getKyivNow(), dow = n.getDay();
+  const today = dow === 0 && stop.sunday ? stop.sunday : stop.time;
+  const tomorrow = dow === 6 && stop.sunday ? stop.sunday : stop.time;
+  const m = smMinutes(today);
+  if (m == null) return { kind: 'none', tomorrow: tomorrow };
+  const left = m - (n.getHours() * 60 + n.getMinutes());
+  if (left > 0) return { kind: 'soon', time: today, left: left, tomorrow: tomorrow };
+  if (left >= -10) return { kind: 'now', time: today, tomorrow: tomorrow };
+  return { kind: 'gone', time: today, tomorrow: tomorrow };
+}
+function myAddrShort(a) { return String(a || '').replace(/^(вул\.?|вулиця)\s*/i, ''); }
+function cabDayBin() {
+  const row = (v, s, cls, label) => cabDayRow('day-bin', 'bin', CAB_ICO_BIN, label || 'Сміттєвоз', v, s, cls);
+  const h = myHome();
+  if (garbageState === 'off') return row('Графік вивозу зараз не публікується', '', 'mut');
+  if (!h) return row('Вкажіть свою адресу', 'Покажемо, коли машина біля вашого будинку', 'cta');
+  if (garbageState !== 'ready') return row(garbageState === 'error' ? 'Графік не завантажився' : 'Графік завантажується…', '', 'mut', `Сміттєвоз · ${escapeHTML(myAddrShort(h.address))}`);
+  const found = myHomeStop();
+  if (!found) return row('Адреси вже немає в графіку', 'Торкніться, щоб обрати ще раз', 'cta', `Сміттєвоз · ${escapeHTML(myAddrShort(h.address))}`);
+  const w = myBinWhen(found.stop), label = `Сміттєвоз · ${escapeHTML(myAddrShort(found.stop.address))}`;
+  if (w.kind === 'none') return row('Час ще уточнюється', '', 'mut', label);
+  if (w.kind === 'soon') return row(`Сьогодні о ${escapeHTML(w.time)}`, `Через ${svitloDur(w.left)}`, '', label);
+  if (w.kind === 'now') return row('Зараз біля будинку', `За графіком о ${escapeHTML(w.time)}`, 'ok', label);
+  return row(w.tomorrow ? `Завтра о ${escapeHTML(w.tomorrow)}` : 'Сьогодні вже проїхав', `Сьогодні вже проїхав о ${escapeHTML(w.time)}`, 'mut2', label);
+}
+
+// Електрички: найближчий зі своїх рейсів і його затримка
+function cabDayTrain() {
+  const row = (v, s, cls, label) => cabDayRow('day-trains', 'train', CAB_ICO_TRAIN, label || 'Електрички', v, s, cls);
+  const pins = myTrains(), rows = trainsTileRows();
+  if (!pins.length) return row('Оберіть свої рейси', 'Покажемо найближчий і чи він запізнюється', 'cta');
+  if (!rows) return row('Розклад завантажується…', '', 'mut');
+  const mine = rows.filter(r => pins.includes(r.num));
+  if (!mine.length) return row('Сьогодні ваші рейси не курсують', 'Торкніться, щоб змінити вибір', 'mut');
+  const n = getKyivNow(), nowMin = n.getHours() * 60 + n.getMinutes();
+  const next = mine.find(r => r.t + r.delay >= nowMin);
+  if (!next) return row('На сьогодні ваші рейси вже пішли', escapeHTML('Ваші: ' + mine.map(r => r.time).join(', ')), 'mut2');
+  const left = next.t + next.delay - nowMin, label = `Електричка № ${escapeHTML(next.num)}`;
+  const value = `${next.time} → ${escapeHTML(next.to)}`;
+  if (next.delay) return row(value, `<span class="cab-day-late">Запізнюється на ${svitloDur(next.delay)}</span> · ≈ ${svitloClock(next.t + next.delay)}`, '', label);
+  const when = left <= 0 ? 'Відправляється зараз' : `Через ${svitloDur(left)}`;
+  return row(value, when + (trainsDelaysKnown ? ' · без затримки' : ''), '', label);
+}
+
+// === Підекрани ===
+let cabHomeQ = '';
+function cabMineSkeleton(v) {
+  if (v === 'myhome') return '<div id="cab-home-now" class="cab-part"></div>'
+    + `<div class="cab-card cab-find"><label class="cab-field"><span id="cab-home-ql">Ваша адреса</span><input type="search" id="cab-home-q" enterkeyhint="search" autocomplete="off" spellcheck="false" placeholder="Вулиця й номер будинку" value="${escapeHTML(cabHomeQ)}"></label><div id="cab-home-res" class="cab-find-res" aria-live="polite"></div></div>`
+    + '<p class="cab-fine">Адреса зберігається лише на цьому пристрої. Графік вивозу поки тестовий — його уточнюють.</p>';
+  if (v === 'me') {
+    const p = myProfile(), acc = cabUser ? cabName(cabUser).split(' ')[0] : '';
+    return '<div class="cab-card cab-me"><p class="cab-push-sub">Ім\'я й телефон самі підставлятимуться у форми оголошень і попуток — не треба щоразу вводити.</p>'
+      + '<form class="cab-form" id="cab-me-form" novalidate>'
+      + `<label class="cab-field"><span>Ім'я</span><input type="text" id="cab-me-name" autocomplete="given-name" maxlength="30" placeholder="${escapeHTML(acc || 'Як підписувати поїздки')}" value="${escapeHTML(p.name)}"></label>`
+      + `<label class="cab-field"><span>Телефон</span><input type="tel" id="cab-me-phone" autocomplete="tel" inputmode="tel" maxlength="13" placeholder="+380971234567" value="${escapeHTML(p.phone || '+380')}"></label>`
+      + '<button type="submit" class="cab-submit">Зберегти</button>'
+      + `<button type="button" class="cab-link cab-link-danger" data-act="me-clear"${p.name || p.phone ? '' : ' hidden'}>Стерти мої дані</button>`
+      + '<div class="cab-msg" id="cab-me-msg" role="status" aria-live="polite"></div></form></div>'
+      + '<p class="cab-fine">Зберігається лише на цьому пристрої. На сервер телефон потрапить, тільки коли ви самі подасте оголошення.</p>';
+  }
+  return `<div id="cab-mine-${v}" class="cab-part"></div>`;
+}
+function cabRenderMine(sub) {
+  const v = cabView;
+  if (!sub.firstChild) sub.innerHTML = cabMineSkeleton(v); // renderCabinet щойно очистив підекран — новий екран
+  const put = (id, html) => { const el = document.getElementById(id); if (el && el.dataset.v !== html) { el.dataset.v = html; el.innerHTML = html; } };
+  if (v === 'myhome') { put('cab-home-now', cabMyHomeNowHtml()); cabHomeResults(); const l = document.getElementById('cab-home-ql'); if (l) l.textContent = myHome() ? 'Інша адреса' : 'Ваша адреса'; }
+  else if (v === 'mytrains') put('cab-mine-mytrains', cabMyTrainsHtml());
+  else if (v === 'fav') put('cab-mine-fav', cabFavHtml());
+}
+
+// «Мій дім»: обрана зупинка — великим часом сьогодні, нижче будні/неділя й маршрут
+function cabMyHomeNowHtml() {
+  const h = myHome();
+  if (!h) return '';
+  const head = (addr, route) => `<div class="cab-home-h"><span class="cab-day-ico">${CAB_ICO_BIN}</span><div class="cab-home-addr"><b>${escapeHTML(addr)}</b>${route ? `<span>${escapeHTML(route)}</span>` : ''}</div></div>`;
+  const clear = '<button type="button" class="cab-link cab-link-danger" data-act="home-clear">Прибрати адресу</button>';
+  if (garbageState !== 'ready') return `<div class="cab-card cab-home" style="--c:#FFCC00;--rgb:255,204,0">${head(h.address, h.route)}<p class="cab-empty">${garbageState === 'off' ? 'Графік вивозу зараз не публікується.' : garbageState === 'error' ? 'Графік не завантажився — спробуйте згодом.' : 'Графік завантажується…'}</p>${clear}</div>`;
+  const f = myHomeStop();
+  if (!f) return `<div class="cab-card cab-home" style="--c:#FFCC00;--rgb:255,204,0">${head(h.address, '')}<p class="cab-empty">Цієї адреси вже немає в графіку — знайдіть її ще раз нижче.</p>${clear}</div>`;
+  const w = myBinWhen(f.stop);
+  const big = w.kind === 'none' ? '—' : w.kind === 'gone' ? (w.tomorrow || '—') : w.time;
+  const cap = w.kind === 'none' ? 'Час ще уточнюється' : w.kind === 'soon' ? `сьогодні · через ${svitloDur(w.left)}` : w.kind === 'now' ? 'сьогодні · машина вже має бути біля будинку' : `завтра · сьогодні вже проїхав о ${w.time}`;
+  const sun = f.stop.sunday || f.stop.time;
+  const week = !f.stop.time ? [`Нд: ${f.stop.sunday || '—'}`] : sun === f.stop.time ? [`Щодня о ${f.stop.time}`] : [`Пн–сб: ${f.stop.time}`, `Нд: ${sun}`];
+  return `<div class="cab-card cab-home" style="--c:#FFCC00;--rgb:255,204,0">${head(f.stop.address, f.route.name)}`
+    + `<div class="cab-home-big"><b>${escapeHTML(big)}</b><span>${escapeHTML(cap)}</span></div>`
+    + `<div class="cab-home-week">${week.map(x => `<span>${escapeHTML(x)}</span>`).join('')}</div>${clear}</div>`;
+}
+// Пошук адреси — той самий, що в розділі «Вивіз сміття»: точний номер будинку, а як нема — схожі (16 → 16а)
+function cabHomeResults() {
+  const box = document.getElementById('cab-home-res'); if (!box) return;
+  const q = smParseQuery(cabHomeQ), searching = q.street.length > 0 || !!q.house;
+  let html = '';
+  if (garbageState === 'off') html = '<p class="cab-empty">Графік вивозу зараз не публікується.</p>';
+  else if (garbageState !== 'ready') html = `<p class="cab-empty">${garbageState === 'error' ? 'Графік не завантажився — спробуйте згодом.' : 'Графік завантажується…'}</p>`;
+  else if (!searching) html = '<p class="cab-empty">Почніть вводити назву вулиці, напр. «Садова 30».</p>';
+  else {
+    const pick = (loose) => { const out = []; allGarbageRoutes.forEach((r, ri) => r.stops.forEach((st, si) => { if (smStopMatches(st, q, loose)) out.push({ r: r, st: st, ri: ri, si: si }); })); return out; };
+    let found = pick(false); if (!found.length && q.house) found = pick(true);
+    const mine = myHome();
+    html = found.length
+      ? found.slice(0, 12).map(x => {
+          const on = mine && mine.address === x.st.address && mine.route === x.r.name;
+          const t = [x.st.time ? 'пн–сб ' + x.st.time : '', x.st.sunday ? 'нд ' + x.st.sunday : ''].filter(Boolean).join(' · ') || 'час уточнюється';
+          return `<button type="button" class="cab-find-opt${on ? ' on' : ''}" data-act="home-pick" data-i="${x.ri}:${x.si}" aria-pressed="${on ? 'true' : 'false'}"><b>${escapeHTML(x.st.address)}</b><span>${escapeHTML(x.r.name)} · ${escapeHTML(t)}</span></button>`;
+        }).join('') + (found.length > 12 ? `<p class="cab-empty">І ще ${found.length - 12} — уточніть номер будинку.</p>` : '')
+      : '<p class="cab-empty">Такої адреси в графіку поки немає. Спробуйте лише назву вулиці.</p>';
+  }
+  if (box.dataset.v !== html) { box.dataset.v = html; box.innerHTML = html; }
+}
+
+// «Мої електрички»: рейси з Вільногірська на сьогодні — зірочкою позначити свої
+function cabMyTrainsHtml() {
+  const rows = trainsTileRows(), pins = myTrains();
+  if (!rows) return '<div class="cab-card cab-center"><p>Розклад завантажується…</p></div>';
+  if (!rows.length) return '<div class="cab-card cab-center"><p>Сьогодні рейсів у розкладі немає.</p></div>';
+  const n = getKyivNow(), nowMin = n.getHours() * 60 + n.getMinutes();
+  const list = rows.map(r => {
+    const on = pins.includes(r.num), left = r.t + r.delay - nowMin, past = left < 0;
+    const st = r.delay ? `<span class="cab-tr-st cab-tr-late">+${svitloDur(r.delay)}</span>` : past ? '<span class="cab-tr-st">пішла</span>' : left < 60 ? `<span class="cab-tr-st">${left <= 0 ? 'зараз' : `через ${left} хв`}</span>` : '<span class="cab-tr-st"></span>';
+    return `<button type="button" class="cab-tr${on ? ' on' : ''}${past ? ' past' : ''}" data-act="tr-pin" data-num="${escapeHTML(r.num)}" aria-pressed="${on ? 'true' : 'false'}" aria-label="${escapeHTML(`${r.time}, до ${r.to}, № ${r.num}`)}${on ? ' — ваш рейс' : ''}">`
+      + `<span class="cab-tr-star" aria-hidden="true">${on ? '★' : '☆'}</span><b>${r.time}</b><span class="cab-tr-to">${escapeHTML(r.to)}</span><span class="cab-tr-num">№ ${escapeHTML(r.num)}</span>${st}</button>`;
+  }).join('');
+  const n2 = rows.filter(r => pins.includes(r.num)).length;
+  return `<p class="cab-push-sub">Позначте зірочкою рейси, якими їздите. У «Моєму дні» буде найближчий із них — і затримка, якщо електричка запізнюється.</p>`
+    + `<div class="cab-tr-head"><span>Сьогодні з Вільногірська</span><span>${n2 ? `Ваших: ${n2}` : ''}</span></div>`
+    + `<div class="cab-tr-list">${list}</div><p class="cab-fine">Вибір зберігається на цьому пристрої.</p>`;
+}
+
+// «Обране»: номери з «Міського довідника». Номери беремо свіжі з довідника (якщо запис ще є), інакше — збережені
+function myFavKey(cat, title) { return foldForSearch(cat) + '|' + foldForSearch(title); }
+function myFavResolve(f) {
+  if (!Array.isArray(phonebookRawData)) return f;
+  for (const cat of phonebookRawData) {
+    if (!cat || !Array.isArray(cat.items)) continue;
+    for (const it of cat.items) {
+      const t = it ? String(it.title || it.name || '') : '';
+      if (t && myFavKey(cat.name || cat.category || 'Різне', t) === f.k) {
+        const ph = pbPhones(it);
+        return ph.length ? Object.assign({}, f, { p: ph.map(String) }) : f;
+      }
+    }
+  }
+  return f;
+}
+function cabFavHtml() {
+  const list = myFavs();
+  const guide = !!document.getElementById('city-guide-list-content');
+  if (!list.length) return '<div class="cab-card cab-center cab-fav-empty"><span class="cab-fav-empty-ico" aria-hidden="true">☆</span><b>Тут будуть ваші номери</b>'
+    + '<p>Натисніть ☆ біля номера в «Міському довіднику» — і він з’явиться тут, щоб дзвонити в один дотик.</p>'
+    + (guide ? '<button type="button" class="cab-btn" data-act="fav-guide">Відкрити довідник</button>' : '') + '</div>';
+  return '<div class="cab-fav-list">' + list.map(f0 => {
+    const f = myFavResolve(f0);
+    const phones = f.p.map(p => { const clean = String(p).replace(/[^0-9+]/g, ''); return clean ? `<a class="cab-fav-call" href="tel:${escapeHTML(clean)}">${CAB_ICO_PHONE}<span>${escapeHTML(p)}</span></a>` : ''; }).join('');
+    return `<div class="cab-fav"><div class="cab-fav-top"><div class="cab-fav-txt"><b>${escapeHTML(f.t)}</b>${f.c ? `<span>${escapeHTML(f.c)}</span>` : ''}</div>`
+      + `<button type="button" class="cab-fav-del" data-act="fav-del" data-k="${escapeHTML(f.k)}" aria-label="${escapeHTML('Прибрати з обраного: ' + f.t)}" title="Прибрати з обраного">★</button></div>`
+      + `<div class="cab-fav-phones">${phones || '<span class="cab-empty">Номера немає</span>'}</div></div>`;
+  }).join('') + '</div>'
+    + (guide ? '<button type="button" class="cab-btn cab-btn-ghost cab-wide" data-act="fav-guide">Додати з довідника</button>' : '')
+    + '<p class="cab-fine">Список зберігається на цьому пристрої.</p>';
+}
+
+// Зірочка в «Міському довіднику» (лише там, де є кабінет — у бета-версії)
+let pbFavIndex = {};
+function pbFavOn() { return document.documentElement.classList.contains('beta-mode'); }
+function pbToggleFav(btn) {
+  const it = pbFavIndex[btn.dataset.k]; if (!it) return;
+  const list = myFavs(), i = list.findIndex(f => f.k === it.k);
+  if (i >= 0) list.splice(i, 1);
+  else {
+    if (list.length >= MY_FAV_MAX) { showToast(`В «Обраному» вже ${MY_FAV_MAX} номерів — приберіть зайві в кабінеті`, 'error'); return; }
+    list.unshift({ k: it.k, t: it.t, p: it.p, c: it.c });
+  }
+  mySet(MY_FAV_KEY, list);
+  const on = i < 0;
+  btn.classList.toggle('on', on); btn.textContent = on ? '★' : '☆';
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+  btn.setAttribute('aria-label', (on ? 'Прибрати з обраного: ' : 'Додати в обране: ') + it.t);
+  showToast(on ? '⭐ Додано в «Обране» — воно в кабінеті' : 'Прибрано з «Обраного»', on ? 'success' : 'info');
+}
+
+// «Мої дані»: підставити ім'я й телефон у щойно відкриту форму (лише в порожні поля)
+function cabFillForm(form) {
+  if (!form) return;
+  const p = myProfile(), name = p.name || (cabUser ? cabName(cabUser).split(' ')[0] : '');
+  if (p.phone) form.querySelectorAll('input[type="tel"][name="phone"], #input-phone').forEach(i => { if (!i.value || i.value === '+380') i.value = p.phone; });
+  const n = form.querySelector('#input-name');
+  if (n && name && !n.value) n.value = name.slice(0, 30);
+}
+function cabMeSave(form) {
+  const name = form.querySelector('#cab-me-name').value.trim().replace(/\s+/g, ' ').slice(0, 30);
+  let phone = form.querySelector('#cab-me-phone').value.trim();
+  const msg = (t, k) => { const m = document.getElementById('cab-me-msg'); if (m) { m.textContent = t; m.className = 'cab-msg' + (k ? ' cab-msg-' + k : ''); } };
+  if (phone === '+380' || phone === '') phone = '';
+  else if (!/^\+380\d{9}$/.test(phone)) { msg('Телефон — у форматі +380 і ще 9 цифр, напр. +380971234567.', 'err'); return; }
+  mySet(MY_PROFILE_KEY, name || phone ? { name: name, phone: phone } : null);
+  const del = form.querySelector('[data-act="me-clear"]'); if (del) del.hidden = !(name || phone);
+  msg(name || phone ? 'Збережено. Тепер ці дані самі підставлятимуться у форми.' : 'Дані стерто.', 'ok');
+  renderCabinet();
+}
+
+// Дії особистих екранів (працюють і без входу)
+function cabMineAction(act, btn) {
+  if (act === 'day-light') { if (svitloTileState) openSvitloModal(); else showToast('Графік відключень зараз не публікується', 'info'); return; }
+  if (act === 'day-bin') { cabHomeQ = ''; cabShowView('myhome'); return; }
+  if (act === 'day-trains') { cabShowView('mytrains'); return; }
+  if (act === 'home-pick') {
+    const [ri, si] = String(btn.dataset.i || '').split(':').map(Number);
+    const r = allGarbageRoutes[ri], st = r && r.stops[si];
+    if (!st) return;
+    mySet(MY_HOME_KEY, { address: st.address, route: r.name });
+    cabHomeQ = ''; const q = document.getElementById('cab-home-q'); if (q) q.value = '';
+    showToast('🏠 Адресу збережено', 'success');
+    renderCabinet();
+    const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
+    return;
+  }
+  if (act === 'home-clear') { mySet(MY_HOME_KEY, null); showToast('Адресу прибрано', 'info'); renderCabinet(); return; }
+  if (act === 'tr-pin') {
+    const num = btn.dataset.num, pins = myTrains(), i = pins.indexOf(num);
+    if (i >= 0) pins.splice(i, 1); else pins.push(num);
+    mySet(MY_TRAINS_KEY, pins.length ? pins : null);
+    renderCabinet();
+    return;
+  }
+  if (act === 'fav-del') { mySet(MY_FAV_KEY, myFavs().filter(f => f.k !== btn.dataset.k)); showToast('Прибрано з «Обраного»', 'info'); renderCabinet(); return; }
+  if (act === 'fav-guide') { cabGoSection('city-guide-tab', 'market'); return; }
+  if (act === 'me-clear') {
+    mySet(MY_PROFILE_KEY, null);
+    const n = document.getElementById('cab-me-name'), p = document.getElementById('cab-me-phone');
+    if (n) n.value = ''; if (p) p.value = '+380'; btn.hidden = true;
+    const m = document.getElementById('cab-me-msg'); if (m) { m.textContent = 'Дані стерто.'; m.className = 'cab-msg cab-msg-ok'; }
+    renderCabinet();
+  }
+}
+
+// З кабінету — у розділ сайту окремим кроком історії: «Назад» поверне в кабінет, на той самий екран
+function cabGoSection(tabId, group) {
+  const root = document.documentElement;
+  root.classList.remove('cabinet-open');
+  openTileSection(tabId, group);
+  try { history.pushState({ tileSection: tabId, fromCabinet: cabView }, ''); } catch (e) {}
 }
 
 // === Сповіщення в кабінеті: усі ті самі теми й дії, що й у вікні «Важливі сповіщення» старого дизайну ===
@@ -1758,12 +2106,14 @@ async function cabBusy(btn, fn) {
 
 async function cabAction(act, btn) {
   if (act === 'retry') { cabState = 'idle'; ensureAuth(); return; }
-  if (act === 'view-push' || act === 'view-ads' || act === 'view-stats') { cabShowView(act.slice(5)); return; }
+  if (act === 'view-push' || act === 'view-ads' || act === 'view-stats' || act === 'view-fav' || act === 'view-me') { cabShowView(act.slice(5)); return; }
+  if (/^(day|home|tr|fav|me)-/.test(act)) return cabMineAction(act, btn); // особисте — і без входу
   if (act.indexOf('stats-') === 0) return cabStatsAction(act, btn);
   if (act.indexOf('ride-') === 0 || act.indexOf('ad-') === 0 || act === 'ads-reload') return cabAdsAction(act, btn);
   if (act.indexOf('push-') === 0) return cabPushAction(act, btn); // сповіщення — і без входу
   if (!cabAuth) return;
   if (act === 'mode-in' || act === 'mode-up') { cabMode = act === 'mode-up' ? 'up' : 'in'; renderCabinet(); return; }
+  if (act === 'email-open') { cabEmailOpen = true; renderCabinet(); const e = document.getElementById('cab-email'); if (e) e.focus(); return; }
   if (act === 'google') return cabBusy(btn, async () => {
     const p = new firebase.auth.GoogleAuthProvider();
     p.setCustomParameters({ prompt: 'select_account' });
@@ -1840,9 +2190,14 @@ function initCabinet() {
   const body = document.getElementById('cabinet-body');
   if (body) {
     body.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (b) cabAction(b.dataset.act, b); });
-    body.addEventListener('submit', (e) => { e.preventDefault(); cabSubmit(e.target); });
+    body.addEventListener('submit', (e) => { e.preventDefault(); if (e.target.id === 'cab-me-form') cabMeSave(e.target); else cabSubmit(e.target); });
     body.addEventListener('change', (e) => { if (e.target.matches('input[data-cat]')) cabPushToggle(e.target); });
-    body.addEventListener('input', (e) => { if (e.target.id === 'cab-stats-q') { cabStatsQuery = e.target.value; cabStatsFilter(); } });
+    let homeTimer = null;
+    body.addEventListener('input', (e) => {
+      if (e.target.id === 'cab-stats-q') { cabStatsQuery = e.target.value; cabStatsFilter(); }
+      else if (e.target.id === 'cab-home-q') { cabHomeQ = e.target.value; clearTimeout(homeTimer); homeTimer = setTimeout(cabHomeResults, 150); }
+      else if (e.target.id === 'cab-me-phone') formatUAPhone(e.target);
+    });
     const day = (e) => { const g = e.target.closest && e.target.closest('.cab-chart-day'); if (g) cabStatsDay(g); };
     body.addEventListener('pointerover', day); body.addEventListener('focusin', day);
   }
@@ -2968,12 +3323,16 @@ function renderPhonebook(categories, searchQuery = '') {
   // чи прибрали номер у базі — цифра поїде за ним сама, руками правити нічого.
   let allPhones = 0, allItems = 0, allCats = 0, foundPhones = 0, foundItems = 0;
   let marked = 0, allOk = 0;
+  // Зірочка «В обране» (кабінет) — лише в бета-версії, де кабінет є
+  const favOn = pbFavOn(), favKeys = favOn ? new Set(myFavs().map(f => f.k)) : null;
+  if (favOn) pbFavIndex = {};
   categories.forEach((cat) => {
      if (!cat || !cat.items || !Array.isArray(cat.items)) return;
      let itemsHtml = ''; let categoryHasMatch = false; let catItems = 0;
+     const catName = cat.name || cat.category || 'Різне';
      cat.items.forEach(item => {
         if (!item) return; const safeTitle = (item.title || item.name || '').toString(); const titleMatch = safeTitle.toLowerCase().includes(query);
-        let phonesArray = []; if (Array.isArray(item.phones)) { phonesArray = item.phones; } else if (typeof item.phones === 'string') { phonesArray = item.phones.split(',').map(p => p.trim()).filter(Boolean); } else if (item.phone) { phonesArray = [item.phone]; }
+        const phonesArray = pbPhones(item);
         catItems++; allItems++; allPhones += phonesArray.length;
         const hasMark = pbHasMark(item), isOk = pbIsVerified(item);
         if (hasMark) { marked++; if (isOk) allOk++; }
@@ -2982,12 +3341,17 @@ function renderPhonebook(categories, searchQuery = '') {
         if (passFilter && (query === '' || titleMatch || phoneMatch)) {
             categoryHasMatch = true; hasResults = true; foundItems++; foundPhones += phonesArray.length;
             let phonesHtml = phonesArray.map(p => { let clean = p.toString().replace(/[^0-9+]/g, ''); return `<a href="tel:${clean}" class="pb-phone-btn" onclick="event.stopPropagation();">${escapeHTML(p)}</a>`; }).join('');
-            const markHtml = pbMarkHtml(item);
+            let markHtml = pbMarkHtml(item);
+            if (favOn && safeTitle) {
+              const k = myFavKey(catName, safeTitle), on = favKeys.has(k);
+              pbFavIndex[k] = { k: k, t: safeTitle, p: phonesArray.map(String), c: String(catName) };
+              markHtml = `<div class="pb-tile-tags">${markHtml}<button type="button" class="pb-fav${on ? ' on' : ''}" data-k="${escapeHTML(k)}" aria-pressed="${on ? 'true' : 'false'}" aria-label="${escapeHTML((on ? 'Прибрати з обраного: ' : 'Додати в обране: ') + safeTitle)}" onclick="event.stopPropagation(); pbToggleFav(this)">${on ? '★' : '☆'}</button></div>`;
+            }
             itemsHtml += `<div class="pb-tile${isOk ? ' pb-tile-ok' : ''}"><div class="pb-tile-main"><div class="pb-tile-title">${escapeHTML(safeTitle)}</div>${markHtml}</div><div class="pb-tile-phones">${phonesHtml}</div></div>`;
         }
      });
      if (catItems) allCats++;
-     if (categoryHasMatch) { const safeCatName = cat.name || cat.category || 'Різне'; const safeCatIcon = cat.icon || '📌'; html += `<div class="pb-category-section"><div class="pb-category-header"><span>${escapeHTML(safeCatIcon)}</span> ${escapeHTML(safeCatName)}</div><div class="pb-grid">${itemsHtml}</div></div>`; }
+     if (categoryHasMatch) { const safeCatName = catName; const safeCatIcon = cat.icon || '📌'; html += `<div class="pb-category-section"><div class="pb-category-header"><span>${escapeHTML(safeCatIcon)}</span> ${escapeHTML(safeCatName)}</div><div class="pb-grid">${itemsHtml}</div></div>`; }
   });
   // Рядок підсумку над списком: без пошуку — скільки всього в базі,
   // під час пошуку — скільки збіглось. Обидва числа з одного проходу вище.
@@ -3014,6 +3378,14 @@ function renderPhonebook(categories, searchQuery = '') {
   container.innerHTML = (hasResults ? statsHtml : '') + chipsHtml + (hasResults ? html : emptyHtml);
 }
 
+// Номери запису довідника: масив, рядок через кому чи одне поле phone
+function pbPhones(item) {
+  if (!item) return [];
+  if (Array.isArray(item.phones)) return item.phones;
+  if (typeof item.phones === 'string') return item.phones.split(',').map(p => p.trim()).filter(Boolean);
+  return item.phone ? [item.phone] : [];
+}
+
 // Debounce поиска по справочнику
 function filterPhonebook() { 
     const input = document.getElementById('pb-search'); 
@@ -3031,6 +3403,7 @@ function filterPhonebook() {
 // у неділю — sunday; якщо sunday нема, у неділю діє той самий час.
 let allGarbageRoutes = [];
 let garbageUpdated = '';
+let garbageState = 'loading'; // loading | ready | off (show: false) | error — для «Мого дня» в кабінеті
 let garbageSearchTimer = null;
 
 // Пошукова нормалізація поверх спільної foldForSearch: ще й латинські a/b/v
@@ -3151,7 +3524,7 @@ async function loadGarbageData() {
     // так вкладку не «воскресить» чиєсь правило display у стилях.
     const tabBtn = document.querySelector('#market-tabs .tab-btn[onclick*="garbage-tab"]');
     if (tabBtn) tabBtn.style.display = data.show === false ? 'none' : '';
-    if (data.show === false) return;
+    if (data.show === false) { garbageState = 'off'; cabMineRefresh(); return; }
 
     const routes = (Array.isArray(data.routes) ? data.routes : [])
       .filter(r => r && Array.isArray(r.stops))
@@ -3166,12 +3539,14 @@ async function loadGarbageData() {
       .filter(r => r.stops.length);
     allGarbageRoutes = routes;
     garbageUpdated = data.updated ? String(data.updated) : '';
+    garbageState = 'ready'; cabMineRefresh();
     if (dataChanged('render_garbage', { routes, updated: garbageUpdated })) {
       const input = document.getElementById('sm-search');
       renderGarbage(input ? input.value : '');
     }
   } catch (e) {
     logSectionError('вивіз сміття', e); invalidateRender('render_garbage');
+    if (!allGarbageRoutes.length) { garbageState = 'error'; cabMineRefresh(); }
     box.innerHTML = '<div class="empty-msg" style="color: #ff6b6b;">Не вдалося завантажити графік</div>';
   }
 }
