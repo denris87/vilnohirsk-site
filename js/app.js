@@ -1263,7 +1263,7 @@ function cabMineTilesHtml() {
     + `<button type="button" class="th-tile th-w2" data-act="view-me" style="--c:#A18CD1;--rgb:161,140,209">${CAB_ICO_CARD}<span class="th-txt"><span class="th-l">Мої дані</span><span class="th-d">${p.phone ? escapeHTML(myPhoneFmt(p.phone)) : 'Підставляти у форми'}</span></span></button>`;
 }
 function cabShowView(v, fromHistory) {
-  cabView = v || 'home';
+  cabView = v === 'myhome' && !CAB_BIN_ON ? 'home' : (v || 'home'); // «Мій дім» тимчасово вимкнено
   if (cabView === 'push') { cabPushDraft = null; cabPushConfirmOff = false; }
   if (cabView === 'ads' && !fromHistory) { cabAds.confirm = ''; cabLoadAds(); }
   if (cabView === 'stats' && (!fromHistory || !cabStats)) { cabStatsConfirm = ''; cabLoadStats(); }
@@ -1277,6 +1277,9 @@ function cabShowView(v, fromHistory) {
 // адреса, рейси, номери, телефон. Телефон потрапить на сервер, тільки коли людина сама подасть оголошення.
 const MY_HOME_KEY = 'my_home', MY_TRAINS_KEY = 'my_trains', MY_FAV_KEY = 'my_contacts', MY_PROFILE_KEY = 'my_profile';
 const MY_FAV_MAX = 60;
+// Сміттєвоз у «Моєму дні» й екран «Мій дім» тимчасово вимкнено: графік вивозу ще доробляють.
+// Збережена адреса лишається на пристрої — увімкнути назад: true
+const CAB_BIN_ON = false;
 function myGet(key, def) { try { const v = JSON.parse(localStorage.getItem(key) || 'null'); return v == null ? def : v; } catch (e) { return def; } }
 function mySet(key, val) { try { if (val == null) localStorage.removeItem(key); else localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
 function myHome() { const h = myGet(MY_HOME_KEY, null); return h && typeof h.address === 'string' && h.address ? h : null; }
@@ -1311,7 +1314,7 @@ function cabMyDayHtml() {
   let date = '';
   try { date = new Intl.DateTimeFormat('uk-UA', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Kyiv' }).format(new Date()); } catch (e) {}
   return `<section class="cab-day" aria-labelledby="cab-day-h"><div class="cab-day-head"><h2 id="cab-day-h">Мій день</h2>${date ? `<span>${escapeHTML(date)}</span>` : ''}</div>`
-    + cabDayLight() + cabDayBin() + cabDayTrain() + '</section>';
+    + cabDayLight() + (CAB_BIN_ON ? cabDayBin() : '') + cabDayTrain() + '</section>';
 }
 
 // Світло: стан своєї черги — так само, як на плитці «Світло»
@@ -1548,7 +1551,7 @@ function cabMeSave(form) {
 // Дії особистих екранів (працюють і без входу)
 function cabMineAction(act, btn) {
   if (act === 'day-light') { if (svitloTileState) openSvitloModal(); else showToast('Графік відключень зараз не публікується', 'info'); return; }
-  if (act === 'day-bin') { cabHomeQ = ''; cabShowView('myhome'); return; }
+  if (act === 'day-bin') { if (CAB_BIN_ON) { cabHomeQ = ''; cabShowView('myhome'); } return; }
   if (act === 'day-trains') { cabShowView('mytrains'); return; }
   if (act === 'home-pick') {
     const [ri, si] = String(btn.dataset.i || '').split(':').map(Number);
