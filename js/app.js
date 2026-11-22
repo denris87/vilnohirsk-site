@@ -1540,6 +1540,8 @@ function cabFillForm(form) {
   if (p.phone) form.querySelectorAll('input[type="tel"][name="phone"], #input-phone').forEach(i => { if (!i.value || i.value === '+380') i.value = p.phone; });
   const n = form.querySelector('#input-name');
   if (n && name && !n.value) n.value = name.slice(0, 30);
+  const sc = form.querySelector('#beta-feedback-contact');
+  if (sc && !sc.value) { let last = ''; try { last = localStorage.getItem('support_contact') || ''; } catch (e) {} sc.value = last || p.phone || ''; }
 }
 function cabMeSave(form) {
   const name = form.querySelector('#cab-me-name').value.trim().replace(/\s+/g, ' ').slice(0, 30);
@@ -5080,28 +5082,72 @@ async function showDailyVolunteerAlert() {
     } catch (e) { console.error("Failed to load daily ZSU alert", e); }
 }
 
-async function submitBetaFeedback(event) {
-  event.preventDefault(); 
-  if (!validateCaptcha('custom-feedback-form')) return;
-  const textEl = document.getElementById('beta-feedback-text'); 
-  const contactEl = document.getElementById('beta-feedback-contact');
-  let text = textEl.value.trim();
-  const contact = contactEl ? contactEl.value.trim() : '';
-  
-  if (!text) { showToast('Будь ласка, напишіть текст відгуку.', 'error'); return; }
-  
-  if (contact) {
-    text += `\n\n---Контакт для зв'язку---\n${contact}`;
+// === ТЕХПІДТРИМКА: звернення → Apps Script (Support.gs) → адміністраторам у Telegram (@vln_online_bot) ===
+// Контакт обов'язковий: Telegram-нік або телефон — так само перевіряє й сервер.
+const SUPPORT_TOPIC_LABEL = { bug: '🐞 Помилка', question: '❓ Питання', idea: '💡 Ідея', place: '🏪 Додати заклад', ads: '📢 Реклама', other: '💬 Інше' };
+const SUPPORT_HINT = 'Сюди ми вам і відповімо';
+// «@nick», «t.me/nick», «nick» → «@nick»; «097…», «+380…», «380…» → «+380…»; інше — null
+function supportContactParse(raw) {
+  const s = String(raw == null ? '' : raw).trim().slice(0, 64).replace(/^(https?:\/\/)?(www\.)?(t\.me|telegram\.me)\//i, '@');
+  if (/^\+?[\d\s()\-]+$/.test(s)) {
+    let d = s.replace(/\D/g, '');
+    if (d.length === 10 && d.charAt(0) === '0') d = '38' + d;
+    if (d.length === 9) d = '380' + d;
+    return /^380\d{9}$/.test(d) || (d.length >= 10 && d.length <= 15 && d.indexOf('380') !== 0) ? '+' + d : null;
   }
-
-  const btn = document.getElementById('feedback-submit-btn'); const originalText = btn.innerText; btn.innerText = 'Відправка...'; btn.disabled = true;
+  const nick = s.replace(/^@/, '');
+  return /^[A-Za-z][A-Za-z0-9_]{3,31}$/.test(nick) ? '@' + nick : null;
+}
+// «iPhone · Safari · застосунок» — щоб адміністратор розумів, де шукати помилку
+function supportDevice() {
+  const ua = navigator.userAgent || '';
+  const os = /iPad/.test(ua) ? 'iPad' : /iPhone|iPod/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android' : /Windows/.test(ua) ? 'Windows' : /Mac OS X/.test(ua) ? 'Mac' : /Linux/.test(ua) ? 'Linux' : 'інший пристрій';
+  const br = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /SamsungBrowser/.test(ua) ? 'Samsung' : /Firefox|FxiOS/.test(ua) ? 'Firefox' : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'браузер';
+  return os + ' · ' + br + (typeof isPWA === 'function' && isPWA() ? ' · застосунок' : '');
+}
+function supportFieldError(el, msg) {
+  el.classList.add('sup-bad'); el.focus();
+  const hint = document.getElementById('sup-contact-hint');
+  if (el.id === 'beta-feedback-contact' && hint) { hint.textContent = msg; hint.classList.add('sup-hint-bad'); }
+  else showToast(msg, 'error');
+}
+document.addEventListener('input', (e) => {
+  const id = e.target && e.target.id;
+  if (id !== 'beta-feedback-contact' && id !== 'beta-feedback-text') return;
+  e.target.classList.remove('sup-bad');
+  const hint = document.getElementById('sup-contact-hint');
+  if (id === 'beta-feedback-contact' && hint && hint.classList.contains('sup-hint-bad')) { hint.textContent = SUPPORT_HINT; hint.classList.remove('sup-hint-bad'); }
+});
+async function submitSupport(event) {
+  event.preventDefault();
+  const form = event.target;
+  const textEl = document.getElementById('beta-feedback-text'), contactEl = document.getElementById('beta-feedback-contact');
+  const text = textEl.value.trim(), contact = supportContactParse(contactEl.value);
+  if (text.length < 3) { supportFieldError(textEl, 'Напишіть кілька слів — що сталося чи що хочете запропонувати'); return; }
+  if (!contact) { supportFieldError(contactEl, 'Вкажіть Telegram-нік (напр. @ivan) або номер телефону (напр. +380971234567)'); return; }
+  if (!validateCaptcha('custom-feedback-form')) return;
+  const topicEl = form.querySelector('input[name="topic"]:checked'), topic = topicEl ? topicEl.value : 'other';
+  const btn = document.getElementById('feedback-submit-btn'), label = btn.textContent;
+  btn.textContent = 'Надсилаємо…'; btn.disabled = true;
   try {
-    await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ formType: 'feedback', text: text }) });
-    showToast('✅ Дякуємо! Ваш відгук успішно відправлено.', 'success');
-    textEl.value = ''; 
-    if (contactEl) contactEl.value = '';
+    const payload = { formType: 'support', text: text, contact: contact, topic: topic, device: supportDevice() };
+    const tok = await cabAdsToken(); if (tok) payload.idToken = tok;
+    let d = null;
+    try { d = await cabScript(payload); } catch (e) { d = null; }
+    if (d && d.status === 'limit') { showToast('⏳ Забагато повідомлень поспіль — спробуйте за 10 хвилин', 'error'); return; }
+    if (d && d.status === 'error') { showToast('❌ ' + (d.message || 'Не вдалося надіслати'), 'error'); return; }
+    if (!d || d.status !== 'ok') {
+      // Apps Script ще без техпідтримки — запасний шлях: у таблицю «Відгуки», як раніше, щоб повідомлення не загубилось
+      await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ formType: 'feedback', text: `[${SUPPORT_TOPIC_LABEL[topic] || SUPPORT_TOPIC_LABEL.other}] ${text}\n\n---Контакт для зв'язку---\n${contact}` }) });
+    }
+    try { localStorage.setItem('support_contact', contact); } catch (e) {}
+    showToast('✅ Надіслано! Відповімо вам у Telegram або за телефоном', 'success');
+    textEl.value = ''; form.querySelectorAll('input[name="topic"]').forEach(i => { i.checked = false; });
     closeModalForm(null, 'feedback-modal'); setupCaptcha('custom-feedback-form');
-  } catch(e) { showToast('❌ Помилка: ' + e.message, 'error'); } finally { btn.innerText = originalText; btn.disabled = false; }
+  } catch (e) {
+    showToast('❌ Не вдалося надіслати — перевірте інтернет і спробуйте ще раз', 'error');
+  } finally { btn.textContent = label; btn.disabled = false; }
 }
 
 // Ховаємо мигаючу стрілку-підказку «❯», коли вкладки догорнуті до кінця

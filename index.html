@@ -94,7 +94,7 @@ document.addEventListener('touchend', function(e){
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" defer></script>
-<link rel="stylesheet" href="./css/styles.css?v=20261122e">
+<link rel="stylesheet" href="./css/styles.css?v=20261122f">
 </head>
 <body>
 <!-- Невидимий заголовок H1 для SEO -->
@@ -261,32 +261,37 @@ document.addEventListener('touchend', function(e){
 </div>
 
 <!-- Модалка для відгуків (Связь с админами) -->
+<!-- ТЕХПІДТРИМКА: звернення одразу йде адміністраторам у Telegram (бот @vln_online_bot, файл Support.gs) -->
 <div class="custom-modal-overlay" id="feedback-modal" onclick="closeModalForm(event, 'feedback-modal')">
-  <div class="custom-modal-box" onclick="event.stopPropagation()">
+  <div class="custom-modal-box sup-box" onclick="event.stopPropagation()" role="dialog" aria-labelledby="sup-title">
     <div class="close-modal-btn" onclick="closeModalForm(null, 'feedback-modal')">&times;</div>
-    <h3 class="form-title" style="color: #00ff9c; margin-bottom: 15px;">💬 Зв'язок з адмінами</h3>
-    <div style="font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; text-align: center; margin-bottom: 15px;">
-      Що можна покращити на сайті? Знайшли помилку чи хочете додати заклад? Пишіть нам!
+    <div class="sup-head">
+      <span class="sup-ico"><svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true"><path d="M21 12.22C21 6.73 16.74 3 12 3c-4.69 0-9 3.65-9 9.28-.6.34-1 .98-1 1.72v2c0 1.1.9 2 2 2h1v-6.1c0-3.87 3.13-7 7-7s7 3.13 7 7V19h-8v2h8c1.1 0 2-.9 2-2v-1.22c.59-.31 1-.92 1-1.64v-2.3c0-.7-.41-1.31-1-1.62z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M18 11.03C17.52 8.18 15.04 6 12.05 6c-3.03 0-6.29 2.51-6.03 6.45 2.47-1.01 4.33-3.21 4.86-5.89 1.31 2.63 4 4.44 7.12 4.47z"/></svg></span>
+      <div><h3 class="sup-title" id="sup-title">Техпідтримка</h3><p class="sup-sub">Помилка, питання чи ідея — пишіть, відповімо в Telegram або за телефоном</p></div>
     </div>
-    
-    <form id="custom-feedback-form" onsubmit="submitBetaFeedback(event)">
-      <textarea class="form-input" id="beta-feedback-text" rows="4" placeholder="Напишіть своє повідомлення тут..." required></textarea>
-      
-      <div class="form-group" style="margin-top: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.1);">
-        <label class="form-label" style="color: #00b8ff; margin-bottom: 8px; font-size: 12px;">📞 Як з вами зв'язатися? (Не обов'язково)</label>
-        <input type="text" class="form-input" id="beta-feedback-contact" placeholder="Telegram (@нік) або номер" style="font-size: 13px; padding: 12px; background: rgba(0,0,0,0.4);">
-        <div style="font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 6px; text-align: center; line-height: 1.3;">
-          Залиште контакти, якщо хочете, щоб ми могли вам відповісти.
+    <form id="custom-feedback-form" class="sup-form" onsubmit="submitSupport(event)" novalidate>
+      <fieldset class="sup-topics">
+        <legend>Тема</legend>
+        <div class="sup-chips">
+          <label class="sup-chip"><input type="radio" name="topic" value="bug"><span>🐞 Помилка</span></label>
+          <label class="sup-chip"><input type="radio" name="topic" value="question"><span>❓ Питання</span></label>
+          <label class="sup-chip"><input type="radio" name="topic" value="idea"><span>💡 Ідея</span></label>
+          <label class="sup-chip"><input type="radio" name="topic" value="place"><span>🏪 Додати заклад</span></label>
+          <label class="sup-chip"><input type="radio" name="topic" value="ads"><span>📢 Реклама</span></label>
         </div>
-      </div>
-      
+      </fieldset>
+      <label class="sup-field" for="beta-feedback-text"><span>Повідомлення</span></label>
+      <textarea class="form-input sup-input" id="beta-feedback-text" rows="4" maxlength="2000" placeholder="Що сталося чи що хочете запропонувати?" required></textarea>
+      <label class="sup-field" for="beta-feedback-contact"><span>Ваш Telegram або телефон</span><em>обов'язково</em></label>
+      <input type="text" class="form-input sup-input" id="beta-feedback-contact" maxlength="64" autocomplete="tel" spellcheck="false" placeholder="@нік або +380971234567" required aria-describedby="sup-contact-hint">
+      <small class="sup-hint" id="sup-contact-hint">Сюди ми вам і відповімо</small>
       <div class="form-group captcha-group" style="margin-top: 10px;">
         <label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label>
         <input type="tel" class="form-input captcha-input" required placeholder="Введіть відповідь" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
         <input type="hidden" class="captcha-answer">
       </div>
-      
-      <button type="submit" class="form-submit-btn" style="background: linear-gradient(135deg, #00ff9c, #00b8ff); box-shadow: 0 4px 15px rgba(0, 255, 156, 0.3); margin-top: 15px;" id="feedback-submit-btn">Відправити</button>
+      <button type="submit" class="form-submit-btn sup-submit" id="feedback-submit-btn">Надіслати в підтримку</button>
+      <p class="sup-fine">Повідомлення одразу отримає адміністратор у Telegram.</p>
     </form>
   </div>
 </div>
@@ -331,7 +336,7 @@ document.addEventListener('touchend', function(e){
         <button type="button" class="th-tile" data-tab="jobs-tab" style="--c:#E056FD;--rgb:224,86,253" onclick="openTileSection('jobs-tab','market',event)"><span class="th-badges"></span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg><span class="th-l">Вакансії</span></button>
         <button type="button" class="th-tile" data-tab="lost-found-tab" style="--c:#00FFEA;--rgb:0,255,234" onclick="openTileSection('lost-found-tab','market',event)"><span class="th-badges"></span><svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><span class="th-l">Знахідки</span></button>
         <!-- Зв'язок і підтримка сайту -->
-        <button type="button" class="th-tile th-w2" id="th-admins" style="--c:#00FF9C;--rgb:0,255,156" onclick="tileAction('admins',event)"><svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM8 11H6V9h2v2zm5 0h-2V9h2v2zm5 0h-2V9h2v2z"/></svg><span class="th-txt"><span class="th-l">Зв'язок з адмінами</span><span class="th-d">Відгуки й ідеї</span></span><span class="th-badges"></span></button>
+        <button type="button" class="th-tile th-w2" id="th-admins" style="--c:#00FF9C;--rgb:0,255,156" onclick="tileAction('admins',event)"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M21 12.22C21 6.73 16.74 3 12 3c-4.69 0-9 3.65-9 9.28-.6.34-1 .98-1 1.72v2c0 1.1.9 2 2 2h1v-6.1c0-3.87 3.13-7 7-7s7 3.13 7 7V19h-8v2h8c1.1 0 2-.9 2-2v-1.22c.59-.31 1-.92 1-1.64v-2.3c0-.7-.41-1.31-1-1.62z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M18 11.03C17.52 8.18 15.04 6 12.05 6c-3.03 0-6.29 2.51-6.03 6.45 2.47-1.01 4.33-3.21 4.86-5.89 1.31 2.63 4 4.44 7.12 4.47z"/></svg><span class="th-txt"><span class="th-l">Техпідтримка</span><span class="th-d">Відповімо в Telegram</span></span><span class="th-badges"></span></button>
         <button type="button" class="th-tile th-w2" id="th-donate" style="--c:#FF5C7A;--rgb:255,92,122" onclick="tileAction('donate',event)"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg><span class="th-txt"><span class="th-l">Підтримати</span><span class="th-d">Донат на розвиток</span></span><span class="th-badges"></span></button>
       </div>
     </div>
@@ -596,6 +601,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20261122e" defer></script>
+<script src="./js/app.js?v=20261122f" defer></script>
 </body>
 </html>
