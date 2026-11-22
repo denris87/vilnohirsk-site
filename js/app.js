@@ -81,6 +81,18 @@ function packForAttr(obj) {
     return encodeURIComponent(JSON.stringify(obj)).replace(/'/g, '%27');
 }
 
+// Посилання з даних (таблиці, сервери) → лише http(s). javascript:, data: тощо в href не потрапляють:
+// повертаємо '' — і замість посилання показуємо просто текст. Адресу без протоколу (www.…, instagram.com/…)
+// доповнюємо https://, а @нік — як сторінку в Instagram.
+function safeHttpUrl(value, instagramHandle) {
+    const s = String(value == null ? '' : value).trim();
+    if (!s || /[\s"'<>\\]/.test(s)) return '';
+    if (/^https?:\/\/[^/?#]/i.test(s)) return s;
+    if (/^(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}(\/|$)/i.test(s)) return 'https://' + s;
+    const nick = instagramHandle && /^@([\w.]{1,30})$/.exec(s);
+    return nick ? 'https://www.instagram.com/' + nick[1] + '/' : '';
+}
+
 // Телефон → клікабельне tel:-посилання; якщо цифр немає (напр. «Не вказано») —
 // повертаємо просто текст, щоб не створювати порожній href="tel:"
 function phoneLinkHtml(phone, cls, prefix) {
@@ -3753,7 +3765,8 @@ function renderShops(shopsData) {
     let photoUrl = getDriveImageUrl(rawPhoto);
     const photoHtml = photoUrl ? `<img src="${escapeHTML(photoUrl)}" alt="Фото" loading="lazy" decoding="async" onload="this.style.opacity='1'" style="opacity:0; transition:opacity 0.3s ease;">` : `<span style="font-size:28px;">🛍️</span>`;
     
-    const titleHtml = (shop.instagram && String(shop.instagram).trim() !== "") ? `<a href="${escapeHTML(String(shop.instagram).trim())}" target="_blank" rel="noopener" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${escapeHTML(displayName)} 🔗</a>` : escapeHTML(displayName);
+    const shopLink = safeHttpUrl(shop.instagram, true); // лише http(s): javascript: тощо — просто текстом
+    const titleHtml = shopLink ? `<a href="${escapeHTML(shopLink)}" target="_blank" rel="noopener" style="color:inherit; text-decoration:none;" onclick="event.stopPropagation();">${escapeHTML(displayName)} 🔗</a>` : escapeHTML(displayName);
     let phoneHtml = 'Не вказано';
     if (shop.phone && String(shop.phone).trim() !== "") { phoneHtml = String(shop.phone).split(',').map(p => `<a href="tel:${p.replace(/[^0-9+]/g, '')}" class="shop-phone-link" onclick="event.stopPropagation();">${escapeHTML(p.trim())}</a>`).join('<br>'); }
     

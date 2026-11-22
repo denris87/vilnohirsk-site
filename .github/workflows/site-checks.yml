@@ -33,6 +33,10 @@ on:
       - 'firebase-messaging-sw.js'
       - '.github/workflows/**'
 
+# Перевірка лише читає код: токен без права щось змінювати в репозиторії
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -72,6 +76,38 @@ jobs:
           if bad:
               print("\nЗламані файли даних: сайт сховає ці блоки, поки помилку не виправлено!")
               sys.exit(1)
+          PY
+
+      - name: External libraries are pinned (integrity)
+        run: |
+          python3 - <<'PY'
+          # Кожна бібліотека з чужого CDN — точної версії і з integrity: якщо файл на CDN
+          # підмінять, браузер його не запустить. Виняток — Firebase з офіційного CDN Google
+          # (той самий постачальник, що й сам вхід і сповіщення) і Google Tag Manager.
+          import re
+          import sys
+          from pathlib import Path
+
+          ALLOW = ("https://www.gstatic.com/firebasejs/", "https://www.googletagmanager.com/")
+          bad = []
+          for page in ("index.html", "map3d.html"):
+              html = Path(page).read_text(encoding="utf-8")
+              for tag in re.findall(r"<(?:script|link)\b[^>]*>", html):
+                  if tag.startswith("<link") and 'rel="stylesheet"' not in tag:
+                      continue
+                  m = re.search(r'\b(?:src|href)="(https?://[^"]+)"', tag)
+                  if not m or m.group(1).startswith(ALLOW):
+                      continue
+                  url = m.group(1)
+                  if not re.search(r'integrity="sha(256|384|512)-[A-Za-z0-9+/=]{40,}"', tag) or 'crossorigin="anonymous"' not in tag:
+                      bad.append("%s: %s — немає integrity / crossorigin" % (page, url))
+                  if not re.search(r"@\d+\.\d+\.\d+/", url) and "/ajax/libs/" not in url:
+                      bad.append("%s: %s — версія має бути точною (напр. @1.2.3)" % (page, url))
+          for b in bad:
+              print("ERROR", b)
+          if bad:
+              sys.exit(1)
+          print("OK: усі бібліотеки з CDN — точних версій і з integrity")
           PY
 
       - name: HTML integrity
