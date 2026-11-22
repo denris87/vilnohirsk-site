@@ -1174,3 +1174,36 @@ textarea.sup-input{resize:vertical;min-height:96px;line-height:1.45}
 .sup-submit:disabled{opacity:0.6;cursor:default}
 .sup-fine{margin:10px 0 0;text-align:center;font-size:11.5px;line-height:1.4;color:rgba(255,255,255,0.55)}
 @media (prefers-reduced-motion: reduce){.sup-chip span{transition:none}}
+/* Техпідтримка: куди відповісти (кабінет / Telegram / не треба) і вхід просто у вікні */
+.sup-box [hidden]{display:none!important}
+.sup-reply{margin:2px 0 10px}
+.sup-login{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:-4px 0 14px}
+.sup-login .cab-link{align-self:center;padding:6px}
+/* Значок нових відповідей на «Мій кабінет» */
+.th-acc{position:relative}
+.th-acc-badge{position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#ff4d6d;color:#fff;font-size:11.5px;font-weight:900;line-height:20px;text-align:center;box-shadow:0 0 0 2px #0b1222;pointer-events:none}
+/* Кабінет → Техпідтримка: листування */
+.sup-new{margin-bottom:12px}
+.sup-th{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.sup-th-new{border-color:rgba(0,229,255,0.55);box-shadow:0 0 0 1px rgba(0,229,255,0.22)}
+.sup-th-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:rgba(255,255,255,0.75)}
+.sup-th-head b{color:#fff;font-size:14px;font-variant-numeric:tabular-nums}
+.sup-th-topic{flex:1 1 auto;min-width:0}
+.sup-st{font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);white-space:nowrap}
+.sup-st-new{background:#00E5FF;color:#04222a}
+.sup-st-ok{background:rgba(0,255,156,0.16);color:#00ff9c}
+.sup-st-wait{background:rgba(255,209,102,0.16);color:#ffd166}
+.sup-msg{max-width:88%;padding:9px 12px 7px;border-radius:16px;font-size:14px;line-height:1.45}
+.sup-msg p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;color:#fff}
+.sup-msg time{display:block;margin-top:4px;font-size:11px;color:rgba(255,255,255,0.55);text-align:right}
+.sup-me{align-self:flex-end;background:rgba(0,255,156,0.12);border:1px solid rgba(0,255,156,0.24);border-bottom-right-radius:6px}
+.sup-them{align-self:flex-start;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);border-bottom-left-radius:6px}
+.sup-fresh{border-color:rgba(0,229,255,0.6);background:rgba(0,229,255,0.1)}
+.sup-who{display:block;margin-bottom:3px;font-size:11.5px;font-weight:800;color:#00E5FF}
+.sup-th-form{display:flex;gap:8px;align-items:flex-end;margin-top:2px}
+.sup-th-form textarea{flex:1 1 auto;min-width:0;min-height:44px;max-height:160px;resize:vertical;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.18);background:rgba(0,0,0,0.25);color:#fff;font:inherit;font-size:16px;line-height:1.35}
+.sup-th-form textarea:focus{outline:none;border-color:#00E5FF}
+.sup-th-form .cab-btn{flex:0 0 auto}
+.sup-cab-in{display:flex;flex-direction:column;gap:10px;text-align:center;align-items:stretch}
+.sup-cab-in p{margin:0;color:rgba(255,255,255,0.8);line-height:1.45}
+.sup-cab-ico{align-self:center;width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:rgba(0,229,255,0.14);color:#00E5FF}
