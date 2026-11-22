@@ -1136,7 +1136,7 @@ function ensureAuth() {
       cabAuth = firebase.auth();
       cabAuth.languageCode = 'uk'; // листи (підтвердження, відновлення пароля) і вікно Google — українською
       cabState = 'ready';
-      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) { cabMode = 'in'; cabEmailOpen = false; } cabAuthMark(!!u); cabAds = cabAdsBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(document.documentElement.classList.contains('cabinet-open')); } });
+      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) { cabMode = 'in'; cabEmailOpen = false; } cabAuthMark(!!u); cabAds = cabAdsBlank(); cabSup = cabSupBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(document.documentElement.classList.contains('cabinet-open')); cabSupAuto(); } });
     } catch (e) { cabState = 'error'; logSectionError('кабінет', e); renderAccount(); }
   };
   if (typeof firebase.auth === 'function') { start(); return; }
@@ -1165,12 +1165,17 @@ function renderAccount() {
   if (btn) {
     // Кнопка в шапці — завжди «Мій кабінет» (люди не здогадувались, що за іменем ховається кабінет); другим рядком — ім'я або «Увійти»
     const first = cabUser ? cabName(cabUser).split(' ')[0] : '';
+    const unread = cabUser ? cabSup.unread : 0; // нові відповіді техпідтримки — значок на кнопці
     const html = (cabUser ? cabAvatar(cabUser, 34) : `<span class="th-acc-ico">${CAB_USER_ICO}</span>`)
-      + `<span class="th-acc-txt"><span class="th-acc-t">Мій кабінет</span><span class="th-acc-s">${cabUser ? escapeHTML(first) : 'Увійти'}</span></span>`;
+      + `<span class="th-acc-txt"><span class="th-acc-t">Мій кабінет</span><span class="th-acc-s">${cabUser ? escapeHTML(first) : 'Увійти'}</span></span>`
+      + (unread ? `<span class="th-acc-badge" aria-hidden="true">${unread > 9 ? '9+' : unread}</span>` : '');
     if (btn.dataset.v !== html) { btn.dataset.v = html; btn.innerHTML = html; }
-    btn.setAttribute('aria-label', cabUser ? `Мій кабінет — ${first}` : 'Мій кабінет — увійти');
+    btn.setAttribute('aria-label', (cabUser ? `Мій кабінет — ${first}` : 'Мій кабінет — увійти') + (unread ? `, нових відповідей техпідтримки: ${unread}` : ''));
   }
   if (document.documentElement.classList.contains('cabinet-open')) renderCabinet();
+  // Вікно техпідтримки відкрите — вхід міг щойно змінитися («У кабінеті» стає доступним)
+  const fm = document.getElementById('feedback-modal');
+  if (fm && fm.classList.contains('active')) supportReplyRender(false);
 }
 
 function renderCabinet() {
@@ -1231,6 +1236,7 @@ function renderCabinet() {
   const tiles = `<button type="button" class="th-tile ${cabUser ? 'th-w2' : 'th-w4'}${subOn ? ' th-on' : ''}" data-act="view-push" style="--c:#FFCC00;--rgb:255,204,0">${CAB_BELL_ICO}<span class="th-txt"><span class="th-l">Сповіщення</span><span class="th-d">${pushSt}</span></span></button>`
     + (cabUser ? `<button type="button" class="th-tile th-w2" data-act="view-ads" style="--c:#00FF9C;--rgb:0,255,156">${CAB_ADS_ICO}<span class="th-txt"><span class="th-l">Мої оголошення</span><span class="th-d">${cabAdsTileText()}</span></span></button>` : '')
     + cabMineTilesHtml()
+    + `<button type="button" class="th-tile th-w4${cabUser && cabSup.unread ? ' th-on' : ''}" data-act="view-support" style="--c:#00E5FF;--rgb:0,229,255">${CAB_ICO_SUPPORT}<span class="th-txt"><span class="th-l">Техпідтримка</span><span class="th-d">${cabSupTileText()}</span></span></button>`
     + (cabUser && cabIsAdmin ? `<button type="button" class="th-tile th-w4" data-act="view-stats" style="--c:#7cc4ff;--rgb:124,196,255">${CAB_STATS_ICO}<span class="th-txt"><span class="th-l">Статистика</span><span class="th-d">${cabStatsTileText()}</span></span></button>` : '');
   const t = document.getElementById('cab-top'), b = document.getElementById('cab-bottom'), tl = document.getElementById('cab-tiles'), dy = document.getElementById('cab-day');
   if (t.dataset.v !== top) { t.dataset.v = top; t.innerHTML = top; }
@@ -1254,14 +1260,132 @@ function renderCabinet() {
   } else if (cabView === 'stats') {
     const a = cabStatsHtml();
     if (sub.dataset.v !== a) { sub.dataset.v = a; sub.innerHTML = a; const q = document.getElementById('cab-stats-q'); if (q) q.value = cabStatsQuery; cabStatsFilter(); }
+  } else if (cabView === 'support') {
+    if (cabUser && cabSup.state === 'idle') { cabSup.state = 'queued'; setTimeout(() => cabSupLoad(), 0); }
+    const a = cabSupHtml();
+    if (sub.dataset.v !== a) {
+      // Перемальовуємо — не губимо недописане повідомлення й фокус
+      const drafts = {}, f0 = document.activeElement && document.activeElement.closest ? document.activeElement.closest('.sup-th-form') : null;
+      sub.querySelectorAll('.sup-th-form').forEach(f => { const t = f.querySelector('textarea'); if (t && t.value) drafts[f.dataset.n] = t.value; });
+      sub.dataset.v = a; sub.innerHTML = a;
+      sub.querySelectorAll('.sup-th-form').forEach(f => { const t = f.querySelector('textarea'); if (!t) return; if (drafts[f.dataset.n]) t.value = drafts[f.dataset.n]; if (f0 && f0.dataset.n === f.dataset.n) t.focus(); });
+    }
   } else if (sub.innerHTML) { sub.innerHTML = ''; sub.dataset.v = ''; }
+  cabSupWatch(cabView === 'support');
 }
 const CAB_BELL_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>';
 const CAB_ADS_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 11v2h4v-2h-4zm-2 6.61c.96.71 2.21 1.65 3.2 2.39.4-.53.8-1.07 1.2-1.6-.99-.74-2.24-1.68-3.2-2.4-.4.54-.8 1.08-1.2 1.61zM20.4 5.6c-.4-.53-.8-1.07-1.2-1.6-.99.74-2.24 1.68-3.2 2.4.4.53.8 1.07 1.2 1.6.96-.72 2.21-1.65 3.2-2.4zM4 9c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h1v4h2v-4h1l5 3V6L8 9H4zm11.5 3c0-1.33-.58-2.53-1.5-3.35v6.69c.92-.81 1.5-2.01 1.5-3.34z"/></svg>';
 let cabView = 'home'; // home — головний екран кабінету; push — сповіщення; ads — мої оголошення; stats — статистика (адмін);
                       // myhome, mytrains, fav, me — особисте («Мій дім», «Мої електрички», «Обране», «Мої дані»)
-const CAB_VIEW_TITLES = { push: 'Сповіщення', ads: 'Мої оголошення', stats: 'Статистика', myhome: 'Мій дім', mytrains: 'Мої електрички', fav: 'Обране', me: 'Мої дані' };
+const CAB_VIEW_TITLES = { push: 'Сповіщення', ads: 'Мої оголошення', stats: 'Статистика', myhome: 'Мій дім', mytrains: 'Мої електрички', fav: 'Обране', me: 'Мої дані', support: 'Техпідтримка' };
 const CAB_MINE_VIEWS = ['myhome', 'mytrains', 'fav', 'me'];
+// === Техпідтримка в кабінеті: мої звернення й відповіді (адмін відповідає в Telegram-боті → тут) ===
+const CAB_ICO_SUPPORT = '<svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M21 12.22C21 6.73 16.74 3 12 3c-4.69 0-9 3.65-9 9.28-.6.34-1 .98-1 1.72v2c0 1.1.9 2 2 2h1v-6.1c0-3.87 3.13-7 7-7s7 3.13 7 7V19h-8v2h8c1.1 0 2-.9 2-2v-1.22c.59-.31 1-.92 1-1.64v-2.3c0-.7-.41-1.31-1-1.62z"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M18 11.03C17.52 8.18 15.04 6 12.05 6c-3.03 0-6.29 2.51-6.03 6.45 2.47-1.01 4.33-3.21 4.86-5.89 1.31 2.63 4 4.44 7.12 4.47z"/></svg>';
+let cabSup = cabSupBlank(), cabSupBusy = false, cabSupTimer = 0;
+function cabSupBlank() { return { state: 'idle', items: [], unread: 0, at: 0 }; }
+const cabSupClock = new Intl.DateTimeFormat('uk-UA', { timeZone: 'Europe/Kyiv', hour: '2-digit', minute: '2-digit' });
+function cabSupTime(ms) {
+  if (!ms) return '';
+  const day = cabKyivDay(ms), now = Date.now();
+  return (day === cabKyivDay(now) ? 'сьогодні' : day === cabKyivDay(now - CAB_DAY) ? 'вчора' : cabDdMm(ms)) + ', ' + cabSupClock.format(new Date(ms));
+}
+function cabSupTileText() {
+  if (!cabUser) return 'Відповіді на ваші звернення';
+  if (cabSup.unread) return `💬 ${cabSup.unread} ${pluralUk(cabSup.unread, 'нова відповідь', 'нові відповіді', 'нових відповідей')}`;
+  const n = cabSup.items.length;
+  return n ? `${n} ${pluralUk(n, 'звернення', 'звернення', 'звернень')}` : 'Питання, помилка чи ідея';
+}
+function cabSupHtml() {
+  if (cabState === 'error') return '';
+  if (cabState !== 'ready' || !cabKnown) return '<div class="cab-card cab-center"><p>Завантаження…</p></div>';
+  if (!cabUser) return `<div class="cab-card sup-cab-in"><span class="sup-cab-ico">${CAB_ICO_SUPPORT}</span><b>Відповіді техпідтримки — тут</b>
+      <p>Увійдіть, щоб отримувати відповіді на свої звернення в кабінеті й писати нам у відповідь.</p>
+      <button type="button" class="cab-google" data-act="google">${CAB_G_LOGO}<span>Увійти через Google</span></button>
+      <button type="button" class="cab-btn cab-btn-ghost cab-wide" data-act="sup-signin">Інші способи входу</button></div>`;
+  const s = cabSup;
+  const top = '<button type="button" class="cab-btn cab-wide sup-new" data-act="sup-new">✍️ Нове звернення</button>';
+  if (!s.items.length) {
+    if (s.state === 'error') return top + `<div class="cab-card cab-center"><b>Не вдалося завантажити</b><p>Перевірте з'єднання з інтернетом і спробуйте ще раз.</p><button type="button" class="cab-btn" data-act="sup-reload">Спробувати ще раз</button></div>`;
+    if (s.state !== 'ready') return top + '<div class="cab-card cab-center"><p>Завантаження…</p></div>';
+    return top + `<div class="cab-card cab-center sup-empty"><b>Звернень поки немає</b><p>Напишіть нам — помилка, питання чи ідея. Оберіть «У кабінеті», і відповідь з'явиться тут.</p></div>`;
+  }
+  return top + s.items.map(cabSupThreadHtml).join('');
+}
+function cabSupThreadHtml(it) {
+  const n = Number(it.n) || 0, msgs = Array.isArray(it.msgs) ? it.msgs : [];
+  const fresh = msgs.some(m => m.fresh), answered = msgs.some(m => !m.me);
+  const st = fresh ? ['new', 'Нова відповідь'] : answered ? ['ok', 'Є відповідь'] : it.mode === 'telegram' ? ['', 'Відповімо в Telegram'] : it.mode === 'none' ? ['', 'Без відповіді'] : ['wait', 'Очікує відповіді'];
+  const bubble = (m) => `<div class="sup-msg ${m.me ? 'sup-me' : 'sup-them'}${m.fresh ? ' sup-fresh' : ''}">${m.me ? '' : `<span class="sup-who">Техпідтримка${m.fresh ? ' · нове' : ''}</span>`}<p>${escapeHTML(m.text || '')}</p><time>${cabSupTime(m.when)}</time></div>`;
+  return `<article class="cab-card sup-th${fresh ? ' sup-th-new' : ''}" data-n="${n}">
+      <header class="sup-th-head"><b>№${n}</b><span class="sup-th-topic">${escapeHTML(it.topic || '')}</span><span class="sup-st${st[0] ? ' sup-st-' + st[0] : ''}">${st[1]}</span></header>
+      ${bubble({ me: true, text: it.text, when: it.when })}${msgs.map(bubble).join('')}
+      <form class="sup-th-form" data-n="${n}" novalidate><textarea rows="2" maxlength="2000" placeholder="Написати ще…" aria-label="Повідомлення до звернення №${n}"></textarea><button type="submit" class="cab-btn cab-btn-sm">Надіслати</button></form>
+    </article>`;
+}
+// Мої звернення з відповідями. quiet — у фоні, без «Завантаження…» і без запису помилки в журнал
+async function cabSupLoad(quiet) {
+  const u = cabUser;
+  if (!u || cabSupBusy) return;
+  cabSupBusy = true;
+  if (!quiet && cabSup.state !== 'ready') { cabSup.state = 'loading'; renderAccount(); }
+  try {
+    const payload = { formType: 'support', action: 'list', idToken: await u.getIdToken() };
+    const pt = supportPushTokenNow(); if (pt) payload.pushToken = pt; // відповідь сповістимо на пристрій, де людина зараз
+    const d = await cabScript(payload);
+    if (cabUser !== u) return;
+    if (!d || d.status !== 'ok' || !Array.isArray(d.items)) throw new Error('Apps Script: ' + (d && (d.message || d.status)));
+    cabSup = { state: 'ready', items: d.items, unread: Number(d.unread) || 0, at: Date.now() };
+    if (d.items.length) { try { localStorage.setItem('sup_threads', '1'); } catch (e) {} }
+    if (cabSup.unread && cabView === 'support' && document.documentElement.classList.contains('cabinet-open')) cabSupSeen();
+  } catch (e) {
+    if (cabUser === u) { if (cabSup.state !== 'ready') cabSup.state = 'error'; cabSup.at = Date.now(); }
+    if (!quiet) logSectionError('кабінет: техпідтримка', e);
+  } finally { cabSupBusy = false; renderAccount(); }
+}
+// Відкрили листування — відповіді прочитано: значки гасимо одразу, позначка «нове» в бульбашках — до наступного відкриття
+async function cabSupSeen() {
+  const u = cabUser; if (!u) return;
+  cabSup.unread = 0; cabSup.items.forEach(it => { it.unread = 0; });
+  try { await cabScript({ formType: 'support', action: 'seen', idToken: await u.getIdToken() }); } catch (e) {}
+}
+// Хто вже писав у техпідтримку з цього пристрою — перевіряємо нові відповіді (значок на «Мій кабінет»)
+function cabSupAuto() { try { if (cabUser && localStorage.getItem('sup_threads') === '1') cabSupLoad(true); } catch (e) {} }
+async function cabSupReply(form) {
+  const u = cabUser; if (!u) return;
+  const ta = form.querySelector('textarea'), btn = form.querySelector('button'), n = Number(form.dataset.n), text = ta.value.trim();
+  if (text.length < 2) { ta.focus(); return; }
+  const label = btn.textContent; btn.disabled = true; btn.textContent = 'Надсилаємо…';
+  try {
+    const payload = { formType: 'support', action: 'reply', n: n, text: text, idToken: await u.getIdToken() };
+    const pt = supportPushTokenNow(); if (pt) payload.pushToken = pt;
+    const d = await cabScript(payload);
+    if (d && d.status === 'limit') { showToast('⏳ Забагато повідомлень поспіль — спробуйте за 10 хвилин', 'error'); return; }
+    if (!d || d.status !== 'ok') { showToast('❌ Не вдалося надіслати — спробуйте ще раз', 'error'); return; }
+    ta.value = '';
+    const it = cabSup.items.find(x => Number(x.n) === n);
+    if (it) it.msgs.push({ me: true, text: text, when: Date.now(), fresh: false });
+    showToast('✅ Надіслано — відповідь прийде сюди', 'success');
+    renderCabinet();
+  } catch (e) {
+    showToast('❌ Не вдалося надіслати — перевірте інтернет і спробуйте ще раз', 'error');
+  } finally { btn.disabled = false; btn.textContent = label; }
+}
+// Поки листування відкрите — перевіряємо нові відповіді кожні 30 с (адмін може відповісти будь-якої миті)
+function cabSupWatch(on) {
+  if (on && !cabSupTimer) cabSupTimer = setInterval(() => {
+    if (cabView !== 'support' || !document.documentElement.classList.contains('cabinet-open')) { cabSupWatch(false); return; }
+    if (!document.hidden && cabUser) cabSupLoad(true);
+  }, 30000);
+  if (!on && cabSupTimer) { clearInterval(cabSupTimer); cabSupTimer = 0; }
+}
+// Push «Відповідь техпідтримки» веде на ?cab=support — одразу відкриваємо листування
+function cabDeepLink() {
+  let q; try { q = new URLSearchParams(location.search); } catch (e) { return; }
+  if (q.get('cab') !== 'support') return;
+  q.delete('cab');
+  try { history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q.toString() : '') + location.hash); } catch (e) {}
+  setTimeout(() => { openCabinet(); cabShowView('support'); }, 0);
+}
 // Плитки «Обране» й «Мої дані» на головному екрані кабінету
 function cabMineTilesHtml() {
   const favN = myFavs().length, p = myProfile();
@@ -1273,6 +1397,7 @@ function cabShowView(v, fromHistory) {
   if (cabView === 'push') { cabPushDraft = null; cabPushConfirmOff = false; }
   if (cabView === 'ads' && !fromHistory) { cabAds.confirm = ''; cabLoadAds(); }
   if (cabView === 'stats' && (!fromHistory || !cabStats)) { cabStatsConfirm = ''; cabLoadStats(); }
+  if (cabView === 'support' && cabUser && cabSup.state !== 'idle' && cabSup.state !== 'queued') cabSupLoad(cabSup.state === 'ready'); // свіже листування щоразу, коли відкривають
   if (!fromHistory && cabView !== 'home') { try { history.pushState({ tileSection: 'cabinet', sub: cabView }, ''); } catch (e) {} }
   renderCabinet();
   const c = document.getElementById('cabinet'); if (c) c.scrollTop = 0;
@@ -1540,9 +1665,7 @@ function cabFillForm(form) {
   if (p.phone) form.querySelectorAll('input[type="tel"][name="phone"], #input-phone').forEach(i => { if (!i.value || i.value === '+380') i.value = p.phone; });
   const n = form.querySelector('#input-name');
   if (n && name && !n.value) n.value = name.slice(0, 30);
-  const sc = form.querySelector('#beta-feedback-contact');
-  // Техпідтримка: контакт за бажанням — нічого не підставляємо, лише оновлюємо підказку під полем
-  if (sc) supportContactHint(false);
+  if (form.id === 'custom-feedback-form') supportModeInit(); // техпідтримка: куди відповісти (за замовчуванням) і підказка
 }
 function cabMeSave(form) {
   const name = form.querySelector('#cab-me-name').value.trim().replace(/\s+/g, ' ').slice(0, 30);
@@ -2127,7 +2250,10 @@ async function cabBusy(btn, fn) {
 
 async function cabAction(act, btn) {
   if (act === 'retry') { cabState = 'idle'; ensureAuth(); return; }
-  if (act === 'view-push' || act === 'view-ads' || act === 'view-stats' || act === 'view-fav' || act === 'view-me') { cabShowView(act.slice(5)); return; }
+  if (act === 'view-push' || act === 'view-ads' || act === 'view-stats' || act === 'view-fav' || act === 'view-me' || act === 'view-support') { cabShowView(act.slice(5)); return; }
+  if (act === 'sup-new') { supportOpen(); return; }
+  if (act === 'sup-reload') { cabSupLoad(); return; }
+  if (act === 'sup-signin') { try { history.back(); } catch (e) { cabShowView('home'); } return; }
   if (/^(day|home|tr|fav|me)-/.test(act)) return cabMineAction(act, btn); // особисте — і без входу
   if (act.indexOf('stats-') === 0) return cabStatsAction(act, btn);
   if (act.indexOf('ride-') === 0 || act.indexOf('ad-') === 0 || act === 'ads-reload') return cabAdsAction(act, btn);
@@ -2209,7 +2335,7 @@ function initCabinet() {
   const body = document.getElementById('cabinet-body');
   if (body) {
     body.addEventListener('click', (e) => { const b = e.target.closest('[data-act]'); if (b) cabAction(b.dataset.act, b); });
-    body.addEventListener('submit', (e) => { e.preventDefault(); if (e.target.id === 'cab-me-form') cabMeSave(e.target); else cabSubmit(e.target); });
+    body.addEventListener('submit', (e) => { e.preventDefault(); if (e.target.id === 'cab-me-form') cabMeSave(e.target); else if (e.target.classList.contains('sup-th-form')) cabSupReply(e.target); else cabSubmit(e.target); });
     body.addEventListener('change', (e) => { if (e.target.matches('input[data-cat]')) cabPushToggle(e.target); });
     let homeTimer = null;
     body.addEventListener('input', (e) => {
@@ -2224,6 +2350,9 @@ function initCabinet() {
   // Хто вже входив на цьому пристрої — підтягуємо вхід трохи згодом, щоб не гальмувати першу появу головної;
   // аватар з'явиться, щойно Firebase згадає людину. Решті бібліотека входу вантажиться, лише коли відкривають кабінет
   if (cabAuthUsed()) setTimeout(ensureAuth, 800);
+  cabDeepLink();
+  // Повернулися на вкладку — перевірити нові відповіді техпідтримки (не частіше ніж раз на 2 хв)
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && cabUser && Date.now() - cabSup.at > 120000) cabSupAuto(); });
 }
 
 // === ДРАГ-СВАЙП (ГОРТАННЯ МИШКОЮ НА ПК) ===
@@ -5084,12 +5213,13 @@ async function showDailyVolunteerAlert() {
 }
 
 // === ТЕХПІДТРИМКА: звернення → Apps Script (Support.gs) → адміністраторам у Telegram (@Vilnogirsk_bot) ===
-// Контакт — за бажанням: Telegram-нік або телефон, якщо людина хоче відповідь. Сервер перевіряє так само.
+// Людина обирає, куди відповісти: «У кабінеті» (потрібен вхід; адмін відповідає в боті — відповідь з'являється
+// в «Мій кабінет → Техпідтримка»), «У Telegram» (нік або телефон) чи «Не треба». Сервер перевіряє так само.
 const SUPPORT_TOPIC_LABEL = { bug: '🐞 Помилка', question: '❓ Питання', idea: '💡 Ідея', place: '🏪 Додати заклад', ads: '📢 Реклама', other: '💬 Інше' };
-const SUPPORT_HINT = 'Хочете відповідь — залиште Telegram-нік або номер. Без контакту повідомлення теж дійде, але відповісти не зможемо.';
-const SUPPORT_BAD = 'Не схоже на нік чи номер. Нік — як @ivan, номер — як +380971234567. Або залиште поле порожнім.';
+const SUPPORT_BAD = 'Не схоже на нік чи номер. Нік — як @ivan, номер — як +380971234567.';
 // Контакт більше не запам'ятовуємо (поле щоразу порожнє) — прибираємо збережений раніше
 try { localStorage.removeItem('support_contact'); } catch (e) {}
+let supportDraft = null; // пішли входити в кабінет — текст звернення повернемо, коли знову відкриють вікно
 // «@nick», «t.me/nick», «nick» → «@nick»; «097…», «+380…», «380…» → «+380…»; інше — null
 function supportContactParse(raw) {
   const s = String(raw == null ? '' : raw).trim().slice(0, 64).replace(/^(https?:\/\/)?(www\.)?(t\.me|telegram\.me)\//i, '@');
@@ -5102,21 +5232,6 @@ function supportContactParse(raw) {
   const nick = s.replace(/^@/, '');
   return /^[A-Za-z][A-Za-z0-9_]{3,31}$/.test(nick) ? '@' + nick : null;
 }
-// Підказка під полем контакту: як саме відповімо (✓) або що не так.
-// strict — показати помилку (людина вийшла з поля чи надсилає); поки друкує — без червоного.
-function supportContactHint(strict) {
-  const el = document.getElementById('beta-feedback-contact'), hint = document.getElementById('sup-contact-hint');
-  if (!el) return true;
-  const raw = el.value.trim(), c = raw ? supportContactParse(raw) : null, bad = !!raw && !c, show = bad && !!strict;
-  el.classList.toggle('sup-ok', !!c);
-  el.classList.toggle('sup-bad', show);
-  if (hint) {
-    hint.textContent = c ? (c.charAt(0) === '@' ? '✓ Відповімо вам у Telegram: ' + c : '✓ Напишемо в Telegram або зателефонуємо: ' + c) : show ? SUPPORT_BAD : SUPPORT_HINT;
-    hint.classList.toggle('sup-hint-ok', !!c);
-    hint.classList.toggle('sup-hint-bad', show);
-  }
-  return !bad;
-}
 // «iPhone · Safari · застосунок» — щоб адміністратор розумів, де шукати помилку
 function supportDevice() {
   const ua = navigator.userAgent || '';
@@ -5124,29 +5239,111 @@ function supportDevice() {
   const br = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /SamsungBrowser/.test(ua) ? 'Samsung' : /Firefox|FxiOS/.test(ua) ? 'Firefox' : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'браузер';
   return os + ' · ' + br + (typeof isPWA === 'function' && isPWA() ? ' · застосунок' : '');
 }
+function supportMode() { const r = document.querySelector('#custom-feedback-form input[name="replyTo"]:checked'); return r ? r.value : ''; }
+function supportModeSet(v) {
+  const r = document.querySelector(`#custom-feedback-form input[name="replyTo"][value="${v}"]`);
+  if (r) r.checked = true;
+  supportReplyRender(false);
+}
+// Вікно щойно відкрили (форму скинуто): хто увійшов — «У кабінеті», решта — «Не треба»
+function supportModeInit() {
+  const d = supportDraft; supportDraft = null;
+  if (d) {
+    const t = document.getElementById('beta-feedback-text'); if (t && !t.value) t.value = d.text || '';
+    const tp = d.topic && document.querySelector(`#custom-feedback-form input[name="topic"][value="${d.topic}"]`); if (tp) tp.checked = true;
+  }
+  let signedIn = !!cabUser;
+  if (!signedIn && !cabKnown) { try { signedIn = localStorage.getItem('cab_auth') === '1'; } catch (e) {} } // вхід ще підтягується
+  supportModeSet(d ? 'cabinet' : signedIn ? 'cabinet' : 'none');
+}
+function supportOpen() { openModalForm('custom-feedback-form', 'feedback-modal'); supportModeSet(cabUser ? 'cabinet' : 'none'); }
+function supportPushTokenNow() { try { return cabPushSubscribed() ? (localStorage.getItem('push_token') || '') : ''; } catch (e) { return ''; } }
+// Підказка під вибором: як саме відповімо (✓) або що не так. strict — показати помилку (вийшли з поля чи надсилають);
+// поки людина друкує — без червоного. → true, якщо можна надсилати
+function supportReplyRender(strict) {
+  const form = document.getElementById('custom-feedback-form');
+  if (!form) return true;
+  const mode = supportMode(), el = document.getElementById('beta-feedback-contact'), hint = document.getElementById('sup-contact-hint'), login = document.getElementById('sup-login');
+  let txt = '', kind = '', ok = true;
+  if (mode === 'telegram') {
+    const raw = el.value.trim(), c = raw ? supportContactParse(raw) : null;
+    ok = !!c;
+    if (c) { txt = c.charAt(0) === '@' ? '✓ Відповімо вам у Telegram: ' + c : '✓ Напишемо в Telegram або зателефонуємо: ' + c; kind = 'ok'; }
+    else if (strict) { txt = raw ? SUPPORT_BAD + ' Або оберіть інший варіант.' : 'Вкажіть Telegram-нік або номер — або оберіть інший варіант.'; kind = 'bad'; }
+    else txt = 'Ваш Telegram-нік (@ivan) або номер телефону — туди й відповімо.';
+    el.classList.toggle('sup-ok', !!c);
+    el.classList.toggle('sup-bad', !c && !!strict);
+  } else if (mode === 'cabinet') {
+    if (cabUser) { txt = '✓ Відповідь прийде в «Мій кабінет» → «Техпідтримка»' + (cabPushSubscribed() ? ' і сповіщенням на цей пристрій.' : '.'); kind = 'ok'; }
+    else {
+      ok = false; kind = strict ? 'bad' : '';
+      txt = strict ? 'Спершу увійдіть — або оберіть інший варіант.' : 'Відповідь прийде у ваш кабінет на сайті — увійдіть, це кілька секунд.';
+      ensureAuth(); // бібліотеку входу — заздалегідь, щоб вікно Google відкрилось одразу
+    }
+  } else txt = 'Повідомлення дійде, але відповісти ми не зможемо.';
+  if (el) el.hidden = mode !== 'telegram';
+  if (login) login.hidden = !(mode === 'cabinet' && !cabUser);
+  if (hint) { hint.textContent = txt; hint.classList.toggle('sup-hint-ok', kind === 'ok'); hint.classList.toggle('sup-hint-bad', kind === 'bad'); }
+  return ok;
+}
 document.addEventListener('input', (e) => {
   const id = e.target && e.target.id;
   if (id === 'beta-feedback-text') e.target.classList.remove('sup-bad');
-  else if (id === 'beta-feedback-contact') supportContactHint(false);
+  else if (id === 'beta-feedback-contact') supportReplyRender(false);
 });
-document.addEventListener('focusout', (e) => { if (e.target && e.target.id === 'beta-feedback-contact') supportContactHint(true); });
+document.addEventListener('change', (e) => {
+  if (!e.target || e.target.name !== 'replyTo' || !e.target.closest('#custom-feedback-form')) return;
+  supportReplyRender(false);
+  if (e.target.value === 'telegram') { const c = document.getElementById('beta-feedback-contact'); if (c) c.focus(); }
+});
+document.addEventListener('focusout', (e) => { if (e.target && e.target.id === 'beta-feedback-contact') supportReplyRender(true); });
+// Вікно техпідтримки зупиняє спливання кліків (event.stopPropagation) — ловимо їх на етапі занурення
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('#sup-google, #sup-email');
+  if (!b) return;
+  if (b.id === 'sup-google') { supportSignIn(b); return; }
+  // Інший спосіб входу — у кабінеті; текст звернення збережемо до наступного відкриття вікна
+  const t = document.getElementById('beta-feedback-text'), tp = document.querySelector('#custom-feedback-form input[name="topic"]:checked');
+  supportDraft = { text: t ? t.value : '', topic: tp ? tp.value : '' };
+  closeModalForm(null, 'feedback-modal');
+  openCabinet();
+}, true);
+async function supportSignIn(btn) {
+  ensureAuth();
+  btn.disabled = true;
+  try {
+    for (let i = 0; i < 100 && cabState !== 'ready' && cabState !== 'error'; i++) await new Promise(r => setTimeout(r, 100));
+    if (!cabAuth) throw new Error('вхід не завантажився');
+    const p = new firebase.auth.GoogleAuthProvider();
+    p.setCustomParameters({ prompt: 'select_account' });
+    await cabAuth.signInWithPopup(p);
+    showToast('✅ Ви увійшли — відповідь прийде в кабінет', 'success');
+  } catch (e) {
+    if (!(e && /popup-closed|cancelled-popup/.test(e.code || ''))) showToast('❌ Не вдалося увійти. Спробуйте ще раз або «Інший спосіб входу»', 'error');
+  } finally { btn.disabled = false; supportReplyRender(false); }
+}
 async function submitSupport(event) {
   event.preventDefault();
   const form = event.target;
   const textEl = document.getElementById('beta-feedback-text'), contactEl = document.getElementById('beta-feedback-contact');
-  const text = textEl.value.trim(), raw = contactEl.value.trim(), contact = raw ? supportContactParse(raw) : '';
+  const text = textEl.value.trim();
+  if (!supportMode()) supportModeSet(cabUser ? 'cabinet' : 'none');
+  const mode = supportMode();
   if (text.length < 3) { textEl.classList.add('sup-bad'); textEl.focus(); showToast('Напишіть кілька слів — що сталося чи що хочете запропонувати', 'error'); return; }
-  if (!supportContactHint(true)) { contactEl.focus(); return; }
+  if (!supportReplyRender(true)) { const f = mode === 'telegram' ? contactEl : document.getElementById('sup-google'); if (f) f.focus(); return; }
   if (!validateCaptcha('custom-feedback-form')) return;
+  const contact = mode === 'telegram' ? supportContactParse(contactEl.value) : '';
   const topicEl = form.querySelector('input[name="topic"]:checked'), topic = topicEl ? topicEl.value : 'other';
   const btn = document.getElementById('feedback-submit-btn'), label = btn.textContent;
   btn.textContent = 'Надсилаємо…'; btn.disabled = true;
   try {
-    const payload = { formType: 'support', text: text, contact: contact, topic: topic, device: supportDevice() };
-    const tok = await cabAdsToken(); if (tok) payload.idToken = tok;
+    const payload = { formType: 'support', text: text, contact: contact, replyTo: mode, topic: topic, device: supportDevice() };
+    const tok = await cabAdsToken();
+    if (tok) { payload.idToken = tok; const pt = supportPushTokenNow(); if (pt) payload.pushToken = pt; } // сповіщення про відповідь — на цей пристрій
     let d = null;
     try { d = await cabScript(payload); } catch (e) { d = null; }
     if (d && d.status === 'limit') { showToast('⏳ Забагато повідомлень поспіль — спробуйте за 10 хвилин', 'error'); return; }
+    if (d && d.status === 'auth') { showToast('Увійдіть у кабінет ще раз — і надішліть знову', 'error'); supportReplyRender(true); return; }
     if (d && d.status === 'error' && contact) { showToast('❌ ' + (d.message || 'Не вдалося надіслати'), 'error'); return; }
     if (!d || d.status !== 'ok') {
       // Apps Script ще без техпідтримки (або стара версія, де контакт обов'язковий) — запасний шлях:
@@ -5154,10 +5351,14 @@ async function submitSupport(event) {
       await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ formType: 'feedback', text: `[${SUPPORT_TOPIC_LABEL[topic] || SUPPORT_TOPIC_LABEL.other}] ${text}` + (contact ? `\n\n---Контакт для зв'язку---\n${contact}` : '') }) });
     }
-    showToast(!contact ? '✅ Надіслано! Дякуємо — ми все прочитаємо' : contact.charAt(0) === '@' ? '✅ Надіслано! Відповімо вам у Telegram' : '✅ Надіслано! Напишемо в Telegram або зателефонуємо', 'success');
-    textEl.value = ''; contactEl.value = ''; supportContactHint(false); // контакт не запам'ятовуємо — наступного разу поле порожнє
-    form.querySelectorAll('input[name="topic"]').forEach(i => { i.checked = false; });
+    const inCab = !!(d && d.status === 'ok' && d.mode === 'cabinet' && d.n);
+    showToast(inCab ? `✅ Надіслано! Звернення №${d.n} — відповідь прийде в «Мій кабінет» → «Техпідтримка»`
+      : contact ? (contact.charAt(0) === '@' ? '✅ Надіслано! Відповімо вам у Telegram' : '✅ Надіслано! Напишемо в Telegram або зателефонуємо')
+      : mode === 'none' ? '✅ Надіслано! Дякуємо — ми все прочитаємо' : '✅ Надіслано! Дякуємо', 'success');
+    textEl.value = ''; contactEl.value = '';
+    form.querySelectorAll('input[name="topic"], input[name="replyTo"]').forEach(i => { i.checked = false; });
     closeModalForm(null, 'feedback-modal'); setupCaptcha('custom-feedback-form');
+    if (inCab) { try { localStorage.setItem('sup_threads', '1'); } catch (e) {} cabSupLoad(true); } // плитка й листування — з новим зверненням
   } catch (e) {
     showToast('❌ Не вдалося надіслати — перевірте інтернет і спробуйте ще раз', 'error');
   } finally { btn.textContent = label; btn.disabled = false; }
