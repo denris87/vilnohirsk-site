@@ -1163,11 +1163,12 @@ function cabAvatar(u, size) {
 function renderAccount() {
   const btn = document.getElementById('th-account');
   if (btn) {
-    const html = cabUser
-      ? `${cabAvatar(cabUser, 26)}<span class="th-acc-name">${escapeHTML(cabName(cabUser).split(' ')[0])}</span>`
-      : `<span class="th-acc-ico">${CAB_USER_ICO}</span><span class="th-acc-name">Увійти</span>`;
+    // Кнопка в шапці — завжди «Мій кабінет» (люди не здогадувались, що за іменем ховається кабінет); другим рядком — ім'я або «Увійти»
+    const first = cabUser ? cabName(cabUser).split(' ')[0] : '';
+    const html = (cabUser ? cabAvatar(cabUser, 34) : `<span class="th-acc-ico">${CAB_USER_ICO}</span>`)
+      + `<span class="th-acc-txt"><span class="th-acc-t">Мій кабінет</span><span class="th-acc-s">${cabUser ? escapeHTML(first) : 'Увійти'}</span></span>`;
     if (btn.dataset.v !== html) { btn.dataset.v = html; btn.innerHTML = html; }
-    btn.setAttribute('aria-label', cabUser ? 'Мій кабінет' : 'Увійти в кабінет');
+    btn.setAttribute('aria-label', cabUser ? `Мій кабінет — ${first}` : 'Мій кабінет — увійти');
   }
   if (document.documentElement.classList.contains('cabinet-open')) renderCabinet();
 }
