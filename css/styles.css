@@ -1140,3 +1140,7 @@ a.cab-btn{display:inline-flex;align-items:center;justify-content:center;text-dec
 @media (prefers-reduced-motion: reduce){.cab-tr:active{transform:none}}
 .cab-day-late{color:#ff8f99;font-weight:800}
 .cab-me{display:flex;flex-direction:column;gap:12px}
+/* Сповіщення: про світло — лише своя черга */
+.cab-pqueue{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:14px;background:rgba(255,181,71,0.1);border:1px solid rgba(255,181,71,0.42);font-size:13.5px;line-height:1.4}
+.cab-pqueue b{color:#ffcf7a}
+.cab-pqueue .cab-link{padding:2px 0}
