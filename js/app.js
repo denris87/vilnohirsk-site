@@ -1306,7 +1306,7 @@ const CAB_DAY_COLORS = { light: ['#FFB547', '255,181,71'], bin: ['#FFCC00', '255
 // Кабінет відкрито — оновити «Мій день» і особисті екрани (дані підвантажились, минула хвилина)
 function cabMineRefresh() {
   if (!document.documentElement.classList.contains('cabinet-open')) return;
-  if (cabView === 'home' || cabView === 'myhome' || cabView === 'mytrains' || cabView === 'fav') renderCabinet();
+  if (cabView === 'home' || cabView === 'myhome' || cabView === 'mytrains' || cabView === 'fav' || cabView === 'push') renderCabinet();
 }
 
 // Рядок «Мого дня»: що (label), стан (value), подробиці (sub); тап — налаштувати чи подивитись докладно
@@ -1628,10 +1628,19 @@ function renderCabPush() {
   const off = !sub ? '' : cabPushConfirmOff
     ? `<div class="cab-confirm"><b>Вимкнути всі сповіщення?</b><span>Ви більше не отримуватимете жодних сповіщень. Увімкнути знову можна будь-коли.</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm cab-btn-danger" data-act="push-off-yes">Так, вимкнути</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="push-off-no">Скасувати</button></div></div>`
     : `<button type="button" class="cab-link cab-link-danger" data-act="push-off">Вимкнути всі сповіщення</button>`;
+  // «Графік світла»: лише про свою чергу — підказати обрати її (або показати, яку обрано)
+  let queue = '';
+  if (cabPushDraft.includes('svitlo')) {
+    const my = currentSvitloData ? svitloMyQueue(currentSvitloData) : null, id = getSvitloChoice();
+    const q = my ? my.queue : id ? id.split('|').pop() : '';
+    queue = q
+      ? `<div class="cab-pqueue"><span>💡 Про світло — лише для <b>черги ${escapeHTML(q)}</b></span><button type="button" class="cab-link" data-act="push-queue">Змінити</button></div>`
+      : `<div class="cab-note cab-pqueue-note"><b>💡 Оберіть свою чергу світла</b><span>Тоді сповіщення про графік приходитимуть лише про вашу чергу, а не про всі одразу.</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm" data-act="push-queue">Обрати чергу</button></div></div>`;
+  }
   const html = `
     <div class="cab-pstatus"><span class="cab-pstat cab-pstat-${stat[0]}">${stat[1]}</span><span class="cab-pcount">Обрано ${k} з ${PUSH_CATEGORIES.length}</span></div>
     <p class="cab-push-sub">Торкніться плитки, щоб увімкнути чи вимкнути тему.</p>
-    ${note}
+    ${note}${queue}
     ${grid}
     <div class="cab-prow"><button type="button" class="cab-btn cab-btn-sm" data-act="push-all">Обрати все</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="push-none">Зняти все</button></div>
     ${off}
@@ -1649,6 +1658,7 @@ async function cabPushAction(act, btn) {
   if (act === 'push-all') { cabPushDraft = PUSH_CATEGORIES.map(c => c.id); renderCabPush(); return; }
   if (act === 'push-none') { cabPushDraft = []; renderCabPush(); return; }
   if (act === 'push-ios') { showIOSInstructions(); return; }
+  if (act === 'push-queue') { if (svitloTileState) openSvitloModal(); else showToast('Графік відключень зараз не публікується', 'info'); return; }
   if (act === 'push-off') { cabPushConfirmOff = true; renderCabPush(); return; }
   if (act === 'push-off-no') { cabPushConfirmOff = false; renderCabPush(); return; }
   const done = () => { cabPushDraft = null; cabPushConfirmOff = false; renderCabPush(); };
@@ -2521,7 +2531,7 @@ function svitloRevShort(revised, updated) {
 const SVITLO_QUEUE_KEY = 'svitlo_queue';
 function svitloQueueId(p, q) { return String(p.name) + '|' + String(q.queue); }
 function getSvitloChoice() { try { return localStorage.getItem(SVITLO_QUEUE_KEY) || ''; } catch (e) { return ''; } }
-function setSvitloChoice(id) { try { if (id) localStorage.setItem(SVITLO_QUEUE_KEY, id); else localStorage.removeItem(SVITLO_QUEUE_KEY); } catch (e) {} }
+function setSvitloChoice(id) { try { if (id) localStorage.setItem(SVITLO_QUEUE_KEY, id); else localStorage.removeItem(SVITLO_QUEUE_KEY); } catch (e) {} pushQueueSync(); }
 
 // Обрана черга, якщо вона є в поточному графіку: { id, queue, slots }
 function svitloMyQueue(data) {
@@ -5280,6 +5290,22 @@ async function registerFirebaseSW() {
   return registration;
 }
 
+// Обрана черга світла — і на сервер (колонка H у Push_Tokens): сповіщення про графік приходять лише про неї.
+// Надсилаємо, коли чергу змінили, і про всяк випадок раз на тиждень (запит no-cors — відповіді не видно)
+const PUSH_QUEUE_KEY = 'push_queue_sent';
+let pushQueueTimer = null;
+function pushQueueMark() { try { localStorage.setItem(PUSH_QUEUE_KEY, JSON.stringify({ q: getSvitloChoice(), t: Date.now() })); } catch (e) {} }
+function pushQueueSync() {
+  clearTimeout(pushQueueTimer);
+  pushQueueTimer = setTimeout(async () => {
+    const token = localStorage.getItem('push_token');
+    if (localStorage.getItem('push_subscribed') !== '1' || !token) return;
+    let last = null; try { last = JSON.parse(localStorage.getItem(PUSH_QUEUE_KEY) || 'null'); } catch (e) {}
+    if (last && last.q === getSvitloChoice() && Date.now() - (last.t || 0) < 7 * 864e5) return;
+    if (await updateCategoriesOnServer(token, getCurrentCategories())) pushQueueMark();
+  }, 1500); // кілька тапів по чергах поспіль — один запит
+}
+
 // Сохраняем токен в Google Sheets через Apps Script (с категориями)
 async function savePushTokenToServer(token, categories) {
   try {
@@ -5292,9 +5318,11 @@ async function savePushTokenToServer(token, categories) {
         token: token,
         userAgent: navigator.userAgent,
         platform: detectPlatform(),
-        categories: categories
+        categories: categories,
+        svitloQueue: getSvitloChoice() // '' — черга не обрана: про світло приходить загальне сповіщення
       })
     });
+    pushQueueMark();
     return true;
   } catch (e) {
     console.error('Помилка збереження токена:', e);
@@ -5312,7 +5340,8 @@ async function updateCategoriesOnServer(token, categories) {
       body: JSON.stringify({
         formType: 'push_update_categories',
         token: token,
-        categories: categories
+        categories: categories,
+        svitloQueue: getSvitloChoice()
       })
     });
     return true;
@@ -5810,6 +5839,7 @@ const initApp = () => {
   setTimeout(() => {
     updatePushButtonState();
     migratePushTopics();
+    pushQueueSync(); // черга світла — на сервер (уже підписаним; далі — раз на тиждень і при зміні черги)
     // Регистрируем единый Service Worker для всех: даёт PWA активный SW
     // и мигрирует старые регистрации firebase-messaging-sw.js на /sw.js
     if ('serviceWorker' in navigator) {
