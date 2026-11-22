@@ -771,13 +771,16 @@ html.tiles-mode .alert-group,html.tiles-mode .schedule-group,html.tiles-mode .ma
 .th-brand>span{font-size:11px;font-weight:700;letter-spacing:0.4px;color:rgba(255,255,255,0.62);white-space:nowrap}
 .th-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:86px;gap:8px}
 .th-tile{position:relative;-webkit-appearance:none;appearance:none;margin:0;font:inherit;color:#fff;text-align:center;cursor:pointer;
-  border-radius:20px;padding:10px 6px;background:rgba(6,14,36,0.5);border:1px solid rgba(255,255,255,0.1);border-top-color:rgba(255,255,255,0.18);
+  border-radius:20px;padding:14px 4px 6px;background:rgba(6,14,36,0.5);border:1px solid rgba(255,255,255,0.1);border-top-color:rgba(255,255,255,0.18);
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;box-shadow:0 8px 20px rgba(0,0,0,0.22);overflow:hidden;
   -webkit-tap-highlight-color:transparent;transition:transform 0.12s ease}
 .th-tile:active{transform:scale(0.97)}
 .th-tile:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .th-tile svg{flex:0 0 auto;color:var(--c)}
 .th-l{display:block;font-size:10.5px;font-weight:800;line-height:1.15;letter-spacing:-0.1px}
+/* Мала плитка: підпис в один рядок — тоді іконки в ряду на одній висоті, а значок у куті не налазить на іконку */
+.th-tile>.th-l{white-space:nowrap}
+@media (max-width:340px){ .th-tile>.th-l{font-size:9.5px} }
 .th-txt{display:block;min-width:0}
 .th-d{display:block;font-size:10.5px;font-weight:600;color:rgba(255,255,255,0.65);margin-top:2px}
 .th-w2,.th-w3,.th-w4{flex-direction:row;justify-content:flex-start;gap:11px;padding:10px 14px;text-align:left}
@@ -839,17 +842,34 @@ html.tiles-mode .alert-group,html.tiles-mode .schedule-group,html.tiles-mode .ma
 .th-chips span{font-size:10px;font-weight:800;padding:2px 6px;border-radius:7px;background:rgba(255,77,77,0.22);border:1px solid rgba(255,77,77,0.5);color:#ffd2d2}
 .th-chips .th-chip-q{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.32);color:#fff}
 /* Плитка «Світло»: графік оновили, а людина ще не дивилась */
-.th-new{font-size:9.5px;font-weight:900;letter-spacing:0.3px;padding:2px 7px;border-radius:8px;background:linear-gradient(135deg,#ffcc00,#ff8a00);color:#1a1200;box-shadow:0 0 10px rgba(255,170,0,0.8);text-transform:uppercase;white-space:nowrap}
 .th-tile.th-svitlo-new{box-shadow:0 0 0 2px #ffcc00,0 0 20px rgba(255,204,0,0.5)}
 .th-glow{box-shadow:0 0 0 1px rgba(var(--rgb),0.35),0 10px 24px rgba(0,0,0,0.25)}
 .th-ph{background:linear-gradient(135deg,#d32f2f,#8b0000);border-color:#ff4d4d}
 .th-ph svg{color:#fff}
 .th-tile.th-on{box-shadow:0 0 0 2px var(--c),0 0 16px rgba(var(--rgb),0.55)}
-/* Живі позначки — копії бейджів зі старих вкладок (ті самі дані й кольори) */
-.th-badges{position:absolute;top:6px;right:6px;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:3px;max-width:calc(100% - 12px);pointer-events:none}
+/* Значки на плитках: однакова «пігулка» в кольорі своєї плитки — число або коротке слово. Без миготіння:
+   коли значків багато, блимання рябить. Мала й велика плитка — значок у правому верхньому куті;
+   широка (іконка й назва в рядок) — одразу після назви, як лічильник у списку: так він не налазить на текст
+   на жодній ширині. На ФЕНІКСІ (червона плитка) — білий */
+.th-badges{position:absolute;top:5px;right:5px;z-index:1;display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px;max-width:calc(100% - 10px);pointer-events:none}
 .th-badges:empty{display:none}
-.th-badges>*{position:static!important;transform:none!important;margin:0!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important}
-.th-count{font-size:9.5px;font-weight:800;padding:2px 6px;border-radius:8px;background:#fff;color:#b71c1c;line-height:1.2}
+.th-big .th-badges{top:10px;right:10px}
+.th-pill{display:inline-flex;align-items:center;justify-content:center;gap:4px;box-sizing:border-box;min-width:18px;height:18px;padding:0 6px;border-radius:9px;
+  background:var(--c);color:#061631;font-size:10.5px;font-weight:900;line-height:1;letter-spacing:0;font-variant-numeric:tabular-nums;white-space:nowrap;
+  box-shadow:0 0 0 2px rgba(6,14,36,0.3),0 3px 10px rgba(var(--rgb),0.4);pointer-events:auto}
+.th-tile .th-pill svg{width:11px;height:11px;flex:0 0 auto;color:inherit}
+.th-pill-seg{display:inline-flex;align-items:center;gap:3px}
+.th-pill-div{width:1px;height:10px;border-radius:1px;background:currentColor;opacity:0.3}
+.th-pill-word{padding:0 7px;font-size:10px;letter-spacing:0.1px}
+.th-ph .th-pill{background:#fff;color:#b71c1c;box-shadow:0 0 0 2px rgba(90,0,0,0.3),0 3px 10px rgba(0,0,0,0.3)}
+/* Після назви: пробіл перед значком ширшає на 3 px (а коли значок переноситься — зникає, тож без відступу) */
+.th-sp{word-spacing:3px}
+.th-l>.th-badges{position:static;display:inline-flex;vertical-align:middle;margin:1px 0;max-width:none;flex-wrap:nowrap}
+.th-l>.th-badges:empty{display:none}
+.th-l>.th-badges .th-pill{box-shadow:0 2px 8px rgba(var(--rgb),0.35)}
+.th-ph .th-l>.th-badges .th-pill{box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+/* Найвужчі телефони: на «Світлі» поруч з іконкою вміщується лише «Новий» */
+@media (max-width:340px){ .th-pill-more{display:none} }
 
 /* Розділ, відкритий з плитки, — окремим екраном поверх головної (вікна сайту лишаються вище) */
 html.tiles-mode.section-open,html.tiles-mode.section-open body{overflow:hidden}

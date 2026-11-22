@@ -912,7 +912,7 @@ function renderSvitloTile(state) {
   const unseen = state ? svitloUnseen(state, getSvitloSeen()) : null;
   if (tile) tile.classList.toggle('th-svitlo-new', !!unseen);
   if (badges) {
-    const b = unseen ? `<span class="th-new">${unseen.kind === 'new' ? 'Новий графік' : 'Оновлено'}</span>` : '';
+    const b = !unseen ? '' : unseen.kind === 'new' ? tileBadge('Новий<span class="th-pill-more"> графік</span>', 'Вийшов новий графік відключень', 'th-pill-word') : tileBadge('Оновлено', 'Графік відключень оновили', 'th-pill-word');
     if (badges.dataset.v !== b) { badges.dataset.v = b; badges.innerHTML = b; }
   }
   if (!state) { st.textContent = 'Графік відключень'; st.className = 'th-st'; chips.innerHTML = ''; put('th-svitlo-sub', ''); put('th-svitlo-compact', ''); put('th-svitlo-side', ''); return; }
@@ -980,18 +980,36 @@ function svitloTileSide(d, my, now, off, tmr) {
   return `<span class="th-side-h">${head}</span>${rows.slice(0, 5).join('')}${foot ? `<span class="th-side-f">${escapeHTML(foot)}</span>` : ''}`;
 }
 
-// Живі позначки плиток — копії бейджів зі старих вкладок (ті самі дані, кольори й підказки)
-function tileBadgesHtml(tabId) {
+// Значки на плитках — однакові: «пігулка» в кольорі плитки з числом або коротким словом, без миготіння.
+// Дані — з бейджів старих вкладок (їх і далі оновлюють ті самі функції), а вигляд свій:
+// на малій плитці лише загальне число (з типами значок налазив би на іконку), на широкій — ще й іконки типів
+function tileBadge(inner, label, cls) {
+  return `<span class="th-pill${cls ? ' ' + cls : ''}" role="img" aria-label="${escapeHTML(label)}" title="${escapeHTML(label)}">${inner}</span>`;
+}
+function tileBadgesHtml(tabId, tile) {
   const tab = tileSourceTab(tabId);
   if (!tab) return '';
+  const wide = !!tile && tile.matches('.th-w2, .th-w3, .th-w4, .th-big');
   let html = '';
   tab.querySelectorAll(':scope > [class$="-live-badge"], :scope > .map-new-badge').forEach(b => {
     if (tabId === 'trains' && b.classList.contains('delays-live-badge')) return; // затримки — рядком на самій плитці
-    html += b.outerHTML;
+    if (b.classList.contains('map-new-badge')) { html += tileBadge('NEW', 'Новий розділ', 'th-pill-word'); return; }
+    // Половинки бейджа: іконка типу й число («ЗБІР» без числа — один збір)
+    const segs = Array.from(b.querySelectorAll('.tab-seg')).map(seg => {
+      const m = seg.textContent.match(/\d+/), ico = seg.querySelector('svg');
+      return { ico: ico ? ico.outerHTML : '', n: m ? +m[0] : 1 };
+    });
+    const total = segs.reduce((sum, x) => sum + x.n, 0);
+    if (!total) return;
+    const label = b.title || String(total);
+    if (tabId === 'trains') html += tileBadge(`${total} ${pluralUk(total, 'зміна', 'зміни', 'змін')}`, label, 'th-pill-word');
+    else if (tabId === 'alert-volunteers') html += tileBadge(`${total} ${pluralUk(total, 'збір', 'збори', 'зборів')}`, label, 'th-pill-word');
+    else if (wide) html += tileBadge(segs.map(x => `<span class="th-pill-seg">${x.ico}${x.n}</span>`).join('<span class="th-pill-div"></span>'), label);
+    else html += tileBadge(String(total), label);
   });
   if (tabId === 'alert-phoenix') {
     const m = ((document.getElementById('phoenix-tab-count') || {}).textContent || '').match(/\d+/);
-    if (m) html += `<span class="th-count">${m[0]}</span>`;
+    if (m) html += tileBadge(m[0], `Оголошень про розшук: ${m[0]}`);
   }
   return html;
 }
@@ -1000,7 +1018,7 @@ function syncTileHome() {
   document.querySelectorAll('#tile-home .th-tile[data-tab]').forEach(tile => {
     const box = tile.querySelector('.th-badges');
     if (!box) return;
-    const html = tileBadgesHtml(tile.dataset.tab);
+    const html = tileBadgesHtml(tile.dataset.tab, tile);
     if (box.dataset.v !== html) { box.dataset.v = html; box.innerHTML = html; }
   });
   const st = document.getElementById('th-trains-status');
