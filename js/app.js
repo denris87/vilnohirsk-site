@@ -240,11 +240,11 @@ function copyToClipboardBtn(text, btn) {
 // === Підтримати проєкт: скопіювати номер картки, поділитися сайтом, запропонувати ідею ===
 const DONATE_CARD = '4874100039182863';
 function donateCopy(btn) {
-  const label = btn.querySelector('span');
+  const cap = btn.querySelector('.dj-cap');
   const done = () => {
-    btn.classList.add('don-copied'); if (label) label.textContent = 'Скопійовано ✓';
+    btn.classList.add('dj-copied'); if (cap) cap.textContent = 'Номер скопійовано ✓';
     showToast('✅ Номер картки скопійовано — вставте його в застосунку свого банку', 'success');
-    clearTimeout(btn._t); btn._t = setTimeout(() => { btn.classList.remove('don-copied'); if (label) label.textContent = 'Скопіювати номер'; }, 2500);
+    clearTimeout(btn._t); btn._t = setTimeout(() => { btn.classList.remove('dj-copied'); if (cap) cap.textContent = 'або на картку monobank'; }, 2500);
   };
   if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(DONATE_CARD).then(done).catch(() => fallbackCopyText(DONATE_CARD, done));
   else fallbackCopyText(DONATE_CARD, done);
