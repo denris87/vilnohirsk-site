@@ -1541,7 +1541,9 @@ function cabFillForm(form) {
   const n = form.querySelector('#input-name');
   if (n && name && !n.value) n.value = name.slice(0, 30);
   const sc = form.querySelector('#beta-feedback-contact');
-  if (sc && !sc.value) { let last = ''; try { last = localStorage.getItem('support_contact') || ''; } catch (e) {} sc.value = last || p.phone || ''; }
+  // Контакт для техпідтримки: останній, який людина залишала; якщо минулого разу надіслала без контакту — не підставляємо
+  if (sc && !sc.value) { let last = null; try { last = localStorage.getItem('support_contact'); } catch (e) {} sc.value = last !== null ? last : (p.phone || ''); }
+  if (sc) supportContactHint(false);
 }
 function cabMeSave(form) {
   const name = form.querySelector('#cab-me-name').value.trim().replace(/\s+/g, ' ').slice(0, 30);
@@ -5083,9 +5085,10 @@ async function showDailyVolunteerAlert() {
 }
 
 // === ТЕХПІДТРИМКА: звернення → Apps Script (Support.gs) → адміністраторам у Telegram (@Vilnogirsk_bot) ===
-// Контакт обов'язковий: Telegram-нік або телефон — так само перевіряє й сервер.
+// Контакт — за бажанням: Telegram-нік або телефон, якщо людина хоче відповідь. Сервер перевіряє так само.
 const SUPPORT_TOPIC_LABEL = { bug: '🐞 Помилка', question: '❓ Питання', idea: '💡 Ідея', place: '🏪 Додати заклад', ads: '📢 Реклама', other: '💬 Інше' };
-const SUPPORT_HINT = 'Сюди ми вам і відповімо';
+const SUPPORT_HINT = 'Хочете відповідь — залиште Telegram-нік або номер. Без контакту повідомлення теж дійде, але відповісти не зможемо.';
+const SUPPORT_BAD = 'Не схоже на нік чи номер. Нік — як @ivan, номер — як +380971234567. Або залиште поле порожнім.';
 // «@nick», «t.me/nick», «nick» → «@nick»; «097…», «+380…», «380…» → «+380…»; інше — null
 function supportContactParse(raw) {
   const s = String(raw == null ? '' : raw).trim().slice(0, 64).replace(/^(https?:\/\/)?(www\.)?(t\.me|telegram\.me)\//i, '@');
@@ -5098,6 +5101,21 @@ function supportContactParse(raw) {
   const nick = s.replace(/^@/, '');
   return /^[A-Za-z][A-Za-z0-9_]{3,31}$/.test(nick) ? '@' + nick : null;
 }
+// Підказка під полем контакту: як саме відповімо (✓) або що не так.
+// strict — показати помилку (людина вийшла з поля чи надсилає); поки друкує — без червоного.
+function supportContactHint(strict) {
+  const el = document.getElementById('beta-feedback-contact'), hint = document.getElementById('sup-contact-hint');
+  if (!el) return true;
+  const raw = el.value.trim(), c = raw ? supportContactParse(raw) : null, bad = !!raw && !c, show = bad && !!strict;
+  el.classList.toggle('sup-ok', !!c);
+  el.classList.toggle('sup-bad', show);
+  if (hint) {
+    hint.textContent = c ? (c.charAt(0) === '@' ? '✓ Відповімо вам у Telegram: ' + c : '✓ Напишемо в Telegram або зателефонуємо: ' + c) : show ? SUPPORT_BAD : SUPPORT_HINT;
+    hint.classList.toggle('sup-hint-ok', !!c);
+    hint.classList.toggle('sup-hint-bad', show);
+  }
+  return !bad;
+}
 // «iPhone · Safari · застосунок» — щоб адміністратор розумів, де шукати помилку
 function supportDevice() {
   const ua = navigator.userAgent || '';
@@ -5105,26 +5123,19 @@ function supportDevice() {
   const br = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /SamsungBrowser/.test(ua) ? 'Samsung' : /Firefox|FxiOS/.test(ua) ? 'Firefox' : /CriOS|Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'браузер';
   return os + ' · ' + br + (typeof isPWA === 'function' && isPWA() ? ' · застосунок' : '');
 }
-function supportFieldError(el, msg) {
-  el.classList.add('sup-bad'); el.focus();
-  const hint = document.getElementById('sup-contact-hint');
-  if (el.id === 'beta-feedback-contact' && hint) { hint.textContent = msg; hint.classList.add('sup-hint-bad'); }
-  else showToast(msg, 'error');
-}
 document.addEventListener('input', (e) => {
   const id = e.target && e.target.id;
-  if (id !== 'beta-feedback-contact' && id !== 'beta-feedback-text') return;
-  e.target.classList.remove('sup-bad');
-  const hint = document.getElementById('sup-contact-hint');
-  if (id === 'beta-feedback-contact' && hint && hint.classList.contains('sup-hint-bad')) { hint.textContent = SUPPORT_HINT; hint.classList.remove('sup-hint-bad'); }
+  if (id === 'beta-feedback-text') e.target.classList.remove('sup-bad');
+  else if (id === 'beta-feedback-contact') supportContactHint(false);
 });
+document.addEventListener('focusout', (e) => { if (e.target && e.target.id === 'beta-feedback-contact') supportContactHint(true); });
 async function submitSupport(event) {
   event.preventDefault();
   const form = event.target;
   const textEl = document.getElementById('beta-feedback-text'), contactEl = document.getElementById('beta-feedback-contact');
-  const text = textEl.value.trim(), contact = supportContactParse(contactEl.value);
-  if (text.length < 3) { supportFieldError(textEl, 'Напишіть кілька слів — що сталося чи що хочете запропонувати'); return; }
-  if (!contact) { supportFieldError(contactEl, 'Вкажіть Telegram-нік (напр. @ivan) або номер телефону (напр. +380971234567)'); return; }
+  const text = textEl.value.trim(), raw = contactEl.value.trim(), contact = raw ? supportContactParse(raw) : '';
+  if (text.length < 3) { textEl.classList.add('sup-bad'); textEl.focus(); showToast('Напишіть кілька слів — що сталося чи що хочете запропонувати', 'error'); return; }
+  if (!supportContactHint(true)) { contactEl.focus(); return; }
   if (!validateCaptcha('custom-feedback-form')) return;
   const topicEl = form.querySelector('input[name="topic"]:checked'), topic = topicEl ? topicEl.value : 'other';
   const btn = document.getElementById('feedback-submit-btn'), label = btn.textContent;
@@ -5135,14 +5146,16 @@ async function submitSupport(event) {
     let d = null;
     try { d = await cabScript(payload); } catch (e) { d = null; }
     if (d && d.status === 'limit') { showToast('⏳ Забагато повідомлень поспіль — спробуйте за 10 хвилин', 'error'); return; }
-    if (d && d.status === 'error') { showToast('❌ ' + (d.message || 'Не вдалося надіслати'), 'error'); return; }
+    if (d && d.status === 'error' && contact) { showToast('❌ ' + (d.message || 'Не вдалося надіслати'), 'error'); return; }
     if (!d || d.status !== 'ok') {
-      // Apps Script ще без техпідтримки — запасний шлях: у таблицю «Відгуки», як раніше, щоб повідомлення не загубилось
+      // Apps Script ще без техпідтримки (або стара версія, де контакт обов'язковий) — запасний шлях:
+      // у таблицю «Відгуки», як раніше, щоб повідомлення не загубилось
       await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ formType: 'feedback', text: `[${SUPPORT_TOPIC_LABEL[topic] || SUPPORT_TOPIC_LABEL.other}] ${text}\n\n---Контакт для зв'язку---\n${contact}` }) });
+        body: JSON.stringify({ formType: 'feedback', text: `[${SUPPORT_TOPIC_LABEL[topic] || SUPPORT_TOPIC_LABEL.other}] ${text}` + (contact ? `\n\n---Контакт для зв'язку---\n${contact}` : '') }) });
     }
+    // Порожньо — людина обрала без контакту: наступного разу телефон із «Моїх даних» не підставляємо
     try { localStorage.setItem('support_contact', contact); } catch (e) {}
-    showToast('✅ Надіслано! Відповімо вам у Telegram або за телефоном', 'success');
+    showToast(!contact ? '✅ Надіслано! Дякуємо — ми все прочитаємо' : contact.charAt(0) === '@' ? '✅ Надіслано! Відповімо вам у Telegram' : '✅ Надіслано! Напишемо в Telegram або зателефонуємо', 'success');
     textEl.value = ''; form.querySelectorAll('input[name="topic"]').forEach(i => { i.checked = false; });
     closeModalForm(null, 'feedback-modal'); setupCaptcha('custom-feedback-form');
   } catch (e) {
