@@ -1541,8 +1541,7 @@ function cabFillForm(form) {
   const n = form.querySelector('#input-name');
   if (n && name && !n.value) n.value = name.slice(0, 30);
   const sc = form.querySelector('#beta-feedback-contact');
-  // Контакт для техпідтримки: останній, який людина залишала; якщо минулого разу надіслала без контакту — не підставляємо
-  if (sc && !sc.value) { let last = null; try { last = localStorage.getItem('support_contact'); } catch (e) {} sc.value = last !== null ? last : (p.phone || ''); }
+  // Техпідтримка: контакт за бажанням — нічого не підставляємо, лише оновлюємо підказку під полем
   if (sc) supportContactHint(false);
 }
 function cabMeSave(form) {
@@ -5089,6 +5088,8 @@ async function showDailyVolunteerAlert() {
 const SUPPORT_TOPIC_LABEL = { bug: '🐞 Помилка', question: '❓ Питання', idea: '💡 Ідея', place: '🏪 Додати заклад', ads: '📢 Реклама', other: '💬 Інше' };
 const SUPPORT_HINT = 'Хочете відповідь — залиште Telegram-нік або номер. Без контакту повідомлення теж дійде, але відповісти не зможемо.';
 const SUPPORT_BAD = 'Не схоже на нік чи номер. Нік — як @ivan, номер — як +380971234567. Або залиште поле порожнім.';
+// Контакт більше не запам'ятовуємо (поле щоразу порожнє) — прибираємо збережений раніше
+try { localStorage.removeItem('support_contact'); } catch (e) {}
 // «@nick», «t.me/nick», «nick» → «@nick»; «097…», «+380…», «380…» → «+380…»; інше — null
 function supportContactParse(raw) {
   const s = String(raw == null ? '' : raw).trim().slice(0, 64).replace(/^(https?:\/\/)?(www\.)?(t\.me|telegram\.me)\//i, '@');
@@ -5153,10 +5154,9 @@ async function submitSupport(event) {
       await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ formType: 'feedback', text: `[${SUPPORT_TOPIC_LABEL[topic] || SUPPORT_TOPIC_LABEL.other}] ${text}` + (contact ? `\n\n---Контакт для зв'язку---\n${contact}` : '') }) });
     }
-    // Порожньо — людина обрала без контакту: наступного разу телефон із «Моїх даних» не підставляємо
-    try { localStorage.setItem('support_contact', contact); } catch (e) {}
     showToast(!contact ? '✅ Надіслано! Дякуємо — ми все прочитаємо' : contact.charAt(0) === '@' ? '✅ Надіслано! Відповімо вам у Telegram' : '✅ Надіслано! Напишемо в Telegram або зателефонуємо', 'success');
-    textEl.value = ''; form.querySelectorAll('input[name="topic"]').forEach(i => { i.checked = false; });
+    textEl.value = ''; contactEl.value = ''; supportContactHint(false); // контакт не запам'ятовуємо — наступного разу поле порожнє
+    form.querySelectorAll('input[name="topic"]').forEach(i => { i.checked = false; });
     closeModalForm(null, 'feedback-modal'); setupCaptcha('custom-feedback-form');
   } catch (e) {
     showToast('❌ Не вдалося надіслати — перевірте інтернет і спробуйте ще раз', 'error');
