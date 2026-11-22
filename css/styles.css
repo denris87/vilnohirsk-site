@@ -317,32 +317,47 @@ button.sv2-tab:focus-visible{outline:2px solid #38bdf8;outline-offset:2px;}
 .donate-btn-heart svg{width:20px;height:20px;display:block;}
 @keyframes donateHeartBeat{0%,100%{transform:scale(1);}15%{transform:scale(1.28);}30%{transform:scale(1);}45%{transform:scale(1.18);}60%{transform:scale(1);}}
 @media (prefers-reduced-motion: reduce){.donate-btn-heart{animation:none;}}
-/* Модалка донату */
-.donate-hero{display:flex;justify-content:center;margin:4px 0 14px;}
-.donate-hero-ico{width:74px;height:74px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,rgba(255,77,77,0.22),rgba(255,77,77,0.04));color:#ff4d4d;box-shadow:0 0 26px rgba(255,77,77,0.3);animation:donateHeartBeat 2.2s ease-in-out infinite;}
-.donate-hero-ico svg{width:36px;height:36px;}
-.donate-title{margin:0 0 10px;text-align:center;font-size:19px;font-weight:800;color:#fff;}
-.donate-text{margin:0 0 18px;text-align:center;font-size:13px;line-height:1.55;color:rgba(255,255,255,0.78);}
-.donate-jar{display:flex;align-items:center;justify-content:space-between;gap:12px;text-decoration:none;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(0,0,0,0.25));border:1px solid rgba(255,255,255,0.12);box-shadow:inset 0 1px 2px rgba(255,255,255,0.06);transition:background 0.2s ease,transform 0.15s ease;}
-.donate-jar:active{transform:scale(0.99);}
-@media (hover:hover){.donate-jar:hover{background:linear-gradient(135deg,rgba(255,255,255,0.12),rgba(0,0,0,0.2));}}
-.donate-jar-txt{display:flex;flex-direction:column;gap:3px;}
-.donate-jar-title{font-size:15px;font-weight:800;color:#fff;}
-.donate-jar-sub{font-size:11px;color:rgba(255,255,255,0.55);}
-.donate-jar-ico{flex:0 0 auto;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#000;color:#fff;border:1px solid rgba(255,255,255,0.15);}
-.donate-jar-ico svg{width:22px;height:22px;}
-.donate-jar-uah{font-size:22px;font-weight:800;line-height:1;}
-.donate-or{margin:18px 0 10px;text-align:center;font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.45);}
-.donate-card{padding:14px 16px;border-radius:16px;background:rgba(0,0,0,0.28);border:1px solid rgba(255,255,255,0.1);}
-.donate-card-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.donate-card-num{font-size:15px;font-weight:800;font-family:monospace;letter-spacing:0.5px;color:#fff !important;text-decoration:none !important;word-break:break-all;}
-.donate-card-num a{color:#fff !important;text-decoration:none !important;}
-.donate-card-sub{font-size:11px;color:rgba(255,255,255,0.5);margin-top:4px;}
-.donate-card-copy{flex:0 0 auto;min-width:42px;height:42px;padding:0 10px;white-space:nowrap;font-size:11px;font-weight:700;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.12);color:#fff;transition:background 0.2s ease,transform 0.15s ease;}
-.donate-card-copy:active{transform:scale(0.92);}
-@media (hover:hover){.donate-card-copy:hover{background:rgba(255,255,255,0.18);}}
-.donate-card-copy svg{width:20px;height:20px;}
-.donate-thanks{margin-top:16px;text-align:center;font-size:14px;font-weight:800;color:#ffcc00;letter-spacing:0.5px;text-shadow:0 0 10px rgba(255,204,0,0.35);}
+/* Модалка «Підтримати проєкт» */
+.don-box{text-align:left;max-width:430px;background:linear-gradient(180deg,#131d2e 0%,#0b1220 100%);border:1px solid rgba(255,255,255,0.1);box-shadow:0 24px 60px rgba(0,0,0,0.6)}
+.don-flag{display:block;width:44px;height:6px;border-radius:999px;background:linear-gradient(90deg,#0057B7 0 50%,#FFD500 50% 100%);margin:2px 0 14px}
+.don-eyebrow{margin:0 0 6px;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:#FFD54A}
+.don-title{margin:0 44px 10px 0;font-size:23px;line-height:1.2;font-weight:900;color:#fff;letter-spacing:-0.3px;text-wrap:balance}
+.don-text{margin:0 0 14px;font-size:14px;line-height:1.5;color:rgba(255,255,255,0.78)}
+.don-goals{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:0 0 18px;padding:0}
+.don-goals li{display:inline-flex;align-items:center;gap:6px;padding:6px 11px 6px 9px;border-radius:999px;font-size:12.5px;font-weight:700;color:#d6ecff;background:rgba(125,211,252,0.08);border:1px solid rgba(125,211,252,0.22)}
+.don-goals svg{width:15px;height:15px;color:#7dd3fc;flex:0 0 auto}
+.don-jar{display:flex;align-items:center;gap:12px;padding:14px 14px 14px 12px;border-radius:18px;text-decoration:none;background:#FFD54A;color:#1a1300;box-shadow:0 8px 24px rgba(255,213,74,0.25);transition:transform 0.15s,box-shadow 0.15s}
+.don-jar:active{transform:scale(0.98)}
+@media (hover:hover){.don-jar:hover{transform:translateY(-1px);box-shadow:0 12px 28px rgba(255,213,74,0.35)}}
+.don-jar:focus-visible{outline:3px solid #fff;outline-offset:3px}
+.don-jar-ico{flex:0 0 46px;width:46px;height:46px;border-radius:14px;display:grid;place-items:center;background:#1a1300;color:#FFD54A}
+.don-jar-ico svg{width:26px;height:26px}
+.don-jar-txt{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px}
+.don-jar-txt b{font-size:17px;font-weight:900;line-height:1.2}
+.don-jar-txt span{font-size:12px;line-height:1.35;color:rgba(26,19,0,0.72);font-weight:600}
+.don-jar-go{flex:0 0 auto;width:26px;height:26px}
+.don-card{container-type:inline-size;margin-top:12px;padding:14px 16px 14px;border-radius:18px;border:1px solid rgba(255,255,255,0.12);background:radial-gradient(120% 140% at 100% 0%,rgba(0,87,183,0.38),transparent 60%),linear-gradient(135deg,#1d2636,#0f1520)}
+.don-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.6)}
+.don-card-bank{text-transform:none;letter-spacing:0;font-weight:700;color:rgba(255,255,255,0.75)}
+.don-card-num{margin:12px 0 12px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;font-size:18px;font-size:clamp(14px,7.6cqi,22px);font-weight:700;letter-spacing:0.06em;color:#fff;white-space:nowrap;user-select:all;-webkit-user-select:all}
+.don-copy{-webkit-appearance:none;appearance:none;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.22);background:rgba(255,255,255,0.1);color:#fff;font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:background 0.15s,border-color 0.15s}
+.don-copy svg{width:18px;height:18px}
+.don-copy:active{transform:scale(0.98)}
+@media (hover:hover){.don-copy:hover{background:rgba(255,255,255,0.16)}}
+.don-copy.don-copied{background:rgba(0,255,156,0.14);border-color:rgba(0,255,156,0.5);color:#00ff9c}
+.don-alt-title{margin:20px 0 8px;font-size:11px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:rgba(255,255,255,0.55)}
+.don-alt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.don-alt-btn{-webkit-appearance:none;appearance:none;display:flex;align-items:center;gap:10px;min-width:0;padding:11px 12px;border-radius:14px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);color:#fff;font:inherit;text-align:left;cursor:pointer;transition:background 0.15s}
+@media (hover:hover){.don-alt-btn:hover{background:rgba(255,255,255,0.09)}}
+.don-alt-btn:active{transform:scale(0.98)}
+.don-alt-btn svg{flex:0 0 auto;width:22px;height:22px;color:#7dd3fc}
+.don-alt-idea svg{color:#FFD54A}
+.don-alt-btn span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.don-alt-btn b{font-size:14px;font-weight:800}
+.don-alt-btn small{font-size:11.5px;line-height:1.3;color:rgba(255,255,255,0.6)}
+.don-thanks{margin:16px 0 0;text-align:center;font-size:12.5px;font-weight:700;color:rgba(255,255,255,0.6)}
+@media (max-width:360px){.don-title{font-size:21px}.don-alt{grid-template-columns:1fr}}
+@media (prefers-reduced-motion: reduce){.don-jar,.don-copy,.don-alt-btn{transition:none}}
 .content-section{display:none} .content-section.active{display:block;animation:tabFadeIn 0.3s ease-out forwards} @keyframes tabFadeIn{from{opacity:0}to{opacity:1}}
 .table-head{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.15);padding:0 10px 10px 10px;margin-bottom:12px;font-size:10px;text-transform:uppercase;color:#74b9ff;letter-spacing:0.5px}
 .train{display:grid;grid-template-columns:15% 1fr 18%;align-items:center;justify-items:center;padding:14px 10px;margin-bottom:10px;cursor:pointer;transition:all 0.3s ease;border-radius:16px;min-height:60px;background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(0,0,0,0.2));box-shadow:0 4px 12px rgba(0,0,0,0.2),inset 0 1px 1px rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.05)} .train:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.3)}

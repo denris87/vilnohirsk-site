@@ -237,6 +237,36 @@ function copyToClipboardBtn(text, btn) {
     }
 }
 
+// === Підтримати проєкт: скопіювати номер картки, поділитися сайтом, запропонувати ідею ===
+const DONATE_CARD = '4874100039182863';
+function donateCopy(btn) {
+  const label = btn.querySelector('span');
+  const done = () => {
+    btn.classList.add('don-copied'); if (label) label.textContent = 'Скопійовано ✓';
+    showToast('✅ Номер картки скопійовано — вставте його в застосунку свого банку', 'success');
+    clearTimeout(btn._t); btn._t = setTimeout(() => { btn.classList.remove('don-copied'); if (label) label.textContent = 'Скопіювати номер'; }, 2500);
+  };
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(DONATE_CARD).then(done).catch(() => fallbackCopyText(DONATE_CARD, done));
+  else fallbackCopyText(DONATE_CARD, done);
+}
+async function donateShare() {
+  const data = { title: 'Smart Вільногірськ', text: 'Світло за чергами, електрички, попутки й новини Вільногірська — в одному місці', url: 'https://vilnohirsk.online/' };
+  if (navigator.share) {
+    try { await navigator.share(data); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  // Немає системного «Поділитися» (комп'ютер) — копіюємо посилання
+  const done = () => showToast('🔗 Посилання на сайт скопійовано — надішліть його друзям', 'success');
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(data.url).then(done).catch(() => fallbackCopyText(data.url, done));
+  else fallbackCopyText(data.url, done);
+}
+// «Ідея» — одразу у вікно техпідтримки з темою «Ідея»
+function donateIdea() {
+  closeModalForm(null, 'donate-modal');
+  openModalForm('custom-feedback-form', 'feedback-modal');
+  const r = document.querySelector('#custom-feedback-form input[name="topic"][value="idea"]'); if (r) r.checked = true;
+  const t = document.getElementById('beta-feedback-text'); if (t) t.focus();
+}
+
 // Розділ не завантажився — показуємо чесне повідомлення з кнопкою повтору.
 // Раніше при недоступному CDN розділ просто лишався порожнім назавжди:
 // ні тексту, ні пояснення, людина дивилась на біле місце.
