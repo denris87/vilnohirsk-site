@@ -5146,6 +5146,17 @@ function renderJobs(jobs) {
       html += '</div>';
   }
 
+  // Порядок груп: після VIP — спершу місцеві роботодавці, далі центр зайнятості й Work.ua
+  if (regularJobs.length > 0) {
+      let cards = '';
+      getStableShuffled(regularJobs, 'jobs').forEach((job, i) => { cards += createJobCardHtml(job, i, 'r'); });
+      html += `<div class="jobs-group">
+        ${jobsGroupHeadHtml('local', regularJobs.length)}
+        <div class="jobs-note">Оголошення, які додали місцеві підприємці та роботодавці</div>
+        <div class="shops-tile-grid" style="padding-bottom:10px;">${cards}</div>
+      </div>`;
+  }
+
   if (dczJobs.length > 0) {
       allDczJobs = dczJobs;
       html += `<div class="jobs-group">
@@ -5160,15 +5171,6 @@ function renderJobs(jobs) {
       html += `<div class="jobs-group">
         ${jobsGroupHeadHtml('workua', internetJobs.length)}
         <div class="shops-tile-grid" style="padding-bottom:10px; padding-top:10px;">${cards}</div>
-      </div>`;
-  }
-  if (regularJobs.length > 0) {
-      let cards = '';
-      getStableShuffled(regularJobs, 'jobs').forEach((job, i) => { cards += createJobCardHtml(job, i, 'r'); });
-      html += `<div class="jobs-group">
-        ${jobsGroupHeadHtml('local', regularJobs.length)}
-        <div class="jobs-note">Оголошення, які додали місцеві підприємці та роботодавці</div>
-        <div class="shops-tile-grid" style="padding-bottom:10px;">${cards}</div>
       </div>`;
   }
   container.innerHTML = html;
