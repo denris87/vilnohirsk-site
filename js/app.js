@@ -565,6 +565,7 @@ const compressAndGetBase64 = (file) => new Promise((resolve, reject) => {
 
 async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos) {
   event.preventDefault(); if (cabBlockedSubmit() || !validateCaptcha(formId)) return;
+  if (CAB_LOGIN_ONLY[type] && !cabUser) { closeModalForm(null, modalId); cabLoginFirst(type); return; } // вийшли з кабінету, поки заповнювали
   const btn = document.getElementById(btnId); const origText = btn.innerText; btn.innerText = maxPhotos ? 'Обробка фото...' : 'Відправка...'; btn.disabled = true; btn.style.opacity = '0.7';
   try {
     const form = document.getElementById(formId); const formData = new FormData(form); const sheetData = { formType: type };
@@ -584,6 +585,7 @@ async function submitGenericForm(event, formId, modalId, btnId, type, maxPhotos)
     }
     // Є вхід у кабінет (бета) — додаємо токен: оголошення з'явиться в «Моїх оголошеннях» зі статусом модерації
     const idToken = await cabAdsToken(); if (idToken) sheetData.idToken = idToken;
+    if (CAB_LOGIN_ONLY[type] && !idToken) throw new Error('не вдалося підтвердити вхід у кабінет. Перевірте інтернет і спробуйте ще раз');
     btn.innerText = 'Збереження...';
     await fetch(APP_SCRIPT_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(sheetData) });
     showToast(idToken ? '✅ Відправлено! Статус — у «Моїх оголошеннях»' : '✅ Успішно відправлено на модерацію!', 'success');
@@ -925,6 +927,7 @@ function closeTileSection(fromHistory) {
   // Кнопка «Назад» на екрані — це крок назад в історії; закриє вже обробник popstate
   if (!fromHistory && history.state && history.state.tileSection) { history.back(); return; }
   root.classList.remove('section-open', 'cabinet-open');
+  cabAfter = '';
   document.querySelectorAll('.main-list-widget, .shopping-drawer, .alert-drawer').forEach(d => d.classList.remove('open'));
   document.querySelectorAll('.tab-btn, .tab-alert').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
@@ -933,6 +936,8 @@ window.addEventListener('popstate', (e) => {
   // У кабінеті «Назад» повертає з підекрана («Сповіщення», «Мої оголошення») на головний екран кабінету
   const st = e.state || {};
   const root = document.documentElement;
+  // Кабінет відкрили з розділу (щоб увійти й подати оголошення) — «Назад» повертає в той самий розділ
+  if (root.classList.contains('cabinet-open') && st.tileSection && st.tileSection !== 'cabinet') { root.classList.remove('cabinet-open'); cabAfter = ''; return; }
   if (root.classList.contains('cabinet-open') && st.tileSection === 'cabinet') { cabShowView(st.sub || 'home', true); return; }
   // Розділ відкрили з кабінету (напр. «Відкрити довідник» з «Обраного») — «Назад» повертає в кабінет, на той самий екран
   if (st.tileSection === 'cabinet' && root.classList.contains('section-open')) {
@@ -1165,6 +1170,7 @@ let cabState = 'idle'; // idle | loading | ready | error
 let cabMode = 'in';     // in — вхід, up — реєстрація
 let cabEmailOpen = false; // форма входу через e-mail розгорнута (за замовчуванням — лише кнопка, щоб «Мій день» було видно одразу)
 let cabConfirmDelete = false;
+let cabAfter = ''; // що відкрити одразу після входу (форму Барахолки: 'flea')
 const CAB_G_LOGO = '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 38.2 44 33 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
 const CAB_USER_ICO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>';
 
@@ -1178,7 +1184,7 @@ function ensureAuth() {
       cabAuth = firebase.auth();
       cabAuth.languageCode = 'uk'; // листи (підтвердження, відновлення пароля) і вікно Google — українською
       cabState = 'ready';
-      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) { cabMode = 'in'; cabEmailOpen = false; } cabAuthMark(!!u); cabAds = cabAdsBlank(); cabSup = cabSupBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(document.documentElement.classList.contains('cabinet-open')); cabSupAuto(); } });
+      cabAuth.onAuthStateChanged(u => { cabUser = u; cabKnown = true; cabConfirmDelete = false; if (!u) { cabMode = 'in'; cabEmailOpen = false; } cabAuthMark(!!u); cabAds = cabAdsBlank(); cabSup = cabSupBlank(); cabResetAdmin(u); renderAccount(); if (u) { cabLoadAds(); cabHello(document.documentElement.classList.contains('cabinet-open')); cabSupAuto(); if (cabAfter) cabRunAfter(); } });
     } catch (e) { cabState = 'error'; logSectionError('кабінет', e); renderAccount(); }
   };
   if (typeof firebase.auth === 'function') { start(); return; }
@@ -1236,6 +1242,7 @@ function renderCabinet() {
     top = `
       <div class="cab-hero"><span class="cab-hero-ico">${CAB_USER_ICO}</span><h2>Мій кабінет</h2>
         <p>Увійдіть, щоб подавати оголошення й керувати ними: бачити, що на модерації, і видаляти свої. Сповіщення, «Мій день» і «Обране» працюють і без входу.</p></div>
+      ${cabAfter && CAB_AD_KINDS[cabAfter] ? `<div class="cab-note cab-after"><b>${CAB_AD_KINDS[cabAfter].ico} ${CAB_AD_KINDS[cabAfter].name}: подати оголошення можна лише з входом</b><span>Увійдіть через Google або e-mail — і форма оголошення відкриється сама.</span></div>` : ''}
       <button type="button" class="cab-google" data-act="google">${CAB_G_LOGO}<span>Увійти через Google</span></button>
       ${!cabEmailOpen && !up ? `<button type="button" class="cab-btn cab-btn-ghost cab-wide" data-act="email-open">Увійти через e-mail</button>
       <p class="cab-fine">Входячи, ви погоджуєтеся з <a href="/privacy.html" target="_blank" rel="noopener">політикою конфіденційності</a>.</p>` : `
@@ -2003,7 +2010,7 @@ async function cabAdsAction(act, btn) {
     const nm = document.getElementById('input-name'); if (nm && !nm.value && cabUser) nm.value = cabName(cabUser).slice(0, 30);
     return;
   }
-  if (act === 'ad-new') { const k = CAB_AD_KINDS[btn.dataset.kind]; if (k && k.form) openModalForm(k.form[0], k.form[1]); return; }
+  if (act === 'ad-new') { cabAdNew(btn.dataset.kind); return; }
   if (act === 'ride-del' || act === 'ad-del') { cabAds.confirm = btn.dataset.id; renderCabinet(); return; }
   if (act === 'ride-del-no' || act === 'ad-del-no') { cabAds.confirm = ''; renderCabinet(); return; }
   if (act === 'ride-del-yes') return cabBusy(btn, async () => {
@@ -2080,6 +2087,42 @@ async function cabBye() {
   try { await cabScript({ formType: 'cabinet_bye', idToken: await cabUser.getIdToken() }); } catch (e) { logSectionError('кабінет: видалення з таблиці', e); }
   try { localStorage.removeItem('cab_hello'); } catch (e) {}
 }
+// === Барахолка — лише з входом у «Мій кабінет» ===
+// Без входу кнопка «Додати оголошення» відкриває кабінет із підказкою, а щойно людина ввійде — форма відкривається
+// сама. Скрипт сайту (Cabinet.gs, версія 7) теж не прийме оголошення в Барахолку без входу.
+const CAB_LOGIN_ONLY = { flea: true };
+function cabAdNew(kind, ev) {
+  if (ev) ev.stopPropagation();
+  const k = CAB_AD_KINDS[kind];
+  if (!k || !k.form) return;
+  if (!CAB_LOGIN_ONLY[kind]) { openModalForm(k.form[0], k.form[1]); return; }
+  cabWhenKnown(() => { if (cabUser) openModalForm(k.form[0], k.form[1]); else cabLoginFirst(kind); });
+}
+// Чи людина ввійшла, стає відомо не одразу: тим, хто вже входив на цьому пристрої, чекаємо бібліотеку входу (до 5 с)
+function cabWhenKnown(cb) {
+  if (cabKnown || cabState === 'error' || !cabAuthUsed()) { cb(); return; }
+  ensureAuth();
+  const t0 = Date.now();
+  (function wait() { if (cabKnown || cabState === 'error' || Date.now() - t0 > 5000) cb(); else setTimeout(wait, 100); })();
+}
+function cabLoginFirst(kind) {
+  const root = document.documentElement, k = CAB_AD_KINDS[kind];
+  if (!root.classList.contains('tiles-mode')) { showToast(`🔐 ${k.name}: подати оголошення можна лише з входом у «Мій кабінет»`, 'info'); return; }
+  cabAfter = kind;
+  const fromSection = root.classList.contains('section-open') && !root.classList.contains('cabinet-open');
+  openCabinet();
+  // Відкрили з розділу — окремий крок в історії: «Назад» поверне в розділ, а не на головну
+  if (fromSection) { try { history.pushState({ tileSection: 'cabinet', back: 'section' }, ''); } catch (e) {} }
+}
+// Щойно ввійшли — повернутися в розділ і відкрити форму, заради якої входили
+function cabRunAfter() {
+  const k = CAB_AD_KINDS[cabAfter];
+  cabAfter = '';
+  if (!k || !k.form) return;
+  if (history.state && history.state.back === 'section') { try { history.back(); } catch (e) {} }
+  setTimeout(() => { if (cabUser) openModalForm(k.form[0], k.form[1]); }, 150);
+}
+
 // Заблокованому не даємо подати оголошення (сервер його все одно не прийме)
 function cabBlockedSubmit() {
   if (!(cabUser && cabBanned)) return false;
