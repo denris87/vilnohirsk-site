@@ -4531,7 +4531,11 @@ function updateBlaBlaToggleCounts(driversCount, passengersCount) {
 async function loadBlaBlaCarData() {
   try {
     const raw = await fetchCachedJson(BLABLA_API + '/api/rides', 'blabla_api', 2);
-    const d = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.rides) ? raw.rides : []);
+    // Минулі поїздки не показуємо, навіть якщо список узято з кешу або сервер ще не встиг їх прибрати:
+    // поїздку видно до кінця її дня, з 00:00 за Києвом — уже ні
+    const today = getKyivDateISO();
+    const d = (Array.isArray(raw) ? raw : (raw && Array.isArray(raw.rides) ? raw.rides : []))
+      .filter(x => x && !(/^\d{4}-\d{2}-\d{2}$/.test(String(x.date)) && String(x.date) < today));
     markNewItems(d, 'blablacar');
     checkNotification('blablacar', d);
 
