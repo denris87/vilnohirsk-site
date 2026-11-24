@@ -1042,6 +1042,38 @@ a.cab-btn{display:inline-flex;align-items:center;justify-content:center;text-dec
 .cab-stat span{font-size:12.5px;font-weight:800;color:rgba(255,255,255,0.82)}
 .cab-stat small{font-size:11.5px;line-height:1.35;color:rgba(255,255,255,0.62)}
 .cab-stat-bad b{color:#ff9aa2}
+.cab-stat-btn{-webkit-appearance:none;appearance:none;margin:0;font:inherit;text-align:left;color:inherit;cursor:pointer}
+.cab-stat-warn{border-color:rgba(255,204,0,0.55);background:rgba(255,204,0,0.08)}
+.cab-stat-warn b{color:#ffd76a}
+.cab-stat-btn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.cab-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cab-chip{-webkit-appearance:none;appearance:none;margin:0;font:inherit;font-size:12.5px;font-weight:800;padding:6px 11px;border-radius:999px;border:1px solid rgba(255,255,255,0.18);background:rgba(0,0,0,0.22);color:rgba(255,255,255,0.86);cursor:pointer}
+.cab-chip b{font-variant-numeric:tabular-nums;opacity:.75}
+.cab-chip.on{background:#fff;border-color:#fff;color:#0b1d3a}
+.cab-chip-warn{border-color:rgba(255,204,0,0.5);color:#ffd76a}
+.cab-chip-warn.on{background:#ffcc00;border-color:#ffcc00;color:#0b1d3a}
+.cab-chip:focus-visible,.cab-name:focus-visible,.cab-sort:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.cab-list-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.cab-list-tools .cab-search{flex:1 1 220px;min-width:0}
+.cab-sort{flex:0 0 auto;max-width:100%;padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,0.18);background:rgba(0,0,0,0.25);color:#fff;font:inherit;font-size:13px;font-weight:700}
+.cab-sort option{color:#0b1d3a}
+.cab-user-flagged{border-color:rgba(255,204,0,0.55);background:rgba(255,204,0,0.06)}
+.cab-flag{font-size:12.5px;font-weight:800;line-height:1.4;color:#ffd76a}
+.cab-phones{font-size:12.5px;color:rgba(255,255,255,0.8);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.cab-user-actions{gap:8px;flex-wrap:wrap}
+.cab-more{display:flex;flex-direction:column;gap:8px;margin-top:4px;padding:10px;border-radius:12px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.1)}
+.cab-more-h{font-size:13px;font-weight:900;color:#fff;margin-top:4px}
+.cab-phone{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;font-variant-numeric:tabular-nums;color:rgba(255,255,255,0.85)}
+.cab-ad-mini{display:flex;flex-direction:column;gap:4px;padding:10px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08)}
+.cab-sup-mini{font-size:12.5px;line-height:1.45;color:rgba(255,255,255,0.88)}
+.cab-sup-mini p{margin:2px 0 0;color:rgba(255,255,255,0.75);overflow-wrap:anywhere}
+.cab-name{-webkit-appearance:none;appearance:none;margin:0;padding:0;border:0;background:none;font:inherit;font-weight:800;color:#7dd3fc;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.cab-ev-day{font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin:10px 0 2px}
+.cab-ev{display:grid;grid-template-columns:40px 20px minmax(0,1fr);gap:6px;align-items:start;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px;line-height:1.45}
+.cab-ev-t{font-size:12px;color:rgba(255,255,255,0.6);font-variant-numeric:tabular-nums}
+.cab-ev-x{min-width:0;overflow-wrap:anywhere;color:rgba(255,255,255,0.9)}
+.cab-ev-x small{color:rgba(255,255,255,0.55)}
+.cab-ev-ban .cab-ev-x,.cab-ev-remove .cab-ev-x{color:#ffb3b8}
 .cab-chart-cap{margin:0 0 8px;font-size:12.5px;line-height:1.4;color:rgba(255,255,255,0.78);min-height:1.4em;font-variant-numeric:tabular-nums}
 .cab-chart{display:block;width:100%;max-width:100%;height:auto;overflow:visible}
 .cab-chart-bar{fill:#3b94e8}
@@ -1060,7 +1092,7 @@ a.cab-btn{display:inline-flex;align-items:center;justify-content:center;text-dec
 .cab-user-ava{flex:0 0 36px;width:36px;height:36px;font-size:16px}
 .cab-user-id{display:flex;flex-direction:column;flex:1;min-width:0}
 .cab-user-id b{font-size:15px;color:#fff;overflow-wrap:anywhere}
-.cab-user-id span{font-size:12.5px;color:rgba(255,255,255,0.7);overflow-wrap:anywhere}
+.cab-user-id span{font-size:12.5px;color:rgba(255,255,255,0.7);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cab-stats-tools{justify-content:center}
 
 /* ===== Особисте в кабінеті: «Мій день», «Мій дім», «Мої електрички», «Обране», «Мої дані» ===== */

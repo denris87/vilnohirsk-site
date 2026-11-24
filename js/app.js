@@ -2046,6 +2046,12 @@ let cabIsAdmin = false, cabBanned = false;
 let cabStats = null;      // { state: loading | ready | error | forbidden | noadmin | auth, users, phones, sheet }
 let cabStatsConfirm = ''; // uid, для якого показано «Заблокувати?»
 let cabStatsQuery = '';   // пошук у списку користувачів
+let cabStatsTab = 'users'; // users — учасники | events — стрічка подій
+let cabStatsChip = 'all';  // фільтр списку: all | flag | new | active | ads | banned
+let cabStatsSort = 'new';  // порядок: new | last | ads
+let cabStatsOpen = '';     // uid, чию картку розгорнуто
+let cabStatsCards = {};    // uid → { state: loading | ready | error, ads, phones, support }
+let cabStatsAdAsk = '';    // id оголошення, для якого показано «Зняти з сайту?»
 const CAB_DAY = 864e5;
 const CAB_STATS_ICO = '<svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>';
 const CAB_BANNED_NOTE = '<div class="cab-confirm cab-banned"><b>🚫 Акаунт заблоковано</b><span>Адміністратор заблокував цей акаунт: подавати з нього оголошення й поїздки не можна. Якщо це помилка — напишіть нам у Telegram <a href="https://t.me/vilnohirsk" target="_blank" rel="noopener">@vilnohirsk</a>.</span></div>';
@@ -2064,6 +2070,7 @@ function cabResetAdmin(u) {
   cabIsAdmin = !!(u && st.uid === u.uid && st.admin);
   cabBanned = !!(u && st.uid === u.uid && st.banned);
   cabStats = null; cabStatsConfirm = ''; cabStatsQuery = '';
+  cabStatsTab = 'users'; cabStatsChip = 'all'; cabStatsSort = 'new'; cabStatsOpen = ''; cabStatsCards = {}; cabStatsAdAsk = '';
 }
 // Відмітка візиту для статистики: не частіше ніж раз на 3 години з цього пристрою.
 // force — людина сама відкрила кабінет: перепитуємо одразу (не частіше ніж раз на хвилину), щоб
@@ -2138,7 +2145,7 @@ async function cabLoadStats() {
   try {
     const d = await cabScript({ formType: 'cabinet_admin_stats', idToken: await u.getIdToken() });
     next = d.status === 'ok'
-      ? { state: 'ready', users: Array.isArray(d.users) ? d.users : [], phones: Number(d.phones) || 0, sheet: String(d.sheet || '') }
+      ? { state: 'ready', users: Array.isArray(d.users) ? d.users : [], phones: Number(d.phones) || 0, sheet: String(d.sheet || ''), events: Array.isArray(d.events) ? d.events : [] }
       : { state: ['forbidden', 'noadmin', 'auth'].indexOf(d.status) >= 0 ? d.status : 'error' };
   } catch (e) { logSectionError('статистика', e); next = { state: 'error' }; }
   if (cabUser !== u) return;
@@ -2169,30 +2176,112 @@ function cabStatsHtml() {
   if (s.state === 'forbidden') return '<div class="cab-card"><p class="cab-empty">Статистика доступна лише адміністратору.</p></div>';
   if (s.state === 'auth') return '<div class="cab-card"><p class="cab-empty">Не вдалося підтвердити вхід. Вийдіть з кабінету й увійдіть знову.</p></div>';
   if (s.state !== 'ready') return '<div class="cab-card"><p class="cab-empty">Не вдалося завантажити статистику. Перевірте інтернет.</p><button type="button" class="cab-btn cab-btn-sm" data-act="stats-reload">Спробувати ще раз</button></div>';
-  const now = Date.now(), users = s.users.slice().sort((a, b) => (b.created || 0) - (a.created || 0));
+  const now = Date.now(), users = s.users;
   const live = users.filter(u => !u.deleted), deleted = users.length - live.length;
   const active = live.filter(u => u.last >= now - 7 * CAB_DAY).length, banned = live.filter(u => u.banned).length;
   const google = live.filter(u => u.provider === 'Google').length, mail = live.filter(u => u.provider === 'E-mail').length;
-  const tile = (num, label, sub, cls) => `<div class="cab-stat${cls ? ' ' + cls : ''}"><b>${num}</b><span>${label}</span>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  const flagged = users.filter(CAB_STATS_CHIPS.flag.test).length;
+  const week = (s.events || []).filter(e => e.t >= now - 7 * CAB_DAY);
+  const adsWeek = week.filter(e => e.k === 'ad').length, supWeek = week.filter(e => e.k === 'support').length;
+  const tile = (num, label, sub, cls, act) => act
+    ? `<button type="button" class="cab-stat cab-stat-btn${cls ? ' ' + cls : ''}" data-act="${act}"><b>${num}</b><span>${label}</span>${sub ? `<small>${sub}</small>` : ''}</button>`
+    : `<div class="cab-stat${cls ? ' ' + cls : ''}"><b>${num}</b><span>${label}</span>${sub ? `<small>${sub}</small>` : ''}</div>`;
+  const tab = (id, label) => `<button type="button" role="tab" aria-selected="${cabStatsTab === id}" class="${cabStatsTab === id ? 'on' : ''}" data-act="stats-tab" data-tab="${id}">${label}</button>`;
   return `
     <div class="cab-stats-grid">
       ${tile(live.length, pluralUk(live.length, 'користувач', 'користувачі', 'користувачів'), `Google ${google} · E-mail ${mail}`)}
       ${tile('+' + cabStatsNew(live, 7), 'нових за 7 днів', `за 30 днів +${cabStatsNew(live, 30)}`)}
       ${tile(active, 'заходили за 7 днів', '')}
       ${tile(banned, 'заблоковано', `телефонів у чорному списку: ${s.phones}`, banned ? 'cab-stat-bad' : '')}
+      ${tile(flagged, '⚠️ підозрілих', flagged ? 'показати їх' : 'усе спокійно', flagged ? 'cab-stat-warn' : '', flagged ? 'stats-show-flag' : '')}
+      ${tile(adsWeek, 'оголошень за 7 днів', `звернень у техпідтримку: ${supWeek}`)}
     </div>
     ${deleted ? `<p class="cab-fine">Ще ${deleted} ${pluralUk(deleted, 'людина видалила', 'людини видалили', 'людей видалили')} свій акаунт.</p>` : ''}
-    ${cabStatsChart(live)}
-    <div class="cab-card cab-users">
-      <div class="cab-card-head">👥 Хто зареєструвався</div>
-      <input type="search" id="cab-stats-q" class="cab-search" placeholder="Пошук: ім'я або e-mail" autocomplete="off" aria-label="Пошук користувача">
-      ${users.map(cabStatsUserHtml).join('')}
-      <p class="cab-empty" id="cab-stats-none" hidden>Нікого не знайдено.</p>
-    </div>
+    <div class="cab-tabs" role="tablist">${tab('users', '👥 Учасники')}${tab('events', '🕒 Події')}</div>
+    ${cabStatsTab === 'events' ? cabStatsEventsHtml(s) + cabStatsChart(live) : cabStatsUsersHtml(users)}
     <div class="cab-row cab-stats-tools">
       <button type="button" class="cab-btn cab-btn-ghost" data-act="stats-reload">Оновити</button>
       ${/^https:\/\/docs\.google\.com\//.test(s.sheet) ? `<a class="cab-btn cab-btn-ghost" href="${escapeHTML(s.sheet)}" target="_blank" rel="noopener">Відкрити таблицю</a>` : ''}
     </div>`;
+}
+
+// ---- Учасники: фільтри, сортування, пошук (ім'я, e-mail, телефон) ----
+const CAB_STATS_CHIPS = {
+  all:    { label: 'Усі', test: () => true },
+  flag:   { label: '⚠️ Підозрілі', test: u => !u.deleted && !u.banned && (u.flags || []).length > 0 },
+  new:    { label: 'Нові', test: u => !u.deleted && !u.early && u.created >= Date.now() - 7 * CAB_DAY },
+  active: { label: 'Заходили', test: u => !u.deleted && u.last >= Date.now() - 7 * CAB_DAY },
+  ads:    { label: 'З оголошеннями', test: u => (u.ads || 0) > 0 },
+  banned: { label: '🚫 Заблоковані', test: u => !!u.banned }
+};
+const CAB_STATS_SORTS = { new: 'Спершу нові', last: 'Останній візит', ads: 'Більше оголошень' };
+function cabStatsUsersHtml(users) {
+  const chip = CAB_STATS_CHIPS[cabStatsChip] || CAB_STATS_CHIPS.all;
+  const key = { new: u => u.created || 0, last: u => u.last || 0, ads: u => (u.ads || 0) * 1e13 + (u.last || 0) }[cabStatsSort] || (u => u.created || 0);
+  const list = users.filter(chip.test).sort((a, b) => key(b) - key(a));
+  const chips = Object.keys(CAB_STATS_CHIPS).map(k => {
+    const n = users.filter(CAB_STATS_CHIPS[k].test).length;
+    if (k === 'flag' && !n && cabStatsChip !== 'flag') return '';
+    return `<button type="button" class="cab-chip${k === 'flag' ? ' cab-chip-warn' : ''}${cabStatsChip === k ? ' on' : ''}" data-act="stats-chip" data-chip="${k}" aria-pressed="${cabStatsChip === k}">${CAB_STATS_CHIPS[k].label} <b>${n}</b></button>`;
+  }).join('');
+  return `
+    <div class="cab-card cab-users">
+      <div class="cab-chips">${chips}</div>
+      <div class="cab-list-tools">
+        <input type="search" id="cab-stats-q" class="cab-search" placeholder="Пошук: ім'я, e-mail або телефон" autocomplete="off" aria-label="Пошук користувача">
+        <select id="cab-stats-sort" class="cab-sort" aria-label="Порядок">${Object.keys(CAB_STATS_SORTS).map(k => `<option value="${k}"${cabStatsSort === k ? ' selected' : ''}>${CAB_STATS_SORTS[k]}</option>`).join('')}</select>
+      </div>
+      ${list.map(cabStatsUserHtml).join('') || '<p class="cab-empty">Тут поки нікого немає.</p>'}
+      <p class="cab-empty" id="cab-stats-none" hidden>Нікого не знайдено.</p>
+    </div>`;
+}
+// +380671112233 → +380 67 111 22 33
+function cabPhoneFmt(d) {
+  d = String(d || '').replace(/\D/g, '');
+  const m = /^380(\d{2})(\d{3})(\d{2})(\d{2})$/.exec(d);
+  return m ? `+380\u00a0${m[1]}\u00a0${m[2]}\u00a0${m[3]}\u00a0${m[4]}` : (d ? '+' + d : ''); // нерозривні пробіли — номер не розривається
+}
+// Ім'я людини за uid (для стрічки подій і «телефон є і в акаунті…»)
+function cabStatsName(uid) {
+  const u = cabStats && cabStats.users ? cabStats.users.find(x => x.uid === uid) : null;
+  if (!u) return 'інший акаунт';
+  return u.name || (u.email ? u.email.split('@')[0] : (u.deleted ? 'видалений акаунт' : 'без імені'));
+}
+function cabStatsWho(uid) {
+  return uid ? `<button type="button" class="cab-name" data-act="stats-goto" data-uid="${escapeHTML(uid)}">${escapeHTML(cabStatsName(uid))}</button>` : '<i>без входу</i>';
+}
+
+// ---- Стрічка подій за 14 днів ----
+const cabTimeFmt = new Intl.DateTimeFormat('uk-UA', { timeZone: 'Europe/Kyiv', hour: '2-digit', minute: '2-digit' });
+// «flea: Шуба» (так писала перша версія журналу) → «Барахолка: Шуба»
+function cabStatsWhat(w) { return String(w || '').replace(/^(flea|estate|lost|job|promo): /, (m, k) => (CAB_AD_KINDS[k] ? CAB_AD_KINDS[k].name : k) + ': '); }
+function cabStatsEventsHtml(s) {
+  const evs = (s.events || []).slice().sort((a, b) => b.t - a.t);
+  if (!evs.length) return '<div class="cab-card"><p class="cab-empty">За останні 14 днів подій немає.</p></div>';
+  const kindName = (k) => (CAB_AD_KINDS[k] ? CAB_AD_KINDS[k].ico + ' ' + CAB_AD_KINDS[k].name : k);
+  const line = (e) => {
+    const who = cabStatsWho(e.uid), q = (t) => `«${escapeHTML(String(t || '').slice(0, 80))}»`;
+    switch (e.k) {
+      case 'reg': return ['🆕', `${who} — новий користувач${e.provider ? ` (${escapeHTML(e.provider)})` : ''}`];
+      case 'ad': return ['📦', `${who} подає оголошення: ${kindName(e.kind)} ${q(e.title)}`];
+      case 'del': return ['🗑️', `${who} видаляє своє оголошення: ${kindName(e.kind)} ${q(e.title)}`];
+      case 'gone': return ['👋', `${who} видаляє свій акаунт`];
+      case 'support': return ['💬', `Звернення №${Number(e.n) || '?'} ${escapeHTML(e.topic || '')} — ${who}`];
+      case 'ban': return ['🚫', `Заблоковано: ${who}${e.by ? ` <small>(${escapeHTML(e.by)})</small>` : ''}`];
+      case 'unban': return ['↩️', `Розблоковано: ${who}${e.by ? ` <small>(${escapeHTML(e.by)})</small>` : ''}`];
+      case 'remove': return ['🧹', `Знято з сайту оголошення: ${who} — ${q(cabStatsWhat(e.what))}`];
+      case 'restore': return ['♻️', `Повернуто на сайт оголошення: ${who} — ${q(cabStatsWhat(e.what))}`];
+      default: return ['•', escapeHTML(e.k || '')];
+    }
+  };
+  let day = '', html = '';
+  evs.forEach(e => {
+    const d = cabKyivDay(e.t);
+    if (d !== day) { day = d; html += `<div class="cab-ev-day">${cabAgo(e.t)}</div>`; }
+    const [ico, text] = line(e);
+    html += `<div class="cab-ev cab-ev-${escapeHTML(e.k || '')}"><span class="cab-ev-t">${cabTimeFmt.format(new Date(e.t))}</span><span class="cab-ev-ico" aria-hidden="true">${ico}</span><span class="cab-ev-x">${text}</span></div>`;
+  });
+  return `<div class="cab-card"><div class="cab-card-head">🕒 Що відбувалося (14 днів)</div>${html}</div>`;
 }
 
 // Реєстрації по днях за 30 днів (за київським часом) — тих, хто й досі з нами, як і цифри вгорі.
@@ -2239,43 +2328,145 @@ function cabStatsDay(g) {
 function cabStatsUserHtml(u) {
   const me = !!(cabUser && u.uid === cabUser.uid);
   const name = u.name || (u.email ? u.email.split('@')[0] : (u.deleted ? 'Акаунт видалено' : 'Без імені'));
+  const flags = !u.deleted && !u.banned ? (u.flags || []) : [];
   const badge = u.deleted ? '<span class="cab-ad-st cab-ad-st-off">Видалено</span>'
     : u.banned ? '<span class="cab-ad-st cab-ad-st-bad">Заблоковано</span>'
     : (me || u.admin) ? `<span class="cab-ad-st cab-ad-st-on">${me ? 'Це ви' : 'Адмін'}</span>`
+    : flags.length ? '<span class="cab-ad-st cab-ad-st-wait">⚠️ Перевірити</span>'
     : u.provider ? `<span class="cab-ad-st cab-ad-st-off">${escapeHTML(u.provider)}</span>` : '';
   const meta = (u.early
     ? [u.created ? 'Перше оголошення ' + cabDdMm(u.created, true) : '']
     : [u.created ? 'Зареєстровано ' + cabDdMm(u.created, true) : '', u.last ? 'останній візит ' + cabAgo(u.last) : '', u.days > 1 ? `днів з візитами: ${u.days}` : ''])
-    .concat([`оголошень: ${u.ads || 0}`]).filter(Boolean).join(' · ');
+    .concat([`оголошень: ${u.ads || 0}`, u.ads24 ? `за добу: ${u.ads24}` : '', u.support ? `звернень: ${u.support}` : '']).filter(Boolean).join(' · ');
+  const phones = (u.phones || []).map(cabPhoneFmt);
   const note = u.deleted ? `Акаунт видалено ${cabDdMm(u.deleted, true)}.`
     : u.banned ? (u.signinOff
       ? `Заблоковано ${cabDdMm(u.banned, true)}: вхід закрито, оголошення сховано, нові з її телефонів не приймаються.`
       : `Заблоковано ${cabDdMm(u.banned, true)}: оголошення сховано, нові з акаунта й телефонів не приймаються. Вхід ще відкритий — закрийте його у Firebase Console.`)
     : u.early ? 'Оголошення подано до запуску статистики; візитів відтоді не було.' : '';
+  const open = cabStatsOpen === u.uid;
   let act = '';
   if (!u.deleted && !me && !u.admin) {
     act = cabStatsConfirm === u.uid
       ? `<div class="cab-confirm"><b>Заблокувати цей акаунт?</b><span>Вхід на сайт для цієї людини закриється, її оголошення й поїздки зникнуть, а нові з її телефонів не прийматимуться. Розблокувати можна будь-коли.</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm cab-btn-danger" data-act="stats-ban-yes" data-uid="${escapeHTML(u.uid)}">Так, заблокувати</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="stats-ban-no">Скасувати</button></div></div>`
-      : `<div class="cab-ad-actions">${u.banned
+      : u.banned
         ? `<button type="button" class="cab-btn cab-btn-sm" data-act="stats-unban" data-uid="${escapeHTML(u.uid)}">Розблокувати</button>`
-        : `<button type="button" class="cab-btn cab-btn-sm cab-btn-ghost cab-btn-warn" data-act="stats-ban" data-uid="${escapeHTML(u.uid)}">🚫 Заблокувати</button>`}</div>`;
+        : `<button type="button" class="cab-btn cab-btn-sm cab-btn-ghost cab-btn-warn" data-act="stats-ban" data-uid="${escapeHTML(u.uid)}">🚫 Заблокувати</button>`;
   }
-  return `<div class="cab-user${u.deleted ? ' cab-ad-past' : ''}" data-q="${escapeHTML((u.name + ' ' + u.email).toLowerCase())}">
+  const more = u.deleted ? '' : `<button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="stats-more" data-uid="${escapeHTML(u.uid)}" aria-expanded="${open}">${open ? 'Згорнути ▴' : 'Докладніше ▾'}</button>`;
+  const q = [u.name, u.email].concat((u.phones || []).map(p => { const d = String(p).replace(/\D/g, ''); return d + ' 0' + d.slice(-9); })).join(' ').toLowerCase();
+  return `<div class="cab-user${u.deleted ? ' cab-ad-past' : ''}${flags.length ? ' cab-user-flagged' : ''}" data-uid="${escapeHTML(u.uid)}" data-q="${escapeHTML(q)}">
       <div class="cab-user-top"><span class="cab-ava-txt cab-user-ava">${escapeHTML((name.trim().charAt(0) || '?').toUpperCase())}</span><div class="cab-user-id"><b>${escapeHTML(name)}</b>${u.email ? `<span>${escapeHTML(u.email)}</span>` : ''}</div>${badge}</div>
       <span class="cab-ad-meta">${escapeHTML(meta)}</span>
+      ${phones.length ? `<span class="cab-phones">📞 ${escapeHTML(phones.slice(0, 3).join(', '))}${phones.length > 3 ? ` та ще ${phones.length - 3}` : ''}</span>` : ''}
+      ${flags.map(f => `<span class="cab-flag">⚠️ ${escapeHTML(f.t)}</span>`).join('')}
       ${note ? `<span class="cab-ad-note">${escapeHTML(note)}</span>` : ''}
-      ${act}
+      ${act.indexOf('cab-confirm') >= 0 ? act : `<div class="cab-ad-actions cab-user-actions">${more}${act}</div>`}
+      ${open ? cabStatsCardHtml(u) : ''}
     </div>`;
 }
+
+// ---- Картка людини: оголошення (зняти / повернути), телефони, звернення ----
+function cabStatsCardHtml(u) {
+  const c = cabStatsCards[u.uid];
+  if (!c || c.state === 'loading') return '<div class="cab-more"><p class="cab-empty">Завантаження…</p></div>';
+  if (c.state !== 'ready') return `<div class="cab-more"><p class="cab-empty">Не вдалося завантажити. Перевірте інтернет.</p><button type="button" class="cab-btn cab-btn-sm" data-act="stats-card-reload" data-uid="${escapeHTML(u.uid)}">Спробувати ще раз</button></div>`;
+  const phones = c.phones.map(p => `<div class="cab-phone"><b>${escapeHTML(cabPhoneFmt(p.phone))}</b>${p.banned ? '<span class="cab-ad-st cab-ad-st-bad">у чорному списку</span>' : ''}${p.others.length ? `<span>↳ цей номер є і в ${p.others.length > 1 ? 'акаунтах' : 'акаунті'}: ${p.others.map(o => cabStatsWho(o.uid)).join(', ')}</span>` : ''}</div>`).join('');
+  const ads = c.ads.map(a => {
+    const k = CAB_AD_KINDS[a.kind] || { ico: '📄', name: a.kind };
+    const removedByAdmin = /^Знято адміністратором/i.test(a.statusText || '');
+    const st = a.gone ? ['cab-ad-st-off', 'Видалено автором'] : removedByAdmin ? ['cab-ad-st-bad', 'Знято вами'] : (CAB_AD_ST[a.state] || CAB_AD_ST.other).slice(0, 2);
+    const label = st[1] || a.statusText || '';
+    const meta = [cabDdMm(a.date, true), a.price ? cabAdPrice(a) : '', a.phone ? cabPhoneFmt(a.phone) : ''].filter(Boolean).join(' · ');
+    let act = '';
+    if (!a.gone && removedByAdmin) act = `<button type="button" class="cab-btn cab-btn-sm" data-act="stats-ad-restore" data-id="${escapeHTML(a.id)}" data-uid="${escapeHTML(u.uid)}">↩️ Повернути на сайт</button>`;
+    else if (!a.gone && ['published', 'moderation', 'pending', 'other'].indexOf(a.state) >= 0) {
+      act = cabStatsAdAsk === a.id
+        ? `<div class="cab-confirm"><b>Зняти це оголошення з сайту?</b><span>Його не буде видно в розділі, а людина побачить у «Моїх оголошеннях», що його знято. Повернути можна будь-коли.</span><div class="cab-row"><button type="button" class="cab-btn cab-btn-sm cab-btn-danger" data-act="stats-ad-yes" data-id="${escapeHTML(a.id)}" data-uid="${escapeHTML(u.uid)}">Так, зняти</button><button type="button" class="cab-btn cab-btn-sm cab-btn-ghost" data-act="stats-ad-no">Скасувати</button></div></div>`
+        : `<button type="button" class="cab-btn cab-btn-sm cab-btn-ghost cab-btn-warn" data-act="stats-ad-ask" data-id="${escapeHTML(a.id)}">🧹 Зняти з сайту</button>`;
+    }
+    return `<div class="cab-ad-mini${a.gone ? ' cab-ad-past' : ''}">
+        <div class="cab-ad-top"><span class="cab-ad-kind">${k.ico} ${escapeHTML(k.name)}</span>${label ? `<span class="cab-ad-st ${st[0]}">${escapeHTML(label)}</span>` : ''}</div>
+        <b class="cab-ad-title">${escapeHTML(a.title || 'Без назви')}</b>
+        <span class="cab-ad-meta">${escapeHTML(meta)}</span>
+        ${a.gone ? `<span class="cab-ad-note">Людина видалила його ${cabDdMm(a.gone, true)}.</span>` : ''}
+        ${act ? (act.indexOf('cab-confirm') >= 0 ? act : `<div class="cab-ad-actions">${act}</div>`) : ''}
+      </div>`;
+  }).join('');
+  const sup = c.support.map(x => `<div class="cab-sup-mini"><b>№${Number(x.n) || '?'} · ${escapeHTML(x.topic || '')}</b> <span class="cab-ev-t">${x.when ? cabDdMm(x.when, true) : ''}</span><p>${escapeHTML(x.text || '')}</p></div>`).join('');
+  return `<div class="cab-more">
+      <div class="cab-more-h">📞 Телефони з оголошень</div>
+      ${phones || '<p class="cab-empty">Оголошень з телефоном ще не було.</p>'}
+      <div class="cab-more-h">📦 Оголошення: ${c.ads.length}</div>
+      ${ads || '<p class="cab-empty">Оголошень, поданих з кабінету, немає.</p>'}
+      ${c.support.length ? `<div class="cab-more-h">💬 Звернення в техпідтримку: ${c.support.length}</div>${sup}` : ''}
+    </div>`;
+}
+async function cabStatsLoadCard(uid) {
+  const u = cabUser; if (!u || !uid) return;
+  cabStatsCards[uid] = { state: 'loading' };
+  renderCabinet();
+  let next;
+  try {
+    const d = await cabScript({ formType: 'cabinet_admin_user', idToken: await u.getIdToken(), uid });
+    next = d.status === 'ok'
+      ? { state: 'ready', ads: Array.isArray(d.ads) ? d.ads : [], phones: Array.isArray(d.phones) ? d.phones : [], support: Array.isArray(d.support) ? d.support : [] }
+      : { state: 'error' };
+  } catch (e) { logSectionError('картка користувача', e); next = { state: 'error' }; }
+  if (cabUser !== u) return;
+  cabStatsCards[uid] = next;
+  renderCabinet();
+}
 function cabStatsFilter() {
-  const q = cabStatsQuery.trim().toLowerCase();
+  let q = cabStatsQuery.trim().toLowerCase();
+  const digits = q.replace(/\D/g, '');
+  if (digits.length >= 3 && /^[\d\s()+-]+$/.test(q)) q = digits; // телефон — будь-яким записом: 067…, +38 067…, 380…
   let shown = 0;
   document.querySelectorAll('#cab-sub .cab-user').forEach(el => { const hit = !q || (el.dataset.q || '').indexOf(q) >= 0; el.hidden = !hit; if (hit) shown++; });
-  const none = document.getElementById('cab-stats-none'); if (none) none.hidden = shown > 0;
+  const none = document.getElementById('cab-stats-none'); if (none) none.hidden = shown > 0 || !document.querySelector('#cab-sub .cab-user');
 }
+function cabStatsReloadSections() { ['flea', 'estate', 'lost', 'job'].forEach(k => { const c = CAB_AD_KINDS[k]; delete memoryDataCache[c.cache]; try { c.reload(); } catch (e) {} }); }
 async function cabStatsAction(act, btn) {
-  if (act === 'stats-reload') return cabLoadStats();
+  if (act === 'stats-reload') { cabStatsCards = {}; return cabLoadStats(); }
   if (act === 'stats-day') { cabStatsDay(btn); return; }
+  if (act === 'stats-tab') { cabStatsTab = btn.dataset.tab === 'events' ? 'events' : 'users'; renderCabinet(); return; }
+  if (act === 'stats-chip') { cabStatsChip = CAB_STATS_CHIPS[btn.dataset.chip] ? btn.dataset.chip : 'all'; renderCabinet(); return; }
+  if (act === 'stats-show-flag') { cabStatsTab = 'users'; cabStatsChip = 'flag'; renderCabinet(); return; }
+  if (act === 'stats-more') {
+    const uid = btn.dataset.uid;
+    cabStatsOpen = cabStatsOpen === uid ? '' : uid; cabStatsAdAsk = '';
+    if (cabStatsOpen && (!cabStatsCards[uid] || cabStatsCards[uid].state !== 'ready')) cabStatsLoadCard(uid); else renderCabinet();
+    return;
+  }
+  if (act === 'stats-card-reload') { cabStatsLoadCard(btn.dataset.uid); return; }
+  if (act === 'stats-goto') {
+    const uid = btn.dataset.uid;
+    if (!cabStats || !cabStats.users || !cabStats.users.some(x => x.uid === uid)) return;
+    cabStatsTab = 'users'; cabStatsChip = 'all'; cabStatsQuery = ''; cabStatsOpen = uid; cabStatsAdAsk = '';
+    if (!cabStatsCards[uid] || cabStatsCards[uid].state !== 'ready') cabStatsLoadCard(uid); else renderCabinet();
+    setTimeout(() => { const el = document.querySelector(`#cab-sub .cab-user[data-uid="${CSS.escape(uid)}"]`); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60);
+    return;
+  }
+  if (act === 'stats-ad-ask') { cabStatsAdAsk = btn.dataset.id; renderCabinet(); return; }
+  if (act === 'stats-ad-no') { cabStatsAdAsk = ''; renderCabinet(); return; }
+  if (act === 'stats-ad-yes' || act === 'stats-ad-restore') return cabBusy(btn, async () => {
+    const restore = act === 'stats-ad-restore', id = btn.dataset.id, uid = btn.dataset.uid;
+    let d = null;
+    try {
+      d = await cabScript({ formType: 'cabinet_admin_ad', idToken: await cabUser.getIdToken(), id, action: restore ? 'restore' : 'remove' });
+      if (d.status !== 'ok') throw new Error(d.message || d.status);
+    } catch (e) {
+      logSectionError('зняти оголошення', e);
+      showToast('❌ ' + (d && d.message ? d.message : 'Не вдалося. Спробуйте ще раз.'), 'error');
+      return;
+    }
+    cabStatsAdAsk = '';
+    const c = cabStatsCards[uid], ad = c && c.ads ? c.ads.find(x => x.id === id) : null;
+    if (ad) { ad.statusText = d.statusText || ad.statusText; ad.state = d.state || ad.state; }
+    showToast(restore ? '↩️ Оголошення знову на сайті' : '🧹 Оголошення знято з сайту', 'info');
+    cabStatsReloadSections();
+    renderCabinet();
+  });
   if (act === 'stats-ban') { cabStatsConfirm = btn.dataset.uid; renderCabinet(); return; }
   if (act === 'stats-ban-no') { cabStatsConfirm = ''; renderCabinet(); return; }
   if (act === 'stats-ban-yes' || act === 'stats-unban') return cabBusy(btn, async () => {
@@ -2290,12 +2481,14 @@ async function cabStatsAction(act, btn) {
       return;
     }
     cabStatsConfirm = '';
+    delete cabStatsCards[btn.dataset.uid]; // статуси її оголошень змінились
     const closed = d.signin === 'off' || d.signin === 'gone'; // gone — акаунта у Firebase уже немає
     if (!ban) showToast(`Розблоковано${d.signin === 'on' ? ': вхід відкрито,' : '.'} повернуто оголошень: ${d.ads || 0}.`, 'info');
     else if (closed) showToast(`🚫 Заблоковано: вхід закрито, сховано оголошень: ${d.ads || 0}. Поїздки зникнуть за 2 хв.`, 'info');
     else showToast(`🚫 Заблоковано, сховано оголошень: ${d.ads || 0}. Вхід закрити не вдалося — зробіть це у Firebase Console.`, 'error');
-    ['flea', 'estate', 'lost', 'job'].forEach(k => { const c = CAB_AD_KINDS[k]; delete memoryDataCache[c.cache]; try { c.reload(); } catch (e) {} });
+    cabStatsReloadSections();
     await cabLoadStats();
+    if (cabStatsOpen === btn.dataset.uid) cabStatsLoadCard(btn.dataset.uid);
   });
 }
 
@@ -2425,6 +2618,7 @@ function initCabinet() {
     let homeTimer = null;
     body.addEventListener('input', (e) => {
       if (e.target.id === 'cab-stats-q') { cabStatsQuery = e.target.value; cabStatsFilter(); }
+      else if (e.target.id === 'cab-stats-sort') { cabStatsSort = CAB_STATS_SORTS[e.target.value] ? e.target.value : 'new'; renderCabinet(); }
       else if (e.target.id === 'cab-home-q') { cabHomeQ = e.target.value; clearTimeout(homeTimer); homeTimer = setTimeout(cabHomeResults, 150); }
       else if (e.target.id === 'cab-me-phone') formatUAPhone(e.target);
     });
