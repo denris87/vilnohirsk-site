@@ -895,7 +895,7 @@ const TILE_TITLES = {
   'city-guide-tab': 'Міський довідник', 'estate-tab': 'Нерухомість', 'shopping-tab': 'Шопінг', 'flea-market-tab': 'Барахолка',
   'jobs-tab': 'Вакансії', 'lost-found-tab': 'Знахідки', 'garbage-tab': 'Вивіз сміття'
 };
-let trainsDelaysKnown = false;   // поки затримки не завантажились, плитка не пише «Без затримок»
+let trainsDelaysKnown = false;   // поки затримки не завантажились, «Мої електрички» в кабінеті не пишуть «без затримки»
 let trainsTileList = null;       // рейси для плитки «Електрички» — ті самі, що в розкладі
 let trainsTileDelays = {};       // номер рейсу (лише цифри) → затримка в хвилинах
 let svitloTileState = null;      // графік світла для плитки (null — вимкнено чи не завантажився)
@@ -954,84 +954,79 @@ function tileAction(action, ev) {
   else if (action === 'donate') openModalForm(null, 'donate-modal');
 }
 
-// Плитка «Світло»: стан і черги з відключеннями — з того самого svitlo.yaml.
-// На телефоні — стан своєї черги, «через …» і мініграфік доби; на широкому екрані праворуч ще й усі черги.
+// Плитки «Світло» й «Електрички» — «табло»: великі світні цифри (час), над ними — до чого цей час
+// (cap: a — головне, обрізається трикрапкою; b — хвіст, що лишається завжди), під ними — подробиці (foot).
+// word — замість часу слово («Світло є»): дрібніший шрифт. ql — підпис біля цифр («черга 1.1»). side — праворуч на широкому екрані.
+function tileBoardCap(a, cls, b) {
+  return `<span class="th-bd-a${cls ? ' ' + cls : ''}">${a}</span>${b ? `<span class="th-bd-b">${b}</span>` : ''}`;
+}
+function tileBoardSet(key, b) {
+  const put = (id, html) => { const el = document.getElementById(id); if (el && el.dataset.v !== html) { el.dataset.v = html; el.innerHTML = html; } };
+  put(`th-${key}-cap`, b.cap); put(`th-${key}-num`, b.num); put(`th-${key}-foot`, b.foot); put(`th-${key}-ql`, b.ql || ''); put(`th-${key}-side`, b.side || '');
+  const num = document.getElementById(`th-${key}-num`);
+  if (num) num.classList.toggle('th-bd-word', !!b.word);
+}
+
+// Плитка «Світло»: над цифрами — стан своєї черги (червоне — світла немає, зелене — є), цифри — коли зміниться,
+// поруч — «черга 1.1», під ними — скільки лишилось. Без обраної черги — скільки черг із відключеннями й «оберіть свою чергу».
+// Графік змінили (чи вийшов новий), а людина його ще не відкривала: жовта рамка, а рядок під цифрами починається
+// з «оновлено» (значок-«пігулка» на вузькій плитці з'їв би весь цей рядок)
 function renderSvitloTile(state) {
   svitloTileState = state || null;
   cabMineRefresh(); // відкритий кабінет: «Мій день» — за тим самим станом
-  const st = document.getElementById('th-svitlo-status'), chips = document.getElementById('th-svitlo-chips');
-  if (!st || !chips) return;
-  const put = (id, html) => { const el = document.getElementById(id); if (el && el.dataset.v !== html) { el.dataset.v = html; el.innerHTML = html; } };
-  const tile = document.getElementById('th-svitlo'), badges = document.getElementById('th-svitlo-badges');
+  const tile = document.getElementById('th-svitlo');
+  if (!tile) return;
   const unseen = state ? svitloUnseen(state, getSvitloSeen()) : null;
-  if (tile) tile.classList.toggle('th-svitlo-new', !!unseen);
-  if (badges) {
-    const b = !unseen ? '' : unseen.kind === 'new' ? tileBadge('Новий<span class="th-pill-more"> графік</span>', 'Вийшов новий графік відключень', 'th-pill-word') : tileBadge('Оновлено', 'Графік відключень оновили', 'th-pill-word');
-    if (badges.dataset.v !== b) { badges.dataset.v = b; badges.innerHTML = b; }
-  }
-  if (!state) { st.textContent = 'Графік відключень'; st.className = 'th-st'; chips.innerHTML = ''; put('th-svitlo-sub', ''); put('th-svitlo-compact', ''); put('th-svitlo-side', ''); return; }
+  tile.classList.toggle('th-svitlo-new', !!unseen);
+  tileBoardSet('svitlo', svitloBoard(state, unseen));
+}
+function svitloBoard(state, unseen) {
+  const cap = tileBoardCap;
+  if (!state) return { cap: cap('світло'), num: '--:--', foot: 'графік відключень' };
   // Живий стан — за сьогоднішнім графіком, навіть коли вже вийшов завтрашній
   const live = svitloTodayData() || state, nextDay = svitloNextData();
   const off = svitloDayOffset(live.updated), now = (off == null || off === 0) ? svitloNowMin() : null;
-  const nst = nextDay ? svitloNextState(nextDay) : null;
-  const tmr = nextDay ? svitloNextText(nst) : '';
-  // Обрана своя черга — її стан і найближчі відключення
-  const my = svitloMyQueue(live);
-  const qs = my ? svitloQueueState(my.slots, off) : null;
-  put('th-svitlo-side', svitloTileSide(live, my, now, off, tmr));
-  if (qs && qs.kind !== 'stale') {
-    const t = svitloStateText(qs, live.updated);
-    st.textContent = t.short;
-    st.className = 'th-st' + (t.cls === 'off' ? ' th-bad' : (t.cls === 'on' || t.cls === 'ok') ? ' th-ok' : '');
-    put('th-svitlo-sub', qs.kind === 'off' || qs.kind === 'on' ? `ще ${svitloDur(qs.left)}` : escapeHTML(tmr));
-    const subEl = document.getElementById('th-svitlo-sub'); if (subEl) subEl.classList.remove('th-wide-only');
-    put('th-svitlo-compact', qs.kind === 'unknown' ? '' : svitloMiniBar(qs.merged, now));
-    const next = qs.merged.filter(r => qs.now == null || r[0] > qs.now).slice(0, 2);
-    const tmrChip = !next.length && nst && nst.kind === 'ahead' ? `<span>завтра з ${svitloClock(nst.first)}</span>` : ''; // сьогодні вже все — показати завтрашнє
-    chips.innerHTML = `<span class="th-chip-q">Черга ${escapeHTML(my.queue)}</span>` + next.map(r => `<span>${svitloClock(r[0])}–${svitloClock(r[1])}</span>`).join('') + tmrChip;
-    return;
+  const ddmm = svitloDdMm(live.updated);
+  if (off != null && off < 0) { // графік на минулий день: нового ще не опублікували
+    return { cap: cap(`графік на ${ddmm}`, 'th-bd-amb'), num: '--:--', foot: unseen ? `<b class="th-bd-upd">оновлено</b> · новий ще не вийшов` : 'новий ще не вийшов',
+      side: `<span class="th-side-h">Графік на ${ddmm}</span><span class="th-side-f">⏳ Новий графік ще не опублікували</span>` };
   }
-  // Без обраної черги: на телефоні — шкала доби кожної черги (зелене — є світло); «оновлено о …» — лише на широкому
-  const qrows = (off != null && off < 0) || live.noOutages ? [] : (live.providers || []).flatMap(p => (Array.isArray(p.queues) ? p.queues : []).filter(q => q && q.queue != null).map(q => {
-    const s = svitloQueueState((Array.isArray(q.slots) ? q.slots : []).filter(Boolean), off);
-    return `<span class="th-qc"><b style="color:${svitloColor(p)}">${escapeHTML(String(q.queue))}</b>${s.kind === 'unknown' ? '<span class="th-q-na">час — у вікні</span>' : svitloMiniBar(s.merged, now)}</span>`;
-  })).slice(0, 4);
-  put('th-svitlo-compact', qrows.join(''));
-  put('th-svitlo-sub', live.revised ? `оновлено о ${escapeHTML(svitloRevShort(live.revised, live.updated))}` : '');
-  const subEl = document.getElementById('th-svitlo-sub'); if (subEl) subEl.classList.toggle('th-wide-only', qrows.length > 0);
-  const m = String(live.updated || '').match(/(\d{1,2})\.(\d{1,2})/);
-  // Дата — окремим елементом: на зовсім вузьких телефонах вона ховається, щоб стан не переносився на другий рядок
-  const day = m ? `<span class="th-st-day"> · ${m[1].padStart(2, '0')}.${m[2].padStart(2, '0')}</span>` : '';
-  if (live.noOutages) { st.innerHTML = 'Відключень немає' + day; st.className = 'th-st th-ok'; chips.innerHTML = ''; return; }
-  st.innerHTML = 'Є відключення' + day; st.className = 'th-st';
-  if (qrows.length) { chips.innerHTML = ''; return; } // черги вже видно шкалами
-  const queues = [];
-  (live.providers || []).forEach(p => (Array.isArray(p.queues) ? p.queues : []).forEach(q => {
-    if (q && q.queue != null && Array.isArray(q.slots) && q.slots.filter(Boolean).length) queues.push(String(q.queue));
-  }));
-  chips.innerHTML = queues.map(q => `<span>${escapeHTML(q)}</span>`).join('');
-}
-// Права половина широкої плитки: кожна черга зі шкалою доби (зелене — є світло) і станом зараз
-function svitloTileSide(d, my, now, off, tmr) {
-  if (off != null && off < 0) return `<span class="th-side-h">Графік на ${svitloDdMm(d.updated)}</span><span class="th-side-f">⏳ Новий графік ще не опублікували</span>`;
-  const head = off === 0 || off == null ? 'Черги сьогодні' : off === 1 ? 'Черги на завтра' : `Черги на ${svitloDdMm(d.updated)}`;
-  const rows = [];
-  d.providers.forEach(p => (Array.isArray(p.queues) ? p.queues : []).forEach(q => {
-    if (!q || q.queue == null) return;
-    const s = svitloQueueState((Array.isArray(q.slots) ? q.slots : []).filter(Boolean), off);
-    let txt = '', cls = '';
-    if (s.kind === 'off') { txt = `немає до ${svitloClock(s.until)}`; cls = 'off'; }
-    else if (s.kind === 'on') { txt = `є до ${svitloClock(s.next)}`; cls = 'on'; }
-    else if (s.kind === 'done') { txt = 'є до 24:00'; cls = 'on'; }
-    else if (s.kind === 'clear') { txt = 'без відключень'; cls = 'on'; }
-    else if (s.kind === 'ahead') txt = `з ${svitloClock(s.first)}`;
-    else txt = 'є відключення';
-    const bar = s.kind === 'unknown' ? '<span class="th-q-na">час — у вікні</span>' : svitloMiniBar(s.merged, now);
-    const mine = !!my && my.id === svitloQueueId(p, q);
-    rows.push(`<span class="th-q${mine ? ' th-q-mine' : ''}"><b style="color:${svitloColor(p)}">${escapeHTML(String(q.queue))}</b>${bar}<span class="th-q-st ${cls}">${txt}</span></span>`);
-  }));
-  const foot = tmr ? `🗓️ ${tmr}` : d.revised ? `🔄 Оновлено о ${svitloRevShort(d.revised, d.updated)}` : '';
-  return `<span class="th-side-h">${head}</span>${rows.slice(0, 5).join('')}${foot ? `<span class="th-side-f">${escapeHTML(foot)}</span>` : ''}`;
+  const tmr = nextDay ? svitloNextText(svitloNextState(nextDay)) : '';
+  const tmrL = tmr ? tmr.charAt(0).toLowerCase() + tmr.slice(1) : '';
+  const my = svitloMyQueue(live);
+  // «оновлено · …» на початку рядка під цифрами, поки людина не відкрила змінений (чи новий) графік
+  const upd = (txt) => unseen ? `<b class="th-bd-upd">оновлено</b> · ${txt}` : txt;
+  if (my) {
+    const qs = svitloQueueState(my.slots, off), q = escapeHTML(my.queue), ql = `черга<b>${q}</b>`;
+    const day = off > 0 ? (off === 1 ? 'завтра' : `на ${ddmm}`) : 'сьогодні';
+    // Праворуч (широкий екран): шкала доби своєї черги й наступні відключення
+    const later = qs.merged.filter(r => qs.now == null || r[0] > qs.now).slice(0, 3).map(r => `${svitloClock(r[0])}–${svitloClock(r[1])}`);
+    const sideF = qs.kind === 'unknown' ? 'Час відключень — у вікні графіка'
+      : later.length ? (qs.kind === 'ahead' ? 'Відключення: ' : 'Далі: ') + later.join(', ')
+      : tmr || (qs.kind === 'clear' ? 'Відключень немає' : qs.kind === 'off' ? 'Далі без відключень' : 'Відключень більше немає');
+    const side = `<span class="th-side-h">Черга ${q} · ${day}</span>${qs.kind === 'unknown' ? '' : svitloMiniBar(qs.merged, now)}<span class="th-side-f">${escapeHTML(sideF)}</span>`;
+    switch (qs.kind) {
+      case 'off': return { cap: cap('світла немає до', 'th-bd-off'), num: svitloClock(qs.until), ql, foot: upd(`ще ${svitloDur(qs.left)}`), side };
+      case 'on': return { cap: cap('світло є до', 'th-bd-on'), num: svitloClock(qs.next), ql, foot: upd(`ще ${svitloDur(qs.left)}`), side };
+      case 'ahead': return { cap: cap(`${off === 1 ? 'завтра' : ddmm} вимкнуть о`, 'th-bd-amb'), num: svitloClock(qs.first), ql, foot: upd('перше відключення'), side };
+      case 'unknown': return { cap: cap('є відключення', 'th-bd-amb'), num: '--:--', ql, foot: upd('час — у вікні графіка'), side };
+      default: // done, clear: до кінця доби світло має бути
+        if (off > 0) return { cap: cap(`${day} · черга ${q}`, 'th-bd-on'), num: 'Світло є', word: true, foot: upd('без відключень'), side };
+        return { cap: cap('світло є до', 'th-bd-on'), num: '24:00', ql, foot: upd(escapeHTML(tmrL || 'без відключень')), side };
+    }
+  }
+  // Черга не обрана: скільки черг із відключеннями; праворуч (широкий екран) — шкала доби кожної (зелене — є світло)
+  const queues = (live.providers || []).flatMap(p => (Array.isArray(p.queues) ? p.queues : []).filter(q => q && q.queue != null).map(q => ({ p, q, slots: (Array.isArray(q.slots) ? q.slots : []).filter(Boolean) })));
+  const rows = queues.slice(0, 4).map(x => {
+    const s = svitloQueueState(x.slots, off);
+    return `<span class="th-qc"><b style="color:${svitloColor(x.p)}">${escapeHTML(String(x.q.queue))}</b>${s.kind === 'unknown' ? '<span class="th-q-na">час — у вікні</span>' : svitloMiniBar(s.merged, now)}</span>`;
+  });
+  const head = `<span class="th-side-h">Черги ${off === 1 ? 'на завтра' : off > 1 ? 'на ' + ddmm : 'сьогодні'}</span>`;
+  const pick = unseen ? '<b class="th-bd-upd">графік оновлено</b>' : 'оберіть свою чергу ›';
+  if (live.noOutages) return { cap: cap('відключень немає', 'th-bd-on'), num: ddmm || '--', foot: pick, side: head + '<span class="th-side-f">Усі черги без відключень</span>' };
+  const n = queues.filter(x => x.slots.length).length;
+  return { cap: cap(`відключення ${ddmm}`, 'th-bd-amb'), num: `${n} <small>${pluralUk(n, 'черга', 'черги', 'черг')}</small>`, foot: pick,
+    side: head + `<span class="th-bd-qs">${rows.join('')}</span>` };
 }
 
 // Значки на плитках — однакові: «пігулка» в кольорі плитки з числом або коротким словом, без миготіння.
@@ -1043,7 +1038,7 @@ function tileBadge(inner, label, cls) {
 function tileBadgesHtml(tabId, tile) {
   const tab = tileSourceTab(tabId);
   if (!tab) return '';
-  const wide = !!tile && tile.matches('.th-w2, .th-w3, .th-w4, .th-big');
+  const wide = !!tile && tile.matches('.th-w2, .th-w3, .th-w4, .th-board');
   let html = '';
   tab.querySelectorAll(':scope > [class$="-live-badge"], :scope > .map-new-badge').forEach(b => {
     if (tabId === 'trains' && b.classList.contains('delays-live-badge')) return; // затримки — рядком на самій плитці
@@ -1056,7 +1051,7 @@ function tileBadgesHtml(tabId, tile) {
     const total = segs.reduce((sum, x) => sum + x.n, 0);
     if (!total) return;
     const label = b.title || String(total);
-    if (tabId === 'trains') html += tileBadge(`${total} ${pluralUk(total, 'зміна', 'зміни', 'змін')}`, label, 'th-pill-word');
+    if (tabId === 'trains') html += tileBadge(`${total}<span class="th-pill-more"> ${pluralUk(total, 'зміна', 'зміни', 'змін')}</span>`, label, 'th-pill-word');
     else if (tabId === 'alert-volunteers') html += tileBadge(`${total} ${pluralUk(total, 'збір', 'збори', 'зборів')}`, label, 'th-pill-word');
     else if (wide) html += tileBadge(segs.map(x => `<span class="th-pill-seg">${x.ico}${x.n}</span>`).join('<span class="th-pill-div"></span>'), label);
     else html += tileBadge(String(total), label);
@@ -1075,21 +1070,13 @@ function syncTileHome() {
     const html = tileBadgesHtml(tile.dataset.tab, tile);
     if (box.dataset.v !== html) { box.dataset.v = html; box.innerHTML = html; }
   });
-  const st = document.getElementById('th-trains-status');
-  if (st) {
-    const b = (tileSourceTab('trains') || document).querySelector('.delays-live-badge b');
-    const n = b ? parseInt(b.textContent, 10) || 0 : 0;
-    const txt = n ? `${n} ${pluralUk(n, 'затримка', 'затримки', 'затримок')}` : (trainsDelaysKnown ? 'Без затримок' : '');
-    if (st.textContent !== txt) st.textContent = txt;
-    st.className = 'th-st ' + (n ? 'th-bad' : 'th-ok');
-  }
   // Шторку закрили не з плитки (напр. повторним викликом) — прибираємо й екран розділу
   if (document.documentElement.classList.contains('section-open') && !document.documentElement.classList.contains('cabinet-open') && !document.querySelector('.alert-drawer.open, .main-list-widget.open, .shopping-drawer.open')) {
     closeTileSection(true);
   }
 }
 
-// Плитка «Електрички»: найближчі відправлення з Вільногірська — на телефоні 2, на широкому екрані 4
+// Плитка «Електрички» (табло): найближчі відправлення з Вільногірська
 // Службова частина назви станції: «П'ятихатки-Пас.», «П'ятихатки-Стик.», «Дніпро-Головний», «Кам'янське-Пасажирська».
 // Назви, де після дефіса — інше місто («Запоріжжя-Кам’янське»), лишаються як є
 const TRAIN_STATION_SUFFIX = /\s*-\s*(?:пас(?:ажирськ\S*)?|гол(?:овн\S*)?|стик(?:ов\S*)?|сорт(?:увальн\S*)?|вузл(?:ов\S*)?|товарн\S*)\.?$/i;
@@ -1118,29 +1105,36 @@ function trainsTileRows() {
 }
 function renderTrainsTile() {
   cabMineRefresh(); // відкритий кабінет: «Мої електрички» й «Мій день» (розклад, затримки, відлік хвилин)
-  const compact = document.getElementById('th-trains-compact'), side = document.getElementById('th-trains-side');
-  if (!compact || !side) return;
-  const put = (el, html) => { if (el.dataset.v !== html) { el.dataset.v = html; el.innerHTML = html; } };
-  const u = trainsTileUpcoming();
-  if (!u || !u.first) { put(compact, ''); put(side, ''); return; }
-  // Запізнення: до години — «+15 хв»; довше — «+1 год 39 хв» (на вузькій плитці — «+1:39»), як і в розділі, а не «+99 хв»
-  const late = (min, short) => min < 60 ? `+${min} хв` : short ? `+${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}` : `+${svitloDur(min)}`;
-  // short — вузька плитка: відлік лише коли до рейсу менше години (інакше не влазить назва напрямку)
-  const row = (r, short) => {
+  if (document.getElementById('th-trains-num')) tileBoardSet('trains', trainsBoard(trainsTileUpcoming()));
+}
+// Табло «Електрички»: над цифрами — куди їде найближча (і значок «N змін», якщо розклад змінювали), цифри — час
+// за розкладом, під ними — через скільки (або запізнення й коли прибуде) і наступний рейс. Праворуч (широкий екран) — ще 2 рейси
+function trainsBoard(u) {
+  const cap = tileBoardCap;
+  if (!u || !u.first) return { cap: cap('електрички'), num: '--:--', foot: 'Дніпро ↔ П’ятихатки' };
+  // Запізнення: до години — «+15 хв», довше — «+1:39» (а не «+99 хв»); повністю («1 год 39 хв») — у підказці
+  const late = (min) => min < 60 ? `+${min} хв` : `+${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}`;
+  const clock = (min) => svitloClock(((min % 1440) + 1440) % 1440); // запізнення через північ — 00:20, а не 24:20
+  const row = (r) => {
     const left = r.t + r.delay - u.nowMin;
-    const tail = r.delay ? `<span class="th-tr-del" title="Запізнення ${svitloDur(r.delay)}">${late(r.delay, short)}</span>`
+    const tail = r.delay ? `<span class="th-tr-del" title="Запізнення ${svitloDur(r.delay)}">${late(r.delay)}</span>`
       : left <= 0 ? '<span class="th-tr-in th-tr-now">зараз</span>'
-      : left < 60 ? `<span class="th-tr-in">${left} хв</span>`
-      : short ? '' : `<span class="th-tr-in">${svitloDur(left)}</span>`;
-    return `<span class="th-tr"><b>${r.time}</b><span class="th-tr-to">${short ? '' : '→ '}${escapeHTML(r.to)}</span>${tail}</span>`;
+      : left < 60 ? `<span class="th-tr-in">${left} хв</span>` : '';
+    return `<span class="th-tr"><b>${r.time}</b><span class="th-tr-to">→ ${escapeHTML(r.to)}</span>${tail}</span>`;
   };
   if (!u.next.length) {
-    const none = `<span class="th-tr-none">Сьогодні рейсів більше немає · завтра о ${u.first.time}</span>`;
-    put(compact, none); put(side, `<span class="th-side-h">З Вільногірська</span>${none}`);
-    return;
+    return { cap: cap(escapeHTML(u.first.to), '', '&nbsp;· завтра'), num: u.first.time, foot: 'на сьогодні все',
+      side: `<span class="th-side-h">З Вільногірська</span><span class="th-tr-none">На сьогодні все · завтра перший о ${u.first.time}</span>` };
   }
-  put(compact, u.next.slice(0, 2).map(r => row(r, true)).join(''));
-  put(side, `<span class="th-side-h">Найближчі з Вільногірська</span>${u.next.slice(0, 4).map(r => row(r, false)).join('')}`);
+  const t0 = u.next[0], t1 = u.next[1], left = t0.t + t0.delay - u.nowMin;
+  const more = u.next.slice(1, 3);
+  const side = more.length ? `<span class="th-side-h">Далі з Вільногірська</span>${more.map(row).join('')}`
+    : '<span class="th-side-h">З Вільногірська</span><span class="th-tr-none">Сьогодні це останній рейс</span>';
+  if (t0.delay) return { cap: cap(escapeHTML(t0.to)), num: t0.time, foot: `<span class="th-bd-del">${late(t0.delay)}</span> · <span class="th-bd-x">прибуде </span>о ${clock(t0.t + t0.delay)}`, side };
+  if (left <= 0) return { cap: cap(escapeHTML(t0.to)), num: t0.time, foot: 'відправляється зараз', side };
+  if (left >= 100) return { cap: cap(escapeHTML(t0.to)), num: t0.time, foot: `через ${svitloDur(left)}`, side };
+  const next = t1 ? `<span class="th-bd-next"> · далі ${t1.time}</span>` : '<span class="th-bd-next"> · останній</span>';
+  return { cap: cap(escapeHTML(t0.to)), num: t0.time, foot: `через ${left} хв${next}`, side };
 }
 
 function initTileHome() {
