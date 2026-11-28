@@ -4531,8 +4531,8 @@ function renderTrainVariants(variants) {
   }).join('');
 }
 
-// Порядок закріплених поїздів на початку списку: 38 Київ → Запоріжжя, далі 79/119 Дніпро → Львів / Хелм
-const LONG_TRAINS_PINNED = ['38', '79'];
+// Порядок закріплених поїздів на початку списку: зранку 61/120 Київ / Хелм → Дніпро, ввечері 37/119 Дніпро → Київ / Хелм
+const LONG_TRAINS_PINNED = ['61', '37'];
 
 async function loadLongTrainsData() {
   try {
