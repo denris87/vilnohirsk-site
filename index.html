@@ -125,7 +125,7 @@ document.addEventListener('touchend', function(e){
       <input type="hidden" id="input-type" value="">
       <div class="form-group captcha-group"><label class="form-label captcha-label">🤖 Анти-спам: скільки буде <b class="captcha-expression captcha-expr"></b> ?</label><input type="tel" class="form-input captcha-input" required placeholder="Введіть відповідь" oninput="this.value = this.value.replace(/[^0-9]/g, '')"><input type="hidden" class="captcha-answer"></div>
       <button type="submit" class="form-submit-btn driver" id="form-submit-btn">Опублікувати</button>
-      <p class="form-note">📣 Поїздка також з'явиться в Telegram-чаті попуток <a href="https://t.me/blablacarvln" target="_blank" rel="noopener">@blablacarvln</a> разом із номером телефону. Через 3 дні чат прибирає її сам.</p>
+      <p class="form-note">📣 Поїздка також з'явиться в Telegram-чаті попуток <a href="https://t.me/blablacarvln" target="_blank" rel="noopener">@blablacarvln</a> разом із номером телефону. З сайту й чату вона зникне сама: якщо вказано час «з … до …» — через годину після його кінця, а якщо лише час відправлення — опівночі.</p>
     </form>
   </div>
 </div>
@@ -611,6 +611,6 @@ document.addEventListener('touchend', function(e){
 <!-- Firebase SDK для push-уведомлений (lazy: загружается всегда, но используется только при подписке) -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-messaging-compat.js" defer></script>
-<script src="./js/app.js?v=20261128b" defer></script>
+<script src="./js/app.js?v=20261128c" defer></script>
 </body>
 </html>
