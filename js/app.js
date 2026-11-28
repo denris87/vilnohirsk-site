@@ -1912,7 +1912,23 @@ async function cabAdsToken() {
 }
 function cabAdsChanged() { if (cabUser) cabLoadAds(true); } // подали оголошення — оновити «Мої оголошення» і лічильник на плитці
 
-function cabRideActive(x) { return String(x.date || '') >= getKyivDateISO(); }
+// Попутки: коли поїздка зникає (так само рахує й сервер попуток, за київським часом).
+// Час «з … до …» — через годину після кінця проміжку: «з 12:00 до 12:30» — о 13:30, «з 23:30 до 00:30» — о 01:30 наступного дня.
+// Лише один час («о 12:00») — з початком нової доби, опівночі.
+// Числа — київський «настінний» час (25.11.2026 13:00 у Києві → Date.UTC(2026, 10, 25, 13, 0)).
+function rideEndsAtKyiv(x) {
+  const dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String((x && x.date) || ''));
+  if (!dm) return null; // дату не розібрати — не ховаємо (такі старі записи сервер прибирає сам)
+  const day = Date.UTC(+dm[1], +dm[2] - 1, +dm[3]);
+  const mins = (String(x.time || '').match(/\d{1,2}:\d{2}/g) || []).map(t => { const [h, m] = t.split(':').map(Number); return h < 24 && m < 60 ? h * 60 + m : NaN; });
+  if (mins.length < 2 || mins.some(isNaN)) return day + 864e5; // один час (чи не розібрати) — до кінця доби
+  let end = mins[mins.length - 1];
+  if (end < mins[0]) end += 24 * 60; // кінець — уже після півночі
+  return day + end * 60000 + 3600000;
+}
+function kyivWallNow() { const n = getKyivNow(); return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate(), n.getHours(), n.getMinutes()); }
+function rideExpired(x, nowWall) { const end = rideEndsAtKyiv(x); return end !== null && (nowWall === undefined ? kyivWallNow() : nowWall) >= end; }
+function cabRideActive(x) { return !rideExpired(x); }
 function cabSheetAdActive(a) { return a.state === 'published' || a.state === 'moderation' || a.state === 'pending'; }
 function cabAdsTileText() {
   if (cabAds.state !== 'ready' && cabAds.adsState !== 'ready') return 'Ваші поїздки й оголошення';
@@ -4617,6 +4633,8 @@ async function submitBlaBlaForm(event) {
   const submitBtn = document.getElementById('form-submit-btn'); const originalBtnText = submitBtn.innerText; submitBtn.innerText = 'Відправка...'; submitBtn.disabled = true; submitBtn.style.opacity = '0.7';
   const formData = { type: document.getElementById('input-type').value, name: document.getElementById('input-name').value, from: document.getElementById('input-from').value, to: document.getElementById('input-to').value, date: document.getElementById('input-date').value, time: document.getElementById('input-time-to').value ? `${document.getElementById('input-time-from').value} - ${document.getElementById('input-time-to').value}` : document.getElementById('input-time-from').value, seats: parseInt(document.getElementById('input-seats').value, 10), price: document.getElementById('input-price').value ? parseInt(document.getElementById('input-price').value, 10) : 0, phone: document.getElementById('input-phone').value, comment: document.getElementById('input-comment').value };
   try {
+    // Поїздку, яка вже минула (проміжок закінчився понад годину тому), сервер однаково не прийме — кажемо одразу
+    if (rideExpired(formData)) throw new Error('час цієї поїздки вже минув. Перевірте дату й час.');
     const headers = { 'Content-Type': 'application/json' };
     // Є вхід у кабінет (бета) — додаємо токен: сервер запам'ятає, чия поїздка, і вона з'явиться в «Моїх оголошеннях»
     const idToken = await cabAdsToken(); if (idToken) headers.Authorization = 'Bearer ' + idToken;
@@ -4762,11 +4780,11 @@ function updateBlaBlaToggleCounts(driversCount, passengersCount) {
 async function loadBlaBlaCarData() {
   try {
     const raw = await fetchCachedJson(BLABLA_API + '/api/rides', 'blabla_api', 2);
-    // Минулі поїздки не показуємо, навіть якщо список узято з кешу або сервер ще не встиг їх прибрати:
-    // поїздку видно до кінця її дня, з 00:00 за Києвом — уже ні
-    const today = getKyivDateISO();
+    // Минулі поїздки не показуємо, навіть якщо список узято з кешу або сервер ще не встиг їх прибрати
+    // (проміжок «з … до …» — до години після його кінця, один час — до кінця доби; див. rideEndsAtKyiv)
+    const nowWall = kyivWallNow();
     const d = (Array.isArray(raw) ? raw : (raw && Array.isArray(raw.rides) ? raw.rides : []))
-      .filter(x => x && !(/^\d{4}-\d{2}-\d{2}$/.test(String(x.date)) && String(x.date) < today));
+      .filter(x => x && !rideExpired(x, nowWall));
     markNewItems(d, 'blablacar');
     checkNotification('blablacar', d);
 
